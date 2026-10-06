@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=fe64b264a8"></script>
+<script src="firebase-config.js?v=8c6eaeb15f"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1008,6 +1008,12 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .pt-cheer{flex:none;background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:2px 9px;font-size:13px;cursor:pointer}
 .pt-cheer.on{border-color:var(--blood);background:rgba(255,46,110,.18)}.pt-cheer.static{cursor:default}
 .pt-leave{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
+.bossart.unknown svg{filter:brightness(.12) saturate(0)}
+.bossart.unknown{position:relative}
+.bossart.unknown::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;font:400 44px/1 Bangers,Bungee,sans-serif;color:var(--blood);text-shadow:0 0 12px #000}
+.bossart.thumb.unknown::after{font-size:30px}
+.boss-compact.hunt .bar.charge b{background:linear-gradient(90deg,var(--mana),#b98cff)}
+.boss-facts .block{color:var(--blood);font-weight:600}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -1921,6 +1927,14 @@ const TIERS=[
   {k:"country",     n:"Country boss",     share:.22,min:110,box:"gold"},
   {k:"floor",       n:"Floor boss",       share:.30,min:150,box:"legendary"}];
 const KILL_VIEWERS=[3000,6000,12000,20000,32000,60000];
+/* ---------- The hunt (floors from HUNT_FROM on) ----------
+   Bosses hide in lairs along the floor map; the Floor boss guards the stairwell. Until you walk into the
+   current boss's lair, every quest moves you a room deeper and its damage is stored as Charge. Entering the
+   lair starts the fight and unleashes all the Charge at once. A boss you've found blocks the corridor until
+   it falls. Damage is never wasted: overflow from a kill goes back into Charge for the next lair. */
+const HUNT_FROM="2026-10-12";
+const hunting=b=>!!(b&&b.hunt&&!b.engaged&&!b.defeated);           // current boss not found yet
+const bossLabel=(b,fallback)=>hunting(b)?(fallback||"an unseen boss"):b.name;
 function ladderBudget(hist,wk){
   let tot;
   if(hist.length){const avg=hist.reduce((a,x)=>a+x,0)/hist.length;tot=avg*1.25;}
@@ -1948,6 +1962,7 @@ function ensureBoss(){
     const hist=player.weekHist||[];
     const floor=legacy&&legacy.week===wk&&legacy.floor?legacy.floor:(player.bossCount||0)+1;
     b={week:wk,floor,startedAt:Date.now(),viewers0:player.viewers||0,budget:ladderBudget(hist,wk),total:legacy&&legacy.week===wk?legacy.dealt||0:0,kills:[],defeated:false,firstWeek:!hist.length};
+    if(wk>=HUNT_FROM){b.hunt=true;b.charge=0;b.engaged=false;}
     if(!player.created)player.created=Date.now();
     b.theme=legacy&&legacy.theme?legacy.theme:themeFor(floor);
     spawnTier(b,0);player.boss=b;player.bossCount=floor;changed=true;
@@ -1975,7 +1990,14 @@ function dealDamage(xp){
   const pf=petFx(player);
   let dmg=Math.round(xp*(1+statFx(player).dmg+pf.dmg+gearFx(player).dmg));
   if(pf.ability==="salamander"&&player.kindleDay!==today()){dmg*=2;player.kindleDay=today();ui.kindled=true;}
-  const start=b.total||0;b.total=start+dmg;let used=0;
+  b.total=(b.total||0)+dmg;
+  if(hunting(b)){b.charge=(b.charge||0)+dmg;return null;}
+  return applyDamage(dmg);
+}
+/* Raw damage into the boss you're fighting (a quest's hit, or Charge unleashed in an ambush). */
+function applyDamage(dmg){
+  const b=player.boss;if(!b||b.defeated||dmg<=0)return null;
+  const start=Math.max(0,(b.total||0)-dmg);let used=0;
   const kills=[];
   while(dmg>0&&!b.defeated){
     const left=bossHp(b);
@@ -1990,14 +2012,17 @@ function dealDamage(xp){
     b.kills=(b.kills||[]).concat({tier:b.tier,name:b.name,at,totalAt});
     player.viewers=(player.viewers||0)+KILL_VIEWERS[b.tier];
     pushEvent(`Floor ${b.floor}: defeated ${b.name}, the ${t.n}, and won a ${BOXES[t.box].n}`);
-    if(b.tier>=TIERS.length-1){b.defeated=true;b.defeatedOn=today();
+    if(b.tier>=TIERS.length-1){b.defeated=true;b.defeatedOn=today();b.engaged=false;
       if(Math.random()<.15){giveBox("celestial",`The stars watched you clear Floor ${b.floor}`);pushEvent(`Floor ${b.floor}: a Celestial Box fell from the ceiling`);ui.celestialNote=b.floor;}}
-    else spawnTier(b,b.tier+1);
+    else{spawnTier(b,b.tier+1);
+      if(b.hunt){b.engaged=false;b.charge=(b.charge||0)+dmg;dmg=0;break;} // the next boss is hiding deeper in the floor
+    }
   }
   return kills.length?{kills}:null;
 }
 const floorOf=()=>player.boss&&player.boss.floor?player.boss.floor:Math.max(1,player.bossCount||1);
-function undoDamage(xp){const b=player.boss;if(b&&!b.defeated){const d=Math.round(xp*(1+statFx(player).dmg+petFx(player).dmg+gearFx(player).dmg));b.dealt=Math.max(0,b.dealt-d);b.total=Math.max(0,(b.total||0)-d);}}
+function undoDamage(xp){const b=player.boss;if(b&&!b.defeated){const d=Math.round(xp*(1+statFx(player).dmg+petFx(player).dmg+gearFx(player).dmg));
+  if(hunting(b))b.charge=Math.max(0,(b.charge||0)-d);else b.dealt=Math.max(0,b.dealt-d);b.total=Math.max(0,(b.total||0)-d);}}
 /* Small reactions: the avatar hops when you finish something, the boss flinches when hit. */
 function react(hitBoss){
   requestAnimationFrame(()=>{
@@ -2021,7 +2046,7 @@ function lootToast(l){
     ui.mapDrop=null;
     if(ui.celestialNote){const f=ui.celestialNote;ui.celestialNote=null;setTimeout(()=>{SFX.play("reveal","magical");toast(`<span class="big">A Celestial Box</span> The ceiling of Floor ${f} cracked open and something from the stars landed at your feet. It's in your Inventory.`,"lvl");},1400);}
     toast(`<span class="big">${esc(t.n)} defeated</span> ${esc(boxText)} ${boxes.length>1?"are":"is"} waiting in your loot boxes.`,"lvl",()=>openBox(last.box.id),"Open it");
-    if(nb&&!nb.defeated)setTimeout(()=>say("next",{boss:nb.name,tier:TIERS[nb.tier].n}),1200);
+    if(nb&&!nb.defeated&&!hunting(nb))setTimeout(()=>say("next",{boss:nb.name,tier:TIERS[nb.tier].n}),1200);
     const evs=["kill"].concat(kills.some(k=>k.tier===TIERS.length-1)?["floorboss"]:[]).concat(ui.pendingAchAfterBoss||[]);
     if(evs.includes("floorboss"))partyPost("floor",`cleared Floor ${Math.max(1,(player.bossCount||1)-1)}`);
     checkAch(evs);ui.pendingAchAfterBoss=null;
@@ -2043,7 +2068,7 @@ function lootToast(l){
       <div class="vportrait bossart slain fresh-kill">${bossSVG(bossName,true,{tier:last.tier})}<div class="vstamp" aria-hidden="true">Slain</div></div>
       <div class="vname">${esc(bossName)}</div>
       ${ui.mapDrop?`<div class="vmap"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M4 6 L20 2 L38 8 L56 4 L56 34 L38 38 L20 32 L4 36 Z" fill="#ead9b0" stroke="#2a1c10" stroke-width="2" stroke-linejoin="round"/><path d="M20 2 L20 32 M38 8 L38 38" stroke="#c9b48a" stroke-width="1.4"/><path d="M10 26 Q18 14 28 20 T48 14" fill="none" stroke="#e8283c" stroke-width="2" stroke-dasharray="3 2"/><path d="M45 11 l4 4 m0 -4 l-4 4" stroke="#2a1c10" stroke-width="2"/></svg><div><b>${esc(ui.mapDrop.n)}</b><span>It ${esc(ui.mapDrop.d)}. Check the Floor map.</span></div></div>`:""}
-      <div class="vloot"><div class="vico">${boxIconSVG(last.box.tier)}</div><div class="vtxt"><span class="label">You won</span><b>${esc(boxText)}</b><span>${nb&&!nb.defeated?`Next up: ${esc(TIERS[nb.tier].n)}`:`Floor ${floor} cleared`}</span></div></div>
+      <div class="vloot"><div class="vico">${boxIconSVG(last.box.tier)}</div><div class="vtxt"><span class="label">You won</span><b>${esc(boxText)}</b><span>${nb&&!nb.defeated?(hunting(nb)?`The ${esc(TIERS[nb.tier].n)} waits deeper in the floor`:`Next up: ${esc(TIERS[nb.tier].n)}`):`Floor ${floor} cleared`}</span></div></div>
       ${ep?`<div class="vrecap"><span class="label">Since the last kill</span><span>${ep.count} quest${ep.count===1?"":"s"}${ep.biggest?` · biggest hit <b>${esc(ep.biggest.t)}</b> (−${ep.biggest.xp})`:""}</span><span class="muted">Episode ${ep.no} is ready to watch in the banner above the boss.</span></div>`:""}
       <button type="button" class="btn gold vgo" id="vGo">Collect loot</button>
       <div class="vskip">Take your time. The loot will wait.</div>
@@ -2292,7 +2317,7 @@ function showCtx(){
   const stats=Object.keys(STATS).sort((a,b)=>(p.stats[b]||0)-(p.stats[a]||0));
   return {name:p.name,od:od.length,oldT:od[0]&&od[0].title,oldD:od[0]?daysBetween(od[0].due,td):0,streak:(p.lastDoneDate===td||p.lastDoneDate===addDays(td,-1))?(p.streak||0):0,
     done:p.doneCount||0,week:done.length,big:done[0]&&done[0].title,pet:ap&&ap.name,petKind:ap&&PETS[ap.key].n,bond:ap?bondLevel(ap.bond):0,
-    lvl:levelInfo(p.xp||0).L,floor:p.boss?p.boss.floor:1,boss:p.boss&&p.boss.name,rank:p.rank&&p.rank.last,viewers:fmtViewers(p.viewers||0),gold:p.gold||0,
+    lvl:levelInfo(p.xp||0).L,floor:p.boss?p.boss.floor:1,boss:p.boss&&!hunting(p.boss)?p.boss.name:null,rank:p.rank&&p.rank.last,viewers:fmtViewers(p.viewers||0),gold:p.gold||0,
     topStat:STATS[stats[0]].n,lowStat:STATS[stats[stats.length-1]].n,best:C(p,"bestDay"),wpn:wpn&&wpn.n,arm:arm&&arm.n,kos:C(p,"kos"),quit:C(p,"abandoned"),
     rc:raceOf(p)?`${raceOf(p).n} ${classOf(p)?classOf(p).n:""}`.trim():null,ach:Object.keys(p.ach||{}).length,open:open.length};
 }
@@ -2496,6 +2521,7 @@ function talkScenes(ep){
    Every finished quest moves you one room deeper and resolves what's in it. Two secret rooms hang off
    the corridor; a big day (4 quests) or a Mini-boss/Raid quest uncovers one. Rebuilt each floor. */
 const MAP_W=5,MAP_H=5,MAP_LEN=16;
+const mapLen=m=>(m&&m.len)||MAP_LEN;
 const ROOM={
   entrance:{n:"Entrance",d:"Where the floor begins. Smells like regret and wet stone."},
   empty:{n:"Corridor",d:"Nothing here but footprints. Some of them yours."},
@@ -2506,6 +2532,7 @@ const ROOM={
   merchant:{n:"Wandering merchant",d:"Sells one item until the floor ends."},
   door:{n:"Sealed door",d:"Opens on any Elite or harder quest, or after 3 lock-picking quests."},
   stairs:{n:"Stairwell",d:"The end of the map. Reaching it pays an exploration bonus."},
+  boss:{n:"Boss lair",d:"A boss hides here. Walking in starts the fight and unleashes your Charge. It blocks the corridor until it falls."},
   secret:{n:"Secret room",d:"A hidden stash. Found on a 4-quest day or a Mini-boss quest; once a map has located it, any Elite quest opens it."}};
 /* Maps drop from bosses. The floor starts in fog: you only know rooms you've walked or a map has shown you. */
 const MAP_DROPS=[
@@ -2515,36 +2542,54 @@ const MAP_DROPS=[
 const mapDropFor=tier=>tier>=5?MAP_DROPS[2]:tier>=3?MAP_DROPS[1]:MAP_DROPS[0];
 function revealMap(m,drop){
   m.rev=m.rev||[];const fresh=[];
-  let left=drop.ahead;for(let i=m.pos+1;i<MAP_LEN&&left>0;i++){if(!m.rev.includes(i)){m.rev.push(i);fresh.push(i);left--;}}
+  let left=drop.ahead;for(let i=m.pos+1;i<mapLen(m)&&left>0;i++){if(!m.rev.includes(i)){m.rev.push(i);fresh.push(i);left--;}}
   let sl=drop.secrets;for(const se of (m.secrets||[])){if(sl<=0)break;if(!se.located&&!se.found){se.located=true;se.fresh=Date.now();sl--;}}
   m.fresh={at:Date.now(),rooms:fresh};m.drops=(m.drops||0)+1;
   return fresh.length;
 }
+/* Hunt floors size the corridor to your pace: about half a typical week's quests are steps,
+   so a normal week reaches the stairwell around day five or six, whether you do 12 quests a week or 30. */
+function huntLen(b){
+  const since=Date.now()-28*864e5;
+  const recent=tasks.filter(t=>t.done&&(t.doneAt||0)>=since).length;
+  let q=recent>=8?recent/4:20;
+  const days=7-Math.max(0,Math.min(6,daysBetween(b.week,today())));
+  q=q*days/7;
+  return Math.max(b.firstWeek?8:10,Math.min(MAP_LEN,Math.round(q*.55)+1));
+}
 function buildMap(b){
   const r=srand("map|"+b.week+"|"+b.floor);
+  const LEN=b.hunt?huntLen(b):MAP_LEN;
   let path=null;
   for(let tries=0;tries<200&&!path;tries++){ // self-avoiding walk, bottom-left upward
     const p=[[0,MAP_H-1]],seen=new Set(["0,"+(MAP_H-1)]);
-    while(p.length<MAP_LEN){const [x,y]=p[p.length-1];
+    while(p.length<LEN){const [x,y]=p[p.length-1];
       const opts=[[1,0],[-1,0],[0,-1],[0,1]].map(([dx,dy])=>[x+dx,y+dy]).filter(([a,c])=>a>=0&&c>=0&&a<MAP_W&&c<MAP_H&&!seen.has(a+","+c));
       if(!opts.length)break;const w=opts.map(([a,c])=>(c<y?3:1)+(a>x?1:0));let t=r()*w.reduce((s,v)=>s+v,0),k=0;for(;k<w.length;k++){if((t-=w[k])<0)break;}
       const nx=opts[Math.min(k,opts.length-1)];p.push(nx);seen.add(nx[0]+","+nx[1]);}
-    if(p.length===MAP_LEN)path=p;}
-  if(!path){path=[];for(let i=0;i<MAP_LEN;i++){const row=Math.floor(i/4),col=row%2?3-i%4:i%4;path.push([col,MAP_H-1-row]);}}
+    if(p.length===LEN)path=p;}
+  if(!path){path=[];for(let i=0;i<LEN;i++){const row=Math.floor(i/4),col=row%2?3-i%4:i%4;path.push([col,MAP_H-1-row]);}}
   const kinds=["chest","chest","chest","trap","trap","shrine","shrine","lair","merchant","door","empty","empty","empty","empty"];
   for(let i=kinds.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[kinds[i],kinds[j]]=[kinds[j],kinds[i]];}
   if(kinds[0]==="door"){const j=kinds.indexOf("empty");[kinds[0],kinds[j]]=[kinds[j],kinds[0]];}
-  const rooms=path.map(([x,y],i)=>({x,y,t:i===0?"entrance":i===MAP_LEN-1?"stairs":kinds[i-1]}));
+  const rooms=path.map(([x,y],i)=>({x,y,t:i===0?"entrance":i===LEN-1?"stairs":kinds[(i-1)%kinds.length]}));
+  if(b.hunt){
+    // Five lairs in ladder order, one in each fifth of the corridor (never the entrance or the stairwell); the Floor boss guards the stairs.
+    const inner=LEN-3;let prev=1; // rooms 2..LEN-2: the first step out of the entrance is never a lair
+    for(let k=0;k<5;k++){const lo=Math.max(prev+1,2+Math.floor(inner*k/5)),hi=Math.max(lo,Math.min(LEN-2-(4-k),1+Math.floor(inner*(k+1)/5)));
+      const i=lo+Math.floor(r()*(hi-lo+1));rooms[i].t="boss";rooms[i].boss=k;prev=i;}
+    rooms[LEN-1].boss=5;
+  }
   const used=new Set(path.map(([x,y])=>x+","+y)),secrets=[];
-  const cand=rooms.map((rm,i)=>i).filter(i=>i>=3&&i<=MAP_LEN-3);
+  const cand=rooms.map((rm,i)=>i).filter(i=>i>=3&&i<=LEN-3);
   for(let n=0;n<40&&secrets.length<2;n++){const i=cand[Math.floor(r()*cand.length)],rm=rooms[i];
     const nb=[[1,0],[-1,0],[0,-1],[0,1]].map(([dx,dy])=>[rm.x+dx,rm.y+dy]).filter(([a,c])=>a>=0&&c>=0&&a<MAP_W&&c<MAP_H&&!used.has(a+","+c));
     if(nb.length&&!secrets.some(s=>s.link===i)){const [a,c]=nb[Math.floor(r()*nb.length)];used.add(a+","+c);secrets.push({x:a,y:c,link:i,found:false});}}
   rooms.forEach((rm,i)=>{if(rm.t==="merchant"){const pool=ITEMS.filter(it=>["common","uncommon","rare"].includes(it.rar)&&!it.base);rm.item=pool[Math.floor(r()*pool.length)].id;}});
-  return {week:b.week,floor:b.floor,rooms,secrets,pos:0,lock:0,log:[],rev:[0],drops:0};
+  return {week:b.week,floor:b.floor,rooms,secrets,pos:0,lock:0,log:[],rev:[0],drops:0,len:LEN,hunt:!!b.hunt};
 }
 function ensureMap(){const b=player.boss;if(!b)return null;if(!player.map||player.map.week!==b.week||player.map.floor!==b.floor){player.map=buildMap(b);}
-  const m=player.map;if(!m.rev){m.rev=[];for(let i=0;i<=Math.min(MAP_LEN-1,m.pos+1);i++)m.rev.push(i);} // older saves keep what they could already see
+  const m=player.map;if(!m.rev){m.rev=[];for(let i=0;i<=Math.min(mapLen(m)-1,m.pos+1);i++)m.rev.push(i);} // older saves keep what they could already see
   return m;}
 const MERCH_PRICE={common:90,uncommon:200,rare:420};
 function mapLog(m,t){m.log=[t].concat(m.log||[]).slice(0,4);return t;}
@@ -2559,7 +2604,9 @@ function mapStep(t){
     if(s){s.found=true;bump("secrets");const roll=Math.random(),tier=roll<.03?"celestial":roll<.5?"gold":"silver";giveBox(tier,"A secret room on the map");
       out.push(mapLog(m,`Secret room found! A hidden stash held a ${BOXES[tier].n}.`));}
   }
-  if(m.pos>=MAP_LEN-1)return out;
+  const hb=player.boss;
+  if(hb&&hb.hunt&&hb.engaged&&!hb.defeated)return out; // the boss you found blocks the corridor
+  if(m.pos>=mapLen(m)-1)return out;
   const next=m.rooms[m.pos+1];
   if(next.t==="door"&&!next.open){
     if(t.effort>=3){next.open=true;out.push(mapLog(m,"You shoulder the sealed door open."));}
@@ -2577,6 +2624,12 @@ function mapStep(t){
   if(rm.t==="lair"){const d=Math.min(player.hp-1,4+floor);player.hp-=Math.max(0,d);giveBox("bronze","A monster lair on the map");out.push(mapLog(m,`Room ${m.pos+1}: a monster lair. You lost ${d} HP and took their Bronze Box.`));}
   if(rm.t==="merchant"){const it=ITEMS.find(i=>i.id===rm.item);out.push(mapLog(m,`Room ${m.pos+1}: a wandering merchant is selling ${it?it.n:"something"}. Check the map.`));}
   if(rm.t==="door")out.push(mapLog(m,`Room ${m.pos+1}: through the door.`));
+  if(hb&&hb.hunt&&!hb.defeated&&rm.boss===hb.tier){
+    const c=hb.charge||0;hb.engaged=true;hb.charge=0;bump("ambushes");
+    out.push(mapLog(m,rm.t==="stairs"?`The stairwell! ${hb.name}, the Floor boss, stands in the way.`:`Room ${m.pos+1}: you found ${hb.name}'s lair!`));
+    ui.ambush={name:hb.name,tier:hb.tier,charge:c};
+    if(c>0){const l=applyDamage(c);if(l)ui.ambushLoot=l;}
+  }
   if(rm.t==="empty"&&Math.random()<.3)out.push(mapLog(m,`Room ${m.pos+1}: ${spick(srand("e"+m.pos+m.week),["just a corridor. A rat waves.","nothing here but a suspicious puddle.","an empty room with excellent acoustics.","a hallway lined with other crawlers' abandoned to-do lists."])}`));
   if(rm.t==="stairs"){if(!m.drops)bump("fogwar");giveBox("gold","Explored the whole floor");player.viewers=(player.viewers||0)+15000;bump("explored");out.push(mapLog(m,`You mapped the whole floor and found the stairwell! +a Gold Box and 15K viewers.`));}
   return out;
@@ -2600,12 +2653,13 @@ function mapIcon(t,cx,cy){
   if(t==="door")return `<path d="M${cx-8} ${cy+10} L${cx-8} ${cy-3} Q${cx-8} ${cy-11} ${cx} ${cy-11} Q${cx+8} ${cy-11} ${cx+8} ${cy-3} L${cx+8} ${cy+10} Z" fill="#7a4a26" stroke="${K}" stroke-width="1.8"/><circle cx="${cx}" cy="${cy+1}" r="2.6" fill="#ffd23f" stroke="${K}" stroke-width="1"/>`;
   if(t==="stairs")return `<path d="M${cx-10} ${cy+9} L${cx-10} ${cy+3} L${cx-4} ${cy+3} L${cx-4} ${cy-3} L${cx+2} ${cy-3} L${cx+2} ${cy-9} L${cx+10} ${cy-9} L${cx+10} ${cy+9} Z" fill="#8a7a6a" stroke="${K}" stroke-width="1.8"/>`;
   if(t==="entrance")return `<path d="M${cx} ${cy+10} L${cx} ${cy-6} M${cx-6} ${cy} L${cx} ${cy-7} L${cx+6} ${cy}" fill="none" stroke="${K}" stroke-width="2.4"/>`;
+  if(t==="boss")return `<path d="M${cx-9} ${cy-4} L${cx-12} ${cy-13} L${cx-5} ${cy-8} Z M${cx+9} ${cy-4} L${cx+12} ${cy-13} L${cx+5} ${cy-8} Z" fill="#e8283c" stroke="${K}" stroke-width="1.4"/><path d="M${cx-8} ${cy+1} Q${cx-9} ${cy-10} ${cx} ${cy-10} Q${cx+9} ${cy-10} ${cx+8} ${cy+1} L${cx+5} ${cy+4} L${cx+5} ${cy+9} L${cx-5} ${cy+9} L${cx-5} ${cy+4} Z" fill="#f5ead0" stroke="${K}" stroke-width="1.8"/><circle cx="${cx-3.5}" cy="${cy-3}" r="2.6" fill="#e8283c" stroke="${K}" stroke-width="1"/><circle cx="${cx+3.5}" cy="${cy-3}" r="2.6" fill="#e8283c" stroke="${K}" stroke-width="1"/><path d="M${cx-3} ${cy+6} L${cx-3} ${cy+9} M${cx} ${cy+6} L${cx} ${cy+9} M${cx+3} ${cy+6} L${cx+3} ${cy+9}" stroke="${K}" stroke-width="1.2"/>`;
   if(t==="secret")return `<path d="M${cx} ${cy-10} L${cx+3} ${cy-3} L${cx+10} ${cy} L${cx+3} ${cy+3} L${cx} ${cy+10} L${cx-3} ${cy+3} L${cx-10} ${cy} L${cx-3} ${cy-3} Z" fill="#ffd23f" stroke="${K}" stroke-width="1.4"/>`;
   return "";
 }
 function mapSVG(m){
   const S=58,P=10,W=MAP_W*S+P*2,H=MAP_H*S+P*2,K="#2a1c10",c=(x,y)=>[P+x*S+S/2,P+y*S+S/2];
-  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor ${m.floor} map, room ${m.pos+1} of ${MAP_LEN}"><defs><pattern id="mapgrid" width="${S}" height="${S}" patternUnits="userSpaceOnUse" x="${P}" y="${P}"><path d="M${S} 0 L0 0 0 ${S}" fill="none" stroke="#c9b48a" stroke-width=".8" stroke-dasharray="2 3"/></pattern></defs>`;
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor ${m.floor} map, room ${m.pos+1} of ${mapLen(m)}"><defs><pattern id="mapgrid" width="${S}" height="${S}" patternUnits="userSpaceOnUse" x="${P}" y="${P}"><path d="M${S} 0 L0 0 0 ${S}" fill="none" stroke="#c9b48a" stroke-width=".8" stroke-dasharray="2 3"/></pattern></defs>`;
   s+=`<rect width="${W}" height="${H}" rx="8" fill="#ead9b0"/><rect x="${P}" y="${P}" width="${MAP_W*S}" height="${MAP_H*S}" fill="url(#mapgrid)"/>`;
   const rev=new Set(m.rev||[]),visible=i=>i<=m.pos||rev.has(i),fresh=m.fresh&&Date.now()-m.fresh.at<6000?new Set(m.fresh.rooms):new Set();
   // corridors (secret links only once found)
@@ -2617,7 +2671,10 @@ function mapSVG(m){
   for(let gx=0;gx<MAP_W;gx++)for(let gy=0;gy<MAP_H;gy++){if(known.has(gx+","+gy))continue;const [x,y]=c(gx,gy);s+=`<rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="10" fill="#3a2f2a" opacity=".82"/><path d="M${x-14} ${y+4} q6 -8 12 -2 q6 -9 14 0" fill="none" stroke="#5a4a3a" stroke-width="2" stroke-linecap="round"/>`;}
   m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos,past=i<m.pos,nw=fresh.has(i);
     s+=`<g${nw?' class="mapnew"':""}><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="${here?"#fff3c4":past?"#f5ead0":"#e2cfa2"}" stroke="${here?"#e8283c":K}" stroke-width="${here?4:2.4}" ${!past&&!here?'stroke-dasharray="5 3"':""}/>`;
-    s+=`<g opacity="${past&&rm.t!=="merchant"?.55:1}">${mapIcon(rm.t==="door"&&rm.open?"entrance":rm.t,x,y)}</g>`+(rm.t==="merchant"&&rm.sold?`<path d="M${x-12} ${y+12} L${x+12} ${y-12}" stroke="#e8283c" stroke-width="3"/>`:"")+`</g>`;
+    const bossDead=rm.boss!=null&&player.boss&&player.boss.week===m.week&&(player.boss.defeated||player.boss.tier>rm.boss);
+    s+=`<g opacity="${(past&&rm.t!=="merchant")||bossDead?.55:1}">${mapIcon(rm.t==="door"&&rm.open?"entrance":rm.t,x,y)}</g>`
+      +(rm.t==="stairs"&&rm.boss!=null&&!bossDead?`<g transform="translate(${x+12} ${y+12}) scale(.55)">${mapIcon("boss",0,0)}</g>`:"")
+      +(bossDead?`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`:"")+(rm.t==="merchant"&&rm.sold?`<path d="M${x-12} ${y+12} L${x+12} ${y-12}" stroke="#e8283c" stroke-width="3"/>`:"")+`</g>`;
     if(here)s+=`<g class="mapme"><circle cx="${x+16}" cy="${y-16}" r="8" fill="#e8283c" stroke="${K}" stroke-width="2"/><circle cx="${x+16}" cy="${y-17}" r="2.6" fill="#fff"/></g>`;});
   (m.secrets||[]).forEach(se=>{if(!se.found&&!se.located)return;const [x,y]=c(se.x,se.y);
     if(se.found)s+=`<rect x="${x-19}" y="${y-19}" width="38" height="38" rx="6" fill="#fff3c4" stroke="${K}" stroke-width="2.4" stroke-dasharray="5 3"/>${mapIcon("secret",x,y)}`;
@@ -2635,10 +2692,11 @@ function renderMap(){
     mh=`<div class="merch"><span class="mini-ico">${lootIconSVG(it.id)}</span><div class="what"><b class="rar-${it.rar}">${esc(it.n)}</b><span>${RARITY[it.rar].n} · ${esc(it.d)}</span></div>
       <button class="btn gold sm" type="button" id="buyMerch" ${own||player.gold<price?"disabled":""}>${own?"Owned":price+" gold"}</button></div>`;}
   el.innerHTML=`<div class="mapwrap">${mapSVG(m)}</div>
-    <div class="mapinfo"><div><b>Room ${m.pos+1} of ${MAP_LEN}</b> · ${esc(ROOM[cur.t].n)}${m.pos>=MAP_LEN-1?" · floor fully mapped":""}</div>
-      <div class="muted">${m.pos>=MAP_LEN-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · a map marked one with a red X: any Elite quest opens it once you've passed it":""}. Maps this floor: ${m.drops||0}.</div>
+    <div class="mapinfo"><div><b>Room ${m.pos+1} of ${mapLen(m)}</b> · ${esc(ROOM[cur.t].n)}${m.pos>=mapLen(m)-1?" · floor fully mapped":""}</div>
+      <div class="muted">${player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated?`${esc(player.boss.name)} blocks the way. Beat it to keep exploring.`
+        :m.pos>=mapLen(m)-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · a map marked one with a red X: any Elite quest opens it once you've passed it":""}. Maps this floor: ${m.drops||0}.</div>
       ${(m.log||[]).length?`<ul class="maplog">${m.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>${mh}
-    <details class="maplegend"><summary>Map key</summary>${["chest","trap","shrine","lair","merchant","door","stairs","secret"].map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
+    <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["chest","trap","shrine","lair","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
   const bm=$("buyMerch");if(bm)bm.onclick=buyMerchant;
 }
 
@@ -2718,7 +2776,7 @@ function systemsTick(){
       evs.push("theme");
     }
   }
-  if(bb&&finalDay(bb)&&player.finalSaid!==bb.week){player.finalSaid=bb.week;ch=true;say("stairwell",{floor:bb.floor,boss:bb.name});}
+  if(bb&&finalDay(bb)&&player.finalSaid!==bb.week){player.finalSaid=bb.week;ch=true;say("stairwell",{floor:bb.floor,boss:bossLabel(bb,"an unseen boss").replace(/^a/,"A")});}
   if(rcUnlocked()&&!rcDone()&&!player.pick){
     if(!player.created)player.created=Date.now();
     player.pick={races:rollPicks("race",0),classes:rollPicks("class",0),rr:false,rc:false};ch=true;
@@ -3211,7 +3269,7 @@ function makeEpisodes(kills){
     const last=minis[minis.length-1];
     pushEpisode(Object.assign(summarizeWindow(from,Date.now()),{kind:"mini",floor:b.floor,title:`The Fall of ${last.name}`,
       kills:minis.map(k=>({tier:k.tier,name:k.name})),dmg:Math.max(0,(last.totalAt||0)-(prev&&prev.totalAt||0)),boxes:minis.map(k=>k.box.tier),
-      next:b.defeated?null:{name:b.name,tier:b.tier,tag:BOSS_TAG[b.name]||""},pet:petBrief()}));
+      next:b.defeated?null:{name:b.name,tier:b.tier,tag:BOSS_TAG[b.name]||"",unknown:hunting(b)},pet:petBrief()}));
   }
   if(kills.some(k=>k.tier===TIERS.length-1))makeFull(b,true);
   store.savePlayer(player).catch(writeFailed);
@@ -3222,9 +3280,9 @@ function makeFull(b,cleared){
   const nextName=BOSSES[(b.floor*2)%BOSSES.length];
   pushEpisode(Object.assign(summarizeWindow(from,to),{kind:"full",floor:b.floor,cleared,
     title:cleared?`Floor ${b.floor} Finale: All Six Fall`:`Floor ${b.floor} Finale: The Stairwell Closes`,
-    kills:(b.kills||[]).map(k=>({tier:k.tier,name:k.name})),reached:cleared?null:{tier:b.tier,name:b.name,hp:bossHp(b),max:b.maxHp},
+    kills:(b.kills||[]).map(k=>({tier:k.tier,name:k.name})),reached:cleared?null:{tier:b.tier,name:b.name,hp:bossHp(b),max:b.maxHp,unknown:hunting(b)},
     dmg:b.total||0,boxes:(b.kills||[]).map(k=>TIERS[k.tier].box),
-    next:{name:nextName,tier:0,tag:BOSS_TAG[nextName]||"",floor:b.floor+1,theme:themeById(themeFor(b.floor+1)).n,themeLine:themeById(themeFor(b.floor+1)).bane},pet:petBrief(),viewers:{from:b.viewers0||0,to:player.viewers||0}}));
+    next:{name:nextName,tier:0,tag:BOSS_TAG[nextName]||"",unknown:addDays(b.week,7)>=HUNT_FROM,floor:b.floor+1,theme:themeById(themeFor(b.floor+1)).n,themeLine:themeById(themeFor(b.floor+1)).bane},pet:petBrief(),viewers:{from:b.viewers0||0,to:player.viewers||0}}));
 }
 
 /* ---------- Episode player ---------- */
@@ -3254,14 +3312,16 @@ function epScenes(ep){
     sc.push({dur:2600,html:`<div class="sc sc-mont"><div class="mont-boss"><div class="bossart">${bossSVG(k.name,false,{tier:k.tier})}</div><div class="mont-stamp">Down</div></div>
       <div class="mont-right"><div class="mont-hp"><b></b></div><div class="hits">${hits.slice(0,5).map((q,i)=>`<div class="hit" style="animation-delay:${.1+i*.2}s"><span>${esc(q.t)}</span><b>−${q.xp}</b></div>`).join("")}</div>
       <div class="mont-sum">${plural(ep.count,"quest")} · ${ep.dmg} damage${ep.kills.length>1?` · ${ep.kills.length} bosses down`:""}</div></div></div>`});
-    if(ep.next)sc.push({dur:2200,html:`<div class="sc sc-next"><div class="ep-kicker">Up next</div><div class="next-art bossart">${bossSVG(ep.next.name,false,{tier:ep.next.tier})}</div>
+    if(ep.next)sc.push({dur:2200,html:ep.next.unknown?`<div class="sc sc-next"><div class="ep-kicker">Up next</div><div class="next-art bossart unknown">${bossSVG("",false,{tier:ep.next.tier,unknown:true})}</div>
+      <div class="ep-title">???</div><div class="ep-sub">${esc(TIERS[ep.next.tier].n)} · somewhere deeper in the floor</div></div>`
+      :`<div class="sc sc-next"><div class="ep-kicker">Up next</div><div class="next-art bossart">${bossSVG(ep.next.name,false,{tier:ep.next.tier})}</div>
       <div class="ep-title">${esc(ep.next.name)}</div><div class="ep-sub">${esc(TIERS[ep.next.tier].n)}${ep.next.tag?" · "+esc(ep.next.tag):""}</div></div>`});
     return sc;
   }
   const killed=new Set(ep.kills.map(k=>k.tier));
   sc.push({dur:5000,html:`<div class="sc sc-ladder"><div class="ep-kicker">${ep.cleared?"The whole ladder":"How far they got"}</div>
     <div class="lad">${TIERS.map((t,i)=>{const k=ep.kills.find(x=>x.tier===i),r=ep.reached&&ep.reached.tier===i;
-      return `<div class="lcell${k?" dead":r?" alive":" none"}" style="animation-delay:${.15+i*.35}s"><div class="bossart">${k?bossSVG(k.name,true,{crop:true,tier:i}):r?bossSVG(ep.reached.name,false,{crop:true,tier:i}):""}</div><span>${esc(t.n.replace(" boss",""))}</span>${r?`<em>Escaped</em>`:""}</div>`;}).join("")}</div>
+      return `<div class="lcell${k?" dead":r?" alive":" none"}" style="animation-delay:${.15+i*.35}s"><div class="bossart">${k?bossSVG(k.name,true,{crop:true,tier:i}):r?(ep.reached.unknown?bossSVG("",false,{crop:true,tier:i,unknown:true}):bossSVG(ep.reached.name,false,{crop:true,tier:i})):""}</div><span>${esc(t.n.replace(" boss",""))}</span>${r?`<em>Escaped</em>`:""}</div>`;}).join("")}</div>
     <div class="mont-sum">${plural(ep.count,"quest")} · ${ep.dmg} damage · ${plural(killed.size,"boss")} down · ${plural(ep.boxes.length,"box")}</div></div>`});
   sc.push({dur:4000,html:`<div class="sc sc-high"><div class="ep-kicker">Slow-motion replay</div>
     ${ep.biggest?`<div class="high-q">${esc(ep.biggest.t)}</div><div class="high-n">−${ep.biggest.xp}</div><div class="ep-sub">The hardest hit of the floor</div>`
@@ -3270,10 +3330,11 @@ function epScenes(ep){
   const ch=chatLines(ep),v=ep.viewers||{from:0,to:player.viewers};
   sc.push({dur:4500,html:`<div class="sc sc-chat"><div class="chat-top"><span class="live">Live chat</span><span class="num">${fmtViewers(v.from)} → <b>${fmtViewers(v.to)}</b> viewers</span></div>
     <div class="chat">${ch.map((c,i)=>`<div class="cl" style="animation-delay:${.2+i*.45}s"><b>${esc(c.h)}</b> ${esc(c.m)}</div>`).join("")}</div></div>`});
-  sc.push({dur:4600,html:`<div class="sc sc-next"><div class="ep-kicker">Next time on The Crawl</div><div class="bubble">${esc(BOSS_TAUNT[ep.next.name]||"You're next!")}</div><div class="next-art bossart">${bossSVG(ep.next.name,false,{tier:ep.next.tier})}</div>
-    <div class="ep-title">${esc(ep.next.name)}</div><div class="ep-sub">Floor ${ep.next.floor} · ${esc(ep.next.tag)}</div>
+  const nu=!!ep.next.unknown;
+  sc.push({dur:4600,html:`<div class="sc sc-next"><div class="ep-kicker">Next time on The Crawl</div><div class="bubble">${esc(nu?"You won't see us coming.":BOSS_TAUNT[ep.next.name]||"You're next!")}</div><div class="next-art bossart${nu?" unknown":""}">${nu?bossSVG("",false,{tier:ep.next.tier,unknown:true}):bossSVG(ep.next.name,false,{tier:ep.next.tier})}</div>
+    <div class="ep-title">${nu?"Six bosses. Hiding.":esc(ep.next.name)}</div><div class="ep-sub">Floor ${ep.next.floor}${nu?" · find their lairs on the map":` · ${esc(ep.next.tag)}`}</div>
     ${ep.next.theme?`<div class="ep-theme">Next floor: <b>${esc(ep.next.theme)}</b><span>${esc(ep.next.themeLine)}</span></div>`:""}
-    <div class="quip">${esc(fill(pick("teaser",{boss:ep.next.name})))}</div>
+    <div class="quip">${esc(nu?"The bosses on the next floor have stopped standing in plain sight. Bring a map.":fill(pick("teaser",{boss:ep.next.name})))}</div>
     ${ep.boxes.length?`<div class="boxchips">${ep.boxes.map(t=>`<span class="mini-ico">${boxIconSVG(t)}</span>`).join("")}</div>`:""}</div>`});
   return sc;
 }
@@ -3491,6 +3552,7 @@ function renderTicker(){
   if(playerExists&&player.boss){
     const b=player.boss,hp=bossHp(b);
     lines.push(b.defeated?`Floor ${b.floor}: all six bosses down. Floor ${b.floor+1} opens ${fmtDue(addDays(b.week,7))}.`
+      :hunting(b)?`Floor ${b.floor}: the ${TIERS[b.tier].n} (${b.tier+1} of 6) is hiding somewhere on the map. ${player.name} has ${b.charge||0} Charge saved up for the ambush.`
       :`Floor ${b.floor}: ${b.name}, the ${TIERS[b.tier].n} (${b.tier+1} of 6), at ${hp} of ${b.maxHp} HP. The stairwell closes ${fmtDue(addDays(b.week,6))} at midnight.`);
   }
   const od=tasks.filter(t=>!t.done&&t.due&&t.due<today()).length;
@@ -3501,7 +3563,7 @@ function renderTicker(){
   else if(rcDone())lines.push(`${player.name}, ${raceOf().n} ${classOf().n}, continues the crawl.`);
   document.body.classList.toggle("finalday-on",!!(playerExists&&player.boss&&finalDay(player.boss)));
   if(player.boss&&finalDay(player.boss)){
-    const left=stairwellEnd(player.boss)-Date.now(),bn=player.boss.name;
+    const left=stairwellEnd(player.boss)-Date.now(),bn=bossLabel(player.boss,"an unseen boss").replace(/^a/,"A");
     const loud=left<36e5?`THE STAIRWELL CLOSES IN ${fmtLeft(left).toUpperCase()}. ${bn.toUpperCase()} IS STILL STANDING. THIS IS NOT A DRILL.`
       :left<6*36e5?`Under ${Math.ceil(left/36e5)} hours until the stairwell closes! ${bn} is still standing! Somebody do something!`
       :`Final day on Floor ${player.boss.floor}. The stairwell closes at midnight. ${bn} is still standing.`;
@@ -3590,7 +3652,7 @@ function dailyTick(force){
         epitaph:od?`Slain by "${od.t.title}", ${od.d} day${od.d===1?"":"s"} overdue.`:"Slain by paperwork. The paperwork has not commented.",
         mock:[ "It was a to-do list. It didn't even have weapons.",`Survived by ${open} unfinished quest${open===1?"":"s"}.`,"The chat has already moved on.","Gone, but not forgotten. Mostly because the quest is still there."][Math.floor(Math.random()*4)]};
     }else{
-      pushEvent(`Overdue quests dealt ${dmg} damage${heal?` and healed ${b.name} by ${heal}`:""}`,true);
+      pushEvent(`Overdue quests dealt ${dmg} damage${heal?` and healed ${bossLabel(b)} by ${heal}`:""}`,true);
       SFX.play("hurt");
       toast(`Overdue quests dealt ${dmg} damage while you were away${heal?` and healed the boss by ${heal}`:""}.`,"bad");
     }
@@ -3661,11 +3723,15 @@ function completeQuest(id,actual,touched){
     if(player.dayCnt.n>C(player,"bestDay"))bump("bestDay",player.dayCnt.n-C(player,"bestDay"));}
   const usedFocus=!!player.focused;player.focused=false;
   const rcq=rcFx(player,t),thq=themeFx(player,t);
-  const loot=dealDamage(Math.round(fx*(1+rcq.dmg)*(1+thq.dmg)));
+  let loot=dealDamage(Math.round(fx*(1+rcq.dmg)*(1+thq.dmg)));
   let goblinBox=null;if(thq.loot&&Math.random()<thq.loot)goblinBox=giveBox("bronze","Loot goblin");
   player.rush={n:player.rush&&Date.now()-player.rush.at<18e5?Math.min(5,player.rush.n+1):1,at:Date.now()};
   const goals=progressGoals(t,{late:wasBoss,onTarget:!!r.onTarget});evs.push(...goals.evs);
   let mapMsgs=[];try{mapMsgs=mapStep(t);}catch(e){console.error("map",e);}
+  if(ui.ambushLoot){loot={kills:((loot&&loot.kills)||[]).concat(ui.ambushLoot.kills)};ui.ambushLoot=null;}
+  if(ui.ambush){const a=ui.ambush;ui.ambush=null;
+    setTimeout(()=>{SFX.play("hurt");toast(`<span class="big">Ambush!</span> You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?` It blocks the corridor until it falls.`:""}`,"lvl");},500);
+    mapMsgs=mapMsgs.filter(x=>!/lair!|The stairwell!/.test(x));}
   player.stats[t.stat]=(player.stats[t.stat]||0)+fx;
   const after=levelInfo(player.xp).L;
   player.hp=after>before?maxHp(player):thq.regen?Math.min(maxHp(player),player.hp+5+rcq.hp):player.hp;
@@ -4499,7 +4565,7 @@ function titleCase(n){return String(n).split(" ").map((w,i)=>i>0&&SMALL_WORDS.ha
 function bossSVG(name,slain,opts){
   opts=opts||{};const {INK,BONE,BONE2,CARD}=TC;const u="bc"+(++avUid);
   // The numeral shows the boss's place on the floor's ladder (I–VI) when known, else its deck number.
-  const artKey=opts.art||name;
+  const artKey=opts.unknown?"Gorvak the Procrastinator":opts.art||name;const capName=opts.unknown?"???":name;
   const [deckNum,seed]=BOSS_CARD[artKey]||["0",1];
   const num=opts.num?opts.num:opts.tier!=null&&opts.tier>=0?["i","ii","iii","iv","v","vi","vii","viii"][opts.tier]||deckNum:deckNum;
   const P=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`;
@@ -4664,7 +4730,7 @@ function bossSVG(name,slain,opts){
     const corner=`<path d="M13 13 L46 13 L40 17 L24 17 Q19 17 19 22 L19 40 L13 46 Z" fill="${INK}"/><path d="M22 22 L36 22 L22 36 Z" fill="${INK}"/><path d="M46 13 L52 9 L50 15 Z M13 46 L9 52 L15 50 Z" fill="${INK}"/>`;
     s+=corner+`<g transform="translate(200 0) scale(-1 1)">${corner}</g><g transform="translate(0 300) scale(1 -1)">${corner}</g><g transform="translate(200 300) scale(-1 -1)">${corner}</g>`;
     s+=`<text x="100" y="32" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="17" letter-spacing="1" fill="${INK}">${num.toUpperCase()}</text>`;
-    s+=`<rect x="24" y="256" width="152" height="25" rx="3" fill="#e9e8e3" stroke="${INK}" stroke-width="2.2"/><text x="100" y="273.5" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="${name.length>22?10.5:name.length>17?12:13.5}"${name.length>22?' textLength="142" lengthAdjust="spacingAndGlyphs"':""} fill="${INK}">${titleCase(name).replace(/&/g,"&amp;")}</text>`;
+    s+=`<rect x="24" y="256" width="152" height="25" rx="3" fill="#e9e8e3" stroke="${INK}" stroke-width="2.2"/><text x="100" y="273.5" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="${capName.length>22?10.5:capName.length>17?12:13.5}"${capName.length>22?' textLength="142" lengthAdjust="spacingAndGlyphs"':""} fill="${INK}">${titleCase(capName).replace(/&/g,"&amp;")}</text>`;
   }
   if(slain){
     s+=`<g class="slash" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round"><path pathLength="1" d="M74 14 L86 62 L76 98 L94 140 L84 190 L104 252"/><path pathLength="1" d="M86 62 L62 74 M94 140 L120 150 M84 190 L64 206"/></g>`;
@@ -5303,7 +5369,7 @@ function renderBoss(){
   const togo=Math.ceil(hp/typical);
   const fog=themeFx(player).fog&&!b.defeated,hpTxt=fog?"??? / ???":`${hp} / ${b.maxHp}`,barW=fog?100:(hp/b.maxHp*100),togoTxt=fog?"??":togo;
   const fd=finalDay(b),ec=escapeCost(b);
-  const tbar=(fd?`<div class="finalday" role="status"><span class="fd-k">Final day</span> The stairwell closes in <b data-countdown="${stairwellEnd(b)}">${fmtLeft(stairwellEnd(b)-Date.now())}</b>. ${esc(b.name)} is still standing${fog?"":` with <b>${hp}</b> HP`}. ${5-b.tier} more boss${5-b.tier===1?"":"es"} after this one.${b.firstWeek?"":` If any are left at midnight you lose <b>${Math.round(ec.goldPct*100)}% of your gold</b> and 10% of your viewers, and start the next floor as a Straggler.`}</div>`:"")
+  const tbar=(fd?`<div class="finalday" role="status"><span class="fd-k">Final day</span> The stairwell closes in <b data-countdown="${stairwellEnd(b)}">${fmtLeft(stairwellEnd(b)-Date.now())}</b>. ${hunting(b)?`The ${esc(T.n)} is still hiding`:`${esc(b.name)} is still standing${fog?"":` with <b>${hp}</b> HP`}`}. ${5-b.tier} more boss${5-b.tier===1?"":"es"} after this one.${b.firstWeek?"":` If any are left at midnight you lose <b>${Math.round(ec.goldPct*100)}% of your gold</b> and 10% of your viewers, and start the next floor as a Straggler.`}</div>`:"")
     +(straggling()?`<div class="themebar"><span class="themechip strag">Straggler</span><span class="bane">▼ −10% XP through ${esc(fmtDue(player.straggler.until))}. You got caught on the stairs.</span></div>`:"")+themeBar(b);
   const closes=daysLeft===1?"tonight":`in ${daysLeft} days`;
   const ladder=`<ol class="ladder6" aria-label="Boss ladder, ${b.defeated?6:b.tier} of 6 defeated">${TIERS.map((t,i)=>`<li class="${b.defeated||i<b.tier?"done":i===b.tier?"now":""}" title="${t.n}${i<(b.kills||[]).length?": "+esc(b.kills[i].name):""}">${t.n.replace(" boss","")}</li>`).join("")}</ol>`;
@@ -5315,6 +5381,18 @@ function renderBoss(){
     if(b.defeated)prefs.defeatOpen=open?null:b.week;else prefs.bossOpen=!prefs.bossOpen;
     savePrefs();renderBoss();};};
   const box=BOXES[T.box];
+  if(hunting(b)){
+    const m=ensureMap(),li=m?m.rooms.findIndex(r=>r.boss===b.tier):-1;
+    const seen=m&&li>=0&&(m.rev||[]).includes(li),ahead=seen?li-m.pos:0;
+    const where=seen?`Your map shows its lair <b>${ahead} room${ahead===1?"":"s"}</b> ahead${b.tier===5?" at the stairwell":""}.`
+      :b.tier===5?"Floor bosses always guard the stairwell. Keep going.":"Its lair isn't on your map. Every quest moves you one room deeper.";
+    const chg=b.charge||0;
+    el.innerHTML=`<div class="boss-compact hunt"><div class="bossart thumb unknown" role="img" aria-label="An unknown boss">${bossSVG("",false,{crop:true,tier:b.tier,unknown:true})}</div>
+      <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">${esc(T.n)} · Floor ${floor}</span><div class="bname">???</div></div>
+      <div class="hpwrap"><div class="bar charge" role="progressbar" aria-label="Charge stored for the ambush" aria-valuemin="0" aria-valuemax="${b.maxHp}" aria-valuenow="${Math.min(chg,b.maxHp)}"><b style="width:${Math.min(100,chg/b.maxHp*100).toFixed(1)}%"></b></div><span class="num">⚡ ${chg}</span></div></div>
+      <div class="boss-sub">${pips} ${b.tier+1} of 6 · hiding somewhere on Floor ${floor}. ${where} When you walk into its lair, your <b>Charge</b> hits all at once${chg>=b.maxHp?" (enough to drop it in one blow)":""}. Stairwell closes ${closes}.</div></div></div>${tbar}`;
+    return;
+  }
   if(!open){
     const sub=b.defeated?`Floor ${floor} cleared · all six bosses down · Floor ${floor+1} (${esc(themeById(themeFor(floor+1)).n)}) opens ${fmtDue(addDays(b.week,7))}`
       :`${pips} ${b.tier+1} of 6 · drops a <b><span class="mini-ico">${boxIconSVG(T.box)}</span>${esc(box.n)}</b> · about <b class="num">${togoTxt}</b> Elite quest${!fog&&togo===1?"":"s"} to go · stairwell closes ${closes}${b.healed?` · healed <b class="num">${b.healed}</b> by overdue quests`:""}`;
@@ -5340,6 +5418,7 @@ function renderBoss(){
         ${b.healed?`<span class="heal">Overdue quests healed it <b class="num">${b.healed}</b></span>`:""}
         <span>About <b class="num">${togoTxt}</b> Elite quest${!fog&&togo===1?"":"s"} to go</span>
         <span>Floor total <b class="num">${b.total||0}</b></span>
+        ${b.hunt&&b.engaged?`<span class="block">Blocking the corridor</span>`:""}
       </div>
       ${ladder}
       <div class="muted" style="font-size:13px">${b.firstWeek?"Your first floor is set to a starter level. Later floors scale to your recent weekly damage.":`Floor sized from your recent floors: ${player.weekHist.join(", ")} damage.`} Extra damage from a killing blow carries to the next boss.</div>`;
