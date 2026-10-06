@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=fb8d014473"></script>
+<script src="firebase-config.js?v=fe64b264a8"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -899,6 +899,8 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
   .tabbar [data-tab].on{color:#111;background:var(--gold)}
   .tabbar .ti{font-size:18px}
   .tabbar .tab-quests{display:flex}
+  .tabbar [data-tab]{min-width:0}
+  .tabbar .tn{max-width:100%;text-align:center;line-height:1.1;letter-spacing:.01em}
   .tabbar .tb{top:0;right:calc(50% - 22px)}
   body:not([data-tab="quests"]) .wrap>.col.main{display:none}
   body[data-tab="quests"] .wrap>.col.side{display:none}
@@ -972,6 +974,40 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 @keyframes hop{0%,100%{transform:translateY(0)}35%{transform:translateY(-13px)}65%{transform:translateY(0)}80%{transform:translateY(-4px)}}
 .bosspanel.hit{animation:flinch .45s ease-out}
 @keyframes flinch{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}45%{transform:translateX(5px)}70%{transform:translateX(-3px)}88%{transform:translateX(1px)}}
+.partypanel .pt-intro{margin:4px 0 8px;font-size:14px}
+.pt-rules{margin:0 0 14px;padding-left:18px;font-size:14px;color:var(--muted)}.pt-rules li{margin:4px 0}.pt-rules b{color:var(--fg)}
+.pt-forms{display:grid;gap:12px}.pt-form .label{display:block;margin-bottom:4px}
+.pt-row{display:flex;gap:8px;align-items:center}.pt-row input{flex:1;min-width:0}
+.partypanel input[type=text]{background:var(--panel-2);border:1px solid var(--line-2);border-radius:8px;padding:9px 10px;color:var(--fg)}
+#ptCode{font-family:var(--mono,monospace);letter-spacing:2px;text-transform:uppercase}
+.pt-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:10px}
+.pt-head h3{margin:0;font-size:20px}
+.pt-codebar{display:flex;align-items:center;gap:10px;flex-basis:100%;flex-wrap:wrap}
+.pt-code{font-family:var(--mono,monospace);font-weight:700;letter-spacing:2px;background:var(--panel-2);border:1px dashed var(--gold);color:var(--gold);border-radius:6px;padding:3px 8px}
+.pt-link{width:100%;font-size:12px}
+.pt-buff{border:1px solid var(--line-2);background:var(--panel-2);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.pt-buff.on{border-color:var(--leaf);box-shadow:0 0 0 1px var(--leaf) inset;color:var(--fg)}.pt-buff.on b{color:var(--leaf)}
+.pt-raid{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:start;border:1px solid var(--line-2);border-radius:12px;padding:10px;background:linear-gradient(160deg,rgba(255,46,110,.10),transparent 60%)}
+.pt-raidart svg{width:100%;height:auto;display:block}
+.pt-raidinfo h3{margin:2px 0 2px;font-size:18px}.pt-raidinfo p{margin:0 0 8px;font-size:13px}
+.pt-hp{height:12px;border-radius:6px;background:#000;border:1px solid var(--line-2);overflow:hidden}.pt-hp i{display:block;height:100%;background:linear-gradient(90deg,var(--blood),#ff7a3c);transition:width .6s}
+.pt-hpnum{font-size:13px;margin:4px 0 6px;color:var(--muted)}.pt-hpnum b{color:var(--leaf)}
+.pt-dmg{list-style:none;margin:0;padding:0;font-size:13px}.pt-dmg li{display:grid;grid-template-columns:72px 1fr auto;gap:6px;align-items:center;margin:3px 0}
+.pt-dmg span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pt-dmg i{display:block;height:8px;border-radius:4px;background:var(--mana)}.pt-dmg b{font-weight:600}
+.pt-roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:6px}
+.pt-card{border:1px solid var(--line-2);border-radius:10px;padding:8px;background:var(--panel-2);display:flex;flex-direction:column;gap:2px;font-size:13px}
+.pt-card.me{border-color:var(--gold)}
+.pt-av{width:100%;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#000;margin-bottom:4px}.pt-av svg{width:100%;height:100%;display:block}
+.pt-who{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pt-meta{color:var(--muted)}
+.pt-today{margin:3px 0;color:var(--faint)}.pt-today.yes{color:var(--leaf)}
+.pt-card .btn{align-self:flex-start;margin-top:2px}
+.pt-feed{list-style:none;margin:6px 0 0;padding:0;font-size:14px}
+.pt-ev{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.pt-ev.k-raid b,.pt-ev.k-loot b{color:var(--gold)}
+.pt-ago{color:var(--faint);font-size:12px;margin-left:6px}
+.pt-cheer{flex:none;background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:2px 9px;font-size:13px;cursor:pointer}
+.pt-cheer.on{border-color:var(--blood);background:rgba(255,46,110,.18)}.pt-cheer.static{cursor:default}
+.pt-leave{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -1061,6 +1097,9 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
     </div>
     <div class="tabpane" data-pane="safe" role="tabpanel" aria-label="Safe room">
     <section class="panel safepanel" id="safe" aria-label="Safe room" hidden></section>
+    </div>
+    <div class="tabpane" data-pane="party" role="tabpanel" aria-label="Party">
+    <section class="panel partypanel" aria-label="Party"><h2>Party</h2><div id="party"></div></section>
     </div>
     <div class="tabpane" data-pane="safe-empty"></div>
   </div>
@@ -1461,9 +1500,10 @@ function rewardFor(p,t,actual){
   const rc=rcFx(p,t),tf=themeFx(p,t,actual);
   const accB=((pf.ability==="bat"?.25:.15)*rc.accMul+rc.accAdd)*tf.accMul;
   const strag=straggling(p)?.10:0;
-  const mult=Math.max(.1,1+streakB+weaponB+fx.xp+pf.xp+night+rc.xp+tf.xp-strag+(onTarget?accB:0));
+  const partyB=partyBuffOn(p)?PARTY_BUFF:0;
+  const mult=Math.max(.1,1+streakB+weaponB+fx.xp+pf.xp+night+rc.xp+tf.xp+partyB-strag+(onTarget?accB:0));
   const xp=Math.round(baseXp(t)*mult*(p.focused?2:1));
-  return {xp,focused:!!p.focused,gold:Math.max(0,Math.floor(xp/4*(1+fx.cha+pf.gold+rc.gold+tf.gold+gx.gold))),rcB:rc.xp,themeB:tf.xp,streak:s,streakB,weaponB,statB:fx.xp,petB:pf.xp+night,accB,onTarget,ratio};
+  return {xp,focused:!!p.focused,gold:Math.max(0,Math.floor(xp/4*(1+fx.cha+pf.gold+rc.gold+tf.gold+gx.gold))),rcB:rc.xp,themeB:tf.xp,partyB,streak:s,streakB,weaponB,statB:fx.xp,petB:pf.xp+night,accB,onTarget,ratio};
 }
 
 /* ---------- Achievements ---------- */
@@ -1472,6 +1512,14 @@ function rewardFor(p,t,actual){
 const C=(p,k)=>((p&&p.cnt)||{})[k]||0;
 function bump(k,n){if(!player)return;player.cnt=Object.assign({},player.cnt||{});player.cnt[k]=(player.cnt[k]||0)+(n===undefined?1:n);}
 const ACH = [
+  {id:"partyup",n:"Strength in Numbers",         how:"Start or join a party",                 box:"bronze",    ev:"partyjoin",
+   line:"You've formed a party. The producers love a group dynamic. Mostly for the drama."},
+  {id:"raid1",  n:"Raid Night",                   how:"Help defeat a weekly party boss",       gold:50,         ev:"partyraid",
+   line:"Teamwork. Disgusting. The audience can't look away."},
+  {id:"cheer10",n:"Hype Crew",                    how:"Cheer 10 party moments",                gold:25,         test:p=>C(p,"cheers")>=10,
+   line:"You clap for other people's wins. The System has flagged this as suspicious behavior."},
+  {id:"buff7",  n:"Nobody Left Behind",           how:"Start 7 days with the party buff",      box:"silver",    test:p=>C(p,"pbuffs")>=7,
+   line:"Seven days where everyone showed up. Statistically, one of you is lying."},
   {id:"first",  n:"First Blood (Probably Yours)", how:"Complete your first quest",            box:"bronze",    test:p=>(p.doneCount||0)>=1,
    line:"You did a thing. One thing. The bar was on the floor and you stepped over it."},
   {id:"ten",    n:"Background Extra",             how:"Complete 10 quests",                   box:"silver",    test:p=>(p.doneCount||0)>=10,
@@ -1975,6 +2023,7 @@ function lootToast(l){
     toast(`<span class="big">${esc(t.n)} defeated</span> ${esc(boxText)} ${boxes.length>1?"are":"is"} waiting in your loot boxes.`,"lvl",()=>openBox(last.box.id),"Open it");
     if(nb&&!nb.defeated)setTimeout(()=>say("next",{boss:nb.name,tier:TIERS[nb.tier].n}),1200);
     const evs=["kill"].concat(kills.some(k=>k.tier===TIERS.length-1)?["floorboss"]:[]).concat(ui.pendingAchAfterBoss||[]);
+    if(evs.includes("floorboss"))partyPost("floor",`cleared Floor ${Math.max(1,(player.bossCount||1)-1)}`);
     checkAch(evs);ui.pendingAchAfterBoss=null;
   };
   say("boss",{boss:bossName});
@@ -3328,7 +3377,8 @@ function openBox(bid){
   else{
     item=ITEMS.find(i=>i.id===res.id);
     if(player.owned.includes(item.id)){dupe=true;res.gold=Math.round(RARITY[item.rar].dupe*(1+petFx(player).dupe));player.gold+=res.gold;pushEvent(`Opened a ${BOXES[bx.tier].n}: duplicate ${item.n}, sold for ${res.gold} gold`);}
-    else{player.owned=player.owned.concat(item.id);pushEvent(`Opened a ${BOXES[bx.tier].n}: ${RARITY[item.rar].n} ${item.n}`);}
+    else{player.owned=player.owned.concat(item.id);pushEvent(`Opened a ${BOXES[bx.tier].n}: ${RARITY[item.rar].n} ${item.n}`);
+      if(["epic","legendary","magical"].includes(item.rar))partyPost("loot",`found a ${RARITY[item.rar].n} item: ${item.n}`);}
   }
   player.opened=(player.opened||0)+1;
   const extras=[];
@@ -3417,6 +3467,7 @@ function checkAch(evs){ evs=evs||[];if(!player||!player.ach)return;const got=[];
 
 function fmtViewers(n){n=Math.max(0,Math.round(n||0));return n>=1e6?(n/1e6).toFixed(n>=1e7?0:1).replace(/\.0$/,"")+"M":n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,"")+"K":String(n);}
 function levelUp(before,after){
+  partyPost("level",`reached Level ${after}: ${titleFor(after)}`);
   setTimeout(()=>SFX.play("level"),350);
   for(let L=before+1;L<=after;L++)giveBox(L%5===0?"silver":"bronze",`Level ${L}`);
   player.viewers=(player.viewers||0)+5000*(after-before);
@@ -3585,6 +3636,8 @@ function completeQuest(id,actual,touched){
   const before=levelInfo(player.xp).L;
   const wasSulking=petSulking();
   player.xp+=fx;player.gold+=fg;player.streak=r.streak;player.lastDoneDate=td;
+  partyTrack(fx);
+  if([7,14,30,60,100].includes(r.streak)&&(prevP.streak||0)<r.streak)partyPost("streak",`hit a ${r.streak}-day streak`);
   const petMsg=bondUp(fx,wasSulking);
   player.doneCount=(player.doneCount||0)+1;if(r.onTarget)player.onTargetCount=(player.onTargetCount||0)+1;
   player.viewers=(player.viewers||0)+Math.round((fx*37+Math.random()*250)*(1+statFx(player).cha*2.5)*(1+rcFx(player,null).view)*Math.max(0,1+themeFx(player).view)*(shelteredToday()?0:1));
@@ -3981,7 +4034,7 @@ function render(){
   const ae=document.activeElement;const aeId=ae&&ae.id;const sel=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null;
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   // Each panel draws independently, so a bug in one can't blank the others.
-  for(const fn of [renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
+  for(const fn of [renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
 }
 
@@ -4446,8 +4499,9 @@ function titleCase(n){return String(n).split(" ").map((w,i)=>i>0&&SMALL_WORDS.ha
 function bossSVG(name,slain,opts){
   opts=opts||{};const {INK,BONE,BONE2,CARD}=TC;const u="bc"+(++avUid);
   // The numeral shows the boss's place on the floor's ladder (I–VI) when known, else its deck number.
-  const [deckNum,seed]=BOSS_CARD[name]||["0",1];
-  const num=opts.tier!=null&&opts.tier>=0?["i","ii","iii","iv","v","vi","vii","viii"][opts.tier]||deckNum:deckNum;
+  const artKey=opts.art||name;
+  const [deckNum,seed]=BOSS_CARD[artKey]||["0",1];
+  const num=opts.num?opts.num:opts.tier!=null&&opts.tier>=0?["i","ii","iii","iv","v","vi","vii","viii"][opts.tier]||deckNum:deckNum;
   const P=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`;
   const bone=(d,w)=>`<path d="${d}" fill="none" stroke="${INK}" stroke-width="${w+3.2}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${BONE}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   const H=`url(#${u}h)`,X=`url(#${u}x)`;
@@ -4484,7 +4538,7 @@ function bossSVG(name,slain,opts){
   const stack=(x,w,top,lean)=>{let o="";for(let y=250;y>top;y-=7){const off=Math.sin(y*.7)*2+lean*(250-y)/40;o+=`<rect x="${(x+off).toFixed(1)}" y="${y-7}" width="${w}" height="7" fill="${BONE2}" stroke="${INK}" stroke-width="1.3"/>`;}return o+`<rect x="${x}" y="${top}" width="${w}" height="${250-top}" fill="${H}" opacity=".5"/>`;};
 
   let art="";
-  switch(name){
+  switch(artKey){
     case "Baron Backlog":
       art+=stack(24,30,138,-1)+stack(150,28,120,1)+stack(52,20,186,0)+stack(132,18,196,0)+ground(248);
       art+=`<g class="beast">`+P("M72 124 Q60 180 50 246 L58 238 L62 248 L70 236 L76 247 L84 238 L90 248 L100 238 L110 248 L116 238 L124 247 L130 236 L138 248 L142 238 L150 246 Q140 180 128 124 Z",INK);
@@ -5665,7 +5719,7 @@ function stepFx(el,n){
 /* ---------- Tabs ----------
    Five sections. On phones one shows at a time with a bottom tab bar; on desktop the quest board
    stays on the right and the other four share the left column. Badges flag what needs attention. */
-const TABS=[["quests","Quests","⚔"],["hero","Hero","☺"],["loot","Inventory","▣"],["show","Show","★"],["safe","Safe room","⌂"]];
+const TABS=[["quests","Quests","⚔"],["hero","Hero","☺"],["loot","Inventory","▣"],["show","Show","★"],["safe","Safe room","⌂"]].concat(window.CRAWL_FB?[["party","Party","⚑"]]:[]);
 if(!ui.tab)ui.tab="quests";
 function applyTab(){
   const t=ui.tab||"quests",side=t==="quests"?(prefs.sideTab||"hero"):t;
@@ -5677,12 +5731,13 @@ function applyTab(){
 function setTab(t,o){
   if(!TABS.some(x=>x[0]===t))return;
   ui.tab=t;if(t!=="quests"){prefs.sideTab=t;savePrefs();}
+  if(t==="party")partySeen();
   if(t==="safe"){const x=safeToday();if(x&&!x.left){x.left=true;store.savePlayer(player).catch(writeFailed);}}
   applyTab();renderTabs();
   if(!(o&&o.keep)&&window.matchMedia&&matchMedia("(max-width:860px)").matches){try{window.scrollTo(0,0);}catch(e){}}
 }
 function tabBadges(){
-  const B={quests:"",hero:"",loot:"",show:"",safe:""};
+  const B={quests:"",hero:"",loot:"",show:"",safe:"",party:""};
   if(!playerExists)return B;
   const td=today(),od=tasks.filter(t=>!t.done&&t.due&&t.due<td&&!isResting(t)).length;
   if(od)B.quests=String(od);
@@ -5690,6 +5745,7 @@ function tabBadges(){
   const nb=(player.boxes||[]).length+(player.eggs||[]).length;if(nb)B.loot=String(nb);
   const ne=(player.episodes||[]).filter(e=>!e.watched).length;if(ne)B.show=String(ne);else if(player.show&&player.show.invite)B.show="!";
   const x=safeToday(),no=(player.offers||[]).length;if(no)B.safe=String(no);else if(x&&!x.left)B.safe="•";
+  try{const pu=partyUnseen();if(pu)B.party=String(pu);}catch(e){}
   return B;
 }
 function renderTabs(){
@@ -5915,6 +5971,332 @@ function renderAccount(){
     <div class="acts" style="margin-top:8px"><button class="btn" type="button" id="signOutBtn">Sign out</button></div>
     <div class="muted" style="font-size:13px">Signing out also clears the offline copy from this device, so it's safe on a shared computer.</div>`;
   $("signOutBtn").onclick=signOut;
+}
+
+/* ---------- Party mode (hosted build) ----------
+   Up to six crawlers share a party. Firestore layout (rules in firestore.rules):
+     parties/{code}            {name, owner, members:[uid], created}
+     parties/{code}/cards/{uid} each member's public card: level, floor, streak, look, quests cleared per day, raid damage.
+                               Written only by that member. Quest titles never leave the player's own save.
+     parties/{code}/feed/{id}   party moments (level ups, big loot, floors, raids, nudges) with cheers.
+   Party buff: if every active member cleared a quest yesterday, everyone gets +10% XP today.
+   Weekly party boss: HP scales with party size; each member's damage is the XP they earned that week.
+   Each member writes only their own damage total and the boss's HP is their sum, so no shared counter can race. */
+const PARTY_MAX=6,PARTY_BUFF=.10,PARTY_HP_EACH=700,PARTY_MIA_DAYS=3;
+const PARTY_BOSSES=[
+  {n:"The Group Chat Hydra",art:"The Inbox Hydra",line:"Two hundred unread messages, and every head is asking if we're still on for Saturday."},
+  {n:"Captain Rain Check",art:"Gorvak the Procrastinator",line:"He'll absolutely fight you. Just not this week. Maybe next week."},
+  {n:"The Overcommitment Golem",art:"The Clutter Golem",line:"Built entirely out of things you said yes to."},
+  {n:"Madame Maybe Later",art:"Lady Someday",line:"She clicked 'interested' on your entire life."},
+  {n:"The Calendar Tyrant",art:"Duke Deadline",line:"Double-booked, triple-booked, and somehow still early."},
+  {n:"The Couch Wyrm",art:"The Sloth Wyrm",line:"One more episode. One more episode. One more episode."},
+  {n:"Lord Leftovers",art:"Baron Backlog",line:"Rules a kingdom of half-finished projects and mystery containers."},
+  {n:"The Mist of Excuses",art:"The Fog of Maybe",line:"It has a reason. It always has a reason."}];
+const NUDGE_LINES=["The cameras are getting bored.","Your party is carrying you. Visibly.","One quest. Any quest. The audience is begging.",
+  "The sponsors are asking where you went.","The party buff is on the line.","Even the loot goblins are worried about you."];
+const PCODE="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+let party=null;          // {code, doc, cards:{uid:card}, feed:[], unsub:[], ready}
+let partyPubTimer=null,partyLastPub="";
+const avCache=new Map();
+const weekOf=d=>{const x=new Date(d+"T12:00:00");return addDays(d,-((x.getDay()+6)%7));};
+function partyBossFor(wk){let h=7;for(const c of wk)h=(h*31+c.charCodeAt(0))>>>0;return PARTY_BOSSES[h%PARTY_BOSSES.length];}
+function partyBuffOn(p){p=p||player;return !!(p&&p.party&&p.pbuff&&p.pbuff.d===today()&&p.pbuff.on);}
+function myUid(){return fb&&fb.user?fb.user.uid:null;}
+/* A brand-new crawler is still "Crawler": show their Google first name to the party instead. */
+function partyName(){const n=String(player.name||"").trim();if(n&&n!=="Crawler")return n.slice(0,40);return String(fb&&fb.user&&fb.user.displayName||"Crawler").split(" ")[0].slice(0,40);}
+
+/* This crawler's own tally: quests per day (last 10 days) and XP dealt this week and last. Kept even outside a party,
+   so it's ready the moment you join. Lives on the player, so undoing a quest undoes it too. */
+function ptNow(){
+  const td=today(),wk=weekOf(td);const pt=Object.assign({days:{},wk,wkDmg:0},player.pt||{});
+  return pt.wk===wk?pt:{days:pt.days||{},wk,wkDmg:0,pwk:pt.wk,pwkDmg:pt.wkDmg||0};
+}
+function partyTrack(fx){
+  const td=today();const pt=Object.assign({},ptNow());
+  pt.days=Object.assign({},pt.days);pt.days[td]=(pt.days[td]||0)+1;
+  for(const k of Object.keys(pt.days))if(k<addDays(td,-9))delete pt.days[k];
+  pt.wkDmg=(pt.wkDmg||0)+Math.max(0,fx||0);
+  player.pt=pt;
+}
+function myCard(){
+  const pt=ptNow(),L=levelInfo(player.xp||0).L,a=activePet();
+  const streak=player.lastDoneDate===today()||player.lastDoneDate===addDays(today(),-1)?(player.streak||0):0;
+  const wear={};const w=wearing(player);for(const k of Object.keys(w))wear[k]=w[k]||null;
+  return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
+    look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
+    wk:pt.wk,wkDmg:pt.wkDmg||0,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,joined:(player.party&&player.party.joined)||Date.now(),seen:today()};
+}
+function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
+function partyMembers(){return party&&party.doc&&Array.isArray(party.doc.members)?party.doc.members:[];}
+function partyPublish(now){
+  if(!party||!fb)return;clearTimeout(partyPubTimer);
+  partyPubTimer=setTimeout(()=>{
+    if(!party)return;const c=myCard();const k=JSON.stringify(c);if(k===partyLastPub)return;partyLastPub=k;
+    fb.fs.doc(`parties/${party.code}/cards/${myUid()}`).set(c).catch(e=>{partyLastPub="";console.warn("party card",e&&e.code);});
+  },now?0:1500);
+}
+
+/* ---------- Listening ---------- */
+function partyStop(){if(party)party.unsub.forEach(u=>{try{u();}catch(e){}});party=null;partyLastPub="";}
+function partyListen(code){
+  partyStop();
+  const me=myUid();party={code,doc:null,cards:{},feed:[],unsub:[],ready:false};const mine=party;
+  const base=fb.fs.doc(`parties/${code}`);
+  mine.unsub.push(base.onSnapshot(s=>{if(party!==mine)return;
+    const d=s.exists?s.data():null;
+    if(!d||!(d.members||[]).includes(me)){
+      if(s.metadata&&s.metadata.fromCache)return;
+      partyStop();player.party=null;player.pbuff=null;store.savePlayer(player).catch(writeFailed);
+      toast("You're no longer in that party.");render();return;}
+    mine.doc=d;partyTick();render();},e=>partyErr(e)));
+  mine.unsub.push(base.collection("cards").onSnapshot(s=>{if(party!==mine)return;
+    const c={};s.docs.forEach(x=>{c[x.id]=x.data();});mine.cards=c;mine.ready=true;partyTick();render();},e=>partyErr(e)));
+  mine.unsub.push(base.collection("feed").orderBy("at","desc").limit(40).onSnapshot(s=>{if(party!==mine)return;
+    mine.feed=s.docs.map(x=>Object.assign({id:x.id},x.data()));partyNews();render();},e=>partyErr(e)));
+  partyPublish(true);
+}
+function partyErr(e){
+  console.warn("party",e&&e.code,e);
+  if(e&&e.code==="permission-denied"&&!ui.partyDenied){ui.partyDenied=true;toast("Couldn't open your party. If you just joined, reload the page.","bad");}
+}
+
+/* Once a day, once the cards are in: was everyone active there yesterday? Then check the weekly boss. */
+function partyBuffCalc(){
+  const td=today(),y=addDays(td,-1),startToday=new Date(td+"T00:00:00").getTime();
+  let of=0,done=0;
+  for(const uid of partyMembers()){
+    const c=cardOf(uid);if(!c)continue;
+    if((c.joined||0)>=startToday)continue;                 // joined today: counts from tomorrow
+    const d=c.days||{};
+    let active=false;for(let i=0;i<PARTY_MIA_DAYS;i++)if(d[addDays(y,-i)]){active=true;break;}
+    if(!active)continue;                                    // missing in action: doesn't block the buff
+    of++;if(d[y])done++;
+  }
+  return {on:of>=2&&done===of,done,of};
+}
+function partyTick(){
+  if(!party||!party.ready||!party.doc||!playerExists)return;
+  const td=today();
+  if(!player.pbuff||player.pbuff.d!==td){
+    const r=partyBuffCalc();player.pbuff={d:td,on:r.on,done:r.done,of:r.of};
+    if(r.on){bump("pbuffs");setTimeout(()=>{toast(`<span class="big">Party buff</span> Everyone showed up yesterday. +${Math.round(PARTY_BUFF*100)}% XP on every quest today.`,"lvl");checkAch();},1500);}
+    store.savePlayer(player).catch(writeFailed);
+  }
+  partyRaidCheck();
+}
+function raidState(wk){
+  const mem=partyMembers();let tot=0;const per={};
+  for(const uid of mem){const c=cardOf(uid);if(!c)continue;const d=c.wk===wk?(c.wkDmg||0):c.pwk===wk?(c.pwkDmg||0):0;per[uid]=d;tot+=d;}
+  const hp=PARTY_HP_EACH*Math.max(2,mem.length);
+  return {wk,boss:partyBossFor(wk),hp,tot,per,dead:tot>=hp};
+}
+function partyRaidCheck(){
+  const wk=weekOf(today()),lw=addDays(wk,-7),me=myUid();
+  for(const w of [lw,wk]){
+    if(player.praid&&player.praid[w])continue;
+    const r=raidState(w);if(!r.dead||!(r.per[me]>0))continue;   // you get the loot if you landed at least one hit
+    player.praid=Object.assign({},player.praid||{},{[w]:1});
+    for(const k of Object.keys(player.praid))if(k<addDays(wk,-28))delete player.praid[k];
+    const box=giveBox("gold",`Party raid: ${r.boss.n}`);
+    partyPost("raid",`The party defeated ${r.boss.n}!`,"raid-"+w);
+    store.savePlayer(player).catch(writeFailed);
+    setTimeout(()=>{SFX.play("reveal","legendary");toast(`<span class="big">${esc(r.boss.n)} defeated</span> Your party took down this week's raid boss. A Gold Box is waiting for you.`,"lvl",()=>openBox(box.id),"Open it");checkAch(["partyraid"]);},900);
+  }
+}
+function partyPost(kind,text,id,extra){
+  if(!party||!fb)return;
+  try{
+    const col=fb.fs.collection(`parties/${party.code}/feed`);const ref=id?col.doc(id):col.doc();
+    ref.set(Object.assign({uid:myUid(),name:partyName(),kind,text:String(text).slice(0,200),at:Date.now(),cheers:{},to:null},extra||{}))
+      .catch(e=>{if(!id)console.warn("party feed",e&&e.code);}); // a fixed id that already exists means a crewmate posted it first
+  }catch(e){console.warn(e);}
+}
+/* New moments from crewmates: a badge on the tab, and a toast when someone nudges you. */
+function partyNews(){
+  if(!party)return;const me=myUid();
+  if(prefs.partySeen==null){prefs.partySeen=Date.now();savePrefs();}
+  const since=prefs.nudgeSeen||prefs.partySeen;
+  const n=party.feed.filter(f=>f.kind==="nudge"&&f.to===me&&f.at>since).sort((a,b)=>a.at-b.at);
+  if(n.length){prefs.nudgeSeen=n[n.length-1].at;savePrefs();
+    n.slice(-2).forEach((f,i)=>setTimeout(()=>toast(`<b>${esc(f.name)} nudged you.</b> <span class="quip">${esc(f.text.replace(/^nudged [^:]*: /,""))}</span>`,"quest"),600+i*900));}
+  if(ui.tab==="party")partySeen(true);
+}
+function partyUnseen(){if(!party)return 0;const me=myUid(),s=prefs.partySeen||0;return party.feed.filter(f=>f.uid!==me&&f.at>s).length;}
+function partySeen(quiet){prefs.partySeen=Date.now();savePrefs();if(!quiet)setTimeout(render,0);}
+
+/* ---------- Actions ---------- */
+function partyCode(){let c="";const a=new Uint32Array(8);crypto.getRandomValues(a);for(let i=0;i<8;i++){c+=PCODE[a[i]%PCODE.length];if(i===3)c+="-";}return c;}
+function partyFail(e){
+  const c=e&&e.code||e&&e.message||"error";
+  ui.partyErr=c==="permission-denied"?"The server said no. Ask Mat to check the party rules in Firebase.":c==="unavailable"?"You're offline. Party changes need a connection.":"Something went wrong ("+c+"). Try again.";
+}
+async function partyEnter(code,created){
+  player.party={code,joined:Date.now()};player.pbuff=null;prefs.partySeen=Date.now();savePrefs();
+  store.savePlayer(player).catch(writeFailed);
+  partyListen(code);
+  partyPost("join",created?"started the party":"joined the party");
+  ui.partyErr=null;ui.ptCode="";ui.ptName="";
+  setTimeout(()=>checkAch(["partyjoin"]),600);
+  toast(created?`<b>Party started.</b> Copy the invite link and send it to your crew.`:`<b>You joined the party.</b> Your crew can see your level, floor and how many quests you clear, never what they are.`);
+}
+async function partyCreate(){
+  if(!fb||ui.partyBusy)return;ui.partyBusy=true;ui.partyErr=null;render();
+  const name=(ui.ptName||"").trim().slice(0,40)||`${partyName().slice(0,30)}'s Party`;
+  try{
+    let code=null;for(let i=0;i<4&&!code;i++){const c=partyCode();const s=await fb.fs.doc(`parties/${c}`).get();if(!s.exists)code=c;}
+    if(!code)throw {code:"try-again"};
+    await fb.fs.doc(`parties/${code}`).set({name,owner:myUid(),members:[myUid()],created:Date.now()});
+    await partyEnter(code,true);
+  }catch(e){partyFail(e);}
+  ui.partyBusy=false;render();
+}
+async function partyJoin(){
+  if(!fb||ui.partyBusy)return;
+  const raw=String(ui.ptCode||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(raw.length!==8){ui.partyErr="Party codes look like ABCD-2345: eight letters and numbers.";render();return;}
+  const code=raw.slice(0,4)+"-"+raw.slice(4);
+  ui.partyBusy=true;ui.partyErr=null;render();
+  try{
+    const ref=fb.fs.doc(`parties/${code}`);const s=await ref.get();
+    if(!s.exists){ui.partyErr="No party uses that code. Double-check it with whoever invited you.";}
+    else{const d=s.data();const me=myUid();
+      if(!(d.members||[]).includes(me)){
+        if((d.members||[]).length>=PARTY_MAX){ui.partyErr=`That party is full (${PARTY_MAX} crawlers).`;}
+        else{await ref.update({members:firebase.firestore.FieldValue.arrayUnion(me)});await partyEnter(code,false);}
+      }else await partyEnter(code,false);}
+  }catch(e){partyFail(e);}
+  ui.partyBusy=false;render();
+}
+async function partyLeave(){
+  if(!party||!fb)return;const code=party.code,me=myUid();
+  ui.partyBusy=true;render();
+  const was=player.party;
+  try{
+    partyPost("leave","left the party");
+    player.party=null;player.pbuff=null;partyStop();
+    await fb.fs.doc(`parties/${code}/cards/${me}`).delete();
+    await fb.fs.doc(`parties/${code}`).update({members:firebase.firestore.FieldValue.arrayRemove(me)});
+    store.savePlayer(player).catch(writeFailed);
+    toast("You left the party. Your own progress is untouched.");
+  }catch(e){partyFail(e);player.party=was;}
+  ui.partyBusy=false;ui.partyLeaveAsk=false;render();
+}
+function partyRename(){
+  if(!party||!fb)return;const name=(ui.ptRename||"").trim().slice(0,40);ui.partyRenaming=false;
+  if(name&&name!==party.doc.name)fb.fs.doc(`parties/${party.code}`).update({name}).catch(e=>{partyFail(e);render();});
+  render();
+}
+function partyCheer(id){
+  if(!party)return;const it=party.feed.find(f=>f.id===id),me=myUid();if(!it||it.uid===me)return;
+  const on=!(it.cheers||{})[me];
+  it.cheers=Object.assign({},it.cheers||{});if(on)it.cheers[me]=true;else delete it.cheers[me];render();
+  fb.fs.doc(`parties/${party.code}/feed/${id}`).update({["cheers."+me]:on?true:firebase.firestore.FieldValue.delete()}).catch(e=>console.warn("cheer",e&&e.code));
+  if(on){bump("cheers");SFX.play("coin");checkAch();store.savePlayer(player).catch(writeFailed);}
+}
+function partyNudge(uid){
+  if(!party)return;const td=today();
+  const nd=player.nudged&&player.nudged.d===td?player.nudged:{d:td,u:[]};if(nd.u.includes(uid))return;
+  player.nudged={d:td,u:nd.u.concat(uid)};const c=party.cards[uid];
+  partyPost("nudge",`nudged ${c?c.name:"a crewmate"}: ${NUDGE_LINES[Math.floor(Math.random()*NUDGE_LINES.length)]}`,null,{to:uid});
+  store.savePlayer(player).catch(writeFailed);toast(`Nudge sent to ${esc(c?c.name:"your crewmate")}.`);render();
+}
+function partyInvite(){
+  if(!party)return;const link=location.origin+location.pathname+"?join="+party.code;
+  const done=()=>toast("Invite link copied. Send it to your crew: they sign in with Google and land straight in the party.");
+  try{navigator.clipboard.writeText(link).then(done,()=>{ui.partyLink=link;render();});}catch(e){ui.partyLink=link;render();}
+}
+/* An invite link (?join=CODE) fills the code in and opens the Party tab. */
+function partyFromLink(){
+  try{const q=new URLSearchParams(location.search).get("join");if(!q)return;
+    ui.ptCode=q.toUpperCase().slice(0,12);history.replaceState(null,"",location.pathname);setTab("party");}catch(e){}
+}
+
+/* ---------- Drawing ---------- */
+function ago(ms){const m=Math.round((Date.now()-ms)/6e4);return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":Math.round(m/1440)+"d ago";}
+function miniAvatar(c){
+  const eq=Object.assign({},c.wear||{},c.look?{look:c.look}:{},c.pet&&PETS[c.pet]?{pet:c.pet}:{});
+  const k=JSON.stringify(eq);let v=avCache.get(k);
+  if(!v){try{v=avatarSVG(eq);}catch(e){v="";}avCache.set(k,v);if(avCache.size>40)avCache.delete(avCache.keys().next().value);}
+  return v;
+}
+function renderParty(){
+  const el=$("party");if(!el)return;
+  if(fb&&loadedP&&loadedT){
+    if(!ui.partyLinked){ui.partyLinked=true;partyFromLink();}
+    const want=player.party&&player.party.code;
+    if(want&&(!party||party.code!==want))partyListen(want);
+    else if(!want&&party)partyStop();
+    if(party)partyPublish();
+  }
+  if(!fb){el.innerHTML=`<p class="muted">Party mode is part of the hosted version of The Crawl, where everyone signs in with Google.</p>`;return;}
+  if(!loadedP){el.innerHTML=`<p class="muted">Opening…</p>`;return;}
+  const err=ui.partyErr?`<div class="err">${esc(ui.partyErr)}</div>`:"";
+  if(!party){
+    el.innerHTML=`<p class="muted pt-intro">Team up with up to ${PARTY_MAX-1} friends. Your crew sees your level, floor, streak and how many quests you clear each day, never what the quests are.</p>
+      <ul class="pt-rules"><li><b>Party buff:</b> when everyone clears at least one quest in a day, the whole party gets +${Math.round(PARTY_BUFF*100)}% XP the next day.</li>
+      <li><b>Weekly raid boss:</b> every quest you clear hits it for the XP you earned. Take it down by Sunday night and everyone who landed a hit gets a Gold Box.</li>
+      <li><b>Feed:</b> level ups, big loot and cleared floors show up for the crew to cheer. You can nudge a quiet crewmate once a day.</li></ul>
+      <div class="pt-forms">
+        <form class="pt-form" id="ptJoinForm" autocomplete="off"><label class="label" for="ptCode">Join with a code</label>
+          <div class="pt-row"><input type="text" id="ptCode" maxlength="12" placeholder="ABCD-2345" value="${esc(ui.ptCode||"")}" autocapitalize="characters" spellcheck="false"><button class="btn gold" type="submit"${ui.partyBusy?" disabled":""}>Join</button></div></form>
+        <form class="pt-form" id="ptNewForm" autocomplete="off"><label class="label" for="ptName">Or start a new party</label>
+          <div class="pt-row"><input type="text" id="ptName" maxlength="40" placeholder="Party name (optional)" value="${esc(ui.ptName||"")}"><button class="btn" type="submit"${ui.partyBusy?" disabled":""}>Start</button></div></form>
+      </div>${err}`;
+    $("ptCode").oninput=e=>{ui.ptCode=e.target.value;};$("ptName").oninput=e=>{ui.ptName=e.target.value;};
+    $("ptJoinForm").onsubmit=e=>{e.preventDefault();ui.ptCode=$("ptCode").value;partyJoin();};
+    $("ptNewForm").onsubmit=e=>{e.preventDefault();ui.ptName=$("ptName").value;partyCreate();};
+    return;
+  }
+  if(!party.doc){el.innerHTML=`<p class="muted">Opening your party…</p>`;return;}
+  const me=myUid(),mem=partyMembers(),td=today(),wk=weekOf(td);
+  const r=raidState(wk);const daysLeft=7-Math.round((new Date(td+"T12:00:00")-new Date(wk+"T12:00:00"))/864e5);
+  const left=Math.max(0,r.hp-r.tot),pct=Math.round(left/r.hp*100);
+  const cards=mem.map(uid=>({uid,c:cardOf(uid)})).filter(x=>x.c);
+  const todayDone=cards.filter(x=>(x.c.days||{})[td]>0).length;
+  const pb=player.pbuff&&player.pbuff.d===td?player.pbuff:null;
+  let buff;
+  if(pb&&pb.on)buff=`<div class="pt-buff on"><b>Party buff active:</b> +${Math.round(PARTY_BUFF*100)}% XP on every quest today. Everyone showed up yesterday.</div>`;
+  else buff=`<div class="pt-buff"><b>${todayDone} of ${cards.length}</b> crawlers have cleared a quest today. If everyone clears one, the whole party gets +${Math.round(PARTY_BUFF*100)}% XP tomorrow.${pb&&pb.of>=2?` <span class="muted">Yesterday: ${pb.done} of ${pb.of}.</span>`:""}</div>`;
+  const contrib=Object.entries(r.per).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const maxC=contrib.length?contrib[0][1]:1;
+  const roster=cards.map(({uid,c})=>{
+    const n=(c.days||{})[td]||0;let mia=true;for(let i=0;i<PARTY_MIA_DAYS;i++)if((c.days||{})[addDays(td,-i)]){mia=false;break;}
+    const nudged=player.nudged&&player.nudged.d===td&&player.nudged.u.includes(uid);
+    return `<div class="pt-card${uid===me?" me":""}"><div class="pt-av print" aria-hidden="true">${miniAvatar(c)}</div>
+      <div class="pt-who"><b>${esc(c.name||"Crawler")}</b>${uid===me?` <span class="muted">(you)</span>`:""}</div>
+      <div class="pt-meta">Lv ${c.lvl||1} · ${esc(c.title||"")}</div>
+      <div class="pt-meta">Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}`:""}</div>
+      <div class="pt-today${n?" yes":""}">${n?`✔ ${n} quest${n===1?"":"s"} today`:mia&&uid!==me?"Missing in action":"No quests yet today"}</div>
+      ${uid!==me&&!n?`<button class="btn ghost sm" type="button" data-nudge="${esc(uid)}"${nudged?" disabled":""}>${nudged?"Nudged":"Nudge"}</button>`:""}</div>`;}).join("");
+  const feed=party.feed.slice(0,25).map(f=>{const ch=Object.keys(f.cheers||{}).length,mine=(f.cheers||{})[me];
+    return `<li class="pt-ev k-${esc(f.kind||"")}"><div><b>${esc(f.uid===me?"You":f.name||"Crawler")}</b> ${esc(f.uid===me?String(f.text||"").replace(/^hit /,"hit "):f.text||"")}<span class="pt-ago">${ago(f.at||0)}</span></div>
+      ${f.uid!==me&&f.kind!=="leave"?`<button type="button" class="pt-cheer${mine?" on":""}" data-cheer="${esc(f.id)}" aria-pressed="${mine?"true":"false"}" aria-label="Cheer">🔥${ch?` ${ch}`:""}</button>`:ch?`<span class="pt-cheer static">🔥 ${ch}</span>`:""}</li>`;}).join("")||`<li class="muted">Nothing yet. Clear a quest and get the show started.</li>`;
+  el.innerHTML=`<div class="pt-head">
+      ${ui.partyRenaming?`<form id="ptRenameForm" class="pt-row"><input type="text" id="ptRename" maxlength="40" value="${esc(ui.ptRename||party.doc.name||"")}"><button class="btn sm" type="submit">Save</button></form>`
+        :`<h3>${esc(party.doc.name||"Party")}</h3><button class="linkbtn" type="button" id="ptRenameBtn">Rename</button>`}
+      <div class="pt-codebar"><span class="pt-code">${esc(party.code)}</span><span class="muted">${mem.length} of ${PARTY_MAX}</span><button class="btn gold sm" type="button" id="ptInvite">Copy invite link</button></div>
+      ${ui.partyLink?`<input type="text" class="pt-link" readonly value="${esc(ui.partyLink)}">`:""}
+    </div>${err}
+    ${buff}
+    <div class="pt-raid">
+      <div class="pt-raidart bossart">${bossSVG(r.boss.n,r.dead,{art:r.boss.art,num:"raid"})}</div>
+      <div class="pt-raidinfo"><div class="label">Weekly raid boss</div><h3>${esc(r.boss.n)}</h3><p class="muted">${esc(r.boss.line)}</p>
+        <div class="pt-hp" role="img" aria-label="${left} of ${r.hp} HP left"><i style="width:${pct}%"></i></div>
+        <div class="pt-hpnum">${r.dead?"<b>Defeated!</b> Everyone who landed a hit gets a Gold Box.":`${left.toLocaleString()} / ${r.hp.toLocaleString()} HP · ${daysLeft} day${daysLeft===1?"":"s"} left`}</div>
+        ${contrib.length?`<ul class="pt-dmg">${contrib.map(([uid,v])=>{const c=cardOf(uid);return `<li><span>${esc(uid===me?"You":c&&c.name||"Crawler")}</span><i style="width:${Math.max(4,Math.round(v/maxC*100))}%"></i><b>${v.toLocaleString()}</b></li>`;}).join("")}</ul>`:`<p class="muted" style="font-size:13px">No hits yet this week. Every quest you clear does damage equal to its XP.</p>`}
+      </div></div>
+    <div class="label" style="margin-top:14px">Crew</div>
+    <div class="pt-roster">${roster}</div>
+    <div class="label" style="margin-top:14px">Party feed</div>
+    <ul class="pt-feed">${feed}</ul>
+    <div class="pt-leave">${ui.partyLeaveAsk?`<span>Leave ${esc(party.doc.name||"the party")}? Your own progress stays.</span><button class="btn sm" type="button" id="ptLeaveYes">Leave</button><button class="btn ghost sm" type="button" id="ptLeaveNo">Stay</button>`
+      :`<button class="linkbtn" type="button" id="ptLeave">Leave party</button>`}</div>`;
+  const on=(id,f)=>{const x=$(id);if(x)x.onclick=f;};
+  on("ptInvite",partyInvite);on("ptRenameBtn",()=>{ui.partyRenaming=true;ui.ptRename=party.doc.name||"";render();const i=$("ptRename");if(i){i.focus();i.select();}});
+  const rf=$("ptRenameForm");if(rf){rf.onsubmit=e=>{e.preventDefault();ui.ptRename=$("ptRename").value;partyRename();};$("ptRename").oninput=e=>{ui.ptRename=e.target.value;};}
+  on("ptLeave",()=>{ui.partyLeaveAsk=true;render();});on("ptLeaveNo",()=>{ui.partyLeaveAsk=false;render();});on("ptLeaveYes",partyLeave);
+  el.querySelectorAll("[data-cheer]").forEach(b=>b.onclick=()=>partyCheer(b.dataset.cheer));
+  el.querySelectorAll("[data-nudge]").forEach(b=>b.onclick=()=>partyNudge(b.dataset.nudge));
 }
 
 /* ---------- Boot ---------- */
