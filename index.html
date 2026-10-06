@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=a18b00d459"></script>
+<script src="firebase-config.js?v=63e9ca01a0"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -4143,7 +4143,7 @@ const BODY_W={broad:1,curvy:.86,lanky:.84,stocky:1.1,muscular:1.07,round:1.1},LE
 const EYEC=[["dark","#1e1b24","Dark"],["brown","#6b3e1e","Brown"],["hazel","#8a7a2e","Hazel"],["green","#2f9a55","Green"],["blue","#2f7fd8","Blue"],["gray","#8a93a6","Gray"],["amber","#e0961f","Amber"],["red","#e8283c","Red"]];
 const BROWS=[["auto","Natural"],["thick","Thick"],["thin","Thin"],["angry","Angry"],["raised","Raised"]];
 const MOUTHS=[["auto","Natural"],["grin","Grin"],["smirk","Smirk"],["scowl","Scowl"],["deadpan","Deadpan"],["shout","Battle cry"]];
-const BEARDS=[["none","None"],["stubble","Stubble"],["beard","Beard"],["mustache","Mustache"],["goatee","Goatee"],["chops","Mutton chops"]];
+const BEARDS=[["none","None"],["stubble","Stubble"],["beard","Beard"],["mustache","Mustache"],["goatee","Goatee"]];
 const TEES=[["white","#eeeae0","White"],["black","#2a2733","Black"],["red","#d8343c","Red"],["navy","#2c3f7a","Navy"],["green","#3d8a52","Green"],["yellow","#f0c93a","Yellow"],["pink","#f08ab4","Pink"],["gray","#9a9aa6","Gray"]];
 const PRINTS=[["ratty","Ratty"],["clean","Clean"],["skull","Skull"],["bolt","Lightning"],["stripes","Stripes"],["heart","Heart"]];
 const PANTSC=[["blue","#3a6fd8","Blue jeans"],["black","#2b2a35","Black"],["khaki","#b59a6a","Khaki"],["gray","#7c7f8c","Gray"],["red","#9c2c32","Red"],["olive","#5b6b3a","Olive"]];
@@ -4343,9 +4343,9 @@ function tallWeaponSVG(id,bg){
   const [x0,x1,y0,y1]=WEAPON_BOX[base]||[-30,30,-200,30];
   const k=Math.min((H-2*m)/(y1-y0),(W-2*m)/(x1-x0)),kx=Math.min((W-2*m)/(x1-x0),k*1.4),cx=(x0+x1)/2,cy=(y0+y1)/2; // chunkier horizontally so slim blades read at this size
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
-<pattern id="${u}a" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2.5" cy="2.5" r="1.55" fill="${INK}" stroke="none"/></pattern>
-<pattern id="${u}b" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2" cy="2" r=".9" fill="${INK}" stroke="none"/></pattern>
-<pattern id="${u}d" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="3" cy="3" r="1.3" fill="#000" fill-opacity=".14" stroke="none"/></pattern>
+<pattern id="${u}a" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
+<pattern id="${u}b" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
+<pattern id="${u}d" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
 <filter id="${u}bl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5"/></filter></defs>
 ${bg&&bg!=="none"?`<rect width="${W}" height="${H}" fill="${bg}"/>`:""}<rect width="${W}" height="${H}" fill="url(#${u}d)"/>
 <g transform="translate(${W/2} ${H/2}) scale(${kx.toFixed(3)} ${k.toFixed(3)}) translate(${-cx} ${-cy})" stroke="${INK}" stroke-width="${(2.6/k).toFixed(2)}" stroke-linejoin="round" stroke-linecap="round">${weaponUpright(base,it.magic||null,u)}</g></svg>`;
@@ -4372,9 +4372,9 @@ function avatarSVG(eq){
   const narrow=BWID!==1?`<g transform="translate(150 0) scale(${BWID} 1) translate(-150 0)">`:`<g>`;
   const WALL="#2b2440",BRICK="#3b3156",BRICK2="#463a63",FLOOR="#221c33",STONE="#30284a";
   let s=`<svg viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="--ph:-${now%6000}ms;--ph2:-${now%14000}ms"><defs>
-<pattern id="${u}a" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2.5" cy="2.5" r="1.55" fill="${INK}" stroke="none"/></pattern>
-<pattern id="${u}b" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2" cy="2" r=".9" fill="${INK}" stroke="none"/></pattern>
-<pattern id="${u}d" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="3.5" cy="3.5" r="1.7" fill="#000" fill-opacity=".35" stroke="none"/></pattern>
+<pattern id="${u}a" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
+<pattern id="${u}b" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
+<pattern id="${u}d" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
 <pattern id="${u}m" width="8" height="7" patternUnits="userSpaceOnUse"><rect width="8" height="7" fill="#c3c9d4"/><path d="M0 3.5 Q4 -1 8 3.5 M-4 7 Q0 2.5 4 7 M4 7 Q8 2.5 12 7" fill="none" stroke="${INK}" stroke-width="1.2"/></pattern>
 <radialGradient id="${u}gl" cx="46" cy="150" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffb54a" stop-opacity=".75"/><stop offset=".35" stop-color="#ff7a1f" stop-opacity=".32"/><stop offset="1" stop-color="#ff7a1f" stop-opacity="0"/></radialGradient>
 <radialGradient id="${u}gr" cx="254" cy="150" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffb54a" stop-opacity=".75"/><stop offset=".35" stop-color="#ff7a1f" stop-opacity=".32"/><stop offset="1" stop-color="#ff7a1f" stop-opacity="0"/></radialGradient>
@@ -4518,7 +4518,7 @@ function avatarSVG(eq){
     const HEAD=FEM?"M118 86 Q116 44 150 40 Q184 44 182 86 Q180 110 166 126 Q156 136 150 136 Q144 136 134 126 Q120 110 118 86 Z":"M116 88 Q114 44 150 40 Q186 44 184 88 Q184 114 172 128 Q162 138 150 138 Q138 138 128 128 Q116 114 116 88 Z";
     s+=sh(HEAD,SKIN);
     s+=ov(FEM?"M118 86 Q116 44 150 40 Q128 52 128 92 Q132 118 150 136 Q144 136 134 126 Q120 110 118 86 Z":"M116 88 Q114 44 150 40 Q128 52 128 92 Q130 120 150 138 Q138 138 128 128 Q116 114 116 88 Z",HB);
-    if(LK.beard==="stubble")s+=ov("M126 112 Q150 142 174 112 Q172 126 162 134 Q150 140 138 134 Q128 126 126 112 Z",HA);
+    if(LK.beard==="stubble")s+=ov("M126 112 Q150 142 174 112 Q172 126 162 134 Q150 140 138 134 Q128 126 126 112 Z","rgba(30,27,36,.28)");
     // Freckles and face paint sit on the skin, under the eyes
     if(LK.marks==="freckles")s+=[[126,106],[131,110],[124,111],[134,105],[166,105],[171,110],[176,106],[169,111]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.4" fill="#9a5a3a" stroke="none"/>`).join("");
     if(LK.paint==="war")s+=ov("M122 104 L144 100 L144 106 L124 110 Z M156 100 L178 104 L176 110 L156 106 Z",RED)+ov("M124 112 L142 108 L142 112 L126 116 Z M158 108 L176 112 L174 116 L158 112 Z",INK);
@@ -4540,7 +4540,6 @@ function avatarSVG(eq){
       s+=ln("M150 98 L145 110 L153 112",3);
     }
     if(LK.beard==="beard")s+=sh("M118 96 Q118 126 134 140 Q150 150 166 140 Q182 126 182 96 Q178 116 166 122 Q158 114 150 116 Q142 114 134 122 Q122 116 118 96 Z",HAIR)+sh("M140 124 Q150 120 160 124 Q150 130 140 124 Z",INK);
-    if(LK.beard==="chops")s+=sh("M118 88 Q116 116 130 132 L138 126 Q128 114 128 92 Z",HAIR)+sh("M182 88 Q184 116 170 132 L162 126 Q172 114 172 92 Z",HAIR);
     if(LK.beard==="goatee")s+=sh("M141 128 Q150 125 159 128 Q160 142 150 147 Q140 142 141 128 Z",HAIR);
     // Mouth: the natural one, or a chosen expression drawn over any beard
     const MO=LK.mouth&&LK.mouth!=="auto"?LK.mouth:null,LIP=FEM?"#c0505a":"#8a3a3a";
@@ -4645,9 +4644,9 @@ function avatarDesc(p){
 /* Same woodcut vocabulary as the avatar: ink, bone, one blood red, hatching for shadow. */
 function woodDefs(u){
   // Ben-Day dots instead of woodcut hatching: a = heavy shade, b = light shade, d = panel backdrop texture.
-  return `<defs><pattern id="${u}a" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2.1" cy="2.1" r="1.35" fill="${INK}" stroke="none"/></pattern>
-<pattern id="${u}b" width="3.4" height="3.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="1.7" cy="1.7" r=".75" fill="${INK}" stroke="none"/></pattern>
-<pattern id="${u}d" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="3.5" cy="3.5" r="1.5" fill="${INK}" fill-opacity=".13" stroke="none"/></pattern></defs>`;
+  return `<defs><pattern id="${u}a" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
+<pattern id="${u}b" width="3.4" height="3.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
+<pattern id="${u}d" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern></defs>`;
 }
 /* Bosses are drawn as cursed tarot cards: grey storm clouds, an ornate black frame, a numeral and a
    lowercase name banner, and an original skeletal creature in heavy ink. Deliberately grim next to the
