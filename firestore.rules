@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each crawler's save: only that signed-in player can read or write it.
+    match /data/users/{uid}/{rest=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    // Everything else is closed until party mode adds its own rules.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
