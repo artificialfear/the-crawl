@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=de01d2ad60"></script>
+<script src="firebase-config.js?v=e3f6a76fe7"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1848,8 +1848,12 @@ function recLabel(rec){
 }
 
 /* ---------- State ---------- */
-function defaultPlayer(){return {name:"Crawler",pets:{},pet:null,eggs:[],boxes:[],ach:{},viewers:0,doneCount:0,onTargetCount:0,opened:0,xp:0,gold:0,hp:BASE_HP,streak:0,lastDoneDate:null,lastTick:today(),owned:[],potions:0,stats:{STR:0,INT:0,CON:0,DEX:0,CHA:0},events:[],rewards:[],samples:[],boss:null,bossCount:0,weekHist:[]};}
-function normPlayer(d){const p=Object.assign(defaultPlayer(),d||{});p.stats=Object.assign({STR:0,INT:0,CON:0,DEX:0,CHA:0},p.stats||{});if(p.stats.WIS){p.stats.CON+=p.stats.WIS;}delete p.stats.WIS;p.owned=Array.isArray(p.owned)?p.owned:[];p.events=Array.isArray(p.events)?p.events:[];p.rewards=Array.isArray(p.rewards)?p.rewards:[];p.samples=Array.isArray(p.samples)?p.samples:[];p.weekHist=Array.isArray(p.weekHist)?p.weekHist:[];p.boxes=Array.isArray(p.boxes)?p.boxes:[];p.ach=p.ach&&typeof p.ach==="object"?p.ach:{};p.pets=p.pets&&typeof p.pets==="object"?p.pets:{};p.eggs=Array.isArray(p.eggs)?p.eggs:[];if(p.pet&&!p.pets[p.pet])p.pet=null;return p;}
+/* New crawlers get a number, like the show's intake desk hands out: "Crawler #48,213". Picked once per page load,
+   so the number sticks the moment the save is first written. */
+const NEW_CRAWLER="Crawler #"+(1+Math.floor(Math.random()*100000)).toLocaleString("en-US");
+const isDefaultName=n=>!n||n==="Crawler"||/^Crawler #[\d,]+$/.test(n);
+function defaultPlayer(){return {name:NEW_CRAWLER,pets:{},pet:null,eggs:[],boxes:[],ach:{},viewers:0,doneCount:0,onTargetCount:0,opened:0,xp:0,gold:0,hp:BASE_HP,streak:0,lastDoneDate:null,lastTick:today(),owned:[],potions:0,stats:{STR:0,INT:0,CON:0,DEX:0,CHA:0},events:[],rewards:[],samples:[],boss:null,bossCount:0,weekHist:[]};}
+function normPlayer(d){const p=Object.assign(defaultPlayer(),d||{});if(!p.name||p.name==="Crawler")p.name=NEW_CRAWLER;p.stats=Object.assign({STR:0,INT:0,CON:0,DEX:0,CHA:0},p.stats||{});if(p.stats.WIS){p.stats.CON+=p.stats.WIS;}delete p.stats.WIS;p.owned=Array.isArray(p.owned)?p.owned:[];p.events=Array.isArray(p.events)?p.events:[];p.rewards=Array.isArray(p.rewards)?p.rewards:[];p.samples=Array.isArray(p.samples)?p.samples:[];p.weekHist=Array.isArray(p.weekHist)?p.weekHist:[];p.boxes=Array.isArray(p.boxes)?p.boxes:[];p.ach=p.ach&&typeof p.ach==="object"?p.ach:{};p.pets=p.pets&&typeof p.pets==="object"?p.pets:{};p.eggs=Array.isArray(p.eggs)?p.eggs:[];if(p.pet&&!p.pets[p.pet])p.pet=null;return p;}
 let player=defaultPlayer(), playerExists=false, tasks=[], loadedP=false, loadedT=false, ticked=false;
 let store=null; // backend
 let ui={claiming:null, confirmDel:null, editingName:false, editing:null, addStep:null, menu:null, news:[]};
@@ -6083,8 +6087,9 @@ const weekOf=d=>{const x=new Date(d+"T12:00:00");return addDays(d,-((x.getDay()+
 function partyBossFor(wk){let h=7;for(const c of wk)h=(h*31+c.charCodeAt(0))>>>0;return PARTY_BOSSES[h%PARTY_BOSSES.length];}
 function partyBuffOn(p){p=p||player;return !!(p&&p.party&&p.pbuff&&p.pbuff.d===today()&&p.pbuff.on);}
 function myUid(){return fb&&fb.user?fb.user.uid:null;}
-/* A brand-new crawler is still "Crawler": show their Google first name to the party instead. */
-function partyName(){const n=String(player.name||"").trim();if(n&&n!=="Crawler")return n.slice(0,40);return String(fb&&fb.user&&fb.user.displayName||"Crawler").split(" ")[0].slice(0,40);}
+/* A crawler still using their intake number shows their Google first name alongside it, so friends know who's who. */
+function partyName(){const n=String(player.name||"").trim();if(!isDefaultName(n))return n.slice(0,40);
+  const g=String(fb&&fb.user&&fb.user.displayName||"").split(" ")[0];return (g?`${g} (${n})`:n).slice(0,40);}
 
 /* This crawler's own tally: quests per day (last 10 days) and XP dealt this week and last. Kept even outside a party,
    so it's ready the moment you join. Lives on the player, so undoing a quest undoes it too. */
