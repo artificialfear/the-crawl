@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=8c6eaeb15f"></script>
+<script src="firebase-config.js?v=de01d2ad60"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3338,6 +3338,8 @@ function epScenes(ep){
     ${ep.boxes.length?`<div class="boxchips">${ep.boxes.map(t=>`<span class="mini-ico">${boxIconSVG(t)}</span>`).join("")}</div>`:""}</div>`});
   return sc;
 }
+/* Scene lengths are written for a quick read; replays run them 1.6× longer so there's time to take in each beat. */
+const EP_PACE=1.6;
 function playEpisode(id){
   const ep=(player.episodes||[]).find(e=>e.id===id);if(!ep)return;
   if(!ep.watched){ep.watched=true;player.watched=(player.watched||0)+1;store.savePlayer(player).catch(writeFailed);render();checkAch();}
@@ -3358,12 +3360,12 @@ function playEpisode(id){
   const close=()=>{clearTimeout(timer);document.removeEventListener("keydown",onKey);ov.classList.add("out");setTimeout(()=>ov.remove(),300);};
   const show=n=>{
     if(n>=scenes.length){close();return;}
-    i=Math.max(0,n);const s=scenes[i];
-    ov.style.setProperty("--d",s.dur+"ms");stage.innerHTML=s.html;
+    i=Math.max(0,n);const s=scenes[i],dur=Math.round(s.dur*EP_PACE);
+    ov.style.setProperty("--d",dur+"ms");stage.innerHTML=s.html;
     segs.forEach((g,j)=>{g.className=j<i?"done":j===i?(calm?"done":"on"):"";});
     clearTimeout(timer);
-    if(!calm&&!paused){remaining=s.dur;startedAt=Date.now();timer=setTimeout(()=>show(i+1),remaining);}
-    else remaining=s.dur;
+    if(!calm&&!paused){remaining=dur;startedAt=Date.now();timer=setTimeout(()=>show(i+1),remaining);}
+    else remaining=dur;
   };
   const togglePause=()=>{
     paused=!paused;ov.classList.toggle("paused",paused);
