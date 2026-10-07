@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=d9c1756da1"></script>
+<script src="firebase-config.js?v=9015b8ec30"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1057,6 +1057,16 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .ntfy{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12px;margin-top:6px;color:var(--muted)}
 .tk-tts{flex:none;border:0;border-right:1px solid var(--line-2);background:#07040d;color:var(--faint);font-size:16px;padding:0 10px;cursor:pointer;filter:grayscale(1);opacity:.7}
 .tk-tts.on{color:var(--gold);filter:none;opacity:1;background:#1a1030}
+.godlist{display:grid;grid-template-columns:1fr;gap:10px}
+.godcard{border:1px solid var(--line-2);border-left:4px solid var(--gc);border-radius:10px;padding:10px;background:var(--panel-2);font-size:13px}
+.godcard ul{margin:6px 0 8px;padding-left:18px}.godcard li{margin:2px 0}
+.godtop,.godhead{display:flex;gap:10px;align-items:center}.godtop b{font-size:16px}.godname{font-size:22px}
+.godsp{font-size:12px;color:var(--gc,var(--gold));opacity:.9}.godline{font-style:italic;color:var(--muted);margin:6px 0}
+.godfavor{margin:12px 0 18px}.godfavor .top{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}.godfavor .bar{height:12px}
+.godticks{position:relative;height:14px;font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}.godticks span{position:absolute;top:2px;transform:translateX(-50%)}
+.godperks{list-style:none;padding:0;margin:0 0 8px;font-size:13px;color:var(--faint)}.godperks li{margin:3px 0}.godperks li::before{content:"○ "}.godperks li.on{color:var(--leaf)}.godperks li.on::before{content:"● "}
+.godwrath{border:1px solid var(--blood);border-radius:8px;padding:6px 9px;margin:8px 0;font-size:13px;background:rgba(255,46,110,.08)}
+.godconfirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -1081,6 +1091,10 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
     <div class="tabpane" data-pane="hero" role="tabpanel" aria-label="Hero">
     <section class="panel booth" id="booth" aria-label="Race and class selection" hidden></section>
     <section class="panel sheet" id="sheet" aria-label="Crawler"></section>
+    <section class="panel godpanel" aria-label="Gods" hidden>
+      <h2>Gods</h2>
+      <div id="gods"></div>
+    </section>
     <section class="panel" id="petPanel" aria-label="Pet">
       <h2>Pet</h2>
       <div id="pet"></div>
@@ -1551,7 +1565,8 @@ function rewardFor(p,t,actual){
   const strag=straggling(p)?.10:0;
   const partyB=partyBuffOn(p)?PARTY_BUFF:0;
   let au={xp:0,gold:0};if(p===player)try{au=auraFx(t,onTarget);}catch(e){}
-  const mult=Math.max(.1,1+streakB+weaponB+fx.xp+pf.xp+night+rc.xp+tf.xp+partyB+au.xp-strag+(onTarget?accB:0));
+  let gx2=0;if(p===player)try{gx2=godXp(t);}catch(e){}
+  const mult=Math.max(.1,1+streakB+weaponB+fx.xp+pf.xp+night+rc.xp+tf.xp+partyB+au.xp+gx2-strag+(onTarget?accB:0));
   const xp=Math.round(baseXp(t)*mult*(p.focused?2:1));
   return {xp,focused:!!p.focused,gold:Math.max(0,Math.floor(xp/4*(1+fx.cha+pf.gold+rc.gold+tf.gold+gx.gold+au.gold))),rcB:rc.xp,themeB:tf.xp,partyB,streak:s,streakB,weaponB,statB:fx.xp,petB:pf.xp+night,accB,onTarget,ratio};
 }
@@ -1562,6 +1577,14 @@ function rewardFor(p,t,actual){
 const C=(p,k)=>((p&&p.cnt)||{})[k]||0;
 function bump(k,n){if(!player)return;player.cnt=Object.assign({},player.cnt||{});player.cnt[k]=(player.cnt[k]||0)+(n===undefined?1:n);}
 const ACH = [
+  {id:"faith1", n:"Somebody Up There",            how:"Worship a god",                         gold:25,         test:p=>C(p,"worship")>=1,
+   line:"You picked a god. A board of directors somewhere just picked you."},
+  {id:"chosen1",n:"Chosen One (Terms Apply)",     how:"Reach Chosen favor with a god",         box:"gold",      test:p=>C(p,"chosen")>=1,
+   line:"Your god loves you. Their sponsor loves your engagement metrics even more."},
+  {id:"heretic",n:"Heretic",                      how:"Renounce a god",                        gold:10,         test:p=>C(p,"renounced")>=1,
+   line:"You walked out on a god. The god is taking it personally. Very personally."},
+  {id:"smite5", n:"Lightning Rod",                how:"Get smitten 5 times",                   box:"bronze",    test:p=>C(p,"smites")>=5,
+   line:"Five smites. At this point the clouds follow you around."},
   {id:"chat1",  n:"Comms Check",                  how:"Send a message in party chat",          gold:10,         test:p=>C(p,"chats")>=1,
    line:"Is this thing on? It is. Everyone can hear you. Forever."},
   {id:"regroup",n:"Found You",                    how:"Share a room with a crewmate on the raid floor", gold:25, test:p=>C(p,"regroups")>=1,
@@ -1855,6 +1878,7 @@ const QUIPS = {
   focus:["{name} drinks a Potion of Focus. Eyes wide. Jaw clenched. Next quest is getting destroyed.","Focus potion down. The next quest has no idea what's coming."],
   scroll:["{name} reads a Scroll of Extension. Procrastination, but make it magic.","A Scroll of Extension. The deadline blinks and quietly moves back."],
   smoke:["Smoke bomb! {name} vanishes. The chore will be back. Chores always come back.","{name} throws a smoke bomb and skips a chore. The crowd boos. The crowd also respects it."],
+  god:["{name} has pledged themselves to {god}. The sponsor's stock is up two percent.","{god} has a new worshipper: {name}. Terms and conditions were not read.","Breaking: {name} kneels before {god}. Somewhere, a marketing team high-fives."],
   stairwell:["Final day on Floor {floor}. The stairwell closes at midnight. {boss} is still standing.","Tick tock. The Floor {floor} stairwell shuts tonight and {boss} knows it."],
   item:["New gear! Try not to trip over it.","Fresh loot. The fashion critics in chat have opinions."],
   welcome:["Oh, you're back. The audience had started a betting pool.","Welcome back, {name}. The quests didn't do themselves. We checked.",
@@ -2443,6 +2467,7 @@ function showTick(){
   return ch;
 }
 function declineShow(){
+  if(godState()&&godState().id==="anansi"){addFavor(-10);setTimeout(()=>toast("Anansi wanted that story: −10 favor.","bad"),600);}
   const S=player.show||{};if(!S.invite)return;
   S.invite=null;player.viewers=Math.round((player.viewers||0)*.98);pushEvent("Turned down a talk show. The audience is calling it cowardice.");
   S.dodge={until:addDays(today(),1)};store.savePlayer(player).catch(writeFailed);render();toast("You declined. The booker sighed audibly. −2% viewers.");
@@ -2515,6 +2540,8 @@ function openShow(){
     const dv=Math.round(Math.max(500,v0)*pct);p.viewers=Math.max(0,v0+dv);
     S2.invite=null;S2.n=(S2.n||0)+1;S2.appearances=(S2.appearances||0)+1;
     let pl=null,lines=[];
+    if(choice==="dodge"&&godState()&&godState().id==="anansi")addFavor(-10);
+    if(choice!=="dodge"&&godState()&&godState().id==="anansi")addFavor(st.log.filter(l=>l.style==="chaotic").length*3);
     if(choice==="dodge"){const lost=Math.round((p.viewers||0)*.05);p.viewers-=lost;S2.dodge={until:addDays(today(),1)};lines.push(`You dodged. −${fmtViewers(lost)} viewers.`);}
     else{const ante=choice==="ante",cond=ante?st.hard:st.offer,rw=pledgeReward(cond,ante,st.cocky);
       pl=S2.pledge={host:inv.host,cond:Object.assign({},cond,{have:0}),deadline:addDays(today(),3),ante,gold:rw.gold,box:rw.box,made:today()};
@@ -2610,7 +2637,8 @@ function mobFight(fx,t){
   for(const mb of player.mobs){
     if(hit>0){const d=Math.min(hit,mb.hp);mb.hp-=d;hit-=d;}
     if(mb.hp<=0){
-      const bx=Math.round(sc.xp*(mb.pack?.3:.15)),g=mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6);
+      const nyxB=isChosen("nyx")&&(new Date().getHours()>=21||new Date().getHours()<6)?2:1;
+      const bx=Math.round(sc.xp*(mb.pack?.3:.15)*nyxB),g=mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6);
       player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
       bump("mobKills");if(mb.pack)bump("packKills");
       let box="";if(mb.pack&&Math.random()<.25){giveBox("bronze",`Mob pack: ${mb.n}`);box=" and a Bronze Box";}
@@ -2726,7 +2754,7 @@ function mapStep(t){
   const m=ensureMap();if(!m)return [];
   const out=[],floor=m.floor;
   // Secrets: a big day or a big quest finds one next to a room you've already walked through
-  const bigDay=(player.dayCnt&&player.dayCnt.n===4)||t.effort>=4;
+  const bigDay=(player.dayCnt&&player.dayCnt.n===4)||t.effort>=4||(isChosen("nyx")&&t.effort>=3);
   if(bigDay||t.effort>=3){
     const s=(m.secrets||[]).find(s=>!s.found&&s.link<=m.pos&&(bigDay||s.located));
     if(s){s.found=true;bump("secrets");const roll=Math.random(),tier=roll<.03?"celestial":roll<.5?"gold":"silver";giveBox(tier,"A secret room on the map");
@@ -2879,6 +2907,7 @@ function checkRank(){
 /* Runs on every render once data has loaded: daily safe-room visit, sponsor milestones, contract deadlines, rankings. */
 function systemsTick(){
   let ch=false;const evs=[];
+  try{if(godTick())ch=true;}catch(e){console.error("gods",e);}
   if(!safeToday()){enterSafe();ch=true;}
   const n=viewerStep(player.viewers||0);
   if(player.sponsorStep==null){player.sponsorStep=Math.max(0,n-1);ch=true;}
@@ -3847,10 +3876,12 @@ function completeQuest(id,actual,touched){
   const wasSulking=petSulking();
   player.xp+=fx;player.gold+=fg;player.streak=r.streak;player.lastDoneDate=td;
   let raidMsgs=[];try{raidMsgs=raidStep();}catch(e){console.error("raid",e);}
+  let godMsgs=[];try{godMsgs=godQuest(t,fx);}catch(e){console.error("gods",e);}
   partyTrack(fx);
   if([7,14,30,60,100].includes(r.streak)&&(prevP.streak||0)<r.streak)partyPost("streak",`hit a ${r.streak}-day streak`);
-  const petMsg=bondUp(fx,wasSulking);
+  const petMsg=bondUp(isChosen("bastet")?Math.round(fx*1.5):fx,wasSulking);
   player.doneCount=(player.doneCount||0)+1;if(r.onTarget)player.onTargetCount=(player.onTargetCount||0)+1;
+  if(isChosen("anansi"))player.viewers=(player.viewers||0)+Math.round(fx*37*.3);
   player.viewers=(player.viewers||0)+Math.round((fx*37+Math.random()*250)*(1+statFx(player).cha*2.5)*(1+rcFx(player,null).view)*Math.max(0,1+themeFx(player).view)*(shelteredToday()?0:1));
   const evs=[];if(t.effort===5)evs.push("raid");if(wasBoss)evs.push("late");if(new Date().getHours()<4)evs.push("night");
   if((t.steps||[]).length>=5)evs.push("steps5");
@@ -3872,7 +3903,7 @@ function completeQuest(id,actual,touched){
     if(player.dayCnt.n>C(player,"bestDay"))bump("bestDay",player.dayCnt.n-C(player,"bestDay"));}
   const usedFocus=!!player.focused;player.focused=false;
   const rcq=rcFx(player,t),thq=themeFx(player,t);
-  let loot=dealDamage(Math.round(fx*(1+rcq.dmg)*(1+thq.dmg)));
+  let loot=dealDamage(Math.round(fx*(1+rcq.dmg)*(1+thq.dmg)*(isChosen("tyr")&&t.due&&t.due>=td?1.2:1)));
   let goblinBox=null;if(thq.loot&&Math.random()<thq.loot)goblinBox=giveBox("bronze","Loot goblin");
   player.rush={n:player.rush&&Date.now()-player.rush.at<18e5?Math.min(5,player.rush.n+1):1,at:Date.now()};
   const goals=progressGoals(t,{late:wasBoss,onTarget:!!r.onTarget});evs.push(...goals.evs);
@@ -3922,6 +3953,7 @@ function completeQuest(id,actual,touched){
   lootToast(loot);
   goals.msgs.forEach((m,i)=>setTimeout(()=>toast(m,"lvl"),800+i*700));
   mapMsgs.forEach((m,i)=>setTimeout(()=>toast(`<b>Map</b> ${esc(m)}`,"quest"),1300+(goals.msgs.length+i)*700));
+  if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;setTimeout(()=>{toast(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest");godMsgs.forEach(m=>pushEvent(m));},1900+(goals.msgs.length+mapMsgs.length)*700);}
   if(raidMsgs.length)setTimeout(()=>toast(`<b>Raid floor</b> ${raidMsgs.map(x=>esc(x)).join("<br>")}`,"quest"),1600+(goals.msgs.length+mapMsgs.length)*700);
   if(mobMsgs.length)setTimeout(()=>toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest"),1300+(goals.msgs.length+mapMsgs.length)*700);
   if(usedFocus)setTimeout(()=>toast("Potion of Focus spent: that quest earned double XP."),400);
@@ -4201,7 +4233,7 @@ function wireEdit(card,t){
   });
 }
 function deleteQuest(id){
-  const t=tasks.find(x=>x.id===id);if(t&&!t.done)bump("abandoned");
+  const t=tasks.find(x=>x.id===id);if(t&&!t.done){bump("abandoned");if(godState()&&godState().id==="hephaestus"&&!/^Example:/.test(t.title||"")){addFavor(-5);toast("Hephaestus hates an unfinished job: −5 favor.","bad");}}
   if(t&&!t.done&&(t.stepXp||t.stepGold)){
     // Abandoning returns what its steps paid, so steps can't be farmed from quests that never get finished.
     player.xp=Math.max(0,player.xp-(t.stepXp||0));player.gold=Math.max(0,player.gold-(t.stepGold||0));
@@ -4254,7 +4286,7 @@ function render(){
   const ae=document.activeElement;const aeId=ae&&ae.id;const sel=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null;
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   // Each panel draws independently, so a bug in one can't blank the others.
-  for(const fn of [renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
+  for(const fn of [renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
 }
 
@@ -6983,6 +7015,152 @@ function ttsPick(re){if(!tts.ok)return null;const vs=speechSynthesis.getVoices()
 function hostSpeak(host,text){const vs=HOST_VOICE[host]||HOST_VOICE.chet;announce(text,false,vs[(hostTurn++)%vs.length]);}
 function renderTtsBtn(){const b=$("ttsBtn");if(!b)return;if(!tts.ok){b.hidden=true;return;}const on=prefs.tts===true;
   b.textContent=on?"🎙":"🎙";b.classList.toggle("on",on);b.title=on?"Announcer on: breaking news is read aloud. Tap to turn off":"Turn on the announcer: read breaking news aloud";b.setAttribute("aria-pressed",String(on));}
+
+/* ---------- Gods ----------
+   From Floor 2 a crawler may worship one god. The gods are old ones from real mythologies, retold for the dungeon,
+   and each is quietly run by a Syndicate sponsor who wants ratings. Favor (0–100) rises when you do what your god
+   likes and falls when you neglect or offend them. Favor unlocks blessings, and the first quest of each day rolls
+   a divine whim: usually a gift, sometimes a smite, with the odds tilting toward gifts as favor grows.
+   Renouncing a god is allowed, but their wrath follows you for three days. */
+const GOD_UNLOCK_FLOOR=2,WRATH_DAYS=3;
+const GODS=[
+  {id:"hermes",n:"Hermes",dom:"Messenger of the gods, patron of errands and speed",from:"Greek myth",sponsor:"Swiftline Logistics",
+    likes:"Quick quests of 15 minutes or less, and busy days",hates:"A whole day without a single quest",
+    tenet:t=>t.est>0&&t.est<=15,power:"Every 5th quest in a day drops a Bronze Box",
+    line:"\"Faster. No, faster. Swiftline thanks you for choosing speed.\"",color:"#3fe0ff"},
+  {id:"tyr",n:"Tyr",dom:"One-handed god of oaths and justice",from:"Norse myth",sponsor:"Ironclad Compliance Group",
+    likes:"Quests finished by their due date, and promises kept on the talk show",hates:"Letting three or more quests rot overdue",
+    tenet:t=>!!t.due&&t.due>=today(),power:"On-time quests deal +20% boss damage",
+    line:"\"An oath is a contract. Ironclad has lawyers for the rest.\"",color:"#c9cdd6"},
+  {id:"bastet",n:"Bastet",dom:"Cat-headed goddess of hearth and home",from:"Egyptian myth",sponsor:"Purrfect Living Brands",
+    likes:"Repeating chores and a well-kept pet",hates:"A sulking pet",
+    tenet:t=>!!t.rec,power:"Your pet bonds 50% faster",
+    line:"\"Keep the house. Feed the cat. Purrfect Living is watching your kitchen.\"",color:"#ffd23f"},
+  {id:"anansi",n:"Anansi",dom:"Spider trickster, keeper of all stories",from:"Akan folklore",sponsor:"Spindle Media Holdings",
+    likes:"Intelligence and Charisma quests, and wild answers on the talk show",hates:"Dodging or declining the talk show",
+    tenet:t=>t.stat==="INT"||t.stat==="CHA",power:"+30% viewers from every quest",
+    line:"\"Every crawler is a story. Spindle owns the streaming rights.\"",color:"#c77dff"},
+  {id:"hephaestus",n:"Hephaestus",dom:"Smith of the gods, master of the forge",from:"Greek myth",sponsor:"Anvil & Sons Heavy Industries",
+    likes:"Long and hard quests: an hour or more, or Elite and up",hates:"Abandoning a quest you started",
+    tenet:t=>(t.est||0)>=60||(t.effort||0)>=4,power:"Long quests have a 15% chance to forge a Silver Box",
+    line:"\"Strike while it's hot. Anvil & Sons bills by the hour.\"",color:"#ff8a1f"},
+  {id:"nyx",n:"Nyx",dom:"Primordial goddess of the night",from:"Greek myth",sponsor:"Eventide Capital",
+    likes:"Quests done late at night or before dawn",hates:"Breaking your streak",
+    tenet:t=>{const h=new Date().getHours();return h>=21||h<6;},power:"Mobs you kill at night pay double XP, and Elite quests can uncover secret rooms",
+    line:"\"The dark is patient. Eventide's quarterly targets are not.\"",color:"#7d6bff"}];
+const godOf=id=>GODS.find(g=>g.id===id)||null;
+const FAVOR_TIERS=[[0,"Unnoticed"],[25,"Noticed"],[50,"Favored"],[80,"Chosen"]];
+const favorTier=f=>FAVOR_TIERS.reduce((a,[n,t],i)=>f>=n?i:a,0);
+const godsUnlocked=()=>playerExists&&floorOf()>=GOD_UNLOCK_FLOOR;
+function godState(){return player.god&&godOf(player.god.id)?player.god:null;}
+function addFavor(n,why){const g=godState();if(!g||!n)return;const before=favorTier(g.favor);g.favor=Math.max(0,Math.min(100,(g.favor||0)+n));
+  const after=favorTier(g.favor);if(after!==before){const G=godOf(g.id);setTimeout(()=>toast(after>before?`<span class="big">${esc(FAVOR_TIERS[after][1])}</span> ${esc(G.n)} has noticed you more. ${after===3?`New power: ${esc(G.power)}.`:`+${after*5}% XP on quests ${esc(G.n)} likes.`}`:`${esc(G.n)}'s favor slipped to <b>${esc(FAVOR_TIERS[after][1])}</b>.`,after>before?"lvl":"bad"),900);
+    if(after===3)bump("chosen");}}
+const isChosen=id=>{const g=godState();return !!g&&g.id===id&&favorTier(g.favor)>=3;};
+/* XP bonus on quests your god likes; a curse cuts XP while it lasts. */
+function godXp(t){const g=godState();let x=0;if(g&&t&&godOf(g.id).tenet(t))x+=favorTier(g.favor)*.05;if(player.curse&&player.curse.left>0)x-=.2;return x;}
+/* Once a day: neglect and your god's taboos cost favor; wrath and curses wear off. */
+function godTick(){
+  const td=today();if(player.godTick===td)return false;const prev=player.godTick;player.godTick=td;
+  const g=godState();
+  if(player.wrath&&player.wrath.until<td)player.wrath=null;
+  if(!g||!prev)return true;
+  const days=Math.max(0,daysBetween(prev,td));let loss=0;const why=[];
+  const idle=player.lastDoneDate?daysBetween(player.lastDoneDate,td)-1:0;
+  if(idle>0){loss+=Math.min(15,idle*(g.id==="hermes"?8:4));why.push(g.id==="hermes"?"a day without errands":"a quiet day");}
+  if(g.id==="tyr"&&tasks.filter(t=>!t.done&&t.due&&t.due<td).length>=3){loss+=6;why.push("quests left to rot");}
+  if(g.id==="bastet"&&petSulking()){loss+=6;why.push("a sulking pet");}
+  if(loss){addFavor(-loss);pushEvent(`${godOf(g.id).n} frowned on ${why.join(" and ")}: −${loss} favor`,true);}
+  return true;
+}
+/* A quest finished: favor for doing what your god likes, their power, and the day's first-quest whim. */
+function godQuest(t,fx){
+  const out=[];const g=godState(),td=today();
+  if(player.curse&&player.curse.left>0){player.curse.left--;if(player.curse.left<=0){out.push("The curse has lifted.");player.curse=null;}}
+  if(g){
+    const G=godOf(g.id),liked=G.tenet(t);addFavor(liked?4:1);
+    if(isChosen("hermes")){const n=player.dayCnt&&player.dayCnt.d===td?player.dayCnt.n:0;if(n>0&&n%5===0){giveBox("bronze","A gift from Hermes");out.push("Hermes tosses you a Bronze Box for the fifth errand.");}}
+    if(isChosen("hephaestus")&&liked&&Math.random()<.15){giveBox("silver","Forged by Hephaestus");out.push("Hephaestus forged you a Silver Box from the sweat of that quest.");}
+  }
+  if(player.godDay!==td){player.godDay=td;const w=rollWhim();if(w)out.push(w);}
+  return out;
+}
+/* The day's whim. Wrath from a god you renounced always strikes; otherwise favor tilts the odds toward gifts. */
+function rollWhim(){
+  const W=player.wrath,g=godState();
+  if(W&&W.until>=today()){return smite(godOf(W.god),true);}
+  if(!g)return null;const G=godOf(g.id),f=g.favor||0,r=Math.random();
+  const good=.5+f*.0035,bad=Math.max(.06,.2-f*.0013);
+  if(r<good){bump("blessings");const k=Math.random();
+    if(k<.3){const gl=20+Math.round(f*.6+Math.random()*30);player.gold+=gl;return `${G.n} smiles. A pouch of ${gl} gold appears in your pack.`;}
+    if(k<.55){const tier=favorTier(f)>=3&&Math.random()<.3?"silver":"bronze";giveBox(tier,`A gift from ${G.n}`);return `${G.n} leaves a ${BOXES[tier].n} at your feet.`;}
+    if(k<.75){player.focused=true;return `${G.n} sharpens your mind: your next quest earns double XP.`;}
+    if(k<.9){player.hp=maxHp(player);return `${G.n} breathes on you. Full health.`;}
+    addFavor(8);return `${G.n} is in a generous mood: +8 favor.`;}
+  if(r>1-bad)return smite(G,false);
+  return `${G.n} watches in silence today. ${G.sponsor} is reviewing the numbers.`;
+}
+function smite(G,wrath){
+  bump("smites");const k=Math.random(),who=wrath?`${G.n}, still furious you left,`:G.n;
+  if(k<.4){const d=Math.min(Math.max(0,player.hp-1),Math.round(maxHp(player)*(.1+Math.random()*.1)));player.hp-=d;SFX.play("hurt");return `${who} smites you for ${d} HP.`;}
+  if(k<.75){player.curse={left:3,by:G.id};return `${who} curses you: −20% XP on your next 3 quests.`;}
+  const lost=Math.min(player.gold,Math.max(5,Math.round(player.gold*.05)));player.gold-=lost;return `${who} demands a tithe: −${lost} gold.`;
+}
+function worship(id){
+  const G=godOf(id);if(!G||!godsUnlocked())return;const old=godState();
+  if(old&&old.id!==id){player.wrath={god:old.id,until:addDays(today(),WRATH_DAYS-1)};bump("renounced");pushEvent(`Renounced ${godOf(old.id).n}. Their wrath follows.`,true);}
+  player.god={id,favor:old&&old.id===id?old.favor:0,since:today()};player.godDay=today();player.godTick=today();ui.godPick=null;ui.godRenounce=false;
+  pushEvent(`Began worshipping ${G.n}`);bump("worship");store.savePlayer(player).catch(writeFailed);render();
+  SFX.play("reveal","rare");toast(`<span class="big">${esc(G.n)}</span> accepts your worship. ${esc(G.line)}`,"lvl");setTimeout(()=>checkAch(),600);
+  try{say("god",{god:G.n});}catch(e){}
+}
+function renounce(){const g=godState();if(!g)return;const G=godOf(g.id);player.wrath={god:g.id,until:addDays(today(),WRATH_DAYS-1)};player.god=null;ui.godRenounce=false;
+  bump("renounced");pushEvent(`Renounced ${G.n}. Their wrath follows.`,true);store.savePlayer(player).catch(writeFailed);render();
+  toast(`You renounced ${esc(G.n)}. ${esc(G.sponsor)} has been notified. Expect ${WRATH_DAYS} days of wrath.`,"bad");setTimeout(()=>checkAch(),600);}
+function makeOffering(){const g=godState();if(!g||player.offeredOn===today())return;const cost=Math.max(25,Math.round(player.gold*.1));if(player.gold<cost)return;
+  player.gold-=cost;player.offeredOn=today();addFavor(8);SFX.play("coin");store.savePlayer(player).catch(writeFailed);render();toast(`You offer ${cost} gold to ${esc(godOf(g.id).n)}. +8 favor.`);}
+function godSigil(id,size){const s=size||48,K="#111",G=godOf(id),c=G?G.color:"#888";const P={
+  hermes:`<path d="M14 34 L34 34 L36 28 L22 26 Z" fill="${c}" stroke="${K}" stroke-width="2"/><path d="M20 26 Q14 14 6 16 Q14 18 16 24 Q10 18 4 22 Q12 22 16 28 Z" fill="#fff" stroke="${K}" stroke-width="1.6"/>`,
+  tyr:`<path d="M24 6 L28 10 L26 32 L22 32 L20 10 Z" fill="${c}" stroke="${K}" stroke-width="2"/><path d="M14 32 L34 32 L34 35 L14 35 Z" fill="#8a7a6a" stroke="${K}" stroke-width="2"/><path d="M22 35 L26 35 L26 42 L22 42 Z" fill="#7a4a26" stroke="${K}" stroke-width="2"/>`,
+  bastet:`<path d="M12 40 Q10 22 16 14 L18 6 L22 14 L26 14 L30 6 L32 14 Q38 22 36 40 Z" fill="${c}" stroke="${K}" stroke-width="2"/><circle cx="20" cy="24" r="2.4" fill="${K}"/><circle cx="28" cy="24" r="2.4" fill="${K}"/><path d="M22 30 L24 32 L26 30" fill="none" stroke="${K}" stroke-width="1.6"/>`,
+  anansi:`<circle cx="24" cy="24" r="7" fill="${c}" stroke="${K}" stroke-width="2"/><path d="M18 20 L6 10 M18 24 L4 24 M18 28 L6 38 M30 20 L42 10 M30 24 L44 24 M30 28 L42 38 M20 18 L12 6 M28 18 L36 6" stroke="${K}" stroke-width="2.4"/><circle cx="21" cy="22" r="1.4" fill="#fff"/><circle cx="27" cy="22" r="1.4" fill="#fff"/>`,
+  hephaestus:`<path d="M10 14 L30 14 L30 22 L10 22 Z" fill="#9aa0ad" stroke="${K}" stroke-width="2"/><path d="M30 16 L38 12 L38 24 L30 20 Z" fill="#9aa0ad" stroke="${K}" stroke-width="2"/><path d="M18 22 L22 22 L24 42 L16 42 Z" fill="#7a4a26" stroke="${K}" stroke-width="2"/><path d="M6 8 L10 12 M38 6 L34 10 M42 30 L38 28" stroke="${c}" stroke-width="2.4"/>`,
+  nyx:`<path d="M30 6 A18 18 0 1 0 42 32 A14 14 0 1 1 30 6 Z" fill="${c}" stroke="${K}" stroke-width="2"/><circle cx="14" cy="12" r="1.6" fill="#fff"/><circle cx="38" cy="40" r="1.2" fill="#fff"/><circle cx="8" cy="34" r="1" fill="#fff"/>`};
+  return `<svg viewBox="0 0 48 48" width="${s}" height="${s}" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#1a1230" stroke="${c}" stroke-width="2"/>${P[id]||""}</svg>`;}
+function renderGods(){
+  const el=$("gods");if(!el)return;const sec=el.closest("section");
+  if(!playerExists){if(sec)sec.hidden=true;return;}if(sec)sec.hidden=false;
+  if(!godsUnlocked()){el.innerHTML=`<p class="muted">The gods only notice crawlers who survive their first floor. Worship unlocks on Floor ${GOD_UNLOCK_FLOOR}.</p>`;return;}
+  const g=godState(),W=player.wrath&&player.wrath.until>=today()?player.wrath:null;
+  const wrathTxt=W?`<div class="godwrath">⚡ <b>${esc(godOf(W.god).n)}'s wrath</b> follows you through ${esc(fmtDue(W.until))}: each day's first quest brings a smite.</div>`:"";
+  const curseTxt=player.curse&&player.curse.left>0?`<div class="godwrath">☠ Cursed: −20% XP on your next ${player.curse.left} quest${player.curse.left===1?"":"s"}.</div>`:"";
+  if(!g||ui.godPick){
+    el.innerHTML=`<p class="muted" style="margin-top:0">Every god down here has an owner. Pick a patron, keep them entertained, and their sponsor keeps the blessings coming. Anger them and they hit back.</p>${wrathTxt}${curseTxt}
+      <div class="godlist">${GODS.filter(G=>!W||G.id!==W.god).map(G=>`<div class="godcard" style="--gc:${G.color}">
+        <div class="godtop">${godSigil(G.id)}<div><b>${esc(G.n)}</b><div class="muted">${esc(G.dom)} · ${esc(G.from)}</div><div class="godsp">Sponsored by ${esc(G.sponsor)}</div></div></div>
+        <div class="godline">${esc(G.line)}</div>
+        <ul><li><b>Pleased by:</b> ${esc(G.likes)}</li><li><b>Angered by:</b> ${esc(G.hates)}</li><li><b>Chosen power:</b> ${esc(G.power)}</li></ul>
+        ${g&&g.id===G.id?`<span class="muted">Your current god</span>`:`<button class="btn sm${g?"":" gold"}" type="button" data-worship="${G.id}">${g?`Switch to ${esc(G.n)}`:`Worship ${esc(G.n)}`}</button>`}</div>`).join("")}</div>
+      ${g?`<p class="muted" style="font-size:13px">Switching means renouncing ${esc(godOf(g.id).n)}: ${WRATH_DAYS} days of wrath, and your new god starts at zero favor.</p><button class="btn ghost sm" type="button" id="godPickCancel">Keep ${esc(godOf(g.id).n)}</button>`:""}`;
+    el.querySelectorAll("[data-worship]").forEach(b=>b.onclick=()=>worship(b.dataset.worship));
+    const c=$("godPickCancel");if(c)c.onclick=()=>{ui.godPick=null;render();};
+    return;
+  }
+  const G=godOf(g.id),f=g.favor||0,tier=favorTier(f),cost=Math.max(25,Math.round(player.gold*.1)),offered=player.offeredOn===today();
+  el.innerHTML=`<div class="godhead" style="--gc:${G.color}">${godSigil(G.id,64)}<div><div class="label">Your patron</div><b class="godname">${esc(G.n)}</b><div class="muted">${esc(G.dom)}</div><div class="godsp">Sponsored by ${esc(G.sponsor)}</div></div></div>
+    ${wrathTxt}${curseTxt}
+    <div class="godfavor"><div class="top"><span><b>${esc(FAVOR_TIERS[tier][1])}</b></span><span class="num">${f} / 100 favor</span></div>
+      <div class="bar"><b style="width:${f}%;background:${G.color}"></b></div>
+      <div class="godticks">${FAVOR_TIERS.slice(1).map(([n,t])=>`<span style="left:${n}%">${t}</span>`).join("")}</div></div>
+    <ul class="godperks"><li class="${tier>=1?"on":""}">Noticed (25): +5% XP on quests ${esc(G.n)} likes</li><li class="${tier>=2?"on":""}">Favored (50): +10% XP on those quests, and kinder daily whims</li>
+      <li class="${tier>=3?"on":""}">Chosen (80): +15% XP on those quests, and ${esc(G.power.charAt(0).toLowerCase()+G.power.slice(1))}</li></ul>
+    <div class="muted" style="font-size:13px"><b>Pleased by:</b> ${esc(G.likes)}. <b>Angered by:</b> ${esc(G.hates)}. Your first quest each day rolls ${esc(G.n)}'s whim: usually a gift, sometimes a smite.</div>
+    <div class="acts" style="margin-top:10px"><button class="btn gold sm" type="button" id="godOffer"${offered||player.gold<cost?" disabled":""}>${offered?"Offering made today":`Make an offering (${cost} gold, +8 favor)`}</button>
+      <button class="btn ghost sm" type="button" id="godSwitch">Switch god</button>
+      ${ui.godRenounce?`<span class="godconfirm">Renounce ${esc(G.n)}? ${WRATH_DAYS} days of wrath. <button class="btn sm" type="button" id="godRenYes">Renounce</button><button class="btn ghost sm" type="button" id="godRenNo">Stay faithful</button></span>`:`<button class="linkbtn" type="button" id="godRen">Renounce</button>`}</div>`;
+  $("godOffer").onclick=makeOffering;$("godSwitch").onclick=()=>{ui.godPick=true;render();};
+  const on=(id,fn)=>{const x=$(id);if(x)x.onclick=fn;};on("godRen",()=>{ui.godRenounce=true;render();});on("godRenNo",()=>{ui.godRenounce=false;render();});on("godRenYes",renounce);
+}
 
 /* ---------- Boot ---------- */
 async function boot(){
