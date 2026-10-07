@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=5a6be137c1"></script>
-<script>window.CRAWL_BUILD="5a6be137c1";</script>
+<script src="firebase-config.js?v=8c24373923"></script>
+<script>window.CRAWL_BUILD="8c24373923";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -93,8 +93,8 @@ h2::after{content:"";display:block;height:3px;margin-top:8px;background:linear-g
 .doll .sil{position:absolute;left:50%;top:8px;height:calc(100% - 16px);transform:translateX(-50%);fill:#0d0a18;opacity:.85;pointer-events:none}
 .dslot{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:1}
 .ds-trinket{grid-area:trinket}.ds-trinket .invcell{width:50px;height:50px}
-.ds-side{grid-area:side;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;margin-top:2px}
-.ds-side .dslot{margin-top:0}.ds-gloves .invcell{width:46px;height:46px}
+.ds-side{grid-area:side;align-self:start;display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px}
+.ds-side .dslot{margin-top:0}.ds-gloves .invcell{width:58px;height:58px}
 .ds-head{grid-area:head}.ds-cape{grid-area:cape}.ds-weapon{grid-area:weapon}.ds-armor{grid-area:armor}
 .ds-ring,.ds-weapon,.ds-armor{margin-top:2px}
 .dlabel{display:block;width:100%;text-align:center;padding-left:.12em;box-sizing:border-box;line-height:1.2;white-space:nowrap;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#f1ebff;text-shadow:0 1px 2px #000,0 0 6px #000}
@@ -7084,6 +7084,7 @@ const CHANGELOG=[
     "Quests you finish on the way store half their damage as ⚡ Charge, released in one big hit when you walk into the lair.",
     "In the lair, every crewmate standing with you adds +10% raid damage (up to +50% with a full party of 6).",
     "Raid bosses are tougher: 1,200 HP for each party member who's active that week (inactive members no longer make the boss bigger)."]},
+  {v:"2.5.1",d:"2026-10-07",t:"Bigger gloves slot",items:["The Hands slot is now bigger than the Ring slot, so you can actually see your gloves."]},
   {v:"2.4.2",d:"2026-10-07",t:"Inventory tidy-up",items:["The Ring and Hands slots now stack together on the right, level with your body armour."]},
   {v:"2.4.1",d:"2026-10-07",t:"Inventory tidy-up",items:["The Hands slot now sits on the right side of the inventory, under your ring."]},
   {v:"2.4.0",d:"2026-10-07",t:"Update alerts",items:["When a new version of The Crawl goes live while you have it open, a pop-up asks you to refresh so you're never playing an old version. Later snoozes it for 30 minutes."]},
