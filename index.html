@@ -14,7 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=77a792157d"></script>
+<script src="firebase-config.js?v=fe0e0f8dd1"></script>
+<script>window.CRAWL_BUILD="fe0e0f8dd1";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1220,6 +1221,12 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .clog ul{margin:6px 0 0;padding-left:20px;font-size:13px;line-height:1.5}.clog li{margin:3px 0}
 .gv-pick{position:relative}.gv-pick .qty{position:absolute;right:2px;bottom:2px;background:#000c;color:#fff;font:700 10px/1 system-ui,sans-serif;padding:2px 3px;border-radius:3px}
 .gv-sum{margin-top:10px;font-size:14px;text-align:center}
+.updbar{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9000;width:min(560px,calc(100vw - 24px));display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 14px;border-radius:12px;background:var(--panel-2);border:2px solid var(--gold);box-shadow:0 0 0 2px #000,0 10px 30px rgba(0,0,0,.6),0 0 24px rgba(255,210,63,.3);animation:updin .35s ease-out}
+@keyframes updin{from{transform:translate(-50%,-20px);opacity:0}}
+.upd-ic{font-size:22px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#111;flex:none}
+.upd-txt{flex:1 1 220px;display:flex;flex-direction:column;gap:2px;font-size:13px}.upd-txt b{font-size:15px}
+.upd-acts{display:flex;gap:6px}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -7067,6 +7074,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.4.0",d:"2026-10-07",t:"Update alerts",items:["When a new version of The Crawl goes live while you have it open, a pop-up asks you to refresh so you're never playing an old version. Later snoozes it for 30 minutes."]},
   {v:"2.3.0",d:"2026-10-07",t:"Trade from the Party tab",items:[
     "Each crewmate's card on the Party tab now has a 🎁 Trade button: pick what you want from them, pick what you'll give, and send the offer.",
     "Inspecting a crewmate's gear? Tap an item and hit \"Trade for this\" to start a trade for it."]},
@@ -7124,6 +7132,30 @@ function renderChangelog(){
     <ul>${c.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`).join("");
   const g=$("gearBtn");if(g)g.classList.toggle("hasnew",!!seen&&verNum(APP_VERSION)>verNum(seen));
 }
+/* ---------- Update check ----------
+   Every deploy writes version.json with a build id. While the app is open we check it now and then
+   (and whenever you come back to the tab); if the site has moved on, a pop-up asks you to refresh. */
+let updShown=false;
+async function checkForUpdate(){
+  if(!window.CRAWL_BUILD||updShown||typeof fetch!=="function")return;
+  if(prefs.updSnooze&&Date.now()<prefs.updSnooze)return;
+  try{const r=await fetch(`version.json?t=${Date.now()}`,{cache:"no-store"});if(!r.ok)return;const j=await r.json();
+    if(j&&j.build&&j.build!==window.CRAWL_BUILD)showUpdate(j);}catch(e){}
+}
+function showUpdate(j){
+  if(updShown)return;updShown=true;
+  const newer=j.v&&verNum(j.v)>verNum(APP_VERSION);
+  const el=document.createElement("div");el.className="updbar";el.setAttribute("role","alertdialog");el.setAttribute("aria-label","Update available");
+  el.innerHTML=`<div class="upd-ic" aria-hidden="true">⬆</div><div class="upd-txt"><b>${newer?`Update ready: v${esc(j.v)}`:"An update is ready"}</b><span>${newer&&j.t?`${esc(j.t)}. `:""}Refresh The Crawl to get it. Your progress is saved.</span></div>
+    <div class="upd-acts"><button type="button" class="btn gold sm" data-upd="go">Refresh</button><button type="button" class="btn ghost sm" data-upd="later">Later</button></div>`;
+  document.body.appendChild(el);
+  el.querySelector('[data-upd="go"]').onclick=()=>{el.querySelector('[data-upd="go"]').textContent="Refreshing…";
+    const go=()=>location.reload();
+    try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(r=>{if(r)r.update().finally(go);else go();},go);else go();}catch(e){go();}};
+  el.querySelector('[data-upd="later"]').onclick=()=>{prefs.updSnooze=Date.now()+30*6e4;savePrefs();el.remove();updShown=false;};
+}
+setInterval(()=>{if(document.visibilityState==="visible")checkForUpdate();},4*6e4);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkForUpdate();});
 /* Returning players hear about a new version once; first-timers just start on the current one. */
 function changelogCheck(){
   if(!prefs.seenVer){prefs.seenVer=APP_VERSION;savePrefs();return;}
@@ -8336,7 +8368,7 @@ async function boot(){
   // A drawing error must never stop the save from loading.
   try{setupForm();}catch(e){console.error(e);}
   try{renderTabs();
-    $("gearBtn").onclick=openGear;try{changelogCheck();renderChangelog();}catch(e){console.warn(e);}
+    $("gearBtn").onclick=openGear;try{changelogCheck();renderChangelog();}catch(e){console.warn(e);}setTimeout(checkForUpdate,5000);
     $("achInbox").onclick=openAchInbox;
     {const tb=$("ttsBtn");if(tb)tb.onclick=()=>{prefs.tts=prefs.tts!==true;savePrefs();renderTtsBtn();const c=$("ttsOn");if(c)c.checked=prefs.tts;
       if(prefs.tts){const r=$("tickerRun");announce(ui.news&&ui.news[0]||"The announcer is live. Try not to embarrass yourself.",true);}else if(tts.ok)try{speechSynthesis.cancel();}catch(e){}};}
