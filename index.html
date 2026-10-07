@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=a1ab449f5f"></script>
+<script src="firebase-config.js?v=0ac3f50331"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1139,7 +1139,8 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .fb-k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .fb-n{font-family:var(--display);font-size:clamp(20px,4.6vw,30px);line-height:1.05;color:var(--th-acc);text-shadow:2px 2px 0 #000,0 0 18px var(--th-glow)}
 .fb-f{font-size:13px;color:var(--fg);opacity:.85;margin-top:2px}
-.fb-rules{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:5px;font-size:12px}
+.fb-rules .boon{color:var(--leaf)}.fb-rules .bane{color:var(--blood)}
+.fb-rules{font-weight:600;display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:5px;font-size:12px}
 .floorbanner.min{padding:6px 12px}.floorbanner.min .fb-ic{font-size:24px}.floorbanner.min .fb-n{font-size:18px}.floorbanner.min .fb-k{display:none}
 .fb-min{all:unset;cursor:pointer;align-self:flex-start;width:26px;height:26px;text-align:center;line-height:26px;border-radius:50%;border:1px solid var(--line-2);color:var(--muted)}
 .fb-min:focus-visible{outline:2px solid var(--gold)}
@@ -1758,7 +1759,7 @@ function renderTheme(){
   const L=THEME_LOOK[id]||THEME_LOOK.lobby,b=player.boss,min=prefs.bannerMin===b.week;
   const key=[id,b.floor,min].join("|");if(bn.dataset.k===key&&!bn.hidden)return;bn.dataset.k=key;bn.hidden=false;
   bn.className="floorbanner tb-"+id+(min?" min":"");
-  bn.innerHTML=`<div class="fb-ic" aria-hidden="true">${L.icon}</div><div class="fb-txt"><div class="fb-k">Floor ${b.floor} · this week's theme</div><div class="fb-n">${esc(th.n)}</div>
+  bn.innerHTML=`<div class="fb-ic" aria-hidden="true">${L.icon}</div><div class="fb-txt"><div class="fb-k">This week's theme</div><div class="fb-n">Floor ${b.floor}: ${esc(th.n)}</div>
     ${min?"":`<div class="fb-f">${esc(th.flavor)}</div>`}<div class="fb-rules"><span class="boon">▲ ${esc(th.boon)}</span><span class="bane">▼ ${esc(th.bane)}</span></div></div>
     <button type="button" class="fb-min" id="fbMin" aria-label="${min?"Show more":"Show less"}" title="${min?"Show more":"Show less"}">${min?"▾":"▴"}</button>`;
   $("fbMin").onclick=()=>{prefs.bannerMin=min?null:b.week;savePrefs();renderTheme();};
@@ -6489,7 +6490,7 @@ function renderBoss(){
   const fog=themeFx(player).fog&&!b.defeated,hpTxt=fog?"??? / ???":`${hp} / ${b.maxHp}`,barW=fog?100:(hp/b.maxHp*100),togoTxt=fog?"??":togo;
   const fd=finalDay(b),ec=escapeCost(b);
   const tbar=(fd?`<div class="finalday" role="status"><span class="fd-k">Final day</span> The stairwell closes in <b data-countdown="${stairwellEnd(b)}">${fmtLeft(stairwellEnd(b)-Date.now())}</b>. ${hunting(b)?`The ${esc(T.n)} is still hiding`:`${esc(b.name)} is still standing${fog?"":` with <b>${hp}</b> HP`}`}. ${5-b.tier} more boss${5-b.tier===1?"":"es"} after this one.${b.firstWeek?"":` If any are left at midnight you lose <b>${Math.round(ec.goldPct*100)}% of your gold</b> and 10% of your viewers, and start the next floor as a Straggler.`}</div>`:"")
-    +(straggling()?`<div class="themebar"><span class="themechip strag">Straggler</span><span class="bane">▼ −10% XP through ${esc(fmtDue(player.straggler.until))}. You got caught on the stairs.</span></div>`:"")+themeBar(b);
+    +(straggling()?`<div class="themebar"><span class="themechip strag">Straggler</span><span class="bane">▼ −10% XP through ${esc(fmtDue(player.straggler.until))}. You got caught on the stairs.</span></div>`:"");
   const closes=daysLeft===1?"tonight":`in ${daysLeft} days`;
   const ladder=`<ol class="ladder6" aria-label="Boss ladder, ${b.defeated?6:b.tier} of 6 defeated">${TIERS.map((t,i)=>`<li class="${b.defeated||i<b.tier?"done":i===b.tier?"now":""}" title="${t.n}${i<(b.kills||[]).length?": "+esc(b.kills[i].name):""}">${t.n.replace(" boss","")}</li>`).join("")}</ol>`;
   const pips=`<span class="pips" aria-hidden="true">${TIERS.map((t,i)=>`<i class="${b.defeated||i<b.tier?"done":i===b.tier?"now":""}"></i>`).join("")}</span>`;
