@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9d72b64513"></script>
-<script>window.CRAWL_BUILD="9d72b64513";</script>
+<script src="firebase-config.js?v=4d1a62e7f3"></script>
+<script>window.CRAWL_BUILD="4d1a62e7f3";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5649,6 +5649,8 @@ function buy(itemId){
 }
 /* Each gear slot has its own equip sound (sfx/equip-<slot>.mp3); anywhere the clips can't play uses the synth. */
 const EQUIP_SND={weapon:.85,armor:.9,head:.9,gloves:1,boots:.9,cape:.9,ring:.85,trinket:.85};
+/* Tapping a piece of gear to look at it (not equipping it, which has its own per-slot sounds). */
+function selectSound(){if(!clip("select-gear",.8))SFX.play("tick");}
 function equipSound(slot){if(!(EQUIP_SND[slot]&&clip("equip-"+slot,EQUIP_SND[slot])))SFX.play("equip");}
 function equip(slot,id){
   if(id)equipSound(slot);
@@ -7225,7 +7227,7 @@ function wireInv(el){
     const key=c.dataset.inv||c.dataset.cons||c.dataset.invslot;
     if(hover){c.onmouseenter=()=>{if(!ui.invPin)showInvTip(c,false);};c.onmouseleave=()=>hideInvTip();}
     c.onfocus=()=>{if(!ui.invPin)showInvTip(c,false);};c.onblur=()=>setTimeout(hideInvTip,0);
-    c.onclick=e=>{e.stopPropagation();if(ui.invPin===key){ui.invPin=null;const t=$("invTip");if(t)t.hidden=true;c.classList.remove("sel");return;}ui.invPin=key;showInvTip(c,true);};
+    c.onclick=e=>{e.stopPropagation();if(ui.invPin===key){ui.invPin=null;const t=$("invTip");if(t)t.hidden=true;c.classList.remove("sel");return;}ui.invPin=key;if(c.dataset.inv)selectSound();showInvTip(c,true);};
   });
   if(!wireInv.done){wireInv.done=true;
     document.addEventListener("click",e=>{if(ui.invPin&&!e.target.closest(".invtip,.invcell")){ui.invPin=null;const t=$("invTip");if(t)t.hidden=true;document.querySelectorAll(".invcell.sel").forEach(x=>x.classList.remove("sel"));}});
@@ -9055,7 +9057,7 @@ function renderInspect(){
     ${own.length?`<div class="insp-grid">${own.map(cell).join("")}</div>`:`<p class="muted">Nothing in the backpack yet${c.own?"":" (their app hasn't shared it yet)"}.</p>`}
     ${det}</div>`;
   $("inspClose").onclick=closeInspect;
-  o.querySelectorAll("[data-insp]").forEach(b=>b.onclick=()=>{ui.inspectItem=b.dataset.insp;renderInspect();});
+  o.querySelectorAll("[data-insp]").forEach(b=>b.onclick=()=>{if(ui.inspectItem!==b.dataset.insp)selectSound();ui.inspectItem=b.dataset.insp;renderInspect();});
   o.querySelectorAll("[data-asktrade]").forEach(b=>b.onclick=()=>{const w=b.dataset.asktrade;closeInspect();openTradeWith(uid,w);});
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.inspect)closeInspect();});
