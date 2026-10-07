@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9bdd83fcde"></script>
-<script>window.CRAWL_BUILD="9bdd83fcde";</script>
+<script src="firebase-config.js?v=9d72b64513"></script>
+<script>window.CRAWL_BUILD="9d72b64513";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5647,8 +5647,8 @@ function buy(itemId){
   pushEvent(`Bought ${it.n}`);
   store.savePlayer(player).catch(writeFailed);render();toast(`Bought and equipped ${it.n}.`);checkAch();
 }
-/* Each gear slot has its own equip sound (sfx/equip-<slot>.mp3); boots, and anywhere the clips can't play, use the synth. */
-const EQUIP_SND={weapon:.85,armor:.9,head:.9,gloves:1,cape:.9,ring:.85,trinket:.85};
+/* Each gear slot has its own equip sound (sfx/equip-<slot>.mp3); anywhere the clips can't play uses the synth. */
+const EQUIP_SND={weapon:.85,armor:.9,head:.9,gloves:1,boots:.9,cape:.9,ring:.85,trinket:.85};
 function equipSound(slot){if(!(EQUIP_SND[slot]&&clip("equip-"+slot,EQUIP_SND[slot])))SFX.play("equip");}
 function equip(slot,id){
   if(id)equipSound(slot);
