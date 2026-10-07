@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=146ab341fa"></script>
+<script src="firebase-config.js?v=19a52095e3"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1029,6 +1029,31 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .rfinfo{display:flex;flex-direction:column;gap:8px;font-size:14px}
 .rfaura{border:1px solid var(--leaf);border-radius:8px;padding:6px 9px;display:flex;flex-direction:column;gap:2px;font-size:13px}.rfaura b{color:var(--leaf)}
 .rfbtns{display:flex;flex-wrap:wrap;gap:6px}
+.pt-seg{display:flex;gap:4px;margin:0 0 12px;border-bottom:1px solid var(--line-2);padding-bottom:8px}
+.pt-seg button{padding:6px 14px;border-radius:999px;border:1px solid var(--line-2);background:none;color:var(--muted);font:600 12px var(--body);letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.pt-seg button.on{background:var(--mana);border-color:var(--mana);color:#111}
+.pt-badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--blood);color:#fff;font-size:11px;line-height:18px;text-align:center}
+.pt-cbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.chatbox{height:min(52vh,420px);overflow-y:auto;border:1px solid var(--line-2);border-radius:10px;background:var(--panel-2);padding:10px;display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.cempty{margin:auto;text-align:center}
+.cmsg{display:flex;flex-direction:column;align-items:flex-start;max-width:85%}.cmsg.mine{align-self:flex-end;align-items:flex-end}
+.cmsg:not(.cont){margin-top:6px}
+.cwho{font-size:12px;font-weight:700}.cwho span{color:var(--faint);font-weight:400;margin-left:4px}
+.cbub{position:relative;background:var(--panel);border:1px solid var(--line-2);border-radius:12px;padding:6px 10px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmsg.mine .cbub{background:#2a1f45;border-color:var(--line-2)}
+.cdel{margin-left:8px;border:0;background:none;color:var(--faint);cursor:pointer;font-size:14px;padding:0}.cdel:hover{color:var(--blood)}
+.chatform{margin-bottom:6px}
+.inspdlg{background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r);padding:12px;gap:10px}
+.insp-top{display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:start;font-size:14px}
+.insp-av{width:110px;margin:5px 0 12px 5px}.insp-av svg{width:100%;height:auto;display:block}
+.insp-worn{list-style:none;margin:8px 0 0;padding:0;font-size:13px}.insp-worn li{margin:2px 0}.insp-worn .linkbtn{display:inline;padding:0;font-size:13px;text-align:left;text-transform:none;letter-spacing:0;font-weight:600}
+.insp-aura{margin-top:6px;font-size:13px;color:var(--leaf)}
+.insp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:6px}
+.insp-grid .invcell{position:relative;width:100%;height:auto;aspect-ratio:1/1;padding:0;border-radius:6px;border:2px solid #111;cursor:pointer;overflow:hidden}
+.insp-grid .invcell svg{width:100%;height:100%;display:block}.insp-grid .invcell.sel{box-shadow:0 0 0 3px var(--gold)}
+.insp-grid .eqtag{position:absolute;top:2px;right:2px;background:#111;color:var(--gold);font:700 10px/1 var(--body);padding:2px 3px;border-radius:3px}
+.insp-det{border-top:1px solid var(--line-2);padding-top:10px;font-size:14px}.insp-det .thead{display:flex;gap:10px;align-items:center}.insp-det .tico svg{width:44px;height:44px;display:block;border-radius:6px}
+@media (max-width:560px){.insp-top{grid-template-columns:90px 1fr}.insp-av{width:84px}}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -1534,6 +1559,8 @@ function rewardFor(p,t,actual){
 const C=(p,k)=>((p&&p.cnt)||{})[k]||0;
 function bump(k,n){if(!player)return;player.cnt=Object.assign({},player.cnt||{});player.cnt[k]=(player.cnt[k]||0)+(n===undefined?1:n);}
 const ACH = [
+  {id:"chat1",  n:"Comms Check",                  how:"Send a message in party chat",          gold:10,         test:p=>C(p,"chats")>=1,
+   line:"Is this thing on? It is. Everyone can hear you. Forever."},
   {id:"regroup",n:"Found You",                    how:"Share a room with a crewmate on the raid floor", gold:25, test:p=>C(p,"regroups")>=1,
    line:"You found each other in a maze. The producers had money on 'never'."},
   {id:"mob25",  n:"Pest Control",                 how:"Kill 25 mobs",                          box:"bronze",    test:p=>C(p,"mobKills")>=25,
@@ -2128,7 +2155,8 @@ function lootToast(l){
   };
   // Stays up until the player dismisses it: the button, Esc/Enter, or a tap outside the card.
   const dismiss=()=>{if(!flown)fly();else finish();};
-  const onKey=e=>{if(e.key==="Escape"||e.key==="Enter"){e.preventDefault();dismiss();}};
+  // If this card was swept away by a newer one, stop listening instead of swallowing Enter forever.
+  const onKey=e=>{if(!ov.isConnected){document.removeEventListener("keydown",onKey);return;}if(e.key==="Escape"||e.key==="Enter"){e.preventDefault();dismiss();}};
   document.addEventListener("keydown",onKey);
   ov.addEventListener("click",e=>{if(e.target.closest("#vGo")||!e.target.closest(".vcard"))dismiss();});
   setTimeout(()=>{const g=ov.querySelector("#vGo");if(g)try{g.focus({preventScroll:true});}catch(e){}},50);
@@ -6295,7 +6323,7 @@ function myCard(){
   const wear={};const w=wearing(player);for(const k of Object.keys(w))wear[k]=w[k]||null;
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
-    wk:pt.wk,wkDmg:pt.wkDmg||0,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,
+    wk:pt.wk,wkDmg:pt.wkDmg||0,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
@@ -6327,6 +6355,11 @@ function partyListen(code){
     const c={};s.docs.forEach(x=>{c[x.id]=x.data();});mine.cards=c;mine.ready=true;partyTick();render();},e=>partyErr(e)));
   mine.unsub.push(base.collection("feed").orderBy("at","desc").limit(40).onSnapshot(s=>{if(party!==mine)return;
     mine.feed=s.docs.map(x=>Object.assign({id:x.id},x.data()));partyNews();render();},e=>partyErr(e)));
+  mine.unsub.push(base.collection("chat").orderBy("at","desc").limit(60).onSnapshot(s=>{if(party!==mine)return;
+    mine.chat=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>a.at-b.at);
+    if(prefs.chatSeen==null){prefs.chatSeen=Date.now();savePrefs();}
+    if(ui.tab==="party"&&ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}
+    render();},e=>console.warn("chat",e&&e.code)));
   partyPublish(true);
 }
 function partyErr(e){
@@ -6395,8 +6428,8 @@ function partyNews(){
     n.slice(-2).forEach((f,i)=>setTimeout(()=>toast(`<b>${esc(f.name)} nudged you.</b> <span class="quip">${esc(f.text.replace(/^nudged [^:]*: /,""))}</span>`,"quest"),600+i*900));}
   if(ui.tab==="party")partySeen(true);
 }
-function partyUnseen(){if(!party)return 0;const me=myUid(),s=prefs.partySeen||0;return party.feed.filter(f=>f.uid!==me&&f.at>s).length;}
-function partySeen(quiet){prefs.partySeen=Date.now();savePrefs();if(!quiet)setTimeout(render,0);}
+function partyUnseen(){if(!party)return 0;const me=myUid(),s=prefs.partySeen||0;return party.feed.filter(f=>f.uid!==me&&f.at>s).length+chatUnseen();}
+function partySeen(quiet){prefs.partySeen=Date.now();if(ui.ptView==="chat")prefs.chatSeen=Date.now();savePrefs();if(!quiet)setTimeout(render,0);}
 
 /* ---------- Actions ---------- */
 function partyCode(){let c="";const a=new Uint32Array(8);crypto.getRandomValues(a);for(let i=0;i<8;i++){c+=PCODE[a[i]%PCODE.length];if(i===3)c+="-";}return c;}
@@ -6541,11 +6574,24 @@ function renderParty(){
       <div class="pt-meta">Lv ${c.lvl||1} · ${esc(c.title||"")}</div>
       <div class="pt-meta">Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}`:""}</div>
       <div class="pt-today${n?" yes":""}">${n?`✔ ${n} quest${n===1?"":"s"} today`:mia&&uid!==me?"Missing in action":"No quests yet today"}</div>
-      ${uid!==me&&!n?`<button class="btn ghost sm" type="button" data-nudge="${esc(uid)}"${nudged?" disabled":""}>${nudged?"Nudged":"Nudge"}</button>`:""}</div>`;}).join("");
+      <div class="pt-cbtns"><button class="btn ghost sm" type="button" data-inspect="${esc(uid)}">${uid===me?"My gear":"Gear"}</button>${uid!==me&&!n?`<button class="btn ghost sm" type="button" data-nudge="${esc(uid)}"${nudged?" disabled":""}>${nudged?"Nudged":"Nudge"}</button>`:""}</div></div>`;}).join("");
   const feed=party.feed.slice(0,25).map(f=>{const ch=Object.keys(f.cheers||{}).length,mine=(f.cheers||{})[me];
     return `<li class="pt-ev k-${esc(f.kind||"")}"><div><b>${esc(f.uid===me?"You":f.name||"Crawler")}</b> ${esc(f.uid===me?String(f.text||"").replace(/^hit /,"hit "):f.text||"")}<span class="pt-ago">${ago(f.at||0)}</span></div>
       ${f.uid!==me&&f.kind!=="leave"?`<button type="button" class="pt-cheer${mine?" on":""}" data-cheer="${esc(f.id)}" aria-pressed="${mine?"true":"false"}" aria-label="Cheer">🔥${ch?` ${ch}`:""}</button>`:ch?`<span class="pt-cheer static">🔥 ${ch}</span>`:""}</li>`;}).join("")||`<li class="muted">Nothing yet. Clear a quest and get the show started.</li>`;
-  el.innerHTML=`<div class="pt-head">
+  const cu=chatUnseen(),view=ui.ptView||"crew";
+  const seg=`<div class="pt-seg" role="tablist"><button type="button" role="tab" data-ptview="crew" class="${view==="crew"?"on":""}" aria-selected="${view==="crew"}">Crew</button><button type="button" role="tab" data-ptview="chat" class="${view==="chat"?"on":""}" aria-selected="${view==="chat"}">Chat${cu?` <span class="pt-badge">${cu}</span>`:""}</button></div>`;
+  if(view==="chat"){
+    const box0=$("chatBox"),atBottom=!box0||box0.scrollHeight-box0.scrollTop-box0.clientHeight<40;
+    el.innerHTML=`<div class="pt-head"><h3>${esc(party.doc.name||"Party")}</h3></div>${seg}${chatHTML()}`;
+    el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
+    const box=$("chatBox");if(box&&atBottom)box.scrollTop=box.scrollHeight;
+    $("ptChatIn").oninput=e=>{ui.chatDraft=e.target.value;};
+    $("ptChatForm").onsubmit=e=>{e.preventDefault();ui.chatDraft=$("ptChatIn").value;partyChatSend();};
+    el.querySelectorAll("[data-cdel]").forEach(b=>b.onclick=()=>partyChatDelete(b.dataset.cdel));
+    if(cu&&ui.tab==="party"){prefs.chatSeen=Date.now();savePrefs();}
+    return;
+  }
+  el.innerHTML=seg+`<div class="pt-head">
       ${ui.partyRenaming?`<form id="ptRenameForm" class="pt-row"><input type="text" id="ptRename" maxlength="40" value="${esc(ui.ptRename||party.doc.name||"")}"><button class="btn sm" type="submit">Save</button></form>`
         :`<h3>${esc(party.doc.name||"Party")}</h3><button class="linkbtn" type="button" id="ptRenameBtn">Rename</button>`}
       <div class="pt-codebar"><span class="pt-code">${esc(party.code)}</span><span class="muted">${mem.length} of ${PARTY_MAX}</span><button class="btn gold sm" type="button" id="ptInvite">Copy invite link</button></div>
@@ -6572,7 +6618,10 @@ function renderParty(){
   on("ptLeave",()=>{ui.partyLeaveAsk=true;render();});on("ptLeaveNo",()=>{ui.partyLeaveAsk=false;render();});on("ptLeaveYes",partyLeave);
   el.querySelectorAll("[data-cheer]").forEach(b=>b.onclick=()=>partyCheer(b.dataset.cheer));
   el.querySelectorAll("[data-nudge]").forEach(b=>b.onclick=()=>partyNudge(b.dataset.nudge));
+  el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
+  el.querySelectorAll("[data-inspect]").forEach(b=>b.onclick=()=>openInspect(b.dataset.inspect));
   wireRaidFloor(el);
+  if(ui.inspect)renderInspect();
 }
 
 /* ---------- Raid floor (party) ----------
@@ -6675,14 +6724,76 @@ function raidFloorHTML(){
         :`<div class="muted">${near?`Nearest crewmate: ${esc(near.c.name)}, ${near.d} room${near.d===1?"":"s"} away.`:crew.length?"":"Your crew shows up here once they open the app this week."} Share a room with a crewmate to borrow their class aura.</div>`}
       ${lair?`<div class="rfaura"><b>Lair crew bonus:</b> <span>+25% raid damage while you're in the lair together.</span></div>`:""}
       <div class="rfbtns"><button class="btn sm" type="button" id="rfLair"${r.tgt===RF_LAIR?" disabled":""}>Head to the lair</button>
-        <button class="btn sm" type="button" id="rfPlant">Plant rally flag here</button>
+        ${r.rally&&r.rally.wk===r.wk?`<button class="btn sm" type="button" id="rfUnplant">Remove my rally flag</button>`:""}
+        <button class="btn sm" type="button" id="rfPlant">${r.rally&&r.rally.wk===r.wk?"Move rally flag here":"Plant rally flag here"}</button>
         ${rally&&!rally.mine&&r.tgt!==rally.cell&&r.pos!==rally.cell?`<button class="btn gold sm" type="button" id="rfJoin">Join ${esc(rally.who)}'s rally</button>`:""}</div>
       <div class="muted" style="font-size:12px">Tap any room to head there. Each quest you finish moves you one room along the red route.</div></div></div>`;
 }
 function wireRaidFloor(el){
   el.querySelectorAll("[data-rf]").forEach(c=>c.addEventListener("click",()=>rfSetTarget(+c.dataset.rf)));
   const on=(id,f)=>{const x=$(id);if(x)x.onclick=f;};
-  on("rfLair",()=>rfSetTarget(RF_LAIR));on("rfPlant",rfPlantRally);on("rfJoin",()=>{const ra=rfRally();if(ra)rfSetTarget(ra.cell);});
+  on("rfLair",()=>rfSetTarget(RF_LAIR));on("rfPlant",rfPlantRally);on("rfUnplant",rfClearRally);on("rfJoin",()=>{const ra=rfRally();if(ra)rfSetTarget(ra.cell);});
+}
+
+/* ---------- Party: inspect a crewmate, party chat ----------
+   Inspect shows a crewmate's worn gear, backpack and pet from their party card, using the shared item catalog
+   for names and properties. Chat lives in parties/{code}/chat: members post as themselves and can delete their own. */
+function rfClearRally(){const r=rfState();if(!r||!r.rally)return;r.rally=null;store.savePlayer(player).catch(writeFailed);partyPublish(true);render();toast("Rally flag removed.");}
+function openInspect(uid){ui.inspect=uid;ui.inspectItem=null;renderInspect();}
+function closeInspect(){ui.inspect=null;const o=$("inspWrap");if(o)o.remove();}
+function renderInspect(){
+  const uid=ui.inspect;let o=$("inspWrap");if(!uid){if(o)o.remove();return;}
+  const c=uid===myUid()?myCard():party&&party.cards[uid];if(!c){closeInspect();return;}
+  if(!o){o=document.createElement("div");o.id="inspWrap";o.className="gearwrap";document.body.appendChild(o);
+    o.addEventListener("click",e=>{if(e.target===o)closeInspect();});}
+  const wear=c.wear||{},own=(c.own||[]).map(id=>ITEMS.find(i=>i.id===id)).filter(Boolean)
+    .sort((a,b)=>SLOTS.findIndex(x=>x[0]===a.slot)-SLOTS.findIndex(x=>x[0]===b.slot)||RAR_ORDER.indexOf(a.rar)-RAR_ORDER.indexOf(b.rar));
+  const cls=CLASSES.find(x=>x.id===c.cls),pet=c.pet&&PETS[c.pet]?PETS[c.pet].n:null,me=uid===myUid();
+  const cell=it=>`<button type="button" class="invcell r-${it.rar}${wear[it.slot]===it.id?" eq":""}${ui.inspectItem===it.id?" sel":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:` style="background:${UNIQUE_BG}"`} data-insp="${it.id}" aria-label="${esc(it.n)}">${lootIconSVG(it.id).replace(/<rect width="100" height="100" fill="[^"]+"\/>/,"")}${wear[it.slot]===it.id?`<span class="eqtag">E</span>`:""}</button>`;
+  const sel=ITEMS.find(i=>i.id===ui.inspectItem);
+  const det=sel?`<div class="insp-det"><div class="thead"><span class="tico">${tierIcon(sel.id,sel.rar==="magical"?"legendary":sel.rar)}</span><div><b class="rar-${sel.rar}">${esc(sel.n)}</b><div class="tsub">${RARITY[sel.rar].n} · ${SLOT_NAME[sel.slot]}${wear[sel.slot]===sel.id?" · Equipped":""}</div></div></div>
+      <ul class="tstats">${itemLines(sel).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>${!me&&player.owned.includes(sel.id)?`<div class="tline muted">You own one too.</div>`:""}</div>`
+    :`<div class="insp-det muted">Tap an item to see what it does.</div>`;
+  const worn=SLOTS.map(([slot,label,none])=>{const it=ITEMS.find(x=>x.id===wear[slot]);
+    return `<li><span class="muted">${label}:</span> ${it?`<button type="button" class="linkbtn rar-${it.rar}" data-insp="${it.id}">${esc(it.n)}</button>`:`<span class="muted">${esc(slot==="armor"?"Starter outfit":none)}</span>`}</li>`;}).join("");
+  o.innerHTML=`<div class="geardlg inspdlg" role="dialog" aria-modal="true" aria-label="${esc(c.name)}'s gear">
+    <div class="gearhead"><h2>${esc(c.name||"Crawler")}</h2><button class="btn ghost sm" type="button" id="inspClose">Close</button></div>
+    <div class="insp-top"><div class="insp-av print">${miniAvatar(c)}</div>
+      <div><div><b>Level ${c.lvl||1}</b> · ${esc(c.title||"")}</div><div class="muted">Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}-day streak`:""}</div>
+        <div class="muted">${cls?`Class: <b>${esc(cls.n)}</b>`:"No class yet"}${pet?` · Pet: ${esc(pet)}`:""}</div>
+        ${cls&&AURAS[cls.id]?`<div class="insp-aura">Raid floor aura: <b>${esc(AURAS[cls.id].n)}</b>, ${esc(AURAS[cls.id].d)}</div>`:""}
+        <ul class="insp-worn">${worn}</ul></div></div>
+    <div class="label">Backpack · ${own.length} item${own.length===1?"":"s"}${c.pot?` · ${c.pot} healing potion${c.pot===1?"":"s"}`:""}</div>
+    ${own.length?`<div class="insp-grid">${own.map(cell).join("")}</div>`:`<p class="muted">Nothing in the backpack yet${c.own?"":" (their app hasn't shared it yet)"}.</p>`}
+    ${det}</div>`;
+  $("inspClose").onclick=closeInspect;
+  o.querySelectorAll("[data-insp]").forEach(b=>b.onclick=()=>{ui.inspectItem=b.dataset.insp;renderInspect();});
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.inspect)closeInspect();});
+
+let chatLast=0;
+function partyChatSend(){
+  if(!party||!fb)return;const text=String(ui.chatDraft||"").trim().slice(0,300);if(!text)return;
+  if(Date.now()-chatLast<1200){toast("Easy there. One message at a time.");return;}chatLast=Date.now();
+  const me=myUid(),msg={uid:me,name:partyName(),text,at:Date.now()};
+  ui.chatDraft="";const i=$("ptChatIn");if(i)i.value="";
+  party.chat=(party.chat||[]).concat(Object.assign({id:"local"+msg.at,pending:true},msg));render();
+  fb.fs.collection(`parties/${party.code}/chat`).doc().set(msg).catch(e=>{toast("That message didn't send. Check your connection and try again.","bad");console.warn("chat",e&&e.code);});
+  bump("chats");setTimeout(()=>checkAch(),300);
+}
+function partyChatDelete(id){if(!party||!fb)return;party.chat=(party.chat||[]).filter(m=>m.id!==id);render();
+  fb.fs.doc(`parties/${party.code}/chat/${id}`).delete().catch(e=>console.warn("chat delete",e&&e.code));}
+function chatUnseen(){if(!party)return 0;const me=myUid(),s=prefs.chatSeen||0;return (party.chat||[]).filter(m=>m.uid!==me&&m.at>s).length;}
+function chatHTML(){
+  const me=myUid(),msgs=(party.chat||[]).slice(-60);
+  const body=msgs.map((m,i)=>{const mine=m.uid===me,prev=msgs[i-1],same=prev&&prev.uid===m.uid&&m.at-prev.at<5*6e4;
+    const t=new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+    return `<div class="cmsg${mine?" mine":""}${same?" cont":""}">${same?"":`<div class="cwho" style="color:${rfColor(m.uid)}">${esc(mine?"You":m.name||"Crawler")} <span>${t}</span></div>`}
+      <div class="cbub">${esc(m.text)}${mine&&!m.pending?`<button type="button" class="cdel" data-cdel="${esc(m.id)}" aria-label="Delete message" title="Delete">×</button>`:""}</div></div>`;}).join("")
+    ||`<p class="muted cempty">No messages yet. Say hi to your crew.</p>`;
+  return `<div class="chatbox" id="chatBox">${body}</div>
+    <form class="pt-row chatform" id="ptChatForm" autocomplete="off"><input type="text" id="ptChatIn" maxlength="300" placeholder="Message your party" value="${esc(ui.chatDraft||"")}"><button class="btn gold" type="submit">Send</button></form>
+    <div class="muted" style="font-size:12px">Only your party can read this. You can delete your own messages.</div>`;
 }
 
 /* ---------- Boot ---------- */
