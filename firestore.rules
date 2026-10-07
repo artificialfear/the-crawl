@@ -60,6 +60,33 @@ service cloud.firestore {
         allow delete: if signedIn() && resource.data.uid == request.auth.uid;
       }
 
+      // Gifts and trades: the sender creates an open offer to another member. Only the receiver can
+      // claim, accept or decline it; only the sender can cancel it or mark it settled (once).
+      match /gifts/{id} {
+        allow read: if isMember(code);
+        allow create: if isMember(code)
+          && request.resource.data.keys().hasOnly(['from', 'fromName', 'to', 'item', 'want', 'kind', 'status', 'at'])
+          && request.resource.data.from == request.auth.uid
+          && request.resource.data.to != request.auth.uid
+          && request.resource.data.to in get(/databases/$(database)/documents/parties/$(code)).data.members
+          && request.resource.data.status == 'open'
+          && request.resource.data.kind in ['gift', 'trade']
+          && request.resource.data.item is string && request.resource.data.item.size() <= 12
+          && request.resource.data.fromName is string && request.resource.data.fromName.size() <= 40;
+        allow update: if isMember(code)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'done'])
+          && (
+            (request.auth.uid == resource.data.to && resource.data.status == 'open'
+              && request.resource.data.status in ['claimed', 'accepted', 'declined'])
+            || (request.auth.uid == resource.data.from && resource.data.status == 'open'
+              && request.resource.data.status == 'cancelled')
+            || (request.auth.uid == resource.data.from && request.resource.data.status == resource.data.status
+              && resource.data.status in ['accepted', 'declined']
+              && !('done' in resource.data) && request.resource.data.done == true)
+          );
+        allow delete: if signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      }
+
       // Party feed: members post as themselves; others can only add or remove their own cheer.
       match /feed/{id} {
         allow read: if isMember(code);
