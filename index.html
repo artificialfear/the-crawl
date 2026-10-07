@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=dd065fb681"></script>
+<script src="firebase-config.js?v=1d50a25564"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5929,6 +5929,39 @@ function renderAiCtl(){
   $("aiOn").checked=prefs.ai===true;$("ideasOn").checked=prefs.ideas!==false;
   if(!window.claude){const r=$("aiOn").closest("label");if(r){r.hidden=true;if(r.nextElementSibling)r.nextElementSibling.hidden=true;}}
 }
+/* Party chat sound: the built-in chime, or a sound file the player picks. A picked file is stored only in this
+   browser (never uploaded or published), so each device that should use it needs it chosen once. */
+const CHAT_SND_KEY="crawl.chatsnd";
+const chatSnd=()=>{try{return localStorage.getItem(CHAT_SND_KEY);}catch(e){return null;}};
+function playChatSound(){
+  if(prefs.sound===false)return;const d=chatSnd();
+  if(!d){SFX.play("chat");return;}
+  try{const a=new Audio(d);a.volume=Math.max(0,Math.min(1,prefs.vol==null?.6:+prefs.vol));const p=a.play();if(p&&p.catch)p.catch(()=>SFX.play("chat"));}catch(e){SFX.play("chat");}
+}
+function pickChatSound(file){
+  if(!file)return;
+  if(!/^audio\//.test(file.type||"")&&!/\.(mp3|m4a|wav|ogg|aac)$/i.test(file.name||"")){toast("That isn't an audio file. Pick an mp3, m4a, wav or ogg.","bad");return;}
+  if(file.size>400*1024){toast("That sound file is too big. Keep it under 400 KB; a short clip is plenty.","bad");return;}
+  const fr=new FileReader();
+  fr.onload=()=>{try{localStorage.setItem(CHAT_SND_KEY,fr.result);prefs.chatSndName=String(file.name||"Custom sound").slice(0,60);savePrefs();renderChatSndCtl();playChatSound();
+      toast("Chat sound set on this device.");}catch(e){toast("This browser couldn't store that sound. Try a shorter clip.","bad");}};
+  fr.onerror=()=>toast("Couldn't read that file. Try choosing it again.","bad");
+  fr.readAsDataURL(file);
+}
+function renderChatSndCtl(){
+  const el=$("chatSndCtl");if(!el)return;const custom=!!chatSnd();
+  el.innerHTML=`<div class="label" style="margin-top:6px">Party chat sound</div>
+    <div class="sndrow" style="flex-wrap:wrap;gap:6px">${custom?`<span>🎵 <b>${esc(prefs.chatSndName||"Custom sound")}</b></span>`:`<span>Built-in chime</span>`}
+      <button class="btn ghost sm" type="button" id="chatSndPlay">Play</button>
+      <button class="btn ghost sm" type="button" id="chatSndPick">${custom?"Change":"Use my own sound…"}</button>
+      ${custom?`<button class="btn ghost sm" type="button" id="chatSndReset">Back to the chime</button>`:""}</div>
+    <input type="file" id="chatSndFile" accept="audio/*,.mp3,.m4a,.wav,.ogg" hidden>
+    <div class="muted" style="font-size:12px">A sound you pick stays on this device only. It isn't uploaded or shared, so choose it again on each phone or computer you use.</div>`;
+  $("chatSndPlay").onclick=()=>{const s0=prefs.sound;prefs.sound=true;playChatSound();prefs.sound=s0;};
+  $("chatSndPick").onclick=()=>$("chatSndFile").click();
+  $("chatSndFile").onchange=e=>{const f=e.target.files&&e.target.files[0];pickChatSound(f);e.target.value="";};
+  const rs=$("chatSndReset");if(rs)rs.onclick=()=>{try{localStorage.removeItem(CHAT_SND_KEY);}catch(e){}delete prefs.chatSndName;savePrefs();renderChatSndCtl();};
+}
 function renderSound(){
   const b=$("sndBtn");if(b){const on=prefs.sound!==false;b.textContent=on?"🔊":"🔇";b.setAttribute("aria-label",on?"Sound on. Turn off":"Sound off. Turn on");b.title=on?"Sound on":"Sound off";}
   const el=$("soundCtl");if(!el)return;
@@ -5937,7 +5970,9 @@ function renderSound(){
     el.innerHTML=`<label class="sndrow"><input type="checkbox" id="sndOn"> Sound effects</label>
       <label class="sndrow">Volume <input type="range" id="sndVol" min="0" max="1" step="0.05"></label>
       <button class="btn ghost sm" type="button" id="sndTest">Play the boss-kill sound</button>
-      <div class="muted" style="font-size:12px">Saved on this device. Sounds stay silent until you tap something, and a quiet clock ticks on a floor's last day.</div>`;
+      <div class="muted" style="font-size:12px">Saved on this device. Sounds stay silent until you tap something, and a quiet clock ticks on a floor's last day.</div>
+      <div id="chatSndCtl"></div>`;
+    renderChatSndCtl();
     $("sndOn").onchange=e=>{prefs.sound=e.target.checked;savePrefs();renderSound();if(prefs.sound)SFX.play("coin");};
     $("sndVol").oninput=e=>{prefs.vol=+e.target.value;savePrefs();};
     $("sndVol").onchange=()=>SFX.play("coin");
@@ -6825,7 +6860,7 @@ function chatArrived(msgs){
   const last=msgs[msgs.length-1],onChat=ui.tab==="party"&&ui.ptView==="chat";
   const txt=String(last.text||""),short=txt.length>90?txt.slice(0,88)+"…":txt;
   if(document.visibilityState==="visible"){
-    if(!onChat){SFX.play("chat");toast(`<b>${esc(last.name||"Crawler")}</b> ${esc(short)}${msgs.length>1?` <span class="quip">+${msgs.length-1} more</span>`:""}`,"quest",()=>openPartyView("chat"),"Open chat");}
+    if(!onChat){playChatSound();toast(`<b>${esc(last.name||"Crawler")}</b> ${esc(short)}${msgs.length>1?` <span class="quip">+${msgs.length-1} more</span>`:""}`,"quest",()=>openPartyView("chat"),"Open chat");}
   }else bgNotify(`${last.name||"Crawler"} · ${party&&party.doc&&party.doc.name||"Party chat"}`,txt,"crawl-chat");
 }
 function updateTitle(){let n=0;try{n=partyUnseen();}catch(e){}const t=(n?`(${n}) `:"")+"The Crawl";if(document.title!==t)document.title=t;}
