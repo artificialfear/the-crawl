@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=4ef5ec0f78"></script>
+<script src="firebase-config.js?v=a4c98a1e0f"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1055,6 +1055,8 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .insp-det{border-top:1px solid var(--line-2);padding-top:10px;font-size:14px}.insp-det .thead{display:flex;gap:10px;align-items:center}.insp-det .tico svg{width:44px;height:44px;display:block;border-radius:6px}
 @media (max-width:560px){.insp-top{grid-template-columns:90px 1fr}.insp-av{width:84px}}
 .ntfy{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12px;margin-top:6px;color:var(--muted)}
+.tk-tts{flex:none;border:0;border-right:1px solid var(--line-2);background:#07040d;color:var(--faint);font-size:16px;padding:0 10px;cursor:pointer;filter:grayscale(1);opacity:.7}
+.tk-tts.on{color:var(--gold);filter:none;opacity:1;background:#1a1030}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -1245,7 +1247,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
       </details></section></div></div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
-<div class="ticker" aria-hidden="true"><span class="tk-tag" id="tkTag">Crawler news</span><div class="tk-track"><div class="tk-run" id="tickerRun">Stand by. The broadcast is starting.</div></div></div>
+<div class="ticker"><button type="button" class="tk-tts" id="ttsBtn" aria-pressed="false" aria-label="Announcer voice">🎙</button><span class="tk-tag" id="tkTag" aria-hidden="true">Crawler news</span><div class="tk-track" aria-hidden="true"><div class="tk-run" id="tickerRun">Stand by. The broadcast is starting.</div></div></div>
 
 <script>
 (function(){
@@ -3483,7 +3485,7 @@ function playEpisode(id){
   const calm=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   const scenes=epScenes(ep);
   document.querySelectorAll(".episode").forEach(n=>n.remove());
-  const ov=document.createElement("div");ov.className="episode";ov.setAttribute("role","dialog");ov.setAttribute("aria-label",`Episode ${ep.no}: ${ep.title}`);
+  const ov=document.createElement("div");ov.className="episode";ov.dataset.kind=ep.kind||"";ov.setAttribute("role","dialog");ov.setAttribute("aria-label",`Episode ${ep.no}: ${ep.title}`);
   ov.innerHTML=`<div class="screen"><div class="ep-top"><span><i class="rec">●</i> Replay · Episode ${ep.no}</span><span>${ep.kind==="full"?"Full episode":ep.kind==="talk"?"Talk show":"Recap"}</span></div>
     <div class="stage" aria-live="polite"></div>
     <div class="ep-bottom"><div class="segs">${scenes.map(()=>`<i><b></b></i>`).join("")}</div>
@@ -3679,6 +3681,7 @@ function fill(t,v){v=Object.assign({name:player.name,open:tasks.filter(x=>!x.don
 function pick(kind,v){const a=QUIPS[kind]||[""];return fill(a[Math.floor(Math.random()*a.length)],v);}
 function say(kind,v){
   const line=pick(kind,v);
+  setTimeout(()=>announce(line),250);
   ui.news=[line].concat(ui.news||[]).slice(0,5);
   const tag=$("tkTag");if(tag){tag.textContent="Breaking";tag.classList.remove("breaking");void tag.offsetWidth;tag.classList.add("breaking");setTimeout(()=>{tag.textContent="Crawler news";},4000);}
   renderTicker();
@@ -4215,6 +4218,7 @@ function buy(itemId){
   store.savePlayer(player).catch(writeFailed);render();toast(`Bought and equipped ${it.n}.`);checkAch();
 }
 function equip(slot,id){
+  if(id)SFX.play("equip");
   player.equipped=Object.assign({},wearing(player),{[slot]:id||null});
   store.savePlayer(player).catch(writeFailed);render();
 }
@@ -5391,7 +5395,7 @@ function showInvTip(cell,pinned){
   let left=r.left-R.left+r.width/2-tw/2;left=Math.max(0,Math.min(left,R.width-tw));
   let top=r.bottom-R.top+6;if(r.bottom+th+8>(window.innerHeight||900)&&r.top-th-6>0)top=r.top-R.top-th-6;
   tip.style.left=left+"px";tip.style.top=top+"px";
-  tip.querySelectorAll("[data-tipequip]").forEach(b=>b.onclick=e=>{e.stopPropagation();const it=ITEMS.find(x=>x.id===b.dataset.tipequip);ui.invPin=null;SFX.play("coin");equip(it.slot,it.id);toast(`Equipped ${it.n}.`);});
+  tip.querySelectorAll("[data-tipequip]").forEach(b=>b.onclick=e=>{e.stopPropagation();const it=ITEMS.find(x=>x.id===b.dataset.tipequip);ui.invPin=null;equip(it.slot,it.id);toast(`Equipped ${it.n}.`);});
   tip.querySelectorAll("[data-tipunequip]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;equip(b.dataset.tipunequip,null);});
   tip.querySelectorAll("[data-tipdrink]").forEach(b=>b.onclick=e=>{e.stopPropagation();drink();});
   tip.querySelectorAll("[data-tipfocus]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;drinkFocus();});
@@ -5896,7 +5900,7 @@ const SFX=(()=>{
       if(r==="legendary"||r==="epic")setTimeout(()=>{if(ac())chord([NOTE(52),NOTE(59),NOTE(64)],1.1,0,.16);},ns.length*70);},
     kill:()=>{chord([NOTE(40),NOTE(47),NOTE(52)],1.4,0,.22);tone(55,.5,"sine",.8,0,30);noise(1.6,.16,"bandpass",900,.25,1300,.7);noise(1.2,.1,"bandpass",2200,.4,1600,.8);},
     level:()=>{[67,71,74,79,83].forEach((n,i)=>tone(NOTE(n),.16,"square",.07,i*.06));tone(NOTE(86),.5,"triangle",.16,.32);},
-    ach:()=>{tone(1320,.7,"sine",.22,0);tone(1760,.8,"sine",.16,.12);tone(2640,.4,"sine",.05,.12);},
+    ach:()=>{[76,79,83,88].forEach((n,i)=>tone(NOTE(n),.14,"square",.05,i*.065));tone(NOTE(91),.7,"sine",.2,.26);tone(NOTE(95),.6,"sine",.1,.32);tone(NOTE(103),.3,"sine",.04,.32);noise(.4,.04,"highpass",7000,.26);},
     coin:()=>{tone(988,.07,"square",.07,0);tone(1319,.18,"square",.07,.07);},
     // Party chat: three quick rising system blips, then a soft bell. Original, made for The Crawl.
     chat:()=>{tone(NOTE(84),.045,"square",.05,0);tone(NOTE(91),.045,"square",.05,.06);tone(NOTE(96),.05,"square",.045,.12);
@@ -5904,9 +5908,48 @@ const SFX=(()=>{
     hurt:()=>{chord([NOTE(33),NOTE(34)],.45,0,.18);tone(110,.35,"sawtooth",.08,0,60);},
     gong:()=>{tone(73,2.2,"sine",.6,0,68);tone(146,1.6,"sine",.18,0);noise(.6,.1,"lowpass",500);},
     tick:()=>{noise(.012,.06,"highpass",5000);},
+    // UI: a soft click for buttons and tabs, a rounder pop for tapping gear, a metal clink for putting gear on
+    click:()=>{noise(.018,.07,"bandpass",2400,0,null,2.5);tone(1800,.02,"sine",.025,0);},
+    pop:()=>{tone(520,.06,"sine",.18,0,880);noise(.02,.05,"bandpass",3000,0,null,3);},
+    equip:()=>{tone(2093,.22,"triangle",.07,0);tone(3136,.16,"sine",.05,.012);tone(4699,.08,"sine",.025,.02);noise(.03,.12,"highpass",6000);tone(1568,.18,"triangle",.05,.07);tone(2637,.12,"sine",.03,.08);},
   };
+  /* Background music: two short loops built from the same oscillators, scheduled a little ahead of time.
+     "recap" is an upbeat chiptune for episode replays; "talk" is a late-night lounge groove for the talk show. */
+  const SONGS={
+    recap:{bpm:132,bars:[[57,64,69,72],[53,60,65,69],[48,55,60,64],[55,62,67,71]],
+      step(i,t,sp){const bar=this.bars[Math.floor(i/16)%4],s16=i%16;
+        if(s16%2===0)mt(NOTE(bar[0]-12),sp*1.7,"square",.038,t);
+        mt(NOTE(bar[[0,1,2,3,2,1,0,1][Math.floor(s16/2)%8]]+12),sp*.8,"triangle",.028,t);
+        if(s16%4===2)mn(.03,.05,"highpass",7000,t);
+        if(s16===4||s16===12)mn(.09,.09,"bandpass",1800,t);
+        if(s16===0||s16===8||s16===10)mt(70,.12,"sine",.17,t,40);}},
+    talk:{bpm:92,bars:[[53,57,60,64],[52,55,59,62],[50,53,57,60],[55,59,62,65]],
+      walk:[[41,45,48,47],[40,43,47,45],[38,41,45,43],[43,47,50,49]],
+      step(i,t,sp){const b=Math.floor(i/16)%4,bar=this.bars[b],s16=i%16;
+        if(s16===0||s16===10)bar.forEach((n,k)=>mt(NOTE(n),sp*(s16?5:9),"sine",.05,t+k*.012));
+        if(s16%4===0)mt(NOTE(this.walk[b][s16/4]),sp*3.4,"triangle",.13,t);
+        if(s16%4===2)mn(.07,.035,"bandpass",5200,t,null,.8);
+        if(s16===12&&b%2)mt(NOTE(bar[3]+12),sp*2,"sine",.035,t);}}
+  };
+  let mus=null;
+  function mt(f,dur,type,peak,t,slide){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(mus.bus);o.start(t);o.stop(t+dur+.05);}
+  function mn(dur,peak,ftype,freq,t,_,q){const n=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();n.buffer=noiseBuf;f.type=ftype;f.frequency.value=freq;if(q)f.Q.value=q;
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+.004);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);n.connect(f);f.connect(g);g.connect(mus.bus);n.start(t);n.stop(t+dur+.05);}
+  function music(name){
+    if(mus&&mus.name===name)return;
+    if(mus){const m=mus;mus=null;clearInterval(m.timer);try{m.bus.gain.setTargetAtTime(0.0001,ctx.currentTime,.25);setTimeout(()=>{try{m.bus.disconnect();}catch(e){}},1500);}catch(e){}}
+    if(!name||!SONGS[name]||prefs.music===false||!ac())return;
+    const song=SONGS[name],sp=60/song.bpm/4,bus=ctx.createGain();bus.gain.setValueAtTime(0.0001,ctx.currentTime);bus.gain.setTargetAtTime(1,ctx.currentTime,.4);bus.connect(master);
+    mus={name,bus,i:0,next:ctx.currentTime+.08,timer:null};const me=mus;
+    me.timer=setInterval(()=>{if(mus!==me)return;while(me.next<ctx.currentTime+.35){try{song.step(me.i,me.next,sp);}catch(e){}me.i++;me.next+=sp;}},90);
+  }
+  let last=0;
   return {
-    play(n,arg){const c=ac();if(!c||!S[n])return;try{S[n](arg);}catch(e){}},
+    play(n,arg){const c=ac();if(!c||!S[n])return;if(n!=="click"&&n!=="pop")last=Date.now();try{S[n](arg);}catch(e){}},
+    music,
+    get lastAt(){return last;},
+    get song(){return mus&&mus.name||null;},
     unlock(){ac();},
     test(){const c=ac(true);if(c){try{S.kill();}catch(e){}}},
     get ready(){return !!ctx&&ctx.state==="running";}
@@ -5971,13 +6014,18 @@ function renderSound(){
       <label class="sndrow">Volume <input type="range" id="sndVol" min="0" max="1" step="0.05"></label>
       <button class="btn ghost sm" type="button" id="sndTest">Play the boss-kill sound</button>
       <div class="muted" style="font-size:12px">Saved on this device. Sounds stay silent until you tap something, and a quiet clock ticks on a floor's last day.</div>
+      <label class="sndrow"><input type="checkbox" id="musOn"> Music during episode replays and the talk show</label>
+      ${tts.ok?`<label class="sndrow"><input type="checkbox" id="ttsOn"> Announcer voice: read breaking news aloud</label><div class="muted" style="font-size:12px">Uses your device's built-in voice, so it sounds different on each phone or computer. Also on the 🎙 button in the news ticker.</div>`:""}
       <div id="chatSndCtl"></div>`;
     renderChatSndCtl();
     $("sndOn").onchange=e=>{prefs.sound=e.target.checked;savePrefs();renderSound();if(prefs.sound)SFX.play("coin");};
     $("sndVol").oninput=e=>{prefs.vol=+e.target.value;savePrefs();};
     $("sndVol").onchange=()=>SFX.play("coin");
     $("sndTest").onclick=()=>SFX.test();
+    $("musOn").onchange=e=>{prefs.music=e.target.checked;savePrefs();};
+    if($("ttsOn"))$("ttsOn").onchange=e=>{prefs.tts=e.target.checked;savePrefs();renderTtsBtn();if(prefs.tts)announce("The announcer is live. Try not to embarrass yourself.",true);};
   }
+  $("musOn").checked=prefs.music!==false;if($("ttsOn"))$("ttsOn").checked=prefs.tts===true;renderTtsBtn();
   $("sndOn").checked=prefs.sound!==false;$("sndVol").value=prefs.vol==null?.6:prefs.vol;
 }
 
@@ -6881,6 +6929,39 @@ function wireNotifyCtl(){
 }
 if(navigator.serviceWorker)try{navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.open)openPartyView(e.data.open);});}catch(e){}
 
+/* ---------- UI sounds, music and the announcer ---------- */
+// Soft click for any button or tab; a pop when tapping gear. Skipped when the button already made its own sound.
+document.addEventListener("click",e=>{
+  if(prefs.sound===false)return;
+  const t=e.target.closest&&e.target.closest("button,[role=tab],summary,a,label,.invcell,.rfcell");if(!t||t.disabled)return;
+  const gear=t.matches(".invcell,[data-inv],[data-insp],[data-cons],[data-invslot]");
+  const before=SFX.lastAt;setTimeout(()=>{if(SFX.lastAt!==before)return;SFX.play(gear?"pop":"click");},0);
+},true);
+// Music follows what's on screen: the recap loop during episode replays, the lounge loop during the talk show.
+setInterval(()=>{
+  let want=null;
+  const ep=document.querySelector(".episode:not(.out)");
+  if(document.querySelector(".victory.talkshow")||(ep&&ep.dataset.kind==="talk"))want="talk";else if(ep)want="recap";
+  if(document.visibilityState!=="visible"||prefs.sound===false)want=null;
+  try{SFX.music(want);}catch(e){}
+},400);
+// Announcer: reads breaking news from the ticker aloud with the browser's built-in voice.
+const tts={ok:typeof window.speechSynthesis!=="undefined"&&typeof window.SpeechSynthesisUtterance==="function",voice:null};
+function ttsVoice(){
+  if(!tts.ok)return null;if(tts.voice)return tts.voice;
+  const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));if(!vs.length)return null;
+  const rank=v=>(/natural|neural|online/i.test(v.name)?4:0)+(/google uk english male|daniel|guy|ryan|arthur|alex|aaron/i.test(v.name)?3:0)+(/en-gb/i.test(v.lang)?1:0)+(v.localService?0:1);
+  tts.voice=vs.sort((a,b)=>rank(b)-rank(a))[0];return tts.voice;
+}
+if(tts.ok)try{speechSynthesis.onvoiceschanged=()=>{tts.voice=null;};}catch(e){}
+function announce(text,force){
+  if(!tts.ok||(!force&&(prefs.tts!==true||prefs.sound===false||document.visibilityState!=="visible")))return;
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(text).slice(0,280));const v=ttsVoice();if(v)u.voice=v;
+    u.rate=1.06;u.pitch=.92;u.volume=Math.max(.2,Math.min(1,prefs.vol==null?.6:+prefs.vol));speechSynthesis.speak(u);}catch(e){}
+}
+function renderTtsBtn(){const b=$("ttsBtn");if(!b)return;if(!tts.ok){b.hidden=true;return;}const on=prefs.tts===true;
+  b.textContent=on?"🎙":"🎙";b.classList.toggle("on",on);b.title=on?"Announcer on: breaking news is read aloud. Tap to turn off":"Turn on the announcer: read breaking news aloud";b.setAttribute("aria-pressed",String(on));}
+
 /* ---------- Boot ---------- */
 async function boot(){
   $("restoreFile").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(f)readBackupFile(f);});
@@ -6888,6 +6969,8 @@ async function boot(){
   try{setupForm();}catch(e){console.error(e);}
   try{renderTabs();
     $("gearBtn").onclick=openGear;
+    {const tb=$("ttsBtn");if(tb)tb.onclick=()=>{prefs.tts=prefs.tts!==true;savePrefs();renderTtsBtn();const c=$("ttsOn");if(c)c.checked=prefs.tts;
+      if(prefs.tts){const r=$("tickerRun");announce(ui.news&&ui.news[0]||"The announcer is live. Try not to embarrass yourself.",true);}else if(tts.ok)try{speechSynthesis.cancel();}catch(e){}};}
     $("lookWrap").addEventListener("click",e=>{if(e.target.id==="lookWrap")closeLook();});
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("lookWrap").hidden)closeLook();});
     $("sndBtn").onclick=()=>{prefs.sound=prefs.sound===false;savePrefs();renderSound();if(prefs.sound)SFX.play("coin");else if(player&&!C(player,"mutes")){bump("mutes");checkAch();}};
