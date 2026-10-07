@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=1b9a7f948a"></script>
+<script src="firebase-config.js?v=146ab341fa"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1948,12 +1948,13 @@ const BOSS_HEAL=3; // overdue quests heal the current boss by 3× the damage the
 /* Each floor is a ladder of six bosses. Killing one spawns the next, and damage left over from a killing
    blow carries up. Health shares split the floor's budget, which scales to your recent weekly damage. */
 const TIERS=[
-  {k:"neighborhood",n:"Neighborhood boss",share:.06,min:30, box:"bronze"},
-  {k:"borough",     n:"Borough boss",     share:.10,min:50, box:"bronze"},
-  {k:"city",        n:"City boss",        share:.14,min:70, box:"silver"},
-  {k:"province",    n:"Province boss",    share:.18,min:90, box:"silver"},
-  {k:"country",     n:"Country boss",     share:.22,min:110,box:"gold"},
-  {k:"floor",       n:"Floor boss",       share:.30,min:150,box:"legendary"}];
+  // Shares of the floor's HP budget: a steep climb, with the Floor boss nearly half the floor on its own.
+  {k:"neighborhood",n:"Neighborhood boss",share:.04,min:20, box:"bronze"},
+  {k:"borough",     n:"Borough boss",     share:.06,min:30, box:"bronze"},
+  {k:"city",        n:"City boss",        share:.09,min:45, box:"silver"},
+  {k:"province",    n:"Province boss",    share:.14,min:60, box:"silver"},
+  {k:"country",     n:"Country boss",     share:.21,min:100,box:"gold"},
+  {k:"floor",       n:"Floor boss",       share:.46,min:200,box:"legendary"}];
 const KILL_VIEWERS=[3000,6000,12000,20000,32000,60000];
 /* ---------- The hunt (floors from HUNT_FROM on) ----------
    Bosses hide in lairs along the floor map; the Floor boss guards the stairwell. Until you walk into the
@@ -2014,12 +2015,13 @@ const bossHp=b=>Math.max(0,Math.min(b.maxHp,b.maxHp-(b.dealt-b.healed)));
 /* Every XP you earn hits the current boss (Strength adds damage). Returns the kills this hit caused. */
 function dealDamage(xp){
   ensureBoss();const b=player.boss;
-  if(b.defeated||xp<=0)return null;
+  if(xp<=0)return null;
   const pf=petFx(player);
   let auD=0;try{auD=auraFx().dmg;}catch(e){}
   let dmg=Math.round(xp*(1+statFx(player).dmg+pf.dmg+gearFx(player).dmg+auD));
   if(pf.ability==="salamander"&&player.kindleDay!==today()){dmg*=2;player.kindleDay=today();ui.kindled=true;}
   b.total=(b.total||0)+dmg;
+  if(b.defeated)return null; // the floor's cleared, but the damage still counts toward rankings and next floor's size
   if(hunting(b)){b.charge=(b.charge||0)+dmg;return null;}
   return applyDamage(dmg);
 }
@@ -2050,7 +2052,7 @@ function applyDamage(dmg){
   return kills.length?{kills}:null;
 }
 const floorOf=()=>player.boss&&player.boss.floor?player.boss.floor:Math.max(1,player.bossCount||1);
-function undoDamage(xp){const b=player.boss;if(b&&!b.defeated){const d=Math.round(xp*(1+statFx(player).dmg+petFx(player).dmg+gearFx(player).dmg));
+function undoDamage(xp){const b=player.boss;if(b&&b.defeated){const d=Math.round(xp*(1+statFx(player).dmg+petFx(player).dmg+gearFx(player).dmg));b.total=Math.max(0,(b.total||0)-d);return;}if(b&&!b.defeated){const d=Math.round(xp*(1+statFx(player).dmg+petFx(player).dmg+gearFx(player).dmg));
   if(hunting(b))b.charge=Math.max(0,(b.charge||0)-d);else b.dealt=Math.max(0,b.dealt-d);b.total=Math.max(0,(b.total||0)-d);}}
 /* Small reactions: the avatar hops when you finish something, the boss flinches when hit. */
 function react(hitBoss){
@@ -5593,7 +5595,7 @@ function renderBoss(){
   let main;
   if(b.defeated){
     main=`<div class="label">Floor ${floor} · cleared</div><div class="bname dead">${esc(b.name)}</div>
-      <div class="boss-facts"><span>All six bosses down. <b class="num">${b.total||0}</b> damage dealt on this floor.</span></div>
+      <div class="boss-facts"><span>All six bosses down. <b class="num">${b.total||0}</b> damage dealt on this floor.</span><span>Quests still count: your ranking and next floor's size go by your whole week.</span></div>
       ${ladder}
       <div class="muted" style="font-size:14px">Floor ${floor+1} opens ${fmtDue(addDays(b.week,7))}: <b>${esc(themeById(themeFor(floor+1)).n)}</b>. Your boxes are in your loot boxes.</div>`;
   }else{
