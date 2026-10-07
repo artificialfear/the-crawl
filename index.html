@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=e03e150be5"></script>
-<script>window.CRAWL_BUILD="e03e150be5";</script>
+<script src="firebase-config.js?v=7a7caa0feb"></script>
+<script>window.CRAWL_BUILD="7a7caa0feb";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -8861,10 +8861,11 @@ function renderParty(){
   const cu=chatUnseen(),view=ui.ptView||"crew";
   const seg=`<div class="pt-seg" role="tablist"><button type="button" role="tab" data-ptview="crew" class="${view==="crew"?"on":""}" aria-selected="${view==="crew"}">Crew</button><button type="button" role="tab" data-ptview="chat" class="${view==="chat"?"on":""}" aria-selected="${view==="chat"}">Chat${cu?` <span class="pt-badge">${cu}</span>`:""}</button></div>`;
   if(view==="chat"){
-    const box0=$("chatBox"),atBottom=!box0||box0.scrollHeight-box0.scrollTop-box0.clientHeight<40;
+    const box0=$("chatBox"),atBottom=!box0||box0.scrollHeight-box0.scrollTop-box0.clientHeight<40,keepTop=box0?box0.scrollTop:0;
     el.innerHTML=`${seg}<div class="pt-head"><h3>${esc(party.doc.name||"Party")}</h3></div>${chatHTML()}`;
     el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
-    const box=$("chatBox");if(box&&atBottom)box.scrollTop=box.scrollHeight;
+    // Re-rendering rebuilds the chat box: stick to the newest message if you were there, otherwise stay exactly where you were
+    const box=$("chatBox");if(box)box.scrollTop=atBottom?box.scrollHeight:keepTop;
     $("ptChatIn").oninput=e=>{ui.chatDraft=e.target.value;};
     $("ptChatForm").onsubmit=e=>{e.preventDefault();ui.chatDraft=$("ptChatIn").value;partyChatSend();};
     el.querySelectorAll("[data-cdel]").forEach(b=>b.onclick=()=>partyChatDelete(b.dataset.cdel));
