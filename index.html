@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=808917d86c"></script>
-<script>window.CRAWL_BUILD="808917d86c";</script>
+<script src="firebase-config.js?v=5a6be137c1"></script>
+<script>window.CRAWL_BUILD="5a6be137c1";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1228,6 +1228,8 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .upd-ic{font-size:22px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#111;flex:none}
 .upd-txt{flex:1 1 220px;display:flex;flex-direction:column;gap:2px;font-size:13px}.upd-txt b{font-size:15px}
 .upd-acts{display:flex;gap:6px}
+.rfaura.storm{border-color:#9fb4ff;background:rgba(120,150,255,.12)}
+.pt-charge{font-size:12px;color:#c9d4ff;margin-top:6px}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -1406,6 +1408,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Loot boxes</b> come from achievements, level-ups (Bronze, or Silver every fifth level), bosses and the shop. Contents are random: gold, potions, or gear from Common to Legendary. Duplicates turn into gold.</div>
           <div><b>Gear</b>: weapons, helmets and capes can raise XP; gloves add boss damage; body armor reduces overdue damage. Your best item in each slot counts, whatever your crawler wears. Rings each have their own perk, and only the ring you wear counts. Pet trinkets boost your pet's own passive while it wears one. Unique items are very rare, glow, and carry an extra effect.</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
+          <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
           <div><b>Pets</b>: pick one of seven starters; three more hatch from Mystery Eggs (8% of Gold Boxes, 20% of Legendary Boxes). Your active pet gives a passive bonus that grows with bond level (1–10) plus a special ability. Every quest you finish builds bond, faster with Charisma. Go three days without finishing a quest and your pet sulks: its bonuses pause until you finish one.</div>
           <div><b>Recap episodes</b>: every boss kill gets a short recap and every floor gets a full finale, whether you clear it or the stairwell closes on you. They wait for you in the banner above the boss and the Episode guide, which keeps the last 10.</div>
@@ -4515,6 +4518,7 @@ function completeQuest(id,actual,touched){
   mapMsgs.forEach((m,i)=>setTimeout(()=>toast(`<b>Map</b> ${esc(m)}`,"quest"),1300+(goals.msgs.length+i)*700));
   if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;setTimeout(()=>{toast(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest");godMsgs.forEach(m=>pushEvent(m));},1900+(goals.msgs.length+mapMsgs.length)*700);}
   if(raidMsgs.length)setTimeout(()=>toast(`<b>Raid floor</b> ${raidMsgs.map(x=>esc(x)).join("<br>")}`,"quest"),1600+(goals.msgs.length+mapMsgs.length)*700);
+  if(ui.stormMsg){const m=ui.stormMsg;ui.stormMsg=null;setTimeout(()=>{SFX.play("kill");toast(`<span class="big">⚡ Charged attack!</span> ${m}`,"lvl");},2200+(goals.msgs.length+mapMsgs.length)*700);}
   if(mobMsgs.length)setTimeout(()=>toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest"),1300+(goals.msgs.length+mapMsgs.length)*700);
   if(usedFocus)setTimeout(()=>toast("Potion of Focus spent: that quest earned double XP."),400);
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
@@ -7075,6 +7079,11 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.5.0",d:"2026-10-07",t:"Gathering Storm",items:[
+    "Starting with the raid week of Oct 12, raid damage only lands once you reach the lair on the raid floor.",
+    "Quests you finish on the way store half their damage as ⚡ Charge, released in one big hit when you walk into the lair.",
+    "In the lair, every crewmate standing with you adds +10% raid damage (up to +50% with a full party of 6).",
+    "Raid bosses are tougher: 1,200 HP for each party member who's active that week (inactive members no longer make the boss bigger)."]},
   {v:"2.4.2",d:"2026-10-07",t:"Inventory tidy-up",items:["The Ring and Hands slots now stack together on the right, level with your body armour."]},
   {v:"2.4.1",d:"2026-10-07",t:"Inventory tidy-up",items:["The Hands slot now sits on the right side of the inventory, under your ring."]},
   {v:"2.4.0",d:"2026-10-07",t:"Update alerts",items:["When a new version of The Crawl goes live while you have it open, a pop-up asks you to refresh so you're never playing an old version. Later snoozes it for 30 minutes."]},
@@ -7420,6 +7429,11 @@ function renderAccount(){
    Weekly party boss: HP scales with party size; each member's damage is the XP they earned that week.
    Each member writes only their own damage total and the boss's HP is their sum, so no shared counter can race. */
 const PARTY_MAX=6,PARTY_BUFF=.10,PARTY_HP_EACH=700,PARTY_MIA_DAYS=3;
+/* Gathering Storm (raid weeks from Oct 12): raid damage only lands in the lair. Quests finished on the way there
+   store half their damage as Charge, released in one hit when you arrive. Each crewmate in the lair with you adds
+   10% (up to +50%). The raid boss has more HP, counted only for members who've been active this week. */
+const STORM={from:"2026-10-12"},STORM_HP_EACH=1200,STORM_CHARGE=.5,STORM_CREW=.10,STORM_CREW_MAX=.5;
+const stormOn=wk=>(wk||weekOf(today()))>=STORM.from;
 const PARTY_BOSSES=[
   {n:"The Group Chat Hydra",art:"The Inbox Hydra",line:"Two hundred unread messages, and every head is asking if we're still on for Saturday."},
   {n:"Captain Rain Check",art:"Gorvak the Procrastinator",line:"He'll absolutely fight you. Just not this week. Maybe next week."},
@@ -7447,14 +7461,24 @@ function partyName(){const n=String(player.name||"").trim();if(!isDefaultName(n)
    so it's ready the moment you join. Lives on the player, so undoing a quest undoes it too. */
 function ptNow(){
   const td=today(),wk=weekOf(td);const pt=Object.assign({days:{},wk,wkDmg:0},player.pt||{});
-  return pt.wk===wk?pt:{days:pt.days||{},wk,wkDmg:0,pwk:pt.wk,pwkDmg:pt.wkDmg||0};
+  return pt.wk===wk?pt:{days:pt.days||{},wk,wkDmg:0,chg:0,pwk:pt.wk,pwkDmg:pt.wkDmg||0};
 }
 function partyTrack(fx){
   const td=today();const pt=Object.assign({},ptNow());
   pt.days=Object.assign({},pt.days);pt.days[td]=(pt.days[td]||0)+1;
   for(const k of Object.keys(pt.days))if(k<addDays(td,-9))delete pt.days[k];
-  let lb=0;try{lb=rfLairCrew()?RF_LAIR_BONUS:0;}catch(e){}
-  pt.wkDmg=(pt.wkDmg||0)+Math.round(Math.max(0,fx||0)*(1+lb));
+  fx=Math.max(0,fx||0);
+  if(stormOn(pt.wk)){
+    let r=null;try{r=rfState();}catch(e){}
+    if(r&&r.pos===RF_LAIR){
+      const n=rfLairCount(),mul=1+Math.min(STORM_CREW_MAX,STORM_CREW*n),hit=Math.round(fx*mul),chg=pt.chg||0;
+      pt.wkDmg=(pt.wkDmg||0)+hit+chg;pt.chg=0;
+      if(chg){ui.stormMsg=`Your stored Charge breaks over the raid boss: <b>${chg}</b> damage, on top of this quest's ${hit}.`;bump("stormHits");}
+    }else pt.chg=(pt.chg||0)+Math.round(fx*STORM_CHARGE);
+  }else{
+    let lb=0;try{lb=rfLairCrew()?RF_LAIR_BONUS:0;}catch(e){}
+    pt.wkDmg=(pt.wkDmg||0)+Math.round(fx*(1+lb));
+  }
   player.pt=pt;
 }
 function myCard(){
@@ -7463,7 +7487,7 @@ function myCard(){
   const wear={};const w=wearing(player);for(const k of Object.keys(w))wear[k]=w[k]||null;
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
-    wk:pt.wk,wkDmg:pt.wkDmg||0,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
+    wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
@@ -7684,7 +7708,9 @@ function partyTick(){
 function raidState(wk){
   const mem=partyMembers();let tot=0;const per={};
   for(const uid of mem){const c=cardOf(uid);if(!c)continue;const d=c.wk===wk?(c.wkDmg||0):c.pwk===wk?(c.pwkDmg||0):0;per[uid]=d;tot+=d;}
-  const hp=PARTY_HP_EACH*Math.max(2,mem.length);
+  const active=mem.filter(uid=>{const c=cardOf(uid);if(!c)return false;
+    return Object.keys(c.days||{}).some(d=>d>=wk&&d<addDays(wk,7))||(c.wk===wk&&((c.wkDmg||0)>0||(c.chg||0)>0));}).length;
+  const hp=stormOn(wk)?STORM_HP_EACH*Math.max(2,active):PARTY_HP_EACH*Math.max(2,mem.length);
   return {wk,boss:partyBossFor(wk),hp,tot,per,dead:tot>=hp};
 }
 function partyRaidCheck(){
@@ -7898,7 +7924,9 @@ function renderParty(){
       <div class="pt-raidinfo"><div class="label">Weekly raid boss</div><h3>${esc(r.boss.n)}</h3><p class="muted">${esc(r.boss.line)}</p>
         <div class="pt-hp" role="img" aria-label="${left} of ${r.hp} HP left"><i style="width:${pct}%"></i></div>
         <div class="pt-hpnum">${r.dead?"<b>Defeated!</b> Everyone who landed a hit gets a Gold Box.":`${left.toLocaleString()} / ${r.hp.toLocaleString()} HP · ${daysLeft} day${daysLeft===1?"":"s"} left`}</div>
-        ${contrib.length?`<ul class="pt-dmg">${contrib.map(([uid,v])=>{const c=cardOf(uid);return `<li><span>${esc(uid===me?"You":c&&c.name||"Crawler")}</span><i style="width:${Math.max(4,Math.round(v/maxC*100))}%"></i><b>${v.toLocaleString()}</b></li>`;}).join("")}</ul>`:`<p class="muted" style="font-size:13px">No hits yet this week. Every quest you clear does damage equal to its XP.</p>`}
+        ${contrib.length?`<ul class="pt-dmg">${contrib.map(([uid,v])=>{const c=cardOf(uid);return `<li><span>${esc(uid===me?"You":c&&c.name||"Crawler")}</span><i style="width:${Math.max(4,Math.round(v/maxC*100))}%"></i><b>${v.toLocaleString()}</b></li>`;}).join("")}</ul>`:`<p class="muted" style="font-size:13px">No hits yet this week. ${stormOn(wk)?"Damage only lands in the lair: walk there on the raid floor below. Quests on the way store half their damage as ⚡ Charge.":"Every quest you clear does damage equal to its XP."}</p>`}
+        ${stormOn(wk)&&!r.dead?(()=>{const ch=mem.map(uid=>({uid,c:cardOf(uid)})).filter(x=>x.c&&x.c.wk===wk&&(x.c.chg||0)>0);
+          return ch.length?`<div class="pt-charge">⚡ Charge waiting: ${ch.map(x=>`${esc(x.uid===me?"You":x.c.name||"Crawler")} <b>${x.c.chg}</b>`).join(" · ")}</div>`:"";})():""}
       </div></div>
     ${raidFloorHTML()}
     <div class="label" style="margin-top:14px">Crew</div>
@@ -7973,13 +8001,14 @@ function auraFx(t,onTarget){
   z.xp=Math.min(.10,z.xp);z.gold=Math.min(.20,z.gold);z.dmg=Math.min(.10,z.dmg);z.hp=Math.min(10,z.hp);z.view=Math.min(.4,z.view);
   return z;
 }
+function rfLairCount(){const r=rfState();return r?rfCrew().filter(c=>c.pos===RF_LAIR).length:0;}
 function rfLairCrew(){const r=rfState();return !!r&&r.pos===RF_LAIR&&rfCrew().some(c=>c.pos===RF_LAIR);}
 /* One finished quest: a step toward your target, then say hello to anyone you've walked in on. */
 function raidStep(){
   const r=rfState();if(!r)return [];const out=[],adj=rfMaze(r.code,r.wk).adj;
   if(r.tgt!=null&&r.tgt!==r.pos){const p=rfPath(adj,r.pos,r.tgt);
     if(p&&p.length>1){r.pos=p[1];rfReveal(r,r.pos);bump("raidSteps");
-      if(r.pos===r.tgt)out.push(r.tgt===RF_LAIR?"You reached the raid lair. Stand here with your crew for +25% raid damage.":"You reached your marker.");}}
+      if(r.pos===r.tgt)out.push(r.tgt===RF_LAIR?(stormOn(r.wk)?"You reached the raid lair. Your raid damage now lands, and every crewmate in here with you adds 10%.":"You reached the raid lair. Stand here with your crew for +25% raid damage."):"You reached your marker.");}}
   for(const c of rfRoommates()){if(r.met&&r.met[c.uid])continue;r.met=Object.assign({},r.met||{},{[c.uid]:1});bump("regroups");
     const a=AURAS[c.cls]||AURAS.none;out.push(`You found ${c.name}! ${a.n}: ${a.d} while you share a room.`);
     partyPost("meet",`regrouped with ${c.name} on the raid floor`,"meet-"+r.wk+"-"+[myUid(),c.uid].sort().join("-"));}
@@ -8019,7 +8048,10 @@ function raidFloorHTML(){
     <div class="rfinfo"><div>${tgtTxt}</div>
       ${mates.length?`<div class="rfaura"><b>Sharing a room with ${esc(mates.map(m=>m.name).join(" and "))}</b>${au.list.map(a=>`<span>${esc(a.who)}: <b>${esc(a.n)}</b>, ${esc(a.d)}</span>`).join("")}</div>`
         :`<div class="muted">${near?`Nearest crewmate: ${esc(near.c.name)}, ${near.d} room${near.d===1?"":"s"} away.`:crew.length?"":"Your crew shows up here once they open the app this week."} Share a room with a crewmate to borrow their class aura.</div>`}
-      ${lair?`<div class="rfaura"><b>Lair crew bonus:</b> <span>+25% raid damage while you're in the lair together.</span></div>`:""}
+      ${stormOn(r.wk)?(()=>{const pt=ptNow(),n=rfLairCount(),inL=r.pos===RF_LAIR;
+        return inL?`<div class="rfaura storm"><b>⚡ In the lair.</b> <span>Your quests hit the raid boss${n?` with +${Math.round(Math.min(STORM_CREW_MAX,STORM_CREW*n)*100)}% from ${n} crewmate${n===1?"":"s"} beside you`:". Each crewmate who joins you adds 10%"}.</span></div>`
+          :`<div class="rfaura storm"><b>⚡ Charge stored: ${pt.chg||0}</b> <span>Raid damage only lands in the lair. Until you get there, each quest stores half its damage, released in one hit when you arrive.</span></div>`;})()
+        :lair?`<div class="rfaura"><b>Lair crew bonus:</b> <span>+25% raid damage while you're in the lair together.</span></div>`:""}
       <div class="rfbtns"><button class="btn sm" type="button" id="rfLair"${r.tgt===RF_LAIR?" disabled":""}>Head to the lair</button>
         ${r.rally&&r.rally.wk===r.wk?`<button class="btn sm" type="button" id="rfUnplant">Remove my rally flag</button>`:""}
         <button class="btn sm" type="button" id="rfPlant">${r.rally&&r.rally.wk===r.wk?"Move rally flag here":"Plant rally flag here"}</button>
