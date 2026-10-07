@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=19a52095e3"></script>
+<script src="firebase-config.js?v=1274d12ff5"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1054,6 +1054,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .insp-grid .eqtag{position:absolute;top:2px;right:2px;background:#111;color:var(--gold);font:700 10px/1 var(--body);padding:2px 3px;border-radius:3px}
 .insp-det{border-top:1px solid var(--line-2);padding-top:10px;font-size:14px}.insp-det .thead{display:flex;gap:10px;align-items:center}.insp-det .tico svg{width:44px;height:44px;display:block;border-radius:6px}
 @media (max-width:560px){.insp-top{grid-template-columns:90px 1fr}.insp-av{width:84px}}
+.ntfy{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12px;margin-top:6px;color:var(--muted)}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -6357,6 +6358,9 @@ function partyListen(code){
     mine.feed=s.docs.map(x=>Object.assign({id:x.id},x.data()));partyNews();render();},e=>partyErr(e)));
   mine.unsub.push(base.collection("chat").orderBy("at","desc").limit(60).onSnapshot(s=>{if(party!==mine)return;
     mine.chat=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>a.at-b.at);
+    {const me=myUid(),first=!mine.chatIds;mine.chatIds=mine.chatIds||new Set();
+      const fresh=mine.chat.filter(m=>!mine.chatIds.has(m.id)&&m.uid!==me);mine.chat.forEach(m=>mine.chatIds.add(m.id));
+      if(!first&&fresh.length)try{chatArrived(fresh);}catch(e){console.warn(e);}}
     if(prefs.chatSeen==null){prefs.chatSeen=Date.now();savePrefs();}
     if(ui.tab==="party"&&ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}
     render();},e=>console.warn("chat",e&&e.code)));
@@ -6425,6 +6429,7 @@ function partyNews(){
   const since=prefs.nudgeSeen||prefs.partySeen;
   const n=party.feed.filter(f=>f.kind==="nudge"&&f.to===me&&f.at>since).sort((a,b)=>a.at-b.at);
   if(n.length){prefs.nudgeSeen=n[n.length-1].at;savePrefs();
+    if(document.visibilityState!=="visible"){const f=n[n.length-1];bgNotify(`${f.name} nudged you`,f.text.replace(/^nudged [^:]*: /,""),"crawl-nudge");}
     n.slice(-2).forEach((f,i)=>setTimeout(()=>toast(`<b>${esc(f.name)} nudged you.</b> <span class="quip">${esc(f.text.replace(/^nudged [^:]*: /,""))}</span>`,"quest"),600+i*900));}
   if(ui.tab==="party")partySeen(true);
 }
@@ -6514,6 +6519,7 @@ function partyInvite(){
 }
 /* An invite link (?join=CODE) fills the code in and opens the Party tab. */
 function partyFromLink(){
+  try{const op=new URLSearchParams(location.search).get("open");if(op){history.replaceState(null,"",location.pathname);setTimeout(()=>openPartyView(op),300);}}catch(e){}
   try{const q=new URLSearchParams(location.search).get("join");if(!q)return;
     ui.ptCode=q.toUpperCase().slice(0,12);history.replaceState(null,"",location.pathname);setTab("party");}catch(e){}
 }
@@ -6588,6 +6594,7 @@ function renderParty(){
     $("ptChatIn").oninput=e=>{ui.chatDraft=e.target.value;};
     $("ptChatForm").onsubmit=e=>{e.preventDefault();ui.chatDraft=$("ptChatIn").value;partyChatSend();};
     el.querySelectorAll("[data-cdel]").forEach(b=>b.onclick=()=>partyChatDelete(b.dataset.cdel));
+    wireNotifyCtl();updateTitle();
     if(cu&&ui.tab==="party"){prefs.chatSeen=Date.now();savePrefs();}
     return;
   }
@@ -6622,6 +6629,7 @@ function renderParty(){
   el.querySelectorAll("[data-inspect]").forEach(b=>b.onclick=()=>openInspect(b.dataset.inspect));
   wireRaidFloor(el);
   if(ui.inspect)renderInspect();
+  updateTitle();
 }
 
 /* ---------- Raid floor (party) ----------
@@ -6793,8 +6801,47 @@ function chatHTML(){
     ||`<p class="muted cempty">No messages yet. Say hi to your crew.</p>`;
   return `<div class="chatbox" id="chatBox">${body}</div>
     <form class="pt-row chatform" id="ptChatForm" autocomplete="off"><input type="text" id="ptChatIn" maxlength="300" placeholder="Message your party" value="${esc(ui.chatDraft||"")}"><button class="btn gold" type="submit">Send</button></form>
-    <div class="muted" style="font-size:12px">Only your party can read this. You can delete your own messages.</div>`;
+    <div class="muted" style="font-size:12px">Only your party can read this. You can delete your own messages.</div>${notifyCtl()}`;
 }
+
+/* ---------- Party notifications ----------
+   New chat messages (and nudges) pop up inside the app when you're not looking at the chat, and become system
+   notifications when The Crawl is open in the background and you've allowed them. Nothing arrives once the app is
+   fully closed: that would need server-side push. */
+const canNotify=()=>typeof window.Notification==="function";
+function bgNotify(title,body,tag){
+  if(prefs.notify===false||!canNotify()||Notification.permission!=="granted")return;
+  const opts={body:String(body||"").slice(0,180),icon:"icon-192.png",badge:"icon-192.png",tag,renotify:true,data:{open:tag==="crawl-chat"?"chat":"party"}};
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.controller){navigator.serviceWorker.ready.then(r=>r.showNotification(title,opts)).catch(()=>{});return;}
+    const n=new Notification(title,opts);n.onclick=()=>{try{window.focus();}catch(e){}openPartyView(opts.data.open);n.close();};
+  }catch(e){}
+}
+function openPartyView(v){setTab("party");ui.ptView=v==="chat"?"chat":"crew";if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();}
+function chatArrived(msgs){
+  const last=msgs[msgs.length-1],onChat=ui.tab==="party"&&ui.ptView==="chat";
+  const txt=String(last.text||""),short=txt.length>90?txt.slice(0,88)+"…":txt;
+  if(document.visibilityState==="visible"){
+    if(!onChat){SFX.play("coin");toast(`<b>${esc(last.name||"Crawler")}</b> ${esc(short)}${msgs.length>1?` <span class="quip">+${msgs.length-1} more</span>`:""}`,"quest",()=>openPartyView("chat"),"Open chat");}
+  }else bgNotify(`${last.name||"Crawler"} · ${party&&party.doc&&party.doc.name||"Party chat"}`,txt,"crawl-chat");
+}
+function updateTitle(){let n=0;try{n=partyUnseen();}catch(e){}const t=(n?`(${n}) `:"")+"The Crawl";if(document.title!==t)document.title=t;}
+function notifyCtl(){
+  if(!canNotify())return `<div class="muted" style="font-size:12px">This browser can't show notifications. On an iPhone, add The Crawl to your Home Screen first.</div>`;
+  const p=Notification.permission;
+  if(p==="denied")return `<div class="muted" style="font-size:12px">Notifications are blocked for this site. You can allow them in your browser's site settings.</div>`;
+  if(p==="granted"&&prefs.notify!==false)return `<div class="ntfy">🔔 Notifications on while The Crawl is open in the background. <button class="linkbtn" type="button" id="ntfyOff">Turn off</button></div>`;
+  return `<div class="ntfy"><button class="btn sm" type="button" id="ntfyOn">🔔 Notify me about new messages</button><span class="muted">Works while The Crawl is open in another tab or minimised.</span></div>`;
+}
+function wireNotifyCtl(){
+  const on=$("ntfyOn"),off=$("ntfyOff");
+  if(off)off.onclick=()=>{prefs.notify=false;savePrefs();render();};
+  if(on)on.onclick=async()=>{prefs.notify=true;savePrefs();
+    try{const r=Notification.permission==="granted"?"granted":await Notification.requestPermission();
+      if(r==="granted")toast("Notifications on. You'll hear about new party messages while The Crawl is in the background.");}catch(e){}
+    render();};
+}
+if(navigator.serviceWorker)try{navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.open)openPartyView(e.data.open);});}catch(e){}
 
 /* ---------- Boot ---------- */
 async function boot(){
