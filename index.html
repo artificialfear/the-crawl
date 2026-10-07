@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=4d1a62e7f3"></script>
-<script>window.CRAWL_BUILD="4d1a62e7f3";</script>
+<script src="firebase-config.js?v=a63fd69f6d"></script>
+<script>window.CRAWL_BUILD="a63fd69f6d";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -7917,9 +7917,11 @@ function flyDamage(r,n,big){
   }
   setTimeout(()=>d.remove(),1200);
 }
+/* Blades and axes slice the card: the recorded slice, timed so its whoosh rides the white streak (which starts at 170ms). */
+function hitSound(kind,delay){if(kind==="slash"||kind==="chop"){setTimeout(()=>{if(!clip("quest-slice",.9))SFX.play(kind);},delay||0);}else SFX.play(kind);}
 function attackFx(card,o){
   if(!card)return;
-  if(calmMotion()){SFX.play(o.big?"big":weaponStyle().kind);return;}
+  if(calmMotion()){if(o.big)SFX.play("big");else hitSound(weaponStyle().kind);return;}
   const r=card.getBoundingClientRect(),vh=window.innerHeight||800;if(r.bottom<0||r.top>vh)return;
   const w=weaponStyle(),split=w.kind==="slash"||w.kind==="chop";
   if(typeof matchMedia==="function")ui.atkAt=Date.now();
@@ -7931,7 +7933,7 @@ function attackFx(card,o){
   layer.insertAdjacentHTML("beforeend",`<div class="atk-weapon">${weaponArt(w.id)}</div>${split?`<div class="atk-streak"></div>`:`<div class="atk-ring"></div>`}
     <div class="atk-burst">${burstSVG(w.word,o.big?"#e8283c":"#ffd02e")}</div>`);
   document.body.appendChild(layer);
-  SFX.play(o.big?"big":w.kind);if(o.big)setTimeout(()=>SFX.play(w.kind),40);
+  if(o.big){SFX.play("big");hitSound(w.kind,split?120:40);}else hitSound(w.kind,split?120:0);
   if(o.big){const m=document.querySelector(".wrap>.col.main");if(m){m.classList.remove("quake");void m.offsetWidth;m.classList.add("quake");}}
   setTimeout(()=>flyDamage(r,o.dmg,o.big),180);
   setTimeout(()=>layer.remove(),1150);
