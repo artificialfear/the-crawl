@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=25c587f3c8"></script>
-<script>window.CRAWL_BUILD="25c587f3c8";</script>
+<script src="firebase-config.js?v=4d8e430251"></script>
+<script>window.CRAWL_BUILD="4d8e430251";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1111,6 +1111,24 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .gv-pick.on{outline:3px solid var(--gold);outline-offset:1px}
 .gv-pick:focus-visible{outline:3px solid var(--mana)}
 #mobAlert:empty{display:none}
+#rivalAlert:empty{display:none}
+.rvalert{position:relative;display:grid;grid-template-columns:118px 1fr;border:3px solid #ff7a1f;border-radius:12px;overflow:hidden;background:#140c08;box-shadow:0 0 0 2px #000,0 0 18px rgba(255,122,31,.55);animation:mobpulse 2.2s ease-in-out infinite}
+.rvalert.psy{border-color:#e8283c;box-shadow:0 0 0 2px #000,0 0 22px rgba(232,40,60,.75);background:#170606}
+.rv-av{position:relative;overflow:hidden;border-right:2px solid #000;min-height:150px}
+.rv-av svg{position:absolute;left:50%;top:-6px;height:calc(100% + 60px);width:auto;transform:translateX(-50%)}
+.rvalert.psy .rv-av svg{filter:saturate(1.3) contrast(1.1) drop-shadow(0 0 6px rgba(232,40,60,.6))}
+.rv-body{padding:8px 12px 10px;display:grid;gap:5px;min-width:0}
+.rvalert .ma-k{color:#ffb35a}.rvalert.psy .ma-k{color:#ff5a6a}
+.rv-n{font-size:15px;line-height:1.25}.rv-n .muted{font-size:12px}
+.rv-tip{font-size:12px;color:var(--muted);line-height:1.4}
+.rv-psy{font-size:12px;color:#ff8a8a;font-weight:700}
+.rv-help{font-size:12px}
+.rvalert .mobhp{display:flex;align-items:center;gap:8px}.rvalert .mobhp .bar{flex:1}
+.rvalert .mobhp .bar>b,.pt-hunt .mobhp .bar>b{background:#e8283c}
+.rv-acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:2px}.rv-shr{font-size:11px}
+.pt-hunt{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:14px;padding:10px 12px;border:2px solid #ff7a1f;border-radius:10px;background:rgba(255,122,31,.08)}
+.pt-hunt.psy{border-color:#e8283c;background:rgba(232,40,60,.1)}
+.pt-hunt>div{flex:1;min-width:0}.pt-hunt .mobhp{display:flex;align-items:center;gap:8px;margin:4px 0}.pt-hunt .mobhp .bar{flex:1}
 .mobalert{position:relative;border:3px solid #e8283c;border-radius:12px;overflow:hidden;background:#120a0a;box-shadow:0 0 0 2px #000,0 0 18px rgba(232,40,60,.55);animation:mobpulse 2.2s ease-in-out infinite}
 .mobalert.k-ooze{border-color:#8adf3a;box-shadow:0 0 0 2px #000,0 0 18px rgba(138,223,58,.5)}
 .mobalert.k-goblin{border-color:#ffb21f;box-shadow:0 0 0 2px #000,0 0 18px rgba(255,178,31,.5)}
@@ -1371,6 +1389,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
     <div class="epbanner" id="epBanner" hidden></div>
     <section class="panel bosspanel" id="bossPanel" aria-label="Floor boss"></section>
     <div id="mobAlert" hidden></div>
+    <div id="rivalAlert" hidden></div>
     <section class="panel addpanel" aria-label="New quest">
       <form class="add" id="addForm" autocomplete="off">
         <div class="quickrow">
@@ -1450,6 +1469,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Stats</b> level up from the quests you assign them. Each level above 1 adds: Strength +2% boss damage (max 30%), Intelligence +1% XP (max 15%), Constitution +5 max HP (max 75), Dexterity a 2% wider accuracy window on each side (max 20%), Charisma +2% gold and more viewers (max 30%).</div>
           <div><b>Loot boxes</b> come from achievements, level-ups (Bronze, or Silver every fifth level), bosses and the shop. Contents are random: gold, potions, or gear from Common to Legendary. Duplicates turn into gold.</div>
           <div><b>Gear</b>: weapons, helmets and capes can raise XP; gloves add boss damage; boots add max HP and faster movement speed (a chance each quest moves you an extra room on the floor map and raid floor); body armor reduces overdue damage. Your best item in each slot counts, whatever your crawler wears. Rings each have their own perk, and only the ring you wear counts. Pet trinkets boost your pet's own passive while it wears one. Unique items are very rare, glow, and carry an extra effect.</div>
+          <div><b>Rival crawlers</b>: crawlers from the rankings sometimes come for your loot (now and then after a quest, or from a ⚔ ambush room on the map). Each quest you finish hits them; they hit back each quest and overnight, but never knock you out on their first night. Beat one and they're knocked out for the floor (XP, gold, maybe an item they're wearing). Or bribe them, run (better boots, better odds), or walk to a shrine. If they knock you out, they steal one spare backpack item (never worn gear, never Unique) and come back for a rematch a few days later: win it to get your item back. A rare psycho won't take a bribe and only backs off for a day: that one has to be killed. Crewmates can tap Help on the Party tab to chip at your rival, but the final blow is yours.</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
@@ -3146,6 +3166,188 @@ function mobStrip(){
     <div class="muted" style="font-size:12px">Your next quest hits ${ms.length>1?"them":"it"}. Mob damage doesn't come out of your boss fight.</div></div>`;
 }
 
+/* ---------- Rival crawlers ----------
+   The crawlers on the weekly rankings sometimes come after you for your loot. Each finished quest hits the one
+   on you; it hits back each quest (never below 1 HP) and every night (never a knockout on its first night).
+   Beat it and it's knocked out for the week (rewards, maybe an item it's wearing). Get knocked out while it's
+   on you and it steals one spare backpack item, then comes back 2-4 days later for a rematch carrying it.
+   A rare psycho won't take a bribe, and running or a shrine only buys a day: it has to be killed.
+   Crewmates can turn on Help: their quests chip at your rival (it can't die to them; the last hit is yours).
+   player.rival = the one on you now; player.rvwk = this floor's tally; player.rvq = rematches waiting. */
+const RV_RATE=.04,RV_MAX=3,RV_PSYCHO=.12,RV_FEM=new Set(["Brenda Ashcombe","Tamsin Vee","Priya Kettleworth","Juno Sparks","Ines Calloway","Hattie Bramble","Lottie Grim","Marguerite Bloom"]);
+const RV_TAUNTS=["Nice loot. Shame about the owner.","Nothing personal. It's a ratings thing.","I've seen your inventory. I want it.","The audience wants a crawler fight. Who am I to say no?",
+  "You're in my way on the leaderboard.","Hand over the backpack and nobody gets hurt. Much.","I've been following you for three rooms. You hum when you walk."];
+const RV_PSY=["You can run. I enjoy that part.","I'm not here for the loot anymore.","I memorized your schedule.","Every room. Every floor. I'll be there."];
+const rvIdx=n=>RIVALS.findIndex(r=>r[0]===n);
+const rvStr=n=>{const i=rvIdx(n);return i<0?.5:1-i/(RIVALS.length-1);}; // 1 = top of the board, 0 = Doug
+function rvWeek(){const b=player.boss;const wk=b&&b.week||null;if(!player.rvwk||player.rvwk.wk!==wk)player.rvwk={wk,n:0,ko:[],kill:[]};return player.rvwk;}
+/* What a rival looks like and wears: fixed per name, so Brenda is always Brenda. */
+function rvLook(n){const r=srand("rvlook|"+n),pk=a=>a[Math.floor(r()*a.length)],face=RV_FEM.has(n)?"f":"m";
+  const rare=(arr,p)=>r()<p?pk(arr.slice(1))[0]:arr[0][0];
+  return {skin:Math.floor(r()*SKINS.length),face,body:pk(BODIES)[0],hair:pk(HAIRS)[0],hc:Math.floor(r()*HAIRC.length),beard:face==="f"?"none":pk(BEARDS)[0],
+    eyes:pk(EYEC)[0],brow:pk(["angry","thick","auto"]),mouth:pk(["smirk","scowl","grin","shout"]),tee:pk(TEES)[0],print:pk(PRINTS)[0],pants:pk(PANTSC)[0],
+    eyewear:rare(EYEWEAR,.4),ears:rare(EARS,.3),marks:rare(MARKS,.5),paint:rare(PAINTS,.35)};}
+function rvGear(n){const r=srand("rvgear|"+n),s=rvStr(n);
+  const pool=s>.75?["epic","legendary"]:s>.5?["rare","epic"]:s>.25?["uncommon","rare"]:["common","uncommon"];const out={};
+  for(const slot of ["weapon","armor","head","boots","gloves","cape"]){if(slot!=="weapon"&&r()<.3)continue;
+    const c=ITEMS.filter(i=>i.slot===slot&&pool.includes(i.rar)&&!i.base);if(c.length)out[slot]=c[Math.floor(r()*c.length)].id;}
+  return out;}
+function rvAvatar(rv){try{return avatarSVG(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)}));}catch(e){return "";}}
+const rvHit=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((6+3*fl)*(1-armorCut(player))*(psy?1.25:1));};
+const rvNight=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((10+4*fl)*(1-armorCut(player))*(psy?1.25:1));};
+const rvBribe=()=>30+15*floorOf();
+const rvRunOdds=()=>Math.min(.9,.25+2*(gearFx(player).spd||0));
+/* Who's free to come after you: not dead on the board, not already beaten this floor. */
+function rvPool(){const b=player.boss;if(!b)return [];const W=rvWeek();let dead=[];try{dead=rivalBoard(b).filter(x=>x.dead).map(x=>x.n);}catch(e){}
+  return RIVALS.map(r=>r[0]).filter(n=>!dead.includes(n)&&!W.ko.includes(n)&&!W.kill.includes(n));}
+function spawnRival(opts){
+  opts=opts||{};const W=rvWeek();let n=opts.n;
+  if(!n){const pool=rvPool();if(!pool.length)return null;n=pool[Math.floor(Math.random()*pool.length)];}
+  const i=rvIdx(n),s=rvStr(n),psy=opts.psy!=null?opts.psy:Math.random()<RV_PSYCHO;
+  const hp=Math.max(20,Math.round(mobScale().hit*(2.5+1.5*s)*(.9+Math.random()*.2)*(psy?1.5:1)*(opts.item?1.25:1)));
+  const rv={id:newId(),n,c:(RIVALS[i]||[])[1]||"Crawler",hp,max:hp,psy:!!psy,item:opts.item||null,rematch:!!opts.rematch,from:opts.from||"wander",
+    at:Date.now(),day:today(),nights:0,fresh:true,ran:null,as:{},purse:Math.round(10+floorOf()*8+s*30)};
+  player.rival=rv;if(!opts.rematch)W.n++;bump("rivalsMet");
+  return rv;}
+function rvIntro(rv){const it=rv.item&&itemOf(rv.item);
+  if(rv.rematch&&it)return `${rv.n} is back, and they're wearing your ${it.n}. Rematch!`;
+  if(rv.rematch)return `${rv.n} found you again. ${rv.psy?"Of course they did.":""}`.trim();
+  return `${rv.n}, the ${rv.c}, wants your loot! “${spick(Math.random,rv.psy?RV_PSY:RV_TAUNTS)}”${rv.psy?" Something is very wrong with this one.":""}`;}
+/* One spare backpack item: a duplicate first if you have any, else gear you aren't wearing. Never Unique, never worn. */
+function rivalSteal(){
+  const worn=new Set(Object.values(wearing(player)).filter(Boolean)),ok=id=>{const it=itemOf(id);return it&&!it.base&&it.rar!=="magical";};
+  const spares=Object.keys(player.spare||{}).filter(id=>spareN(id)>0&&ok(id));
+  const loose=(player.owned||[]).filter(id=>!worn.has(id)&&ok(id)&&!spares.includes(id));
+  const pool=spares.length?spares:loose;if(!pool.length)return null;
+  const id=pool[Math.floor(Math.random()*pool.length)];return takeItem(id)?id:null;}
+/* The rival on you knocked you out: it takes something and leaves, to be found again later. */
+function rivalKO(){
+  const rv=player.rival;if(!rv)return null;player.rival=null;
+  let item=rivalSteal(),gold=0;if(!item){gold=Math.floor(player.gold/10);player.gold-=gold;}
+  // a rematch rival who wins again keeps what it already had, on top of anything new
+  const carry=item||rv.item||null,second=item&&rv.item?rv.item:(rv.item2||null);
+  const due=addDays(today(),2+Math.floor(Math.random()*3));
+  player.rvq=(player.rvq||[]).concat({n:rv.n,item:carry,item2:second,psy:rv.psy,due});
+  const it=itemOf(item);bump("rivalLosses");
+  pushEvent(item?`${rv.n} knocked you out and stole your ${it.n}`:`${rv.n} knocked you out and took ${gold} more gold`,true);
+  return {n:rv.n,item,gold};}
+/* Damage to the rival: a quest of yours (can kill), or a crewmate's help (stops at 1 HP). */
+function rivalDown(out,t){
+  const rv=player.rival;player.rival=null;const W=rvWeek(),sc=mobScale(),s=rvStr(rv.n),kill=rv.psy;
+  const bx=Math.round(sc.xp*.6),g=20+Math.floor(Math.random()*21)+rv.purse;player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
+  player.viewers=(player.viewers||0)+(kill?6000:2500);
+  (kill?W.kill:W.ko).push(rv.n);bump(kill?"rivalKills":"rivalKOs");
+  const extra=[];
+  if(rv.item){const r=receiveItem(rv.item,true);const it=itemOf(rv.item);extra.push(`You got your ${it?it.n:"item"} back`);if(rv.item2){receiveItem(rv.item2,true);const i2=itemOf(rv.item2);extra.push(`and your ${i2?i2.n:"other item"}`);}
+    giveBox("silver",`Revenge on ${rv.n}`);extra.push("plus a Silver Box for the rematch");}
+  const gear=Object.values(rvGear(rv.n));
+  if(gear.length&&(kill||Math.random()<.35)){const id=gear[Math.floor(Math.random()*gear.length)],it=itemOf(id),r=receiveItem(id);
+    extra.push(r==="new"?`they dropped their ${RARITY[it.rar].n} ${it.n}`:r==="kept"?`they dropped a ${it.n} (a spare, kept)`:`they dropped a ${it.n} (a duplicate, sold for ${r} gold)`);
+    if(r==="new"&&["epic","legendary"].includes(it.rar))partyPost("loot",`took a ${RARITY[it.rar].n} ${it.n} off ${rv.n}`);}
+  if(kill)giveBox("gold",`Put down ${rv.n} for good`);
+  const helpers=Object.keys(rv.as||{}).filter(u=>rv.as[u]>0);
+  if(helpers.length)player.rvDone={id:rv.id,n:rv.n,by:helpers,at:Date.now()};
+  const names=helpers.map(u=>memberName(u));
+  partyPost("rival",`${kill?"killed":"knocked out"} ${rv.n}, the ${rv.c}${names.length?` with help from ${names.join(" and ")}`:""}`);
+  pushEvent(`${kill?"Killed":"Knocked out"} rival crawler ${rv.n}`);
+  out.push(`${kill?"☠ You killed":"💫 You knocked out"} ${rv.n}! +${bx} XP, +${g} gold${kill?", a Gold Box":""}${extra.length?"; "+extra.join(", "):""}.`);
+  ui.rivalWin={n:rv.n,kill};
+}
+/* One finished quest: fight the rival on you, or maybe meet one. */
+function rivalStep(fx,t){
+  const out=[];if(!player.boss)return out;rvWeek();
+  const rv=player.rival;
+  if(rv){
+    if(rv.fresh){rv.fresh=false;return out;}  // the quest that brought them in doesn't hit them
+    const d=Math.min(rv.hp,heroHit(fx));rv.hp-=d;
+    if(rv.hp<=0){rivalDown(out,t);return out;}
+    const h=Math.min(Math.max(0,player.hp-1),rvHit());player.hp-=h;
+    out.push(`You hit ${rv.n} for ${d} (${rv.hp}/${rv.max} HP left)${h?`. They hit back for ${h} HP`:""}.`);
+    return out;}
+  // A rematch that's come due finds you first
+  const td=today(),q=(player.rvq||[]).find(x=>x.due<=td);
+  if(q){player.rvq=player.rvq.filter(x=>x!==q);const r=spawnRival({n:q.n,psy:q.psy,item:q.item,rematch:true});if(r){r.item2=q.item2||null;out.push(rvIntro(r));}return out;}
+  const W=rvWeek();
+  if(!(player.mobs||[]).length&&W.n<RV_MAX&&Math.random()<RV_RATE){const r=spawnRival({});if(r)out.push(rvIntro(r));}
+  return out;}
+/* A shrine on the map: hallowed ground. A normal rival gives up; a psycho waits a day. */
+function rivalSanctuary(m,out){const rv=player.rival;if(!rv)return;player.rival=null;
+  if(rv.psy){player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,psy:true,due:addDays(today(),1)});out.push(mapLog(m,`The shrine's light drives ${rv.n} back. They'll be waiting tomorrow.`));}
+  else{if(rv.item)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,psy:false,due:addDays(today(),2)});
+    out.push(mapLog(m,`You reach the shrine. ${rv.n} won't follow you onto hallowed ground and slinks off.`));}
+  bump("rivalShrine");}
+function rivalBribe(){const rv=player.rival;if(!rv||rv.psy)return;const c=rvBribe();if(player.gold<c){toast(`You need ${c} gold to pay ${rv.n} off.`,"bad");return;}
+  player.gold-=c;player.rival=null;bump("rivalBribes");SFX.play("coin");
+  if(rv.item)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,psy:false,due:addDays(today(),2)});
+  pushEvent(`Paid ${rv.n} ${c} gold to go away`);store.savePlayer(player).catch(writeFailed);render();
+  toast(`${rv.n} pockets your ${c} gold. “Pleasure doing business.”${rv.item?" They kept your item, though. They'll be back.":""}`);}
+function rivalRun(){const rv=player.rival;if(!rv||rv.ran===today())return;rv.ran=today();
+  if(Math.random()<rvRunOdds()){player.rival=null;bump("rivalRuns");
+    if(rv.psy||rv.item)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,psy:rv.psy,due:addDays(today(),rv.psy?1:2)});
+    pushEvent(`Outran ${rv.n}`);toast(rv.psy?`You lose ${rv.n} in the corridors. For today.`:`You outran ${rv.n}! ${gearFx(player).spd?"Good boots.":"Barely."}`,"quest");}
+  else{const h=Math.min(Math.max(0,player.hp-1),rvHit());player.hp-=h;SFX.play("hurt");toast(`${rv.n} cuts you off${h?` and hits you for ${h} HP`:""}. You can try running again tomorrow.`,"bad");}
+  store.savePlayer(player).catch(writeFailed);render();}
+/* Crewmates' Help: their cards carry a running total of damage aimed at your rival. Apply what's new. */
+function rivalCrew(){
+  if(!party||!party.cards||!playerExists)return;const rv=player.rival,me=myUid();let ch=false;
+  if(rv){rv.as=rv.as||{};
+    for(const [uid,c] of Object.entries(party.cards)){if(uid===me||!c||!c.as||c.as.to!==me||c.as.rid!==rv.id)continue;
+      const fresh=(c.as.dmg||0)-(rv.as[uid]||0);if(fresh<=0)continue;rv.as[uid]=c.as.dmg;ch=true;
+      const d=Math.min(fresh,rv.hp-1);if(d<=0)continue;rv.hp-=d;
+      setTimeout(()=>toast(`<b>${esc(c.name||"A crewmate")}</b> hit ${esc(rv.n)} for ${d}${rv.hp<=1?". They're hanging on by a thread: finish them!":` (${rv.hp}/${rv.max} HP left)`}.`,"quest"),300);}}
+  // Thank-you for helping take one down
+  for(const [uid,c] of Object.entries(party.cards)){if(uid===me||!c||!c.rvDone||!(c.rvDone.by||[]).includes(me))continue;
+    player.asPaid=player.asPaid||{};if(player.asPaid[c.rvDone.id])continue;player.asPaid[c.rvDone.id]=Date.now();ch=true;
+    const x=Math.round(mobScale().xp*.2),g=15;player.xp+=x;player.gold+=g;bump("rivalAssists");
+    if(player.helping&&player.helping.rid===c.rvDone.id)player.helping=null;
+    setTimeout(()=>toast(`<b>${esc(c.name||"Your crewmate")}</b> took down ${esc(c.rvDone.n)} with your help. +${x} XP, +${g} gold.`,"lvl"),400);}
+  const ks=Object.keys(player.asPaid||{});if(ks.length>40)ks.sort((a,b)=>player.asPaid[a]-player.asPaid[b]).slice(0,ks.length-40).forEach(k=>delete player.asPaid[k]);
+  // Help ends when the rival is gone
+  if(player.helping){const c=party.cards[player.helping.to];if(!c||!c.rvl||c.rvl.id!==player.helping.rid){player.helping=null;ch=true;}}
+  if(ch)store.savePlayer(player).catch(writeFailed);
+}
+/* Your quest, while helping a crewmate: half your hit lands on their rival. */
+function rivalAssist(fx){
+  const h=player.helping;if(!h||!party)return null;const c=party.cards[h.to];if(!c||!c.rvl||c.rvl.id!==h.rid||c.rvl.hp<=1)return null;
+  const d=Math.max(1,Math.round(heroHit(fx)*.5));const prev=player.assist&&player.assist.rid===h.rid?player.assist.dmg||0:0;
+  player.assist={to:h.to,rid:h.rid,dmg:prev+d};bump("assistHits");
+  return `Helping ${c.name||"your crewmate"}: your quest also hit ${c.rvl.n} for ${d}.`;}
+function rivalHelp(uid){const c=party&&party.cards[uid];if(!c||!c.rvl)return;
+  if(player.helping&&player.helping.to===uid&&player.helping.rid===c.rvl.id)player.helping=null;
+  else{player.helping={to:uid,rid:c.rvl.id};toast(`You're helping ${esc(c.name||"your crewmate")} fight ${esc(c.rvl.n)}. Each quest you finish chips at them.`);}
+  store.savePlayer(player).catch(writeFailed);partyPublish(true);render();}
+/* The big encounter card above the quest board. */
+function renderRivalAlert(){
+  const el=$("rivalAlert");if(!el)return;const rv=playerExists&&player.rival;
+  if(!rv){if(el.innerHTML)el.innerHTML="";el.hidden=true;return;}
+  const it=rv.item&&itemOf(rv.item),bribe=rvBribe(),odds=Math.round(rvRunOdds()*100),ran=rv.ran===today();
+  const key=JSON.stringify([rv.id,rv.hp,ran,player.gold>=bribe,odds,rv.nights]);if(el.dataset.k===key&&!el.hidden)return;el.dataset.k=key;el.hidden=false;
+  const helpers=Object.keys(rv.as||{}).filter(u=>rv.as[u]>0).map(u=>esc(memberName(u)));
+  el.innerHTML=`<div class="rvalert${rv.psy?" psy":""}" role="status" aria-live="polite">
+    <div class="rv-av" aria-hidden="true">${rvAvatar(rv)}</div>
+    <div class="rv-body"><div class="ma-k">${rv.psy?"☠ Psycho crawler":"⚔ Rival crawler"}${rv.rematch?" · Rematch":""}</div>
+      <div class="rv-n"><b>${esc(rv.n)}</b> <span class="muted">the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board</span></div>
+      <div class="mobhp"><div class="bar"><b style="width:${Math.round(rv.hp/rv.max*100)}%"></b></div><span class="num">${rv.hp}/${rv.max} HP</span></div>
+      <div class="rv-tip">Each quest you finish hits them. They hit back for <b>${rvHit()} HP</b> a quest and <b>${rvNight()} HP</b> overnight${rv.nights?"":" (they won't knock you out tonight)"}. If they knock you out, they steal a spare item from your backpack.${it?` They're carrying your <b>${esc(it.n)}</b>: win to get it back.`:""}</div>
+      ${rv.psy?`<div class="rv-psy">This one won't take a bribe, and running or a shrine only buys you a day. You'll have to kill them.</div>`:""}
+      ${helpers.length?`<div class="rv-help">👥 ${helpers.join(", ")} ${helpers.length>1?"are":"is"} helping.</div>`:party?`<div class="rv-help muted">Your crew can see this on the Party tab and help.</div>`:""}
+      <div class="rv-acts">${rv.psy?"":`<button type="button" class="btn sm gold" id="rvBribe"${player.gold<bribe?" disabled":""}>Bribe · ${bribe}g</button>`}
+        <button type="button" class="btn sm ghost" id="rvRun"${ran?" disabled":""}>${ran?"Ran today":`Run · ${odds}%`}</button>
+        <span class="muted rv-shr">or walk to a shrine on your map</span></div></div></div>`;
+  const b=$("rvBribe");if(b)b.onclick=rivalBribe;$("rvRun").onclick=rivalRun;
+}
+/* Party tab: crewmates being hunted, with a Help toggle. */
+function rivalCrewHTML(){
+  if(!party||!party.cards)return "";const me=myUid();
+  const hunted=partyMembers().filter(u=>u!==me).map(u=>[u,party.cards[u]]).filter(([u,c])=>c&&c.rvl&&c.rvl.hp>0);
+  if(!hunted.length)return "";
+  return hunted.map(([u,c])=>{const on=player.helping&&player.helping.to===u&&player.helping.rid===c.rvl.id;
+    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
+      <b>${esc(c.rvl.n)}</b> is hunting <b>${esc(c.name||"your crewmate")}</b>
+      <div class="mobhp"><div class="bar"><b style="width:${Math.round(c.rvl.hp/c.rvl.max*100)}%"></b></div><span class="num">${c.rvl.hp}/${c.rvl.max}</span></div>
+      <div class="muted" style="font-size:12px">${on?"Each quest you finish hits them for half your damage. You can't land the final blow: that's theirs.":"Help, and each quest you finish also hits this rival for half your damage."}</div></div>
+      <button type="button" class="btn sm ${on?"":"gold"}" data-rvhelp="${esc(u)}" aria-pressed="${on}">${on?"Helping ✓":"Help"}</button></div>`;}).join("");
+}
 /* ---------- Floor map ----------
    Each floor is a winding corridor of 16 rooms on a 5×5 grid, drawn like a hand-inked dungeon map.
    Every finished quest moves you one room deeper and resolves what's in it. Two secret rooms hang off
@@ -3163,6 +3365,7 @@ const ROOM={
   shrine:{n:"Shrine",d:"Heals 15% of your max HP."},
   lair:{n:"Monster lair",d:"Costs a little HP. Pays a Bronze Box."},
   mob:{n:"Mob",d:"A small monster. Most die to one quest; a survivor chases you and nips for a little HP until you finish it. Kills pay a little bonus XP and gold."},
+  ambush:{n:"Crawler ambush",d:"A rival crawler from the rankings lies in wait. Walking in starts a fight: bribe, run, reach a shrine, or beat them."},
   pack:{n:"Mob pack",d:"A tougher group. Usually takes two quests. Pays more XP and gold, and sometimes a Bronze Box."},
   merchant:{n:"Wandering merchant",d:"Sells one item until the floor ends."},
   door:{n:"Sealed door",d:"Opens on any Elite or harder quest, or after 3 lock-picking quests."},
@@ -3230,6 +3433,9 @@ function ensureMap(){const b=player.boss;if(!b)return null;if(!player.map||playe
   if(!m.rev){m.rev=[];for(let i=0;i<=Math.min(mapLen(m)-1,m.pos+1);i++)m.rev.push(i);} // older saves keep what they could already see
   if(m.far==null)m.far=m.pos;
   if(!m.links)m.links=mapShortcuts(m);
+  if(!m.amb){m.amb=1;const roll=Math.random(),k=roll<.3?0:roll<.75?1:2;
+    const c=m.rooms.map((rm,i)=>i).filter(i=>i>m.pos+1&&i<mapLen(m)-1&&(m.rooms[i].t==="empty"||m.rooms[i].t==="mob")&&!m.rooms[i].guard);
+    for(let j=0;j<k&&c.length;j++){const i=c.splice(Math.floor(Math.random()*c.length),1)[0];m.rooms[i].t="ambush";}}
   return m;}
 /* Shortcuts: a few rooms that sit side by side on the grid but far apart along the corridor get a passage
    between them. Once you've explored both ends you can cut through when walking around the floor. */
@@ -3286,7 +3492,10 @@ function mapStep(t,dash){
   if(rm.t==="trap"){if(known)out.push(mapLog(m,`Room ${m.pos+1}: the trap your map warned you about. You step around it.`));
     else if(lvlOf(player,"DEX")>=3)out.push(mapLog(m,`Room ${m.pos+1}: a tripwire. Your Dexterity saw it coming. No damage.`));
     else{const d=Math.min(player.hp-1,6+floor*2);player.hp-=Math.max(0,d);out.push(mapLog(m,`Room ${m.pos+1}: a trap! The floor bit you for ${d} HP.`));}}
-  if(rm.t==="shrine"){const h=Math.min(H-player.hp,Math.round(H*.15));player.hp+=h;out.push(mapLog(m,`Room ${m.pos+1}: a flickering shrine. ${h?`+${h} HP.`:"You were already healthy. It flickered at you anyway."}`));}
+  if(rm.t==="shrine"){const h=Math.min(H-player.hp,Math.round(H*.15));player.hp+=h;out.push(mapLog(m,`Room ${m.pos+1}: a flickering shrine. ${h?`+${h} HP.`:"You were already healthy. It flickered at you anyway."}`));rivalSanctuary(m,out);}
+  if(rm.t==="ambush"&&!rm.cleared){rm.cleared=true;
+    if(player.rival)out.push(mapLog(m,`Room ${m.pos+1}: an abandoned crawler camp. Whoever camped here is already after you.`));
+    else{const r=spawnRival({from:"ambush"});out.push(mapLog(m,r?`Room ${m.pos+1}: ambush! ${rvIntro(r)}`:`Room ${m.pos+1}: an empty crawler camp. Its owner must be dead on the board.`));}}
   if((rm.t==="mob"||rm.t==="pack"||(rm.t==="chest"&&rm.guard))&&!rm.cleared){
     const mb=spawnMob(rm.t==="pack"?"pack":"mob",m.pos);player.mobs=(player.mobs||[]).concat(mb);
     out.push(mapLog(m,rm.t==="chest"?`Room ${m.pos+1}: ${mb.a} ${mb.n} was guarding the chest!`:`Room ${m.pos+1}: ${mb.a} ${mb.n}${rm.t==="pack"?" (a whole pack of them)":""}!`));}
@@ -3313,6 +3522,7 @@ function crackCheck(m,out){for(const s of (m.secrets||[]))if(!s.found&&!s.locate
 /* Back in a room you've explored: shrines heal again once a day, cleared mob rooms sometimes get a new tenant. */
 function revisit(m,out){const rm=m.rooms[m.pos],td=today(),H=maxHp(player);
   if(rm.t==="shrine"&&rm.shr!==td){rm.shr=td;const h=Math.min(H-player.hp,Math.round(H*.15));player.hp+=h;out.push(mapLog(m,`Room ${m.pos+1}: the shrine flickers back to life. ${h?`+${h} HP.`:"You were already healthy."}`));}
+  if(rm.t==="shrine")rivalSanctuary(m,out);
   if((rm.t==="mob"||rm.t==="pack"||rm.t==="lair")&&!(player.mobs||[]).length&&rm.rsp!==td&&Math.random()<.2){rm.rsp=td;
     const mb=spawnMob("mob",null);player.mobs=[mb];bump("wanderers");out.push(mapLog(m,`Room ${m.pos+1}: something moved back in. ${mb.a} ${mb.n} jumps you!`));}
   crackCheck(m,out);secretDoor(m,out);}
@@ -3332,6 +3542,7 @@ function buyMerchant(){
 function mapIcon(t,cx,cy){
   const K="#2a1c10";
   if(t==="chest")return `<rect x="${cx-9}" y="${cy-4}" width="18" height="11" rx="1.5" fill="#c98a3c" stroke="${K}" stroke-width="1.8"/><path d="M${cx-9} ${cy-4} Q${cx} ${cy-13} ${cx+9} ${cy-4}" fill="#a86a24" stroke="${K}" stroke-width="1.8"/><rect x="${cx-2}" y="${cy-3}" width="4" height="5" fill="#ffd23f" stroke="${K}" stroke-width="1"/>`;
+  if(t==="ambush")return `<path d="M${cx-9} ${cy-9} L${cx+7} ${cy+7} M${cx+9} ${cy-9} L${cx-7} ${cy+7}" stroke="#c9cdd6" stroke-width="3.4" stroke-linecap="round"/><path d="M${cx-9} ${cy-9} L${cx+7} ${cy+7} M${cx+9} ${cy-9} L${cx-7} ${cy+7}" fill="none" stroke="${K}" stroke-width="1.4"/><path d="M${cx+3} ${cy+7} L${cx+9} ${cy+1} M${cx-3} ${cy+7} L${cx-9} ${cy+1}" stroke="#7a4a26" stroke-width="3.2" stroke-linecap="round"/>`;
   if(t==="trap")return `<path d="M${cx-10} ${cy+7} L${cx-6} ${cy-6} L${cx-2} ${cy+7} L${cx+2} ${cy-6} L${cx+6} ${cy+7} L${cx+10} ${cy-6}" fill="none" stroke="${K}" stroke-width="2"/><path d="M${cx-12} ${cy+8} L${cx+12} ${cy+8}" stroke="${K}" stroke-width="2"/>`;
   if(t==="shrine")return `<rect x="${cx-3}" y="${cy-2}" width="6" height="10" fill="#f5ead0" stroke="${K}" stroke-width="1.6"/><path d="M${cx} ${cy-12} Q${cx+5} ${cy-6} ${cx} ${cy-3} Q${cx-5} ${cy-6} ${cx} ${cy-12} Z" fill="#ff8a1f" stroke="${K}" stroke-width="1.2"/><path d="M${cx-9} ${cy+9} L${cx+9} ${cy+9}" stroke="${K}" stroke-width="2"/>`;
   if(t==="lair")return `<path d="M${cx-8} ${cy+1} Q${cx-9} ${cy-10} ${cx} ${cy-10} Q${cx+9} ${cy-10} ${cx+8} ${cy+1} L${cx+5} ${cy+4} L${cx+5} ${cy+8} L${cx-5} ${cy+8} L${cx-5} ${cy+4} Z" fill="#f5ead0" stroke="${K}" stroke-width="1.8"/><circle cx="${cx-3.5}" cy="${cy-3}" r="2.4" fill="${K}"/><circle cx="${cx+3.5}" cy="${cy-3}" r="2.4" fill="${K}"/>`;
@@ -3397,7 +3608,7 @@ function renderMap(){
       <div class="muted">${player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated?`${esc(player.boss.name)} blocks the way. Beat it to keep exploring.`
         :m.tgt!=null||m.pos<far?"":far>=mapLen(m)-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · one is marked with a red X: walk to the room it hangs off and finish any quest there, or finish an Elite quest anywhere":""}. Maps this floor: ${m.drops||0}.</div>
       ${(m.log||[]).length?`<ul class="maplog">${m.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>${mh}
-    <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["mob","pack","chest","trap","shrine","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
+    <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["mob","pack","ambush","chest","trap","shrine","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
   const bm=$("buyMerch");if(bm)bm.onclick=buyMerchant;
   el.querySelectorAll("[data-maproom]").forEach(r=>r.addEventListener("click",()=>mapGo(+r.dataset.maproom)));
   const mf=$("mapFwd");if(mf)mf.onclick=()=>mapGo(9999);
@@ -3429,6 +3640,9 @@ function rivalBoard(b){
 function standings(){
   const b=player.boss;if(!playerExists||!b||b.tier==null)return null;
   const rv=rivalBoard(b),me={n:player.name,c:"You",score:b.total||0,me:true};
+  {const W=player.rvwk&&player.rvwk.wk===b.week?player.rvwk:null;if(W)for(const x of rv){
+    if(W.kill.includes(x.n)&&!x.dead){x.dead=true;x.cause="came after you and didn't walk away. ☠ Killed by you.";}
+    else if(W.ko.includes(x.n))x.c+=" · 💫 KO'd by you";}}
   const list=rv.filter(x=>!x.dead).concat(me).sort((a,c)=>c.score-a.score||(a.me?1:c.me?-1:0));
   // Crewmates show up on the board for bragging rights; rewards (rank) still count the invented rivals only.
   let crew=[];try{crew=crewRanks(b.week).filter(x=>!x.me&&!x.pending).map(x=>({n:x.n,c:`👥 Party · Floor ${x.f||1}`,score:x.s,crew:true,col:x.col}));}catch(e){}
@@ -4544,8 +4758,12 @@ function dailyTick(force){
   lash=Math.round(lash*themeFx(player).overdue);bite=Math.round(bite);
   dmg=Math.round(dmg*themeFx(player).overdue);
   blocked=Math.round(blocked*themeFx(player).overdue);
-  const odOnly=dmg;dmg+=lash+bite;
-  const parts=[odOnly?`overdue quests ${odOnly}`:"",lash?`${b?bossLabel(b):"the boss"} lashing out ${lash}`:"",bite?`${(player.mobs||[]).length>1?"mobs":"a mob"} biting ${bite}`:""].filter(Boolean);
+  let rvd=0;if(player.rival){rvd=rvNight()*days;
+    // A rival's first night can't be what knocks you out
+    if(!player.rival.nights&&player.hp-(dmg+lash+bite)-rvd<=0)rvd=Math.max(0,player.hp-(dmg+lash+bite)-1);
+    player.rival.nights=(player.rival.nights||0)+days;}
+  const odOnly=dmg;dmg+=lash+bite+rvd;
+  const parts=[odOnly?`overdue quests ${odOnly}`:"",lash?`${b?bossLabel(b):"the boss"} lashing out ${lash}`:"",bite?`${(player.mobs||[]).length>1?"mobs":"a mob"} biting ${bite}`:"",rvd?`${player.rival.n} ${rvd}`:""].filter(Boolean);
   const how=parts.length>1?` (${parts.join(", ")})`:"";
   if(blocked>0){pushEvent(`Sheltering blocked ${blocked} overdue damage`);ui.shelterNote=`You sheltered ${fmtDue(shDay)}, so ${blocked} overdue damage couldn't reach you this morning.`;}
   const yd=addDays(td,-1);if(tasks.filter(t=>t.done&&t.doneAt&&iso(new Date(t.doneAt))===yd).length===1)ui.pendingAch=(ui.pendingAch||[]).concat("onething");
@@ -4563,6 +4781,8 @@ function dailyTick(force){
     if(player.hp<=0){
       const lost=Math.floor(player.gold/5);
       player.gold-=lost;player.streak=0;player.hp=50;bump("kos");
+      let robbed=null;try{robbed=rivalKO();}catch(e){console.error("rival ko",e);}
+      if(robbed){const it=itemOf(robbed.item);ui.robbed=robbed;setTimeout(()=>toast(`<b>${esc(robbed.n)}</b> ${it?`stole your <b>${esc(it.n)}</b> while you were down`:`took ${robbed.gold} more gold while you were down`}. They'll be back in a few days. Win the rematch to get it back.`,"bad"),1800);}
       pushEvent(`Knocked out overnight: −${dmg} HP${how}, dropped ${lost} gold, streak lost`,true);
       toast(`You were knocked out overnight${how}. You dropped ${lost} gold and lost your streak.`,"bad");
       ui.pendingSay=["knocked",{}];ui.pendingAch=(ui.pendingAch||[]).concat("ko");
@@ -4666,6 +4886,7 @@ function completeQuest(id,actual,touched){
     const spd=gearFx(player).spd||0;if(spd&&Math.random()<spd){const more=mapStep(Object.assign({},t,{effort:1}),true);mapMsgs.push("Faster movement speed! Your boots carry you an extra room.",...more);bump("dashes");}}catch(e){console.error("map",e);}
   if(ui.ambushLoot){loot={kills:((loot&&loot.kills)||[]).concat(ui.ambushLoot.kills)};ui.ambushLoot=null;}
   let mobMsgs=[];try{mobMsgs=mobFight(fx,t);}catch(e){console.error("mobs",e);}
+  let rvMsgs=[];try{rvMsgs=rivalStep(fx,t);const a=rivalAssist(fx);if(a)rvMsgs.push(a);}catch(e){console.error("rival",e);}
   if(ui.ambush){const a=ui.ambush;ui.ambush=null;
     setTimeout(()=>{SFX.play("hurt");toast(`<span class="big">Ambush!</span> You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?` It blocks the corridor until it falls.`:""}`,"lvl");},500);
     mapMsgs=mapMsgs.filter(x=>!/lair!|The stairwell!/.test(x));}
@@ -4715,6 +4936,7 @@ function completeQuest(id,actual,touched){
   if(raidMsgs.length)setTimeout(()=>toast(`<b>Raid floor</b> ${raidMsgs.map(x=>esc(x)).join("<br>")}`,"quest"),1600+(goals.msgs.length+mapMsgs.length)*700);
   if(ui.stormMsg){const m=ui.stormMsg;ui.stormMsg=null;setTimeout(()=>{SFX.play("kill");toast(`<span class="big">⚡ Charged attack!</span> ${m}`,"lvl");},2200+(goals.msgs.length+mapMsgs.length)*700);}
   if(mobMsgs.length)setTimeout(()=>toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest"),1300+(goals.msgs.length+mapMsgs.length)*700);
+  if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;setTimeout(()=>{if(w)SFX.play("kill");else if(player.rival)SFX.play("hurt");toast(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500+(goals.msgs.length+mapMsgs.length)*700);}
   if(usedFocus)setTimeout(()=>toast("Potion of Focus spent: that quest earned double XP."),400);
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
   if(goblinBox)setTimeout(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>openBox(goblinBox.id),"Open it"),600);
@@ -5049,7 +5271,7 @@ function render(){
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   try{goldWatch();renderPurse();}catch(e){}
   // Each panel draws independently, so a bug in one can't blank the others.
-  for(const fn of [renderTheme,renderMobAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
+  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
 }
 
@@ -7349,6 +7571,12 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.12.0",d:"2026-10-07",t:"Rival crawlers",items:["The crawlers on the rankings now come after you for your loot: now and then after a quest, or from a new ⚔ ambush room on your map. About two a floor.",
+    "Each quest you finish hits them, and they hit back each quest and overnight (never a knockout on their first night). Knock them out for XP, gold and a shot at an item they're wearing. They'll show as KO'd on the rankings.",
+    "Don't want the fight? Bribe them, run (boots help), or walk to a shrine on your map.",
+    "If they knock you out, they steal one spare backpack item (never worn gear, never Unique) and come back a few days later. Win the rematch to get it back.",
+    "Rarely, a psycho crawler won't take a bribe and only backs off for a day. That one has to be killed.",
+    "Party: when a rival is hunting a crewmate, tap Help on the Party tab and your quests chip at it. The final blow is theirs, and you get a thank-you when it goes down."]},
   {v:"2.11.0",d:"2026-10-07",t:"Boots",items:["New Feet gear slot in your inventory (the Pet slot moved to the left, under your weapon).",
     "12 new boots from Common to Unique. Every pair gives +max HP and faster movement speed: a chance that finishing a quest carries you an extra room on the floor map and the raid floor.",
     "Your best pair counts automatically, and equipped boots show up on your avatar. Three pairs are in the shop now.",
@@ -7776,7 +8004,8 @@ function myCard(){
   const wear={};const w=wearing(player);for(const k of Object.keys(w))wear[k]=w[k]||null;
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
-    wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
+    wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy}:null,
+    rvDone:player.rvDone||null,as:player.assist||null,joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
@@ -7986,6 +8215,7 @@ function partyBuffCalc(){
 }
 function partyTick(){
   if(!party||!party.ready||!party.doc||!playerExists)return;
+  try{rivalCrew();}catch(e){console.warn("rival crew",e);}
   const td=today();
   if(!player.pbuff||player.pbuff.d!==td){
     const r=partyBuffCalc();player.pbuff={d:td,on:r.on,done:r.done,of:r.of};
@@ -8222,6 +8452,7 @@ function renderParty(){
       return `<div class="label" style="margin-top:14px">This week's standings</div><ol class="pt-stand">${cr.map((x,i)=>x.pending?`<li class="pend"><span class="ps-pos">–</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}</b><span class="muted ps-why">${x.pending==="old"?"Needs to open the latest version":"Hasn't played this week yet"}</span></li>`
         :`<li class="${x.me?"me":""}"><span class="ps-pos">${i===0&&x.s>0?"👑":"#"+(i+1)}</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}</b><span class="muted">Floor ${x.f||1}</span><i style="width:${top?Math.max(3,Math.round(x.s/top*100)):3}%"></i><span class="num">${x.s.toLocaleString()}</span></li>`).join("")}</ol>
         <div class="muted" style="font-size:12px">Boss damage on this week's floor. Crewmates also appear on your Crawler rankings in the Show tab.</div>`;})()}
+    ${rivalCrewHTML()}
     <div class="label" style="margin-top:14px">Crew</div>
     <div class="pt-roster">${roster}</div>
     <div class="label" style="margin-top:14px">Party feed</div>
@@ -8234,6 +8465,7 @@ function renderParty(){
   on("ptLeave",()=>{ui.partyLeaveAsk=true;render();});on("ptLeaveNo",()=>{ui.partyLeaveAsk=false;render();});on("ptLeaveYes",partyLeave);
   el.querySelectorAll("[data-cheer]").forEach(b=>b.onclick=()=>partyCheer(b.dataset.cheer));
   el.querySelectorAll("[data-nudge]").forEach(b=>b.onclick=()=>partyNudge(b.dataset.nudge));
+  el.querySelectorAll("[data-rvhelp]").forEach(b=>b.onclick=()=>rivalHelp(b.dataset.rvhelp));
   el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
   el.querySelectorAll("[data-inspect]").forEach(b=>b.onclick=()=>openInspect(b.dataset.inspect));
   el.querySelectorAll("[data-trade]").forEach(b=>b.onclick=()=>openTradeWith(b.dataset.trade,null));
