@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=6fe9df2cb4"></script>
-<script>window.CRAWL_BUILD="6fe9df2cb4";</script>
+<script src="firebase-config.js?v=25c587f3c8"></script>
+<script>window.CRAWL_BUILD="25c587f3c8";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -8189,7 +8189,7 @@ function renderParty(){
   const seg=`<div class="pt-seg" role="tablist"><button type="button" role="tab" data-ptview="crew" class="${view==="crew"?"on":""}" aria-selected="${view==="crew"}">Crew</button><button type="button" role="tab" data-ptview="chat" class="${view==="chat"?"on":""}" aria-selected="${view==="chat"}">Chat${cu?` <span class="pt-badge">${cu}</span>`:""}</button></div>`;
   if(view==="chat"){
     const box0=$("chatBox"),atBottom=!box0||box0.scrollHeight-box0.scrollTop-box0.clientHeight<40;
-    el.innerHTML=`<div class="pt-head"><h3>${esc(party.doc.name||"Party")}</h3></div>${seg}${chatHTML()}`;
+    el.innerHTML=`${seg}<div class="pt-head"><h3>${esc(party.doc.name||"Party")}</h3></div>${chatHTML()}`;
     el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
     const box=$("chatBox");if(box&&atBottom)box.scrollTop=box.scrollHeight;
     $("ptChatIn").oninput=e=>{ui.chatDraft=e.target.value;};
