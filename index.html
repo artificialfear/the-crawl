@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=f873a04414"></script>
-<script>window.CRAWL_BUILD="f873a04414";</script>
+<script src="firebase-config.js?v=061a666f00"></script>
+<script>window.CRAWL_BUILD="061a666f00";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1238,6 +1238,9 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .ps-pos{text-align:center;font-weight:700}.ps-dot{width:10px;height:10px;border-radius:50%;border:1px solid #111}
 .pt-stand i{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--blood),var(--gold));justify-self:start}
 .pt-stand li.pend{opacity:.75}.pt-stand li.pend .ps-why{grid-column:4 / -1;font-size:12px}
+.maproom{cursor:pointer}.maproom:hover{fill:rgba(232,40,60,.08)}
+.mapbt{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px;padding:6px 8px;border:1px dashed #e8283c;border-radius:8px}
+.mapbt-hint{font-size:12px}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -3101,6 +3104,9 @@ function mobStrip(){
    Every finished quest moves you one room deeper and resolves what's in it. Two secret rooms hang off
    the corridor; a big day (4 quests) or a Mini-boss/Raid quest uncovers one. Rebuilt each floor. */
 const MAP_W=5,MAP_H=5,MAP_LEN=16;
+/* Backtracking: m.pos is where you stand, m.far the deepest room you've reached, m.tgt a visited room you're
+   walking to or holding at (null = keep pushing forward). Secret rooms open from the room they hang off. */
+const farOf=m=>m&&m.far!=null?m.far:(m?m.pos:0);
 const mapLen=m=>(m&&m.len)||MAP_LEN;
 const ROOM={
   entrance:{n:"Entrance",d:"Where the floor begins. Smells like regret and wet stone."},
@@ -3115,7 +3121,7 @@ const ROOM={
   door:{n:"Sealed door",d:"Opens on any Elite or harder quest, or after 3 lock-picking quests."},
   stairs:{n:"Stairwell",d:"The end of the map. Reaching it pays an exploration bonus."},
   boss:{n:"Boss lair",d:"A boss hides here. Walking in starts the fight and unleashes your Charge. It blocks the corridor until it falls."},
-  secret:{n:"Secret room",d:"A hidden stash. Found on a 4-quest day or a Mini-boss quest; once a map has located it, any Elite quest opens it."}};
+  secret:{n:"Secret room",d:"A hidden stash off the side of the corridor. Found on a 4-quest day or a Mini-boss quest. Once it's marked (by a map, or a cracked wall you notice on the way), walk to the room it hangs off and finish any quest there, or finish an Elite quest anywhere."}};
 /* Maps drop from bosses. The floor starts in fog: you only know rooms you've walked or a map has shown you. */
 const MAP_DROPS=[
   {n:"Map Fragment",d:"reveals the next 4 rooms",chance:.4,ahead:4,secrets:0},
@@ -3124,7 +3130,7 @@ const MAP_DROPS=[
 const mapDropFor=tier=>tier>=5?MAP_DROPS[2]:tier>=3?MAP_DROPS[1]:MAP_DROPS[0];
 function revealMap(m,drop){
   m.rev=m.rev||[];const fresh=[];
-  let left=drop.ahead;for(let i=m.pos+1;i<mapLen(m)&&left>0;i++){if(!m.rev.includes(i)){m.rev.push(i);fresh.push(i);left--;}}
+  let left=drop.ahead;for(let i=farOf(m)+1;i<mapLen(m)&&left>0;i++){if(!m.rev.includes(i)){m.rev.push(i);fresh.push(i);left--;}}
   let sl=drop.secrets;for(const se of (m.secrets||[])){if(sl<=0)break;if(!se.located&&!se.found){se.located=true;se.fresh=Date.now();sl--;}}
   m.fresh={at:Date.now(),rooms:fresh};m.drops=(m.drops||0)+1;
   return fresh.length;
@@ -3175,6 +3181,7 @@ function ensureMap(){const b=player.boss;if(!b)return null;if(!player.map||playe
   const m=player.map;
   if(!m.mobs){m.mobs=1;m.rooms.forEach((rm,i)=>{if(i<=m.pos)return;if(rm.t==="empty"&&Math.random()<.75)rm.t="mob";else if(rm.t==="lair")rm.t="pack";else if(rm.t==="chest"&&Math.random()<.5)rm.guard=1;});}
   if(!m.rev){m.rev=[];for(let i=0;i<=Math.min(mapLen(m)-1,m.pos+1);i++)m.rev.push(i);} // older saves keep what they could already see
+  if(m.far==null)m.far=m.pos;
   return m;}
 const MERCH_PRICE={common:90,uncommon:200,rare:420};
 function mapLog(m,t){m.log=[t].concat(m.log||[]).slice(0,4);return t;}
@@ -3185,11 +3192,18 @@ function mapStep(t){
   // Secrets: a big day or a big quest finds one next to a room you've already walked through
   const bigDay=(player.dayCnt&&player.dayCnt.n===4)||t.effort>=4||(isChosen("nyx")&&t.effort>=3);
   if(bigDay||t.effort>=3){
-    const s=(m.secrets||[]).find(s=>!s.found&&s.link<=m.pos&&(bigDay||s.located));
-    if(s){s.found=true;bump("secrets");const roll=Math.random(),tier=roll<.03?"celestial":roll<.5?"gold":"silver";giveBox(tier,"A secret room on the map");
-      out.push(mapLog(m,`Secret room found! A hidden stash held a ${BOXES[tier].n}.`));}
+    const s=(m.secrets||[]).find(s=>!s.found&&s.link<=farOf(m)&&(bigDay||s.located));
+    if(s)openSecret(m,s,out);
   }
   const hb=player.boss;
+  // Walking on rooms you've already explored: back toward a target, or forward again to the frontier.
+  if(m.tgt!=null&&m.tgt>farOf(m))m.tgt=null;
+  if(m.tgt!=null&&m.tgt===m.pos){secretDoor(m,out);return out;}             // holding position
+  if((m.tgt!=null&&m.tgt<m.pos)||m.pos<farOf(m)){
+    m.pos+=m.tgt!=null&&m.tgt<m.pos?-1:1;revisit(m,out);
+    if(m.tgt===m.pos)out.push(mapLog(m,`You're back at room ${m.pos+1}. You'll hold here until you pick somewhere else.`));
+    if(m.tgt==null&&m.pos===farOf(m))out.push(mapLog(m,`Back at the frontier: room ${m.pos+1}. Onward.`));
+    return out;}
   if(hb&&hb.hunt&&hb.engaged&&!hb.defeated)return out; // the boss you found blocks the corridor
   if(m.pos>=mapLen(m)-1)return out;
   const next=m.rooms[m.pos+1];
@@ -3199,7 +3213,7 @@ function mapStep(t){
       else{out.push(mapLog(m,`The door is sealed. Lock picking: ${m.lock} of 3 (or finish an Elite quest).`));return out;}}
   }
   const known=(m.rev||[]).includes(m.pos+1);
-  m.pos++;const rm=m.rooms[m.pos];rm.seen=true;if(!(m.rev||[]).includes(m.pos))(m.rev=m.rev||[]).push(m.pos);const H=maxHp(player);
+  m.pos++;m.far=m.pos;const rm=m.rooms[m.pos];rm.seen=true;crackCheck(m,out);if(!(m.rev||[]).includes(m.pos))(m.rev=m.rev||[]).push(m.pos);const H=maxHp(player);
   if(rm.t==="chest"){const g=20+floor*6+Math.round(Math.random()*30);player.gold+=g;let box="";if(Math.random()<.25){giveBox("bronze","A chest on the map");box=" and a Bronze Box";}
     out.push(mapLog(m,`Room ${m.pos+1}: a treasure chest! +${g} gold${box}.`));}
   if(rm.t==="trap"){if(known)out.push(mapLog(m,`Room ${m.pos+1}: the trap your map warned you about. You step around it.`));
@@ -3222,8 +3236,25 @@ function mapStep(t){
   if(rm.t==="stairs"){if(!m.drops)bump("fogwar");giveBox("gold","Explored the whole floor");player.viewers=(player.viewers||0)+15000;bump("explored");out.push(mapLog(m,`You mapped the whole floor and found the stairwell! +a Gold Box and 15K viewers.`));}
   return out;
 }
+function openSecret(m,s,out){s.found=true;bump("secrets");const roll=Math.random(),tier=roll<.03?"celestial":roll<.5?"gold":"silver";giveBox(tier,"A secret room on the map");
+  out.push(mapLog(m,`Secret room found! A hidden stash held a ${BOXES[tier].n}.`));}
+/* Standing in the room a marked secret hangs off: any quest pries it open. */
+function secretDoor(m,out){const s=(m.secrets||[]).find(s=>!s.found&&s.located&&s.link===m.pos);if(s)openSecret(m,s,out);}
+/* Arriving in a room: maybe notice a cracked wall hiding a secret. */
+function crackCheck(m,out){for(const s of (m.secrets||[]))if(!s.found&&!s.located&&s.link===m.pos&&Math.random()<.25){s.located=true;s.fresh=Date.now();
+  out.push(mapLog(m,`Room ${m.pos+1}: a draft from a cracked wall. A secret room is marked on your map. Finish a quest here to pry it open.`));}}
+/* Back in a room you've explored: shrines heal again once a day, cleared mob rooms sometimes get a new tenant. */
+function revisit(m,out){const rm=m.rooms[m.pos],td=today(),H=maxHp(player);
+  if(rm.t==="shrine"&&rm.shr!==td){rm.shr=td;const h=Math.min(H-player.hp,Math.round(H*.15));player.hp+=h;out.push(mapLog(m,`Room ${m.pos+1}: the shrine flickers back to life. ${h?`+${h} HP.`:"You were already healthy."}`));}
+  if((rm.t==="mob"||rm.t==="pack"||rm.t==="lair")&&!(player.mobs||[]).length&&rm.rsp!==td&&Math.random()<.2){rm.rsp=td;
+    const mb=spawnMob("mob",null);player.mobs=[mb];bump("wanderers");out.push(mapLog(m,`Room ${m.pos+1}: something moved back in. ${mb.a} ${mb.n} jumps you!`));}
+  crackCheck(m,out);secretDoor(m,out);}
+/* Tap a room on the map: walk back to a visited room, or (frontier or beyond) head forward again. */
+function mapGo(i){const m=player.map;if(!m)return;const far=farOf(m);
+  m.tgt=i<=far?i:null;if(m.tgt===null&&m.pos===far){}
+  store.savePlayer(player).catch(writeFailed);render();}
 function buyMerchant(){
-  const m=player.map;if(!m)return;const rm=m.rooms.find((r,i)=>r.t==="merchant"&&i<=m.pos);if(!rm||rm.sold)return;
+  const m=player.map;if(!m)return;const rm=m.rooms.find((r,i)=>r.t==="merchant"&&i<=farOf(m));if(!rm||rm.sold)return;
   const it=ITEMS.find(i=>i.id===rm.item);const price=priceOf(MERCH_PRICE[it.rar]||200);
   if(player.gold<price||player.owned.includes(it.id))return;
   player.gold-=price;player.owned=player.owned.concat(it.id);rm.sold=true;bump("merchant");SFX.play("coin");
@@ -3251,7 +3282,7 @@ function mapSVG(m){
   const S=58,P=10,W=MAP_W*S+P*2,H=MAP_H*S+P*2,K="#2a1c10",c=(x,y)=>[P+x*S+S/2,P+y*S+S/2];
   let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor ${m.floor} map, room ${m.pos+1} of ${mapLen(m)}"><defs><pattern id="mapgrid" width="${S}" height="${S}" patternUnits="userSpaceOnUse" x="${P}" y="${P}"><path d="M${S} 0 L0 0 0 ${S}" fill="none" stroke="#c9b48a" stroke-width=".8" stroke-dasharray="2 3"/></pattern></defs>`;
   s+=`<rect width="${W}" height="${H}" rx="8" fill="#ead9b0"/><rect x="${P}" y="${P}" width="${MAP_W*S}" height="${MAP_H*S}" fill="url(#mapgrid)"/>`;
-  const rev=new Set(m.rev||[]),visible=i=>i<=m.pos||rev.has(i),fresh=m.fresh&&Date.now()-m.fresh.at<6000?new Set(m.fresh.rooms):new Set();
+  const far=farOf(m),rev=new Set(m.rev||[]),visible=i=>i<=far||rev.has(i),fresh=m.fresh&&Date.now()-m.fresh.at<6000?new Set(m.fresh.rooms):new Set();
   // corridors (secret links only once found)
   m.rooms.forEach((rm,i)=>{if(!i||!visible(i)||!visible(i-1))return;const [a,b]=c(m.rooms[i-1].x,m.rooms[i-1].y),[x,y]=c(rm.x,rm.y);
     s+=`<path${fresh.has(i)?' class="mapnew"':""} d="M${a} ${b} L${x} ${y}" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path${fresh.has(i)?' class="mapnew"':""} d="M${a} ${b} L${x} ${y}" stroke="#d6c193" stroke-width="3" stroke-linecap="round"/>`;});
@@ -3259,17 +3290,22 @@ function mapSVG(m){
   // Fog over every cell nobody has charted
   const known=new Set();m.rooms.forEach((rm,i)=>{if(visible(i))known.add(rm.x+","+rm.y);});(m.secrets||[]).forEach(se=>{if(se.found||se.located)known.add(se.x+","+se.y);});
   for(let gx=0;gx<MAP_W;gx++)for(let gy=0;gy<MAP_H;gy++){if(known.has(gx+","+gy))continue;const [x,y]=c(gx,gy);s+=`<rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="10" fill="#3a2f2a" opacity=".82"/><path d="M${x-14} ${y+4} q6 -8 12 -2 q6 -9 14 0" fill="none" stroke="#5a4a3a" stroke-width="2" stroke-linecap="round"/>`;}
-  m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos,past=i<m.pos,nw=fresh.has(i);
+  // The walk to a target you picked, as a dotted red route
+  if(m.tgt!=null&&m.tgt!==m.pos){const a=Math.min(m.pos,m.tgt),b2=Math.max(m.pos,m.tgt);let d="";for(let i=a;i<=b2;i++){const [x,y]=c(m.rooms[i].x,m.rooms[i].y);d+=(i===a?"M":"L")+x+" "+y+" ";}
+    s+=`<path d="${d}" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="5 5" opacity=".85"/>`;}
+  m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos,past=i<=far&&!here,nw=fresh.has(i);
     s+=`<g${nw?' class="mapnew"':""}><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="${here?"#fff3c4":past?"#f5ead0":"#e2cfa2"}" stroke="${here?"#e8283c":K}" stroke-width="${here?4:2.4}" ${!past&&!here?'stroke-dasharray="5 3"':""}/>`;
     const bossDead=(rm.boss!=null&&player.boss&&player.boss.week===m.week&&(player.boss.defeated||player.boss.tier>rm.boss))||((rm.t==="mob"||rm.t==="pack")&&rm.cleared);
     s+=`<g opacity="${(past&&rm.t!=="merchant")||bossDead?.55:1}">${mapIcon(rm.t==="door"&&rm.open?"entrance":rm.t,x,y)}</g>`
       +(rm.t==="stairs"&&rm.boss!=null&&!bossDead?`<g transform="translate(${x+12} ${y+12}) scale(.55)">${mapIcon("boss",0,0)}</g>`:"")
-      +(rm.t==="chest"&&rm.guard&&!rm.cleared&&i>m.pos?`<g transform="translate(${x+13} ${y-13})">${mobIcon(0,0,.7,false)}</g>`:"")
+      +(rm.t==="chest"&&rm.guard&&!rm.cleared&&i>far?`<g transform="translate(${x+13} ${y-13})">${mobIcon(0,0,.7,false)}</g>`:"")
       +(bossDead?`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`:"")+(rm.t==="merchant"&&rm.sold?`<path d="M${x-12} ${y+12} L${x+12} ${y-12}" stroke="#e8283c" stroke-width="3"/>`:"")+`</g>`;
+    if(i<=far+1)s+=`<rect class="maproom" data-maproom="${i}" x="${x-23}" y="${y-23}" width="46" height="46" rx="7" fill="transparent" stroke="none"><title>${i<=far?(i===m.pos?"You are here":"Walk back to room "+(i+1)):"Head forward"}</title></rect>`;
+    if(m.tgt!=null&&i===m.tgt&&i!==m.pos)s+=`<rect x="${x-25}" y="${y-25}" width="50" height="50" rx="8" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="6 4" pointer-events="none"/>`;
     if(here)s+=`<g class="mapme"><circle cx="${x+16}" cy="${y-16}" r="8" fill="#e8283c" stroke="${K}" stroke-width="2"/><circle cx="${x+16}" cy="${y-17}" r="2.6" fill="#fff"/></g>`;});
   (m.secrets||[]).forEach(se=>{if(!se.found&&!se.located)return;const [x,y]=c(se.x,se.y);
     if(se.found)s+=`<rect x="${x-19}" y="${y-19}" width="38" height="38" rx="6" fill="#fff3c4" stroke="${K}" stroke-width="2.4" stroke-dasharray="5 3"/>${mapIcon("secret",x,y)}`;
-    else{const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y);s+=`<g class="${se.fresh&&Date.now()-se.fresh<6000?"mapnew":""}"><path d="M${a} ${b} L${x} ${y}" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="3 4"/><rect x="${x-17}" y="${y-17}" width="34" height="34" rx="6" fill="#e2cfa2" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x-8} ${y-8} L${x+8} ${y+8} M${x+8} ${y-8} L${x-8} ${y+8}" stroke="#e8283c" stroke-width="3.4" stroke-linecap="round"/></g>`;}});
+    else{const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y);if(se.link<=far)s+=`<rect class="maproom" data-maproom="${se.link}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>Walk to its door in room ${se.link+1}</title></rect>`;s+=`<g class="${se.fresh&&Date.now()-se.fresh<6000?"mapnew":""}"><path d="M${a} ${b} L${x} ${y}" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="3 4"/><rect x="${x-17}" y="${y-17}" width="34" height="34" rx="6" fill="#e2cfa2" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x-8} ${y-8} L${x+8} ${y+8} M${x+8} ${y-8} L${x-8} ${y+8}" stroke="#e8283c" stroke-width="3.4" stroke-linecap="round"/></g>`;}});
   s+=`<text x="${W-P-2}" y="${H-3}" text-anchor="end" font-size="10" font-style="italic" fill="#7a6040" font-family="Georgia,serif">Floor ${m.floor}</text>`;
   return s+`</svg>`;
 }
@@ -3278,17 +3314,23 @@ function renderMap(){
   const had=player.map&&player.map.week===player.boss.week&&player.map.floor===player.boss.floor;
   const m=ensureMap();if(!had)store.savePlayer(player).catch(writeFailed);
   const cur=m.rooms[m.pos],nx=m.rooms[m.pos+1],found=(m.secrets||[]).filter(s=>s.found).length;
-  const merch=m.rooms.find((r,i)=>r.t==="merchant"&&i<=m.pos&&!r.sold);let mh="";
+  const merch=m.rooms.find((r,i)=>r.t==="merchant"&&i<=farOf(m)&&!r.sold);let mh="";
+  const far=farOf(m),away=m.tgt!=null?Math.abs(m.tgt-m.pos):0,doorHere=(m.secrets||[]).some(s=>!s.found&&s.located&&s.link===(m.tgt!=null?m.tgt:m.pos));
+  const bt=m.tgt!=null?`<div class="mapbt"><span>${away?`Walking back to <b>room ${m.tgt+1}</b>: ${away} quest${away===1?"":"s"} away.`:`Holding at <b>room ${m.pos+1}</b>.`}${doorHere?" A marked secret room opens off this room: finish a quest here to pry it open.":""}</span>
+      <button class="btn gold sm" type="button" id="mapFwd">Head forward</button></div>`
+    :far>0?`<div class="muted mapbt-hint">Tap any room you've explored to walk back to it.${(m.secrets||[]).some(s=>!s.found&&s.located&&s.link<=far)?" Tap a marked secret room to walk to its door.":""}</div>`:"";
   if(merch){const it=ITEMS.find(i=>i.id===merch.item),price=priceOf(MERCH_PRICE[it.rar]||200),own=player.owned.includes(it.id);
     mh=`<div class="merch"><span class="mini-ico">${lootIconSVG(it.id)}</span><div class="what"><b class="rar-${it.rar}">${esc(it.n)}</b><span>${RARITY[it.rar].n} · ${esc(it.d)}</span></div>
       <button class="btn gold sm" type="button" id="buyMerch" ${own||player.gold<price?"disabled":""}>${own?"Owned":price+" gold"}</button></div>`;}
   el.innerHTML=`<div class="mapwrap">${mapSVG(m)}</div>
-    <div class="mapinfo"><div><b>Room ${m.pos+1} of ${mapLen(m)}</b> · ${esc(ROOM[cur.t].n)}${m.pos>=mapLen(m)-1?" · floor fully mapped":""}</div>
+    <div class="mapinfo"><div><b>Room ${m.pos+1} of ${mapLen(m)}</b> · ${esc(ROOM[cur.t].n)}${far>=mapLen(m)-1?" · floor fully mapped":""}</div>${bt}
       <div class="muted">${player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated?`${esc(player.boss.name)} blocks the way. Beat it to keep exploring.`
-        :m.pos>=mapLen(m)-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · a map marked one with a red X: any Elite quest opens it once you've passed it":""}. Maps this floor: ${m.drops||0}.</div>
+        :m.tgt!=null||m.pos<far?"":far>=mapLen(m)-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · one is marked with a red X: walk to the room it hangs off and finish any quest there, or finish an Elite quest anywhere":""}. Maps this floor: ${m.drops||0}.</div>
       ${(m.log||[]).length?`<ul class="maplog">${m.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>${mh}
     <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["mob","pack","chest","trap","shrine","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
   const bm=$("buyMerch");if(bm)bm.onclick=buyMerchant;
+  el.querySelectorAll("[data-maproom]").forEach(r=>r.addEventListener("click",()=>mapGo(+r.dataset.maproom)));
+  const mf=$("mapFwd");if(mf)mf.onclick=()=>mapGo(9999);
 }
 
 /* ---------- Rival crawlers ----------
@@ -7101,6 +7143,11 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.7.0",d:"2026-10-07",t:"Backtracking",items:[
+    "Tap any room you've explored on the floor map to walk back to it, one room per quest. Tap \"Head forward\" (or the next room) to push on again.",
+    "Secret rooms can now be reached on foot: once one is marked, finish any quest in the room it hangs off to pry it open. Tap a marked secret to walk to its door.",
+    "Walking into a room can reveal a cracked wall that marks a nearby secret.",
+    "Revisited shrines heal you again (once a day), and cleared mob rooms sometimes have a new tenant worth some XP and gold."]},
   {v:"2.6.1",d:"2026-10-07",t:"Standings fix",items:["This week's standings now lists your whole crew, and says who still needs to open the latest version (or hasn't played yet this week) instead of hiding them."]},
   {v:"2.6.0",d:"2026-10-07",t:"Friendly competition",items:[
     "Your crewmates now appear on your Crawler rankings (Show tab) with a 👥 tag, scored by their real boss damage this week.",
