@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=5a3005d946"></script>
-<script>window.CRAWL_BUILD="5a3005d946";</script>
+<script src="firebase-config.js?v=1b4771eef9"></script>
+<script>window.CRAWL_BUILD="1b4771eef9";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2327,6 +2327,8 @@ const QUIPS = {
   hatch:["{pet} has hatched! Chat is already arguing about its name. You've been overruled.","It's alive! {pet} enters the dungeon and immediately bites a producer."],
   next:["Next up: {boss}, the {tier}. They've heard about you.","{boss} steps out of the shadows. {tier}. The crowd leans in.","Here comes {boss}, the {tier}. Try not to embarrass us."],
   knocked:["{name} has been knocked out by their own to-do list. A first for the show. Well, not a first."],
+  dupeask:["A duplicate! Cash it in for {gold} gold, or hoard it like a dragon? Your call, crawler.","You already own that one. Sell it for {gold} gold, or keep a spare for the Crafting Studio?",
+    "Déjà vu! The audience wants to know: sell for {gold} gold, or keep it?","Two of the same. Pawn it for {gold} gold, or tuck it in the backpack just in case?"],
   dupe:["A duplicate! The audience boos. Here's {gold} gold to stop the crying.","You already own that. The crowd laughs. Have {gold} gold for your trouble."],
   legendary:["LEGENDARY! Chat is losing its mind. Somebody fetch the confetti cannon."],
   gold:["It's gold. Not a sword, not a crown. Just money. Thrilling.","Coins. Shiny, spendable, deeply anticlimactic."],
@@ -4749,7 +4751,7 @@ function openBox(bid){
   if((bx.tier==="gold"&&Math.random()<.03)||(bx.tier==="celestial"&&Math.random()<.25)){player.deeds=(player.deeds||0)+1;extras.push("A Deed Coupon fluttered out of the box! Trade it for Personal Quarters at the Safe Room portal.");pushEvent("Found a Deed Coupon");}
   if(item&&!dupe)player.viewers=(player.viewers||0)+({common:300,uncommon:800,rare:2500,epic:8000,legendary:40000,magical:100000}[item.rar]||0);
   store.savePlayer(player).catch(writeFailed);render();
-  const quip=bx.tier==="celestial"?pick("celestial"):dupe&&!res.kept?pick("dupe",{gold:res.gold}):item?pick(item.rar==="legendary"||item.rar==="epic"||item.rar==="magical"?"legendary":"item"):pick(res.kind==="gold"?"gold":res.kind==="cons"?"cons":"potion");
+  const quip=bx.tier==="celestial"?pick("celestial"):dupe?pick("dupeask",{gold:res.kept?dupeValue(item):res.gold}):item?pick(item.rar==="legendary"||item.rar==="epic"||item.rar==="magical"?"legendary":"item"):pick(res.kind==="gold"?"gold":res.kind==="cons"?"cons":"potion");
   showBoxOpen(bx.tier,res,item,dupe,quip);
   if(extras.length)setTimeout(()=>toast(extras.join(" ")),600);
   if(bx.tier==="celestial")checkAch(["celestial"].concat(item&&!dupe&&item.rar==="magical"?["magical"]:[]));
@@ -4816,7 +4818,9 @@ function showBoxOpen(tier,res,item,dupe,quip){
   coreSnd.box();ui.goldHush=false;ui.lastGold=player.gold||0;
   const icon=item?lootIconSVG(item.id):res.kind==="gold"?lootIconSVG("gold"):res.kind==="cons"?lootIconSVG(res.id):lootIconSVG("potion");
   const name=item?item.n:res.kind==="gold"?`${res.gold} gold`:res.kind==="cons"?`${res.n>1?res.n+"× ":""}${CONSUMABLES[res.id].n}`:res.n>1?`${res.n} healing potions`:"Healing potion";
-  const sub=item?(dupe?(res.kept?`Duplicate · kept in your backpack (you have ${1+spareN(item.id)})`:`Duplicate · sold for ${res.gold} gold`):item.d):res.kind==="gold"?"Added to your purse":res.kind==="cons"?CONSUMABLES[res.id].d+". It's in your bag.":`Restores ${POTION.heal} HP each`;
+  // Duplicates: the announcer asks every time. Your "Keep duplicates" setting is applied up front and stands if you just close this.
+  const dv=item&&dupe?(res.kept?dupeValue(item):res.gold):0;
+  const sub=item?(dupe?`You already own one${spareN(item.id)-(res.kept?1:0)>0?` (plus ${spareN(item.id)-(res.kept?1:0)} spare${spareN(item.id)-(res.kept?1:0)===1?"":"s"})`:""}.`:item.d):res.kind==="gold"?"Added to your purse":res.kind==="cons"?CONSUMABLES[res.id].d+". It's in your bag.":`Restores ${POTION.heal} HP each`;
   const ov=document.createElement("div");ov.className="victory"+(tier==="celestial"?" celestialopen":"");
   ov.innerHTML=`<div class="vcard" role="status" aria-live="assertive">
       <div class="label vkicker">Opening a ${esc(BOXES[tier].n)}</div>
@@ -4827,7 +4831,8 @@ function showBoxOpen(tier,res,item,dupe,quip){
         <div class="rname">${esc(name)}</div>
         <div class="muted" style="font-size:13px">${esc(sub)}</div>
         <div class="quip">${esc(quip)}</div>
-        <div class="acts">${item&&!dupe?`<button class="btn gold" type="button" data-equipnow>Equip</button>`:""}<button class="btn" type="button" data-closebox>Nice</button></div>
+        <div class="acts">${item&&!dupe?`<button class="btn gold" type="button" data-equipnow>Equip</button><button class="btn" type="button" data-closebox>Nice</button>`
+          :item&&dupe?`<button class="btn gold" type="button" data-dupesell>Sell · ${dv}g</button><button class="btn" type="button" data-dupekeep>Keep</button>`:`<button class="btn" type="button" data-closebox>Nice</button>`}</div>
       </div>
       <div class="vskip">${calm?"":"Click to skip"}</div>
     </div>`;
@@ -4837,13 +4842,19 @@ function showBoxOpen(tier,res,item,dupe,quip){
   // The lid bursts open and light pours out; a beat later the prize takes its place.
   const reveal=()=>{if(shown)return;shown=true;coreSnd.reveal(rar||(res.kind==="gold"?"common":"none"));if(res.gold)setTimeout(coreSnd.gold,350);timers.forEach(clearTimeout);
     const was=stage.classList.contains("open");stage.classList.add("open");
-    timers.push(setTimeout(()=>{stage.style.display="none";rv.classList.add("show");ov.querySelector(".vskip").textContent="";const b=ov.querySelector("[data-equipnow]")||ov.querySelector("[data-closebox]");if(b)b.focus();},was?350:900));};
+    timers.push(setTimeout(()=>{stage.style.display="none";rv.classList.add("show");ov.querySelector(".vskip").textContent="";const b=ov.querySelector("[data-equipnow]")||ov.querySelector("[data-dupesell]")||ov.querySelector("[data-closebox]");if(b)b.focus();},was?350:900));};
   const close=()=>{timers.forEach(clearTimeout);document.removeEventListener("keydown",onKey);ov.classList.add("out");setTimeout(()=>ov.remove(),300);};
   const onKey=e=>{if(e.key==="Escape"){e.preventDefault();shown?close():reveal();}};
   document.addEventListener("keydown",onKey);
   ov.addEventListener("click",e=>{
     if(e.target.closest("[data-equipnow]")){equip(item.slot,item.id);toast(`Equipped ${item.n}.`);close();return;}
     if(e.target.closest("[data-closebox]")){close();return;}
+    const ds=e.target.closest("[data-dupesell]"),dk=e.target.closest("[data-dupekeep]");
+    if(ds||dk){
+      if(ds&&res.kept&&spareN(item.id)>0){addSpare(item.id,-1);player.gold+=dv;res.kept=false;pushEvent(`Sold the duplicate ${item.n} for ${dv} gold`);SFX.play("coin");}
+      else if(dk&&!res.kept&&player.gold>=dv){player.gold-=dv;addSpare(item.id,1);res.kept=true;pushEvent(`Kept the duplicate ${item.n}`);}
+      store.savePlayer(player).catch(writeFailed);render();
+      toast(ds?`Sold the spare ${item.n} for ${dv} gold.`:`Kept the spare ${item.n}. You have ${1+spareN(item.id)} now.`);close();return;}
     if(!shown)reveal();else if(!e.target.closest(".vcard"))close();
   });
   if(!calm)timers.push(setTimeout(reveal,1650));
