@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=7caeb64ff8"></script>
+<script src="firebase-config.js?v=250f7b6e89"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1023,6 +1023,12 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .mobstrip .mob{display:grid;grid-template-columns:28px 1fr minmax(90px,140px);gap:8px;align-items:center;font-size:13px}
 .mobstrip .mob b{display:block}.mobstrip .mob span{color:var(--muted);font-size:12px}
 .mobhp{display:flex;align-items:center;gap:6px}.mobhp .bar{flex:1;height:8px}.mobhp .bar>b{background:#7fbf4a}.mobhp .num{font-size:12px;color:var(--muted)}
+.rfwrap{display:grid;grid-template-columns:1fr;gap:10px;align-items:start;margin-top:6px}.rfmapbox{max-width:340px;width:100%;margin:0 auto}
+.rfmap{width:100%;height:auto;display:block;border-radius:8px}
+.rfcell{cursor:pointer}.rfcell:hover{stroke:#e8283c;stroke-width:3}
+.rfinfo{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.rfaura{border:1px solid var(--leaf);border-radius:8px;padding:6px 9px;display:flex;flex-direction:column;gap:2px;font-size:13px}.rfaura b{color:var(--leaf)}
+.rfbtns{display:flex;flex-wrap:wrap;gap:6px}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -1516,9 +1522,10 @@ function rewardFor(p,t,actual){
   const accB=((pf.ability==="bat"?.25:.15)*rc.accMul+rc.accAdd)*tf.accMul;
   const strag=straggling(p)?.10:0;
   const partyB=partyBuffOn(p)?PARTY_BUFF:0;
-  const mult=Math.max(.1,1+streakB+weaponB+fx.xp+pf.xp+night+rc.xp+tf.xp+partyB-strag+(onTarget?accB:0));
+  let au={xp:0,gold:0};if(p===player)try{au=auraFx(t,onTarget);}catch(e){}
+  const mult=Math.max(.1,1+streakB+weaponB+fx.xp+pf.xp+night+rc.xp+tf.xp+partyB+au.xp-strag+(onTarget?accB:0));
   const xp=Math.round(baseXp(t)*mult*(p.focused?2:1));
-  return {xp,focused:!!p.focused,gold:Math.max(0,Math.floor(xp/4*(1+fx.cha+pf.gold+rc.gold+tf.gold+gx.gold))),rcB:rc.xp,themeB:tf.xp,partyB,streak:s,streakB,weaponB,statB:fx.xp,petB:pf.xp+night,accB,onTarget,ratio};
+  return {xp,focused:!!p.focused,gold:Math.max(0,Math.floor(xp/4*(1+fx.cha+pf.gold+rc.gold+tf.gold+gx.gold+au.gold))),rcB:rc.xp,themeB:tf.xp,partyB,streak:s,streakB,weaponB,statB:fx.xp,petB:pf.xp+night,accB,onTarget,ratio};
 }
 
 /* ---------- Achievements ---------- */
@@ -1527,6 +1534,8 @@ function rewardFor(p,t,actual){
 const C=(p,k)=>((p&&p.cnt)||{})[k]||0;
 function bump(k,n){if(!player)return;player.cnt=Object.assign({},player.cnt||{});player.cnt[k]=(player.cnt[k]||0)+(n===undefined?1:n);}
 const ACH = [
+  {id:"regroup",n:"Found You",                    how:"Share a room with a crewmate on the raid floor", gold:25, test:p=>C(p,"regroups")>=1,
+   line:"You found each other in a maze. The producers had money on 'never'."},
   {id:"mob25",  n:"Pest Control",                 how:"Kill 25 mobs",                          box:"bronze",    test:p=>C(p,"mobKills")>=25,
    line:"Twenty-five small things, flattened. The cleaning crew has started following you around."},
   {id:"mob100", n:"Exterminator",                 how:"Kill 100 mobs",                         box:"silver",    test:p=>C(p,"mobKills")>=100,
@@ -2007,7 +2016,8 @@ function dealDamage(xp){
   ensureBoss();const b=player.boss;
   if(b.defeated||xp<=0)return null;
   const pf=petFx(player);
-  let dmg=Math.round(xp*(1+statFx(player).dmg+pf.dmg+gearFx(player).dmg));
+  let auD=0;try{auD=auraFx().dmg;}catch(e){}
+  let dmg=Math.round(xp*(1+statFx(player).dmg+pf.dmg+gearFx(player).dmg+auD));
   if(pf.ability==="salamander"&&player.kindleDay!==today()){dmg*=2;player.kindleDay=today();ui.kindled=true;}
   b.total=(b.total||0)+dmg;
   if(hunting(b)){b.charge=(b.charge||0)+dmg;return null;}
@@ -2573,7 +2583,8 @@ function mobFight(fx,t){
   }
   player.mobs=left;
   if(left.length){
-    const nip=Math.min(Math.max(0,player.hp-1),left.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0));
+    let shield=false;try{shield=auraFx().shield;}catch(e){}
+    const nip=shield?0:Math.min(Math.max(0,player.hp-1),left.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0));
     if(nip>0){player.hp-=nip;}
     const lead=left[0];
     out.push(`${lead.a} ${lead.n} is still on you (${lead.hp}/${lead.max} HP)${left.length>1?` with ${left.length-1} more`:""}${nip?` and nips you for ${nip} HP`:""}.`);
@@ -3796,6 +3807,7 @@ function completeQuest(id,actual,touched){
   const before=levelInfo(player.xp).L;
   const wasSulking=petSulking();
   player.xp+=fx;player.gold+=fg;player.streak=r.streak;player.lastDoneDate=td;
+  let raidMsgs=[];try{raidMsgs=raidStep();}catch(e){console.error("raid",e);}
   partyTrack(fx);
   if([7,14,30,60,100].includes(r.streak)&&(prevP.streak||0)<r.streak)partyPost("streak",`hit a ${r.streak}-day streak`);
   const petMsg=bondUp(fx,wasSulking);
@@ -3834,6 +3846,7 @@ function completeQuest(id,actual,touched){
   player.stats[t.stat]=(player.stats[t.stat]||0)+fx;
   const after=levelInfo(player.xp).L;
   player.hp=after>before?maxHp(player):thq.regen?Math.min(maxHp(player),player.hp+5+rcq.hp):player.hp;
+  {let au=null;try{au=auraFx(t);}catch(e){}if(au){if(au.hp)player.hp=Math.min(maxHp(player),player.hp+au.hp);if(au.view)player.viewers=(player.viewers||0)+Math.round(fx*37*au.view);}}
   if(after>before)levelUp(before,after);
   ui.claiming=null;ui.addStep=null;
   const quip=say(wasBoss?"late":"complete");
@@ -3870,6 +3883,7 @@ function completeQuest(id,actual,touched){
   lootToast(loot);
   goals.msgs.forEach((m,i)=>setTimeout(()=>toast(m,"lvl"),800+i*700));
   mapMsgs.forEach((m,i)=>setTimeout(()=>toast(`<b>Map</b> ${esc(m)}`,"quest"),1300+(goals.msgs.length+i)*700));
+  if(raidMsgs.length)setTimeout(()=>toast(`<b>Raid floor</b> ${raidMsgs.map(x=>esc(x)).join("<br>")}`,"quest"),1600+(goals.msgs.length+mapMsgs.length)*700);
   if(mobMsgs.length)setTimeout(()=>toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest"),1300+(goals.msgs.length+mapMsgs.length)*700);
   if(usedFocus)setTimeout(()=>toast("Potion of Focus spent: that quest earned double XP."),400);
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
@@ -6269,7 +6283,8 @@ function partyTrack(fx){
   const td=today();const pt=Object.assign({},ptNow());
   pt.days=Object.assign({},pt.days);pt.days[td]=(pt.days[td]||0)+1;
   for(const k of Object.keys(pt.days))if(k<addDays(td,-9))delete pt.days[k];
-  pt.wkDmg=(pt.wkDmg||0)+Math.max(0,fx||0);
+  let lb=0;try{lb=rfLairCrew()?RF_LAIR_BONUS:0;}catch(e){}
+  pt.wkDmg=(pt.wkDmg||0)+Math.round(Math.max(0,fx||0)*(1+lb));
   player.pt=pt;
 }
 function myCard(){
@@ -6278,13 +6293,16 @@ function myCard(){
   const wear={};const w=wearing(player);for(const k of Object.keys(w))wear[k]=w[k]||null;
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
-    wk:pt.wk,wkDmg:pt.wkDmg||0,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,joined:(player.party&&player.party.joined)||Date.now(),seen:today()};
+    wk:pt.wk,wkDmg:pt.wkDmg||0,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,
+    ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
 function partyMembers(){return party&&party.doc&&Array.isArray(party.doc.members)?party.doc.members:[];}
 function partyPublish(now){
-  if(!party||!fb)return;clearTimeout(partyPubTimer);
-  partyPubTimer=setTimeout(()=>{
+  if(!party||!fb)return;
+  if(partyPubTimer&&!now)return; // one write at most every 1.5s; the pending one sends the latest card when it fires
+  clearTimeout(partyPubTimer);
+  partyPubTimer=setTimeout(()=>{partyPubTimer=null;
     if(!party)return;const c=myCard();const k=JSON.stringify(c);if(k===partyLastPub)return;partyLastPub=k;
     fb.fs.doc(`parties/${party.code}/cards/${myUid()}`).set(c).catch(e=>{partyLastPub="";console.warn("party card",e&&e.code);});
   },now?0:1500);
@@ -6539,6 +6557,7 @@ function renderParty(){
         <div class="pt-hpnum">${r.dead?"<b>Defeated!</b> Everyone who landed a hit gets a Gold Box.":`${left.toLocaleString()} / ${r.hp.toLocaleString()} HP · ${daysLeft} day${daysLeft===1?"":"s"} left`}</div>
         ${contrib.length?`<ul class="pt-dmg">${contrib.map(([uid,v])=>{const c=cardOf(uid);return `<li><span>${esc(uid===me?"You":c&&c.name||"Crawler")}</span><i style="width:${Math.max(4,Math.round(v/maxC*100))}%"></i><b>${v.toLocaleString()}</b></li>`;}).join("")}</ul>`:`<p class="muted" style="font-size:13px">No hits yet this week. Every quest you clear does damage equal to its XP.</p>`}
       </div></div>
+    ${raidFloorHTML()}
     <div class="label" style="margin-top:14px">Crew</div>
     <div class="pt-roster">${roster}</div>
     <div class="label" style="margin-top:14px">Party feed</div>
@@ -6551,6 +6570,117 @@ function renderParty(){
   on("ptLeave",()=>{ui.partyLeaveAsk=true;render();});on("ptLeaveNo",()=>{ui.partyLeaveAsk=false;render();});on("ptLeaveYes",partyLeave);
   el.querySelectorAll("[data-cheer]").forEach(b=>b.onclick=()=>partyCheer(b.dataset.cheer));
   el.querySelectorAll("[data-nudge]").forEach(b=>b.onclick=()=>partyNudge(b.dataset.nudge));
+  wireRaidFloor(el);
+}
+
+/* ---------- Raid floor (party) ----------
+   A shared 7×7 maze for the party, new each Monday, with the weekly raid boss's lair at the center.
+   Every crawler starts at their own edge room, picks a room to head for (the lair by default), and each finished
+   quest walks them one step along the shortest route. The maze is generated from the party code and week,
+   so every device draws the same one; positions, revealed rooms and rally flags travel on each member's card.
+   Crawlers sharing a room lend each other a small class aura; standing in the lair together adds 25% raid damage. */
+const RF_N=7,RF_LAIR=24,RF_LAIR_BONUS=.25;
+const RF_COLORS=["#ff2e6e","#3fe0ff","#ffd23f","#7dff8a","#c77dff","#ff8a1f"];
+const AURAS={
+  berserker:{n:"War Cry",d:"+5% boss damage",dmg:.05},necro:{n:"Grave Pact",d:"+10% XP on overdue quests",od:.10},
+  monk:{n:"Morning Bell",d:"+10% XP on the first quest of the day",first:.10},rogue:{n:"Quick Hands",d:"+10% gold on quests of 15 minutes or less",quick:.10},
+  paladin:{n:"Shield Wall",d:"mobs can't bite you",shield:1},warlock:{n:"Deadline Sigil",d:"+5% XP on quests finished by their due date",ontime:.05},
+  druid:{n:"Regrowth",d:"+3 HP per quest",hp:3},ranger:{n:"Spotter",d:"+5% XP on on-target quests",target:.05},
+  hunter:{n:"Tracker",d:"+10% gold",gold:.10},bard:{n:"Hype Man",d:"+20% viewers",view:.2},cleric:{n:"Field Medic",d:"+5 HP per quest",hp:5},
+  none:{n:"Strength in Numbers",d:"+3% XP",xp:.03}};
+const rfMazeCache=new Map();
+function rfMaze(code,wk){
+  const key=code+"|"+wk;let m=rfMazeCache.get(key);if(m)return m;
+  const r=srand("raid|"+key),N=RF_N,adj=Array.from({length:N*N},()=>new Set());
+  const nb=i=>{const x=i%N,y=Math.floor(i/N),o=[];if(x>0)o.push(i-1);if(x<N-1)o.push(i+1);if(y>0)o.push(i-N);if(y<N-1)o.push(i+N);return o;};
+  const seen=new Set([RF_LAIR]),st=[RF_LAIR];
+  while(st.length){const c=st[st.length-1],opts=nb(c).filter(n=>!seen.has(n));if(!opts.length){st.pop();continue;}
+    const n=opts[Math.floor(r()*opts.length)];adj[c].add(n);adj[n].add(c);seen.add(n);st.push(n);}
+  let extra=0;for(let t=0;t<300&&extra<14;t++){const c=Math.floor(r()*N*N),o=nb(c),n=o[Math.floor(r()*o.length)];if(!adj[c].has(n)){adj[c].add(n);adj[n].add(c);extra++;}}
+  m={adj:adj.map(s=>[...s])};rfMazeCache.set(key,m);return m;
+}
+function rfSpawn(uid,wk){const e=[];for(let i=0;i<RF_N*RF_N;i++){const x=i%RF_N,y=Math.floor(i/RF_N);if(!x||!y||x===RF_N-1||y===RF_N-1)e.push(i);}return e[hashStr("spawn|"+uid+"|"+wk)%e.length];}
+function rfPath(adj,a,b){if(a===b)return [a];const prev=new Map([[a,-1]]),q=[a];
+  while(q.length){const c=q.shift();for(const n of adj[c])if(!prev.has(n)){prev.set(n,c);if(n===b){const p=[b];let x=c;while(x!==-1){p.unshift(x);x=prev.get(x);}return p;}q.push(n);}}return null;}
+/* This crawler's raid-floor state for the current week, reset each Monday or on joining a new party. */
+function rfState(){
+  if(!fb||!player||!player.party||!player.party.code)return null;
+  const wk=weekOf(today()),code=player.party.code,me=myUid();let r=player.raid;
+  if(!r||r.wk!==wk||r.code!==code){const sp=rfSpawn(me,wk),adj=rfMaze(code,wk).adj;r=player.raid={wk,code,pos:sp,tgt:RF_LAIR,rv:[sp].concat(adj[sp]),met:{},rally:null};}
+  return r;
+}
+function rfReveal(r,c){const adj=rfMaze(r.code,r.wk).adj,s=new Set(r.rv||[]);s.add(c);adj[c].forEach(n=>s.add(n));r.rv=[...s];}
+function rfCrew(){const r=rfState();if(!r||!party)return [];const out=[],mem=partyMembers();
+  mem.forEach((uid,i)=>{if(uid===myUid())return;const c=party.cards[uid];if(c&&c.rw===r.wk&&c.rpos!=null)out.push({uid,i,pos:c.rpos,cls:c.cls||null,name:c.name||"Crawler",rv:c.rv||[],rally:c.rally||null});});
+  return out;}
+function rfRoommates(){const r=rfState();return r?rfCrew().filter(c=>c.pos===r.pos):[];}
+function auraFx(t,onTarget){
+  const z={xp:0,gold:0,dmg:0,hp:0,view:0,shield:false,list:[]};
+  let mates=[];try{mates=rfRoommates();}catch(e){}
+  const td=today();
+  for(const c of mates){const a=AURAS[c.cls]||AURAS.none;z.list.push(Object.assign({who:c.name},a));
+    z.xp+=a.xp||0;z.dmg+=a.dmg||0;z.gold+=a.gold||0;z.hp+=a.hp||0;z.view+=a.view||0;if(a.shield)z.shield=true;
+    if(t){if(a.od&&t.due&&t.due<td)z.xp+=a.od;if(a.first&&player.lastDoneDate!==td)z.xp+=a.first;if(a.quick&&t.est>0&&t.est<=15)z.gold+=a.quick;
+      if(a.ontime&&t.due&&t.due>=td)z.xp+=a.ontime;if(a.target&&onTarget)z.xp+=a.target;}}
+  z.xp=Math.min(.10,z.xp);z.gold=Math.min(.20,z.gold);z.dmg=Math.min(.10,z.dmg);z.hp=Math.min(10,z.hp);z.view=Math.min(.4,z.view);
+  return z;
+}
+function rfLairCrew(){const r=rfState();return !!r&&r.pos===RF_LAIR&&rfCrew().some(c=>c.pos===RF_LAIR);}
+/* One finished quest: a step toward your target, then say hello to anyone you've walked in on. */
+function raidStep(){
+  const r=rfState();if(!r)return [];const out=[],adj=rfMaze(r.code,r.wk).adj;
+  if(r.tgt!=null&&r.tgt!==r.pos){const p=rfPath(adj,r.pos,r.tgt);
+    if(p&&p.length>1){r.pos=p[1];rfReveal(r,r.pos);bump("raidSteps");
+      if(r.pos===r.tgt)out.push(r.tgt===RF_LAIR?"You reached the raid lair. Stand here with your crew for +25% raid damage.":"You reached your marker.");}}
+  for(const c of rfRoommates()){if(r.met&&r.met[c.uid])continue;r.met=Object.assign({},r.met||{},{[c.uid]:1});bump("regroups");
+    const a=AURAS[c.cls]||AURAS.none;out.push(`You found ${c.name}! ${a.n}: ${a.d} while you share a room.`);
+    partyPost("meet",`regrouped with ${c.name} on the raid floor`,"meet-"+r.wk+"-"+[myUid(),c.uid].sort().join("-"));}
+  return out;
+}
+function rfRally(){const r=rfState();if(!r)return null;let best=r.rally&&r.rally.wk===r.wk?Object.assign({who:"You",mine:true},r.rally):null;
+  for(const c of rfCrew())if(c.rally&&c.rally.wk===r.wk&&(!best||c.rally.at>best.at))best=Object.assign({who:c.name},c.rally);return best;}
+function rfSetTarget(cell){const r=rfState();if(!r)return;r.tgt=cell;store.savePlayer(player).catch(writeFailed);partyPublish();render();}
+function rfPlantRally(){const r=rfState();if(!r)return;r.rally={cell:r.pos,at:Date.now(),wk:r.wk};partyPost("rally","planted a rally flag on the raid floor");
+  store.savePlayer(player).catch(writeFailed);partyPublish(true);render();toast("Rally flag planted. Your crew can tap Join rally to head your way.");}
+function rfColor(uid){const i=partyMembers().indexOf(uid);return RF_COLORS[(i<0?0:i)%RF_COLORS.length];}
+function raidFloorHTML(){
+  const r=rfState();if(!r)return "";
+  const adj=rfMaze(r.code,r.wk).adj,crew=rfCrew(),me=myUid();
+  const known=new Set(r.rv||[]);crew.forEach(c=>{(c.rv||[]).forEach(i=>known.add(i));known.add(c.pos);});known.add(r.pos);
+  const S=40,P=6,W=RF_N*S+P*2,K="#2a1c10",cxy=i=>[P+(i%RF_N)*S+S/2,P+Math.floor(i/RF_N)*S+S/2];
+  const path=r.tgt!=null?rfPath(adj,r.pos,r.tgt):null,rally=rfRally();
+  let s=`<svg class="rfmap" viewBox="0 0 ${W} ${W}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Raid floor map"><rect width="${W}" height="${W}" rx="8" fill="#ead9b0"/>`;
+  for(let i=0;i<RF_N*RF_N;i++)for(const n of adj[i])if(n>i&&known.has(i)&&known.has(n)){const [a,b]=cxy(i),[x,y]=cxy(n);s+=`<path d="M${a} ${b} L${x} ${y}" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M${a} ${b} L${x} ${y}" stroke="#d6c193" stroke-width="3" stroke-linecap="round"/>`;}
+  if(path&&path.length>1)s+=`<path d="${path.map((c,j)=>{const [x,y]=cxy(c);return (j?"L":"M")+x+" "+y;}).join(" ")}" fill="none" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 4" opacity=".8"/>`;
+  for(let i=0;i<RF_N*RF_N;i++){const [x,y]=cxy(i);
+    if(!known.has(i)){s+=`<rect data-rf="${i}" x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="7" fill="#3a2f2a" opacity=".85" class="rfcell"/>`;continue;}
+    s+=`<rect data-rf="${i}" x="${x-14}" y="${y-14}" width="28" height="28" rx="5" fill="${i===RF_LAIR?"#f3c6c6":"#f5ead0"}" stroke="${K}" stroke-width="2" class="rfcell"/>`;
+    if(i===RF_LAIR)s+=`<g transform="translate(${x} ${y}) scale(.8)" pointer-events="none">${mapIcon("boss",0,0)}</g>`;}
+  if(r.tgt!=null&&r.tgt!==r.pos){const [x,y]=cxy(r.tgt);s+=`<rect x="${x-17}" y="${y-17}" width="34" height="34" rx="7" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="5 3" pointer-events="none"/>`;}
+  if(rally){const [x,y]=cxy(rally.cell);s+=`<g pointer-events="none"><path d="M${x+6} ${y-18} L${x+6} ${y-2}" stroke="${K}" stroke-width="2"/><path d="M${x+6} ${y-18} L${x+17} ${y-14} L${x+6} ${y-10} Z" fill="#ffd23f" stroke="${K}" stroke-width="1.4"/></g>`;}
+  const at={};[{uid:me,pos:r.pos,name:partyName()}].concat(crew).forEach(c=>{(at[c.pos]=at[c.pos]||[]).push(c);});
+  for(const [cell,list] of Object.entries(at)){const [x,y]=cxy(+cell);list.forEach((c,j)=>{const ox=(j-(list.length-1)/2)*11,oy=list.length>1?5:3;
+    s+=`<g pointer-events="none"><circle cx="${x+ox}" cy="${y+oy}" r="8" fill="${rfColor(c.uid)}" stroke="${K}" stroke-width="${c.uid===me?3:2}"/><text x="${x+ox}" y="${y+oy+3.6}" text-anchor="middle" font-size="10" font-weight="700" fill="#111" font-family="sans-serif">${esc((c.uid===me?"You":c.name).trim().charAt(0).toUpperCase())}</text></g>`;});}
+  s+=`</svg>`;
+  const steps=path?path.length-1:null,mates=rfRoommates(),au=auraFx();
+  const near=crew.map(c=>({c,d:(rfPath(adj,r.pos,c.pos)||[]).length-1})).filter(x=>x.d>0).sort((a,b)=>a.d-b.d)[0];
+  const tgtTxt=r.tgt==null||r.tgt===r.pos?(r.pos===RF_LAIR?"You're in the lair.":"You're standing still. Tap a room to head there."):`Heading to ${r.tgt===RF_LAIR?"the lair":rally&&r.tgt===rally.cell?`${rally.mine?"your":esc(rally.who)+"'s"} rally flag`:"your marker"}: <b>${steps}</b> quest${steps===1?"":"s"} away.`;
+  const lair=rfLairCrew();
+  return `<div class="label" style="margin-top:14px">Raid floor</div>
+    <div class="rfwrap"><div class="rfmapbox">${s}</div>
+    <div class="rfinfo"><div>${tgtTxt}</div>
+      ${mates.length?`<div class="rfaura"><b>Sharing a room with ${esc(mates.map(m=>m.name).join(" and "))}</b>${au.list.map(a=>`<span>${esc(a.who)}: <b>${esc(a.n)}</b>, ${esc(a.d)}</span>`).join("")}</div>`
+        :`<div class="muted">${near?`Nearest crewmate: ${esc(near.c.name)}, ${near.d} room${near.d===1?"":"s"} away.`:crew.length?"":"Your crew shows up here once they open the app this week."} Share a room with a crewmate to borrow their class aura.</div>`}
+      ${lair?`<div class="rfaura"><b>Lair crew bonus:</b> <span>+25% raid damage while you're in the lair together.</span></div>`:""}
+      <div class="rfbtns"><button class="btn sm" type="button" id="rfLair"${r.tgt===RF_LAIR?" disabled":""}>Head to the lair</button>
+        <button class="btn sm" type="button" id="rfPlant">Plant rally flag here</button>
+        ${rally&&!rally.mine&&r.tgt!==rally.cell&&r.pos!==rally.cell?`<button class="btn gold sm" type="button" id="rfJoin">Join ${esc(rally.who)}'s rally</button>`:""}</div>
+      <div class="muted" style="font-size:12px">Tap any room to head there. Each quest you finish moves you one room along the red route.</div></div></div>`;
+}
+function wireRaidFloor(el){
+  el.querySelectorAll("[data-rf]").forEach(c=>c.addEventListener("click",()=>rfSetTarget(+c.dataset.rf)));
+  const on=(id,f)=>{const x=$(id);if(x)x.onclick=f;};
+  on("rfLair",()=>rfSetTarget(RF_LAIR));on("rfPlant",rfPlantRally);on("rfJoin",()=>{const ra=rfRally();if(ra)rfSetTarget(ra.cell);});
 }
 
 /* ---------- Boot ---------- */
