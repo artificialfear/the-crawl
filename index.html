@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9fd29472b6"></script>
-<script>window.CRAWL_BUILD="9fd29472b6";</script>
+<script src="firebase-config.js?v=7f5ab97f01"></script>
+<script>window.CRAWL_BUILD="7f5ab97f01";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -70,7 +70,7 @@ h2::after{content:"";display:block;height:3px;margin-top:8px;background:linear-g
 .avatar{flex:none;position:relative;width:156px;margin:4px 14px 8px 4px}
 .print{display:block;line-height:0;border-radius:4px;overflow:hidden;box-shadow:0 0 0 2px var(--mana),0 0 20px rgba(63,224,255,.35)}
 .print::after{content:"";position:absolute;inset:0;pointer-events:none;background:var(--hatch)}
-.camtag{position:absolute;right:8px;top:8px;font-size:10px;font-weight:700;letter-spacing:.1em;color:#fff;background:rgba(11,7,19,.75);padding:1px 6px;border-radius:3px}
+.camtag{position:absolute;right:10px;top:-9px;z-index:2;font-size:9px;line-height:1.5;font-weight:700;letter-spacing:.1em;color:#fff;background:#0b0713;border:1px solid var(--mana);padding:0 6px;border-radius:3px;white-space:nowrap}
 .camtag i{font-style:normal;color:var(--blood);animation:livepulse 1.4s ease-in-out infinite}
 .print svg{display:block;width:100%;height:auto}
 .avatar .lvl{position:absolute;right:-10px;bottom:-10px;min-width:38px;height:38px;padding:0 6px;border-radius:50%;background:var(--blood);color:#fff;
@@ -7275,6 +7275,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.10.3",d:"2026-10-07",t:"Clear view",items:["The Crawler cam label now sits on the top edge of your avatar frame, so it no longer covers your crawler's head or helmet."]},
   {v:"2.10.2",d:"2026-10-07",t:"Depth of field",items:["Your crawler's dungeon backdrop is now softly out of focus, with glowing torchlight bokeh, so your crawler and gear pop."]},
   {v:"2.10.1",d:"2026-10-07",t:"Crate polish",items:["Loot crates are now perfectly symmetrical, and the lid lifts straight up when it bursts open."]},
   {v:"2.10.0",d:"2026-10-07",t:"New loot crates",items:["Opening a box now shows a chunky sci-fi crate in the box's colour (bronze, silver, gold, crimson Legendary, starry Celestial) that rattles, bursts its lid open and pours out light before your prize appears."]},
