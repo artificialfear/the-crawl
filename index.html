@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=836b998f44"></script>
-<script>window.CRAWL_BUILD="836b998f44";</script>
+<script src="firebase-config.js?v=6319c2d8d0"></script>
+<script>window.CRAWL_BUILD="6319c2d8d0";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1247,6 +1247,9 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .undobar .btn{flex:none}
 .ub-time{position:absolute;left:0;bottom:0;height:3px;background:var(--gold);width:100%;animation:ubtime 10s linear forwards}
 @keyframes ubtime{to{width:0}}
+.qgroup{margin-top:6px}.qgroup>summary.sect{padding:8px 4px;border-bottom:1px solid var(--line-2)}
+.qgroup>summary .label{font-size:13px}
+.qgroup .restbox>summary.sub{margin-top:8px;opacity:.85}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -6837,11 +6840,21 @@ function renderBoard(){
       <div class="acts"><button class="btn gold" id="importQL">Import from Questlog</button><button class="btn" id="examples">Load six example quests</button></div></div>`;
   }else{
     if(bosses.length)h+=`<div class="boss"><div class="sect"><span class="label">Overdue · ${bosses.length}</span><span class="muted" style="font-size:13px">Rotting. They wound you and heal the floor boss daily</span></div></div>`+bosses.map(questCard).join("");
-    if(rest.length)h+=`<div class="sect"><span class="label">Open quests · ${rest.length}</span><span class="muted num" style="font-size:13px">${rest.concat(bosses).reduce((s,t)=>s+rewardFor(player,t,null).xp,0)} XP on the board</span></div>`+rest.map(questCard).join("");
-    if(resting.length)h+=`<details class="restbox" id="restMore"${prefs.restOpen?" open":""}><summary class="sect"><span class="label">Upcoming repeats · ${resting.length}</span><span class="muted" style="font-size:13px">Next: ${esc(resting[0].title)} · ${fmtDue(resting[0].due)}</span></summary>`+resting.map(questCard).join("")+`</details>`;
+    // Two collapsible groups: repeating quests (with their not-yet-due repeats tucked inside) and one-off quests.
+    const reps=rest.filter(t=>t.rec),ones=rest.filter(t=>!t.rec),xpOf=a=>a.reduce((s,t)=>s+rewardFor(player,t,null).xp,0);
+    const dueT=a=>a.filter(t=>t.due===td).length;
+    if(reps.length||resting.length){const opn=prefs.repOpen!==false;
+      h+=`<details class="restbox qgroup" id="repBox"${opn?" open":""}><summary class="sect"><span class="label">🔁 Repeating · ${reps.length}</span><span class="muted num" style="font-size:13px">${reps.length?`${dueT(reps)?`${dueT(reps)} due today · `:""}${xpOf(reps)} XP`:"Nothing due right now"}</span></summary>`
+        +reps.map(questCard).join("")
+        +(resting.length?`<details class="restbox" id="restMore"${prefs.restOpen?" open":""}><summary class="sect sub"><span class="label">Upcoming repeats · ${resting.length}</span><span class="muted" style="font-size:13px">Next: ${esc(resting[0].title)} · ${fmtDue(resting[0].due)}</span></summary>`+resting.map(questCard).join("")+`</details>`:"")
+        +`</details>`;}
+    if(ones.length){const opn=prefs.oneOpen!==false;
+      h+=`<details class="restbox qgroup" id="oneBox"${opn?" open":""}><summary class="sect"><span class="label">📜 One-off quests · ${ones.length}</span><span class="muted num" style="font-size:13px">${dueT(ones)?`${dueT(ones)} due today · `:""}${xpOf(ones)} XP</span></summary>`+ones.map(questCard).join("")+`</details>`;}
   }
   board.innerHTML=h;
-  const rm=$("restMore");if(rm)rm.addEventListener("toggle",()=>{prefs.restOpen=rm.open;savePrefs();});
+  const rm=$("restMore");if(rm)rm.addEventListener("toggle",e=>{e.stopPropagation();prefs.restOpen=rm.open;savePrefs();});
+  const rb=$("repBox");if(rb)rb.addEventListener("toggle",e=>{if(e.target!==rb)return;prefs.repOpen=rb.open;savePrefs();});
+  const ob=$("oneBox");if(ob)ob.addEventListener("toggle",()=>{prefs.oneOpen=ob.open;savePrefs();});
   const ex=$("examples");if(ex)ex.onclick=loadExamples;
   const iq=$("importQL");if(iq)iq.onclick=()=>{const f=$("restoreFile");f.value="";f.click();};
   board.querySelectorAll(".quest").forEach(card=>{
@@ -7190,6 +7203,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.9.0",d:"2026-10-07",t:"Tidier quest board",items:["Your quests are now split into two groups you can fold away: 🔁 Repeating and 📜 One-off. Each shows how many are due today and the XP waiting. Upcoming repeats live inside the Repeating group.",
+    "Overdue quests stay at the top, always open, so nothing rotting gets hidden."]},
   {v:"2.8.1",d:"2026-10-07",t:"Undo",items:["After you complete a quest, an Undo button appears at the top of the screen for 10 seconds, even on top of boss-kill screens. Tap it to put the quest back as if it never happened."]},
   {v:"2.8.0",d:"2026-10-07",t:"One-tap complete",items:["Tapping Complete on a quest finishes it right away at your estimated time. No more confirm step.",
     "Want the accuracy bonus? Use the quest's ⋯ menu → Complete with time taken, and enter how long it really took."]},
