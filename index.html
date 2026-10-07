@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=061a666f00"></script>
-<script>window.CRAWL_BUILD="061a666f00";</script>
+<script src="firebase-config.js?v=5f3438dd56"></script>
+<script>window.CRAWL_BUILD="5f3438dd56";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3182,7 +3182,24 @@ function ensureMap(){const b=player.boss;if(!b)return null;if(!player.map||playe
   if(!m.mobs){m.mobs=1;m.rooms.forEach((rm,i)=>{if(i<=m.pos)return;if(rm.t==="empty"&&Math.random()<.75)rm.t="mob";else if(rm.t==="lair")rm.t="pack";else if(rm.t==="chest"&&Math.random()<.5)rm.guard=1;});}
   if(!m.rev){m.rev=[];for(let i=0;i<=Math.min(mapLen(m)-1,m.pos+1);i++)m.rev.push(i);} // older saves keep what they could already see
   if(m.far==null)m.far=m.pos;
+  if(!m.links)m.links=mapShortcuts(m);
   return m;}
+/* Shortcuts: a few rooms that sit side by side on the grid but far apart along the corridor get a passage
+   between them. Once you've explored both ends you can cut through when walking around the floor. */
+function mapShortcuts(m){
+  const r=srand("links|"+m.week+"|"+m.floor),c=[],R=m.rooms;
+  for(let i=0;i<R.length;i++)for(let j=i+3;j<R.length;j++)if(Math.abs(R[i].x-R[j].x)+Math.abs(R[i].y-R[j].y)===1)c.push([i,j]);
+  for(let k=c.length-1;k>0;k--){const q=Math.floor(r()*(k+1));[c[k],c[q]]=[c[q],c[k]];}
+  const out=[],used=new Set();for(const [a,b] of c){if(out.length>=3)break;if(used.has(a)||used.has(b))continue;out.push([a,b]);used.add(a);used.add(b);}
+  return out;
+}
+/* Shortest walk between two explored rooms, along the corridor or through any shortcut with both ends explored. */
+function mapPath(m,a,b){
+  const far=farOf(m),adj=i=>{const o=[];if(i>0)o.push(i-1);if(i<far)o.push(i+1);for(const [x,y] of (m.links||[]))if(x<=far&&y<=far){if(x===i)o.push(y);if(y===i)o.push(x);}return o;};
+  if(a===b)return [a];const prev=new Map([[a,-1]]),q=[a];
+  while(q.length){const cur=q.shift();for(const n of adj(cur))if(!prev.has(n)){prev.set(n,cur);if(n===b){const p=[b];let x=cur;while(x!==-1){p.unshift(x);x=prev.get(x);}return p;}q.push(n);}}
+  return null;
+}
 const MERCH_PRICE={common:90,uncommon:200,rare:420};
 function mapLog(m,t){m.log=[t].concat(m.log||[]).slice(0,4);return t;}
 /* One finished quest: maybe uncover a secret, then step forward and resolve the room. Returns toast lines. */
@@ -3199,8 +3216,9 @@ function mapStep(t){
   // Walking on rooms you've already explored: back toward a target, or forward again to the frontier.
   if(m.tgt!=null&&m.tgt>farOf(m))m.tgt=null;
   if(m.tgt!=null&&m.tgt===m.pos){secretDoor(m,out);return out;}             // holding position
-  if((m.tgt!=null&&m.tgt<m.pos)||m.pos<farOf(m)){
-    m.pos+=m.tgt!=null&&m.tgt<m.pos?-1:1;revisit(m,out);
+  if(m.tgt!=null||m.pos<farOf(m)){
+    const p=mapPath(m,m.pos,m.tgt!=null?m.tgt:farOf(m))||[m.pos,m.pos+(m.tgt!=null&&m.tgt<m.pos?-1:1)];
+    const from=m.pos;m.pos=p[1];if(Math.abs(m.pos-from)>1)out.push(mapLog(m,`You duck through the shortcut from room ${from+1} to room ${m.pos+1}.`));revisit(m,out);
     if(m.tgt===m.pos)out.push(mapLog(m,`You're back at room ${m.pos+1}. You'll hold here until you pick somewhere else.`));
     if(m.tgt==null&&m.pos===farOf(m))out.push(mapLog(m,`Back at the frontier: room ${m.pos+1}. Onward.`));
     return out;}
@@ -3291,8 +3309,11 @@ function mapSVG(m){
   const known=new Set();m.rooms.forEach((rm,i)=>{if(visible(i))known.add(rm.x+","+rm.y);});(m.secrets||[]).forEach(se=>{if(se.found||se.located)known.add(se.x+","+se.y);});
   for(let gx=0;gx<MAP_W;gx++)for(let gy=0;gy<MAP_H;gy++){if(known.has(gx+","+gy))continue;const [x,y]=c(gx,gy);s+=`<rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="10" fill="#3a2f2a" opacity=".82"/><path d="M${x-14} ${y+4} q6 -8 12 -2 q6 -9 14 0" fill="none" stroke="#5a4a3a" stroke-width="2" stroke-linecap="round"/>`;}
   // The walk to a target you picked, as a dotted red route
-  if(m.tgt!=null&&m.tgt!==m.pos){const a=Math.min(m.pos,m.tgt),b2=Math.max(m.pos,m.tgt);let d="";for(let i=a;i<=b2;i++){const [x,y]=c(m.rooms[i].x,m.rooms[i].y);d+=(i===a?"M":"L")+x+" "+y+" ";}
-    s+=`<path d="${d}" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="5 5" opacity=".85"/>`;}
+  // Shortcut passages: drawn once both rooms are on your map; usable once you've walked both
+  (m.links||[]).forEach(([i,j])=>{if(!visible(i)||!visible(j))return;const [a,b]=c(m.rooms[i].x,m.rooms[i].y),[x,y]=c(m.rooms[j].x,m.rooms[j].y),open=i<=far&&j<=far;
+    s+=`<path d="M${a} ${b} L${x} ${y}" stroke="${K}" stroke-width="6" stroke-linecap="round"${open?"":' opacity=".45"'}/><path d="M${a} ${b} L${x} ${y}" stroke="#9fd0a0" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="3 3"${open?"":' opacity=".45"'}/>`;});
+  if(m.tgt!=null&&m.tgt!==m.pos){const pth=mapPath(m,m.pos,m.tgt)||[];let d="";pth.forEach((i,k)=>{const [x,y]=c(m.rooms[i].x,m.rooms[i].y);d+=(k?"L":"M")+x+" "+y+" ";});
+    if(d)s+=`<path d="${d}" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="5 5" opacity=".85"/>`;}
   m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos,past=i<=far&&!here,nw=fresh.has(i);
     s+=`<g${nw?' class="mapnew"':""}><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="${here?"#fff3c4":past?"#f5ead0":"#e2cfa2"}" stroke="${here?"#e8283c":K}" stroke-width="${here?4:2.4}" ${!past&&!here?'stroke-dasharray="5 3"':""}/>`;
     const bossDead=(rm.boss!=null&&player.boss&&player.boss.week===m.week&&(player.boss.defeated||player.boss.tier>rm.boss))||((rm.t==="mob"||rm.t==="pack")&&rm.cleared);
@@ -3315,10 +3336,10 @@ function renderMap(){
   const m=ensureMap();if(!had)store.savePlayer(player).catch(writeFailed);
   const cur=m.rooms[m.pos],nx=m.rooms[m.pos+1],found=(m.secrets||[]).filter(s=>s.found).length;
   const merch=m.rooms.find((r,i)=>r.t==="merchant"&&i<=farOf(m)&&!r.sold);let mh="";
-  const far=farOf(m),away=m.tgt!=null?Math.abs(m.tgt-m.pos):0,doorHere=(m.secrets||[]).some(s=>!s.found&&s.located&&s.link===(m.tgt!=null?m.tgt:m.pos));
+  const far=farOf(m),away=m.tgt!=null?Math.max(0,((mapPath(m,m.pos,m.tgt)||[]).length||Math.abs(m.tgt-m.pos)+1)-1):0,doorHere=(m.secrets||[]).some(s=>!s.found&&s.located&&s.link===(m.tgt!=null?m.tgt:m.pos));
   const bt=m.tgt!=null?`<div class="mapbt"><span>${away?`Walking back to <b>room ${m.tgt+1}</b>: ${away} quest${away===1?"":"s"} away.`:`Holding at <b>room ${m.pos+1}</b>.`}${doorHere?" A marked secret room opens off this room: finish a quest here to pry it open.":""}</span>
       <button class="btn gold sm" type="button" id="mapFwd">Head forward</button></div>`
-    :far>0?`<div class="muted mapbt-hint">Tap any room you've explored to walk back to it.${(m.secrets||[]).some(s=>!s.found&&s.located&&s.link<=far)?" Tap a marked secret room to walk to its door.":""}</div>`:"";
+    :far>0?`<div class="muted mapbt-hint">Tap any room you've explored to walk back to it.${(m.links||[]).some(([i,j])=>i<=far&&j<=far)?" Green dotted passages are shortcuts you can cut through.":""}${(m.secrets||[]).some(s=>!s.found&&s.located&&s.link<=far)?" Tap a marked secret room to walk to its door.":""}</div>`:"";
   if(merch){const it=ITEMS.find(i=>i.id===merch.item),price=priceOf(MERCH_PRICE[it.rar]||200),own=player.owned.includes(it.id);
     mh=`<div class="merch"><span class="mini-ico">${lootIconSVG(it.id)}</span><div class="what"><b class="rar-${it.rar}">${esc(it.n)}</b><span>${RARITY[it.rar].n} · ${esc(it.d)}</span></div>
       <button class="btn gold sm" type="button" id="buyMerch" ${own||player.gold<price?"disabled":""}>${own?"Owned":price+" gold"}</button></div>`;}
@@ -7143,6 +7164,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.7.1",d:"2026-10-07",t:"Shortcuts",items:["Floors now have up to three shortcut passages (green dotted lines) between rooms that sit side by side. Once you've explored both ends, walking around the floor cuts through them automatically."]},
   {v:"2.7.0",d:"2026-10-07",t:"Backtracking",items:[
     "Tap any room you've explored on the floor map to walk back to it, one room per quest. Tap \"Head forward\" (or the next room) to push on again.",
     "Secret rooms can now be reached on foot: once one is marked, finish any quest in the room it hangs off to pry it open. Tap a marked secret to walk to its door.",
