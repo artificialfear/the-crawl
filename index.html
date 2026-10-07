@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=074bc5ed02"></script>
+<script src="firebase-config.js?v=5247e3c76e"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3718,9 +3718,78 @@ function levelUp(before,after){
 
 /* ---------- Announcer and ticker ---------- */
 function fill(t,v){v=Object.assign({name:player.name,open:tasks.filter(x=>!x.done).length},v||{});return t.replace(/\{(\w+)\}/g,(m,k)=>v[k]!=null?v[k]:m);}
-function pick(kind,v){const a=QUIPS[kind]||[""];return fill(a[Math.floor(Math.random()*a.length)],v);}
-function say(kind,v){
-  const line=pick(kind,v);
+/* Random quip that doesn't repeat any of the last few for its kind. */
+const recentQuips={};
+function pickFresh(kind,a){const rec=recentQuips[kind]=recentQuips[kind]||[];const keep=Math.min(Math.max(0,a.length-1),12);
+  let pool=a.filter(x=>!rec.includes(x));if(!pool.length)pool=a;const line=pool[Math.floor(Math.random()*pool.length)];
+  rec.push(line);while(rec.length>keep)rec.shift();return line;}
+function pick(kind,v){const a=QUIPS[kind]||[""];return fill(pickFresh(kind,a),v);}
+function say(kind,v){return sayText(pick(kind,v));}
+/* The System's commentary when a quest goes on the board: a big general pool, plus lines that react to the
+   quest itself (its size, title, deadline, repeats), the hour, and how crowded the board is. Never repeats recently. */
+const ADD_QUIPS={
+  any:["New quest logged. The System has added it to the list of things you'll think about in the shower.",
+    "Quest accepted. Your future self has been notified and is already annoyed.",
+    "Another one for the board. The board is starting to look like a crime scene.",
+    "Noted. Filed. Mildly judged.",
+    "A new quest! The audience leans forward. The audience leans back. The audience checks its phone.",
+    "Quest added. Statistically, you will do this. Eventually. Probably.",
+    "Congratulations on writing a sentence. The hard part is the rest of it.",
+    "The dungeon has received your quest and is laughing in a supportive way.",
+    "Quest registered. Our lawyers remind you that adding is not doing.",
+    "Fresh quest, still warm. Do it before it goes stale like the others.",
+    "You've added a quest. Sponsors are cautiously reallocating their ad budget.",
+    "Ah, ambition. We've seen this episode. Let's see how it ends.",
+    "New objective acquired. Motivation sold separately.",
+    "The quest board groans under the weight of your intentions.",
+    "Quest added. Somewhere, a goblin just made a bet against you.",
+    "Bold move, writing it down where everyone can see.",
+    "Logged. The System has rated this quest's difficulty as: you.",
+    "Your to-do list grows stronger. It feeds on hesitation.",
+    "One more quest. The crowd chants your name. Mispronounced, but still.",
+    "Added. The producers have started a countdown. Nobody told them to stop.",
+    "Quest accepted. Please keep your hands and your procrastination inside the dungeon at all times.",
+    "Excellent planning. Execution is a premium feature.",
+    "Filed just above the quest you've been ignoring since Tuesday.",
+    "New quest! The viewers at home are already clipping your inevitable struggle.",
+    "Quest received. Processing. Judging. Done.",
+    "That's going on the board. The board says hi. The board says finally.",
+    "The loot goblins have opened a betting pool on when you'll finish this.",
+    "A quest has entered the arena. It looks nervous. So do you.",
+    "Written down, which means it's real now. Sorry.",
+    "The System appreciates your optimism. The System has seen your history.",
+    "Quest added. Our analysts give it a fighting chance. Our analysts are paid to be nice.",
+    "Another task for the pile. The pile thanks you for your continued support."],
+  title:["\"{title}\". Gripping. Truly the stuff of legend.",
+    "\"{title}\" has been added. The bards are already struggling to rhyme it.",
+    "\"{title}\"? The dungeon has seen worse. Not much worse, but worse.",
+    "\"{title}\". Our writers couldn't have come up with that. They tried.",
+    "Breaking: {name} vows to \"{title}\". Experts are cautiously unimpressed.",
+    "\"{title}\" is on the board. It's staring at you. Stare back. Then do it."],
+  1:["A Trash mob quest. Even the rats think this one's easy.","Tiny quest added. Do it now and pretend it was hard.","This one barely counts. We're counting it anyway."],
+  2:["A Grunt quest. Honest work. Mild glory.","A small-to-medium quest. The kind that sneaks up and eats your afternoon."],
+  3:["An Elite quest. Now we're talking. Well, you're talking. We're watching.","Elite quest logged. Stretch first. Hydrate. Pretend you're ready."],
+  4:["A Mini-boss! The orchestra has been told to warm up.","Mini-boss quest added. Bring snacks. Bring backup. Bring a will."],
+  5:["A Raid boss quest. The audience gasps. One fainted. We're fine.","Raid boss logged. Sponsors are drafting a victory ad and a memorial ad, just in case."],
+  today:["Due today? Oh, we love a deadline. Nothing sells like panic.","Due today. The clock just started ticking louder. That's not us. That's you."],
+  rec:["A repeating quest. Congratulations, you've invented a chore.","This one comes back. Like a sequel nobody asked for.","Recurring quest added. See you again soon. And again. And again."],
+  night:["Adding quests at this hour? The night shift salutes you.","Planning at midnight. A bold strategy. It rarely works. We love it."],
+  crowded:["{open} open quests. At this point the board is a lifestyle.","Quest number {open}. The board is applying for its own zip code."],
+  busy:["That's {adds} quests added today. Adding them is not the same as doing them. We checked."]};
+function addQuip(t){
+  const h=new Date().getHours(),open=tasks.filter(x=>!x.done).length,adds=player.adds&&player.adds.d===today()?player.adds.n:1;
+  const pool=[...ADD_QUIPS.any];const twice=a=>{pool.push(...a,...a);};
+  const title=String(t.title||"").trim();
+  if(title&&title.length<=50&&!/^Example:/.test(title))pool.push(...ADD_QUIPS.title);
+  if(ADD_QUIPS[t.effort])twice(ADD_QUIPS[t.effort]);
+  if(t.due===today())twice(ADD_QUIPS.today);
+  if(t.rec)twice(ADD_QUIPS.rec);
+  if(h>=22||h<5)twice(ADD_QUIPS.night);
+  if(open>=15)twice(ADD_QUIPS.crowded);
+  if(adds>=5)twice(ADD_QUIPS.busy);
+  return fill(pickFresh("add",pool),{title,open,adds});
+}
+function sayText(line){
   setTimeout(()=>announce(line),250);
   ui.news=[line].concat(ui.news||[]).slice(0,5);
   const tag=$("tkTag");if(tag){tag.textContent="Breaking";tag.classList.remove("breaking");void tag.offsetWidth;tag.classList.add("breaking");setTimeout(()=>{tag.textContent="Crawler news";},4000);}
@@ -3860,7 +3929,7 @@ function addQuest(q){
   store.saveTask(t).catch(writeFailed);
   const td=today();player.adds=player.adds&&player.adds.d===td?{d:td,n:player.adds.n+1}:{d:td,n:1};bump("added");
   store.savePlayer(player).catch(writeFailed);
-  if(!ui.quiet)say("add");
+  if(!ui.quiet)sayText(addQuip(t));
   render();checkAch();return null;
 }
 function completeQuest(id,actual,touched){
