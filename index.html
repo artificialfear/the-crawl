@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2c0181f6c5"></script>
-<script>window.CRAWL_BUILD="2c0181f6c5";</script>
+<script src="firebase-config.js?v=756d612b05"></script>
+<script>window.CRAWL_BUILD="756d612b05";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1112,6 +1112,26 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .gv-pick:focus-visible{outline:3px solid var(--mana)}
 #mobAlert:empty{display:none}
 #rivalAlert:empty{display:none}
+.qtbox .qt-mini{border-radius:8px;overflow:hidden;border:2px solid #000;max-height:140px}
+.qtbox .qt-mini>svg{display:block;width:100%;height:auto}
+.qt-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.qtdlg .qt-scene{border-radius:10px;overflow:hidden;border:3px solid #000;box-shadow:0 0 0 2px var(--line-2),0 0 22px rgba(127,232,255,.25)}
+.qt-scene>svg{display:block;width:100%;height:auto}
+.qt-portal{animation:qtglow 3s ease-in-out infinite}.qt-swirl{animation:qtspin 4s linear infinite;transform-origin:43px 96px;transform-box:view-box}
+@keyframes qtglow{0%,100%{opacity:.85}50%{opacity:1}}@keyframes qtspin{to{transform:rotate(360deg)}}
+.qt-steam path{animation:qtsteam 2.4s ease-in-out infinite}@keyframes qtsteam{0%{opacity:0;transform:translateY(4px)}40%{opacity:.8}100%{opacity:0;transform:translateY(-8px)}}
+.qt-bub circle{animation:qtbub 3s ease-in-out infinite}@keyframes qtbub{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.qt-screen{animation:qtflick 5s steps(1) infinite}@keyframes qtflick{0%,96%{opacity:1}97%{opacity:.6}98%{opacity:1}}
+.qt-gem{animation:qtglow 1.8s ease-in-out infinite}
+.qt-row{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel-2)}
+.qt-row.own{border-color:rgba(127,232,255,.45)}.qt-row>div{flex:1;min-width:0}.qt-row .muted{font-size:12px}
+.qt-on{font-size:12px;color:#7fe8ff;font-weight:700;white-space:nowrap}
+.qt-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chipbtn{all:unset;cursor:pointer;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line-2);color:var(--fg)}
+.chipbtn.on{background:var(--mana);border-color:var(--mana);color:#111;font-weight:700}.chipbtn[disabled]{opacity:.45;cursor:default}.chipbtn:focus-visible{outline:2px solid var(--gold)}
+.qt-realtor{font-size:14px;padding:10px 12px;border-left:3px solid var(--gold);background:var(--panel-2);border-radius:6px}
+.qt-troph{font-size:13px}
+@media (prefers-reduced-motion:reduce){.qt-portal,.qt-swirl,.qt-steam path,.qt-bub circle,.qt-screen,.qt-gem{animation:none}}
 .skulls{display:inline-block;margin-left:4px;color:#f4f2f8;font-size:.9em;letter-spacing:.06em;text-shadow:0 0 6px rgba(232,40,60,.9),0 0 2px #000;white-space:nowrap;vertical-align:baseline}
 .rvalert{position:relative;display:grid;grid-template-columns:118px 1fr;border:3px solid #ff7a1f;border-radius:12px;overflow:hidden;background:#140c08;box-shadow:0 0 0 2px #000,0 0 18px rgba(255,122,31,.55);animation:mobpulse 2.2s ease-in-out infinite}
 .rvalert.psy{border-color:#e8283c;box-shadow:0 0 0 2px #000,0 0 22px rgba(232,40,60,.75);background:#170606}
@@ -1471,6 +1491,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Loot boxes</b> come from achievements, level-ups (Bronze, or Silver every fifth level), bosses and the shop. Contents are random: gold, potions, or gear from Common to Legendary. Duplicates turn into gold.</div>
           <div><b>Gear</b>: weapons, helmets and capes can raise XP; gloves add boss damage; boots add max HP and faster movement speed (a chance each quest moves you an extra room on the floor map and raid floor); body armor reduces overdue damage. Your best item in each slot counts, whatever your crawler wears. Rings each have their own perk, and only the ring you wear counts. Pet trinkets boost your pet's own passive while it wears one. Unique items are very rare, glow, and carry an extra effect.</div>
           <div><b>Rival crawlers</b>: crawlers from the rankings sometimes come for your loot (now and then after a quest, or from a ⚔ ambush room on the map). Each quest you finish hits them; they hit back each quest and overnight, but never knock you out on their first night. Beat one and they're knocked out for the floor (XP, gold, maybe an item they're wearing). Or bribe them, run (better boots, better odds), or walk to a shrine. If they knock you out, they steal one spare backpack item (never worn gear, never Unique) and come back for a rematch a few days later: win it to get your item back. A rare psycho won't take a bribe and only backs off for a day: that one has to be killed. Crewmates can tap Help on the Party tab to chip at your rival, but the final blow is yours.</div>
+          <div><b>Personal Quarters</b>: a private room through the portal in the Safe Room, 1,500 gold (or a Deed Coupon from a Gold or Celestial box, or the weekly #1 prize). Upgrades: Bed (heal 10% max HP each morning), Kitchen (cook once a day for +5% XP until midnight), Bath (pet never sulks, +15% bond), Training Room (+10% XP on one stat, switch weekly), Crafting Studio (fuse 3 spares of one rarity into an item one rarity higher), Quest Screen (+10% viewers, rematch warnings, episode replays) and Trophy Wall. Tick crewmates onto your guest list and they can visit and cook in your kitchen.</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
@@ -1930,7 +1951,7 @@ const lvlOf=(p,k)=>Math.max(1,statLevel(((p||player).stats||{})[k]||0)+raceMod(p
 function statFx(p){const L=k=>lvlOf(p,k)-1;return {dmg:Math.min(.30,L("STR")*.02),xp:Math.min(.15,L("INT")*.01),hp:Math.min(75,L("CON")*5),win:Math.min(.20,L("DEX")*.02),cha:Math.min(.30,L("CHA")*.02)};}
 const bondLevel=b=>Math.min(10,1+Math.floor(Math.sqrt((b||0)/40)));
 /* A pet sulks (bonuses paused) after three days without a finished quest. */
-function petSulking(p){p=p||player;return !!p.lastDoneDate&&daysBetween(p.lastDoneDate,today())>=themeFx(p).sulk;}
+function petSulking(p){p=p||player;if(p.quarters&&(p.quarters.up||{}).bath)return false;return !!p.lastDoneDate&&daysBetween(p.lastDoneDate,today())>=themeFx(p).sulk;}
 function activePet(p){p=p||player;const k=p.pet;return k&&p.pets&&p.pets[k]&&PETS[k]?Object.assign({key:k},p.pets[k]):null;}
 /* The trinket your pet wears: extra effective bond levels (lv) and faster bond growth (rate). */
 function trinketFx(p){p=p||player;const z={lv:0,rate:0,item:null};if(!p||!p.owned)return z;
@@ -1990,7 +2011,8 @@ function rewardFor(p,t,actual){
   const partyB=partyBuffOn(p)?PARTY_BUFF:0;
   let au={xp:0,gold:0};if(p===player)try{au=auraFx(t,onTarget);}catch(e){}
   let gx2=0;if(p===player)try{gx2=godXp(t);}catch(e){}
-  const mult=Math.max(.1,1+streakB+weaponB+fx.xp+pf.xp+night+rc.xp+tf.xp+partyB+au.xp+gx2-strag+(onTarget?accB:0));
+  let qx=0;try{qx=qtXp(p,t);}catch(e){}
+  const mult=Math.max(.1,1+streakB+weaponB+fx.xp+pf.xp+night+rc.xp+tf.xp+partyB+au.xp+gx2+qx-strag+(onTarget?accB:0));
   const xp=Math.round(baseXp(t)*mult*(p.focused?2:1));
   return {xp,focused:!!p.focused,gold:Math.max(0,Math.floor(xp/4*(1+fx.cha+pf.gold+rc.gold+tf.gold+gx.gold+au.gold))),rcB:rc.xp,themeB:tf.xp,partyB,streak:s,streakB,weaponB,statB:fx.xp,petB:pf.xp+night,accB,onTarget,ratio};
 }
@@ -3372,6 +3394,199 @@ function rivalCrewHTML(){
       <div class="muted" style="font-size:12px">${on?"Each quest you finish hits them for half your damage. You can't land the final blow: that's theirs.":"Help, and each quest you finish also hits this rival for half your damage."}</div></div>
       <button type="button" class="btn sm ${on?"":"gold"}" data-rvhelp="${esc(u)}" aria-pressed="${on}">${on?"Helping ✓":"Help"}</button></div>`;}).join("");
 }
+/* ---------- Personal Quarters ----------
+   A private room behind a portal in the Safe Room, sold by Mortimer Plinth, Dungeon Realtor, for 1,500 gold
+   (or a Deed Coupon). Upgrades show up in the drawn room and each does something real. Private by default:
+   tick crewmates onto the guest list and they can visit, admire the Trophy Wall and cook in your Kitchen.
+   player.quarters = {at, up:{bed:1,...}, train:{stat,wk}, guests:[uid]}; player.meal = the day you last ate;
+   player.deeds = unused Deed Coupons. */
+const QT_PRICE=1500,QT_REALTOR="Mortimer Plinth";
+const QT_UP=[
+  {k:"bed",n:"Bed",price:400,d:"Heals 10% of your max HP every morning, after overnight damage."},
+  {k:"kitchen",n:"Kitchen",price:600,d:"Cook once a day for +5% XP on every quest until midnight. Guests on your list can cook here too."},
+  {k:"bath",n:"Bath",price:500,d:"Your pet never sulks, and its bond grows 15% faster."},
+  {k:"train",n:"Training Room",price:900,d:"+10% XP on quests of one stat you choose. You can switch stats once a week."},
+  {k:"craft",n:"Crafting Studio",price:1200,d:"Fuse 3 spare items of the same rarity into a random item one rarity higher."},
+  {k:"screen",n:"Quest Screen",price:800,d:"+10% viewers from quests. Shows which rivals are planning a rematch, and replays your recap episodes."},
+  {k:"trophy",n:"Trophy Wall",price:300,d:"Shows off your crawler kills, boss takedowns and best rank. Purely for bragging."}];
+const QT_PITCH=["Location, location, location! And by location I mean a pocket dimension behind a door. Very exclusive.",
+  "Fully private. Nobody gets in unless you say so. The previous owner said so far too often, but that's a different story.",
+  "Comes unfurnished, which is realtor for 'empty.' But the bones are good. Mostly not literal bones.",
+  "I work purely on commission, so please, I am begging you, buy the house."];
+const hasQt=p=>!!((p||player).quarters);
+const qtHas=(k,p)=>!!(((p||player).quarters||{}).up||{})[k];
+const ateToday=p=>(p||player).meal===today();
+/* XP bonuses for rewardFor: today's meal, and the Training Room's chosen stat. */
+function qtXp(p,t){let x=0;if(ateToday(p))x+=.05;const tr=qtHas("train",p)&&p.quarters.train;if(tr&&t&&tr.stat===t.stat)x+=.10;return x;}
+const qtView=()=>qtHas("screen")?.10:0;
+function qtBuy(){if(hasQt())return;
+  const deed=(player.deeds||0)>0;if(!deed&&player.gold<QT_PRICE){toast(`You need ${QT_PRICE.toLocaleString()} gold, or a Deed Coupon.`,"bad");return;}
+  if(deed)player.deeds--;else player.gold-=QT_PRICE;
+  player.quarters={at:Date.now(),up:{},guests:[]};bump("quarters");SFX.play("coin");pushEvent("Bought Personal Quarters");
+  partyPost("loot","bought Personal Quarters. Housewarming party when?");
+  store.savePlayer(player).catch(writeFailed);partyPublish(true);render();renderQt();
+  toast(`<span class="big">Keys!</span> ${QT_REALTOR} hands over a key shaped like a question mark. “Pleasure. Truly. Please leave a review.”`,"lvl");}
+function qtUpgrade(k){const u=QT_UP.find(x=>x.k===k);if(!u||!hasQt()||qtHas(k))return;
+  if(player.gold<u.price){toast(`You need ${u.price.toLocaleString()} gold for the ${u.n}.`,"bad");return;}
+  player.gold-=u.price;player.quarters.up=Object.assign({},player.quarters.up,{[k]:Date.now()});bump("qtUpgrades");SFX.play("coin");
+  if(k==="train")player.quarters.train={stat:"STR",wk:null};
+  pushEvent(`Installed a ${u.n} in their quarters`);store.savePlayer(player).catch(writeFailed);partyPublish(true);render();renderQt();
+  toast(`${u.n} installed. ${QT_REALTOR} is already invoicing you for the delivery.`,"quest");}
+function qtCook(hostUid){if(ateToday())return;
+  if(hostUid){const c=party&&party.cards[hostUid];if(!c||!c.qt||!(c.qt.up||[]).includes("kitchen")||!(c.qt.g||[]).includes(myUid()))return;}
+  else if(!qtHas("kitchen"))return;
+  player.meal=today();bump("meals");const host=hostUid?memberName(hostUid):null;
+  pushEvent(host?`Cooked dinner in ${host}'s kitchen`:"Cooked a meal at home");store.savePlayer(player).catch(writeFailed);render();renderQt();
+  toast(`${spick(Math.random,["Dungeon stew","Suspiciously good mushroom risotto","Mimic-shaped pancakes","Grilled cave fish","Mystery casserole"])}${host?` at ${esc(host)}'s place`:""}. +5% XP until midnight.`,"quest");}
+function qtTrain(stat){const q=player.quarters;if(!qtHas("train")||!STATS[stat])return;const wk=weekOf(today());
+  if(q.train&&q.train.wk===wk&&q.train.stat!==stat){toast("You already switched this week. Your muscles need a minute.","bad");return;}
+  q.train={stat,wk:q.train&&q.train.stat===stat?q.train.wk:wk};store.savePlayer(player).catch(writeFailed);renderQt();
+  toast(`Training ${STATS[stat].n}: +10% XP on ${STATS[stat].n} quests.`);}
+const QT_FUSE=["common","uncommon","rare","epic"],QT_NEXT={common:"uncommon",uncommon:"rare",rare:"epic",epic:"legendary"};
+function qtSpares(rar){const out=[];for(const id of Object.keys(player.spare||{})){const it=itemOf(id);if(it&&it.rar===rar)for(let i=0;i<spareN(id);i++)out.push(id);}return out;}
+function qtFuse(rar){if(!qtHas("craft")||!QT_NEXT[rar])return;const sp=qtSpares(rar);if(sp.length<3)return;
+  // use up the copies you have most of first
+  sp.sort((a,b)=>spareN(b)-spareN(a));for(const id of sp.slice(0,3))addSpare(id,-1);
+  const pool=ITEMS.filter(i=>i.rar===QT_NEXT[rar]&&!i.base),fresh=pool.filter(i=>!player.owned.includes(i.id)),pk=(fresh.length?fresh:pool);
+  const it=pk[Math.floor(Math.random()*pk.length)],r=receiveItem(it.id);bump("fusions");SFX.play("kill");
+  pushEvent(`Fused 3 ${RARITY[rar].n} spares into ${it.n}`);store.savePlayer(player).catch(writeFailed);render();renderQt();
+  toast(`<span class="big">Fused!</span> Three ${RARITY[rar].n} spares became <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":r==="kept"?" (a spare, kept)":` (a duplicate, sold for ${r} gold)`}.`,"lvl");}
+function qtGuest(uid){const q=player.quarters;if(!q)return;const g=new Set(q.guests||[]);if(g.has(uid))g.delete(uid);else g.add(uid);q.guests=[...g];
+  store.savePlayer(player).catch(writeFailed);partyPublish(true);renderQt();}
+/* What goes on the party card: just enough for a guest's visit. */
+function qtCard(){const q=player.quarters;if(!q)return null;
+  return {up:Object.keys(q.up||{}),g:(q.guests||[]).slice(0,6),tr:{k:C(player,"rivalKills"),ko:C(player,"rivalKOs"),b:C(player,"bossKills"),r:player.bestRank||null}};}
+/* The room, drawn. up = installed upgrades; av = avatar markup (the hero without the dungeon); tr = trophies. */
+function quartersSVG(up,av,tr,showEmpty){
+  const K="#15131c",has=k=>up.includes(k),u="qt"+(++avUid);
+  const P=(d,f,x)=>`<path d="${d}" fill="${f}" stroke="${K}" stroke-width="2.4" stroke-linejoin="round"${x||""}/>`;
+  const empty=(x,y,w,h,k)=>{const U=QT_UP.find(z=>z.k===k);return showEmpty?`<g class="qt-empty"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="rgba(127,232,255,.07)" stroke="#7fe8ff" stroke-width="1.6" stroke-dasharray="5 4"/><text x="${x+w/2}" y="${y+h/2-2}" text-anchor="middle" font-size="10" font-weight="700" fill="#bff4ff">${U.n}</text><text x="${x+w/2}" y="${y+h/2+11}" text-anchor="middle" font-size="9" fill="#7fe8ff">${U.price}g</text></g>`:"";};
+  let s=`<svg class="qtroom" viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+<radialGradient id="${u}p" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#e6fbff"/><stop offset=".35" stop-color="#7fe8ff"/><stop offset=".75" stop-color="#7a3ff0"/><stop offset="1" stop-color="#2a1458"/></radialGradient>
+<radialGradient id="${u}l" cx="50%" cy="20%" r="80%"><stop offset="0" stop-color="#ffcf7a" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="${u}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#103a52"/><stop offset="1" stop-color="#072030"/></linearGradient></defs>`;
+  // Walls, wainscot and floorboards
+  s+=`<rect width="400" height="250" fill="#2d2440"/><rect width="400" height="150" fill="#3b2f55"/>`;
+  for(let x=12;x<400;x+=26)s+=`<path d="M${x} 0 L${x} 118" stroke="#45386a" stroke-width="2"/>`;
+  s+=`<rect x="0" y="118" width="400" height="34" fill="#5a3b26" stroke="${K}" stroke-width="2.4"/><path d="M0 126 L400 126" stroke="#7a5236" stroke-width="2"/>`;
+  s+=`<path d="M0 152 L400 152 L400 250 L0 250 Z" fill="#7a5232" stroke="${K}" stroke-width="2.4"/>`;
+  for(const x of [-160,-80,0,80,160,240,320,400,480,560])s+=`<path d="M${200+(x-200)*.45} 152 L${x} 250" stroke="#5e3d24" stroke-width="2"/>`;
+  s+=`<path d="M0 186 L400 186 M0 222 L400 222" stroke="#5e3d24" stroke-width="1.6"/>`;
+  s+=`<ellipse cx="196" cy="212" rx="92" ry="22" fill="#8a2e4a" stroke="${K}" stroke-width="2.4"/><ellipse cx="196" cy="212" rx="74" ry="15" fill="none" stroke="#ffd23f" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+  s+=`<rect width="400" height="250" fill="url(#${u}l)"/>`;
+  // The portal home (always here)
+  s+=P("M14 150 L14 70 Q14 34 43 34 Q72 34 72 70 L72 150 Z","#6b7383")+`<ellipse class="qt-portal" cx="43" cy="96" rx="20" ry="46" fill="url(#${u}p)" stroke="${K}" stroke-width="2"/>`
+    +`<path class="qt-swirl" d="M43 62 Q60 80 43 96 Q26 112 43 130" fill="none" stroke="#fff" stroke-width="2" opacity=".6"/>`;
+  // Quest Screen
+  if(has("screen"))s+=P("M148 14 L252 14 L252 82 L148 82 Z","#2a2733")+`<rect x="154" y="20" width="92" height="56" fill="url(#${u}s)"/><g class="qt-screen"><circle cx="164" cy="30" r="3.4" fill="#e8283c"/><text x="172" y="33" font-size="9" font-weight="700" fill="#fff">LIVE</text>
+      <path d="M160 64 L176 50 L190 58 L206 42 L222 52 L240 36" fill="none" stroke="#3fe0ff" stroke-width="2.4"/><rect x="160" y="68" width="${30+Math.round((tr&&tr.b||0)%5)*10}" height="4" fill="#ffd23f"/></g>`
+      +P("M192 82 L208 82 L212 94 L188 94 Z","#2a2733");
+  else s+=empty(150,16,100,66,"screen");
+  // Trophy Wall
+  if(has("trophy")){s+=P("M284 18 L388 18 L388 80 L284 80 Z","#6b4426")+`<path d="M288 22 L384 22 L384 76 L288 76 Z" fill="none" stroke="#a87a4a" stroke-width="1.6"/>`;
+    const k=Math.min(5,tr&&tr.k||0);for(let i=0;i<k;i++)s+=skullIcon(300+i*15,38,6);
+    if(!k)s+=`<text x="336" y="42" text-anchor="middle" font-size="8" fill="#f4e8c8" opacity=".75">no kills yet</text>`;
+    s+=`<g transform="translate(298 64)">${crownIcon()}</g><text x="314" y="68" font-size="9" font-weight="700" fill="#ffe07a">${tr&&tr.r?"#"+tr.r:"–"}</text>`
+      +`<rect x="338" y="56" width="16" height="14" rx="2" fill="#c9cdd6" stroke="${K}" stroke-width="1.4"/><text x="346" y="66" text-anchor="middle" font-size="8" font-weight="700" fill="${K}">B</text><text x="358" y="68" font-size="9" font-weight="700" fill="#f4e8c8">×${tr&&tr.b||0}</text>`;}
+  else s+=empty(284,18,104,62,"trophy");
+  // Crafting Studio
+  if(has("craft"))s+=P("M80 112 L144 112 L144 120 L80 120 Z","#8a5a32")+P("M84 120 L90 120 L90 158 L84 158 Z","#5a3b26")+P("M134 120 L140 120 L140 158 L134 158 Z","#5a3b26")
+      +P("M96 100 L124 100 L120 106 L128 112 L92 112 L100 106 Z","#5b5f6e")+P("M128 88 L132 84 L142 94 L138 98 Z","#c9cdd6")+P("M126 98 L136 90 L139 93 L129 101 Z","#7a4a26")
+      +`<circle class="qt-gem" cx="88" cy="106" r="5" fill="#ff5fa8" stroke="${K}" stroke-width="1.6"/>`;
+  else s+=empty(78,88,68,70,"craft");
+  // Kitchen
+  if(has("kitchen"))s+=P("M282 104 L394 104 L394 158 L282 158 Z","#b8863a")+`<path d="M282 112 L394 112" stroke="${K}" stroke-width="2"/>`
+      +P("M290 118 L332 118 L332 152 L290 152 Z","#a0702e")+P("M340 118 L386 118 L386 152 L340 152 Z","#a0702e")+`<circle cx="327" cy="135" r="2" fill="${K}"/><circle cx="345" cy="135" r="2" fill="${K}"/>`
+      +P("M300 104 L300 96 L338 96 L338 104 Z","#2a2733")+P("M308 96 Q308 80 320 80 Q332 80 332 96 Z","#5b5f6e")+`<g class="qt-steam" fill="none" stroke="#f4f2f8" stroke-width="2" stroke-linecap="round" opacity=".7"><path d="M315 78 Q312 73 316 68"/><path style="animation-delay:-.8s" d="M324 78 Q327 73 323 68"/></g>`
+      +P("M352 94 L370 94 L368 104 L354 104 Z","#d8343c");
+  else s+=empty(282,86,112,72,"kitchen");
+  // Training dummy
+  if(has("train"))s+=P("M266 222 L272 222 L272 150 L266 150 Z","#7a4a26")+P("M256 226 L282 226 L282 232 L256 232 Z","#5a3b26")+P("M252 156 L286 156 L282 200 L256 200 Z","#e8c25a")
+      +`<path d="M256 168 L282 168 M257 184 L281 184" stroke="#a8862a" stroke-width="2"/>`+P("M240 160 L298 160 L298 168 L240 168 Z","#7a4a26")
+      +`<circle cx="269" cy="140" r="14" fill="#e8c25a" stroke="${K}" stroke-width="2.4"/><circle cx="269" cy="178" r="8" fill="none" stroke="#e8283c" stroke-width="2.4"/><circle cx="269" cy="178" r="2.6" fill="#e8283c"/><path d="M263 136 l5 5 m0 -5 l-5 5 M271 136 l5 5 m0 -5 l-5 5" stroke="${K}" stroke-width="1.8"/>`;
+  else s+=empty(244,124,52,104,"train");
+  // Bed
+  if(has("bed"))s+=P("M6 176 L22 176 L22 236 L6 236 Z","#5a3b26")+P("M14 196 L124 196 L124 230 L14 230 Z","#7a4a26")+P("M18 186 L122 186 L122 204 L18 204 Z","#f4f2f8")
+      +P("M22 180 Q22 172 32 172 L52 172 Q60 172 60 180 L60 192 L22 192 Z","#ffffff")+P("M54 188 L124 188 Q128 200 124 212 L54 212 Q50 200 54 188 Z","#6b4aa8")
+      +`<path d="M66 194 L116 194 M66 204 L116 204" stroke="#8a6ac8" stroke-width="1.6"/>`+P("M116 230 L124 230 L124 240 L116 240 Z","#5a3b26");
+  else s+=empty(8,168,118,70,"bed");
+  // Bath
+  if(has("bath"))s+=P("M298 198 L394 198 Q396 236 352 238 L340 238 Q296 236 298 198 Z","#f4f2f8")+P("M296 194 L396 194 L396 200 L296 200 Z","#d5d9e2")
+      +P("M306 236 L312 236 L310 244 L304 244 Z","#ffd23f")+P("M382 236 L388 236 L390 244 L384 244 Z","#ffd23f")
+      +`<g class="qt-bub">${[[312,188,6],[326,184,8],[342,188,6],[358,183,9],[376,188,6],[334,176,4],[366,174,3]].map(([x,y,r],i)=>`<circle style="animation-delay:-${i*.4}s" cx="${x}" cy="${y}" r="${r}" fill="#e6fbff" stroke="#7fbbe0" stroke-width="1.2"/>`).join("")}</g>`
+      +P("M386 186 L390 168 L398 168 L396 186 Z","#c9cdd6");
+  else s+=empty(296,170,100,72,"bath");
+  // The owner, standing on the rug
+  if(av)s+=av.replace(/^<svg viewBox="0 0 300 420"/,`<svg x="145" y="92" width="98" height="137" viewBox="0 0 300 420"`);
+  return s+`</svg>`;
+}
+function skullIcon(x,y,r){return `<g><path d="M${x-r} ${y} Q${x-r} ${y-r*1.2} ${x} ${y-r*1.2} Q${x+r} ${y-r*1.2} ${x+r} ${y} L${x+r*.6} ${y+r*.5} L${x+r*.6} ${y+r} L${x-r*.6} ${y+r} L${x-r*.6} ${y+r*.5} Z" fill="#f4f2f8" stroke="#15131c" stroke-width="1.2"/><circle cx="${x-r*.38}" cy="${y-r*.1}" r="${r*.26}" fill="#15131c"/><circle cx="${x+r*.38}" cy="${y-r*.1}" r="${r*.26}" fill="#15131c"/></g>`;}
+function crownIcon(){return `<path d="M0 10 L0 2 L4 6 L8 0 L12 6 L16 2 L16 10 Z" fill="#ffd23f" stroke="#15131c" stroke-width="1.2"/>`;}
+/* The hero without the dungeon set, for standing in other rooms. */
+function bareAvatar(eq){try{return avatarSVG(Object.assign({},eq,{bare:true}));}catch(e){return "";}}
+function myAvatarEq(){const a=activePet();return Object.assign({},wearing(player),player.look?{look:player.look}:{});}
+/* The Portal card in the Safe Room tab. */
+function qtSafeBox(){
+  const q=player.quarters,n=q?Object.keys(q.up||{}).length:0,vis=qtVisitable();
+  return `<div class="safebox wide qtbox"><div class="label">Portal · Personal Quarters</div>
+    <div class="qt-mini">${quartersSVG(q?Object.keys(q.up||{}):[],"",null,false)}</div>
+    <p>${q?`Your own private room. ${n} of ${QT_UP.length} upgrades installed.`:`A private room of your own, through the portal. ${QT_REALTOR}, Dungeon Realtor, is selling: ${QT_PRICE.toLocaleString()} gold${(player.deeds||0)?", or use your Deed Coupon":""}.`}</p>
+    <div class="qt-acts"><button class="btn gold" type="button" id="qtOpen">${q?"Step through the portal":"Talk to the realtor"}</button>
+    ${vis.map(([uid,c])=>`<button class="btn ghost sm" type="button" data-qtvisit="${esc(uid)}">Visit ${esc(c.name||"crewmate")}</button>`).join("")}</div></div>`;}
+function qtVisitable(){if(!party||!party.cards)return [];const me=myUid();
+  return partyMembers().filter(u=>u!==me).map(u=>[u,party.cards[u]]).filter(([u,c])=>c&&c.qt&&(c.qt.g||[]).includes(me));}
+function openQt(host){ui.qt={host:host||null};renderQt();}
+function closeQt(){ui.qt=null;const o=$("qtWrap");if(o)o.remove();}
+function renderQt(){
+  if(!ui.qt){const o=$("qtWrap");if(o)o.remove();return;}
+  let o=$("qtWrap");if(!o){o=document.createElement("div");o.id="qtWrap";o.className="gearwrap";document.body.appendChild(o);o.addEventListener("click",e=>{if(e.target===o)closeQt();});}
+  const host=ui.qt.host,c=host&&party&&party.cards[host];let body="",title="";
+  if(host){
+    if(!c||!c.qt||!(c.qt.g||[]).includes(myUid())){closeQt();toast("That door's locked now.");return;}
+    const up=c.qt.up||[],eq=Object.assign({},c.wear||{},c.look?{look:c.look}:{});title=`${c.name||"Crawler"}'s Quarters`;
+    body=`<div class="qt-scene">${quartersSVG(up,bareAvatar(eq),c.qt.tr,false)}</div>
+      <p class="muted">You're a guest. ${up.length?`They've installed: ${up.map(k=>QT_UP.find(z=>z.k===k)).filter(Boolean).map(z=>z.n).join(", ")}.`:"It's a little bare in here. Don't say anything."}</p>
+      ${up.includes("trophy")&&c.qt.tr?`<div class="qt-troph">${(()=>{const T=c.qt.tr,pl=(n,w)=>`${n} ${w}${n===1?"":"s"}`;return `☠ ${pl(T.k||0,"kill")} · 💫 ${pl(T.ko||0,"knockout")} · 🗡 ${pl(T.b||0,"boss")}`.replace("bosss","bosses")+` · 👑 best rank ${T.r?"#"+T.r:"–"}`;})()}</div>`:""}
+      ${up.includes("kitchen")?`<div class="qt-row"><div><b>Kitchen</b><div class="muted">Cook a meal here: +5% XP on every quest until midnight. One meal a day, anywhere.</div></div><button class="btn gold sm" type="button" id="qtCookHost"${ateToday()?" disabled":""}>${ateToday()?"Already ate today":"Cook here"}</button></div>`:""}`;
+  }else if(!hasQt()){
+    title="Mortimer Plinth, Dungeon Realtor";const deed=(player.deeds||0)>0;
+    body=`<div class="qt-scene">${quartersSVG([],"",null,false)}</div>
+      <div class="qt-realtor"><b>${QT_REALTOR}:</b> “${esc(spick(Math.random,QT_PITCH))}”</div>
+      <p>Your own room behind the portal: private, permanent, and yours to upgrade with a bed, kitchen, bath, training room, crafting studio, quest screen and trophy wall. Each upgrade does something real.</p>
+      <div class="qt-row"><div><b>Personal Quarters</b><div class="muted">${deed?"You have a Deed Coupon: this one's free.":`${QT_PRICE.toLocaleString()} gold · you have ${player.gold.toLocaleString()}`}</div></div>
+        <button class="btn gold" type="button" id="qtBuy"${!deed&&player.gold<QT_PRICE?" disabled":""}>${deed?"Use Deed Coupon":"Buy"}</button></div>
+      ${!deed&&player.gold<QT_PRICE?`<p class="muted" style="font-size:12px">About ${Math.ceil((QT_PRICE-player.gold)/12)} more medium quests' worth of gold. Deed Coupons sometimes turn up in Gold and Celestial boxes, and the weekly #1 rankings prize.</p>`:""}`;
+  }else{
+    const q=player.quarters,up=Object.keys(q.up||{});title="Your Quarters";
+    const row=u=>{const own=qtHas(u.k);let act="";
+      if(!own)act=`<button class="btn gold sm" type="button" data-qtup="${u.k}"${player.gold<u.price?" disabled":""}>${u.price.toLocaleString()}g</button>`;
+      else if(u.k==="kitchen")act=`<button class="btn sm" type="button" id="qtCook"${ateToday()?" disabled":""}>${ateToday()?"Ate today":"Cook"}</button>`;
+      else act=`<span class="qt-on">Installed</span>`;
+      let extra="";
+      if(own&&u.k==="train"){const tr=q.train||{};extra=`<div class="qt-stats">${Object.keys(STATS).map(k=>`<button type="button" class="chipbtn${tr.stat===k?" on":""}" data-qttrain="${k}">${STATS[k].n}</button>`).join("")}</div>`;}
+      if(own&&u.k==="craft"){extra=`<div class="qt-stats">${QT_FUSE.map(r=>{const n=qtSpares(r).length;return `<button type="button" class="chipbtn" data-qtfuse="${r}"${n<3?" disabled":""}>${RARITY[r].n} ×3 → ${RARITY[QT_NEXT[r]].n} <span class="muted">(${n})</span></button>`;}).join("")}</div>${Object.keys(player.spare||{}).length?"":`<div class="muted" style="font-size:12px">You have no spares. Turn on "Keep duplicates" in your backpack to start saving them.</div>`}`;}
+      if(own&&u.k==="screen"){const rq=(player.rvq||[]);const eps=(player.episodes||[]).slice(0,4);
+        extra=`<div class="muted" style="font-size:12px">${rq.length?"Rematches coming: "+rq.map(x=>`${esc(x.n)}${x.psy?" ☠":""} (${fmtDue(x.due)})`).join(", "):"No rivals are planning a rematch."}</div>${eps.length?`<div class="qt-stats">${eps.map(e=>`<button type="button" class="chipbtn" data-qtep="${esc(e.id)}">▶ Ep. ${e.no}</button>`).join("")}</div>`:""}`;}
+      return `<div class="qt-row${own?" own":""}"><div><b>${u.n}</b><div class="muted">${u.d}</div>${extra}</div>${act}</div>`;};
+    const crew=party?partyMembers().filter(u=>u!==myUid()):[];
+    body=`<div class="qt-scene">${quartersSVG(up,bareAvatar(myAvatarEq()),qtCard().tr,true)}</div>
+      <div class="muted" style="font-size:12px">Purse: ${player.gold.toLocaleString()} gold</div>
+      <div class="label">Upgrades</div>${QT_UP.map(row).join("")}
+      <div class="label">Guest list</div>
+      ${crew.length?`<div class="muted" style="font-size:12px">Private by default. Guests can visit from their Safe Room, see your trophies and cook in your kitchen.</div><div class="qt-stats">${crew.map(u=>{const on=(q.guests||[]).includes(u);return `<button type="button" class="chipbtn${on?" on":""}" data-qtguest="${esc(u)}" aria-pressed="${on}">${on?"✓ ":""}${esc(memberName(u))}</button>`;}).join("")}</div>`
+        :`<div class="muted" style="font-size:12px">Join a party to invite guests.</div>`}`;
+  }
+  o.innerHTML=`<div class="geardlg inspdlg qtdlg" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="gearhead"><h2>${esc(title)}</h2><button class="btn ghost sm" type="button" id="qtClose">Close</button></div>${body}</div>`;
+  $("qtClose").onclick=closeQt;
+  const on=(id,f)=>{const x=$(id);if(x)x.onclick=f;};
+  on("qtBuy",qtBuy);on("qtCook",()=>qtCook(null));on("qtCookHost",()=>qtCook(host));
+  o.querySelectorAll("[data-qtup]").forEach(b=>b.onclick=()=>qtUpgrade(b.dataset.qtup));
+  o.querySelectorAll("[data-qttrain]").forEach(b=>b.onclick=()=>qtTrain(b.dataset.qttrain));
+  o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>qtFuse(b.dataset.qtfuse));
+  o.querySelectorAll("[data-qtguest]").forEach(b=>b.onclick=()=>qtGuest(b.dataset.qtguest));
+  o.querySelectorAll("[data-qtep]").forEach(b=>b.onclick=()=>{closeQt();playEpisode(b.dataset.qtep);});
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.qt)closeQt();});
 /* ---------- Floor map ----------
    Each floor is a winding corridor of 16 rooms on a 5×5 grid, drawn like a hand-inked dungeon map.
    Every finished quest moves you one room deeper and resolves what's in it. Two secret rooms hang off
@@ -3689,9 +3904,10 @@ function checkRank(){
   let R=player.rank;if(!R||R.week!==b.week){R=player.rank={week:b.week,last:st.rank,best:st.rank,top10:false,no1:false};ch=true;}
   if(st.rank!==R.last){if(st.rank<R.last&&me>0)say("rankup",{rank:st.rank,rival:st.list[st.rank]?st.list[st.rank].n:"nobody"});R.last=st.rank;ch=true;}
   if(st.rank<R.best){R.best=st.rank;ch=true;}
+  if(me>0&&(!player.bestRank||st.rank<player.bestRank)){player.bestRank=st.rank;ch=true;}
   if(me>0&&st.rank<=10&&!R.top10&&weekFrac(b)>=2/7){R.top10=true;ch=true;player.viewers=(player.viewers||0)+10000;evs.push("topten");
     pushEvent(`Cracked the crawler top 10 at #${st.rank}`);toast(`<span class="big">Top 10</span> You're #${st.rank} of ${st.of} crawlers this floor. +10K viewers.`,"lvl");}
-  if(me>0&&st.rank===1&&!R.no1&&weekFrac(b)>=.4){R.no1=true;ch=true;player.viewers=(player.viewers||0)+50000;giveBox("silver","Number one crawler");evs.push("number1");
+  if(me>0&&st.rank===1&&!R.no1&&weekFrac(b)>=.4){R.no1=true;ch=true;player.viewers=(player.viewers||0)+50000;giveBox("silver","Number one crawler");player.deeds=(player.deeds||0)+1;evs.push("number1");
     pushEvent("Reached #1 in the crawler rankings");toast(`<span class="big">Number one</span> You're the top crawler on Floor ${b.floor}. +50K viewers and a Silver Box.`,"lvl");}
   return {ch,evs};
 }
@@ -3764,6 +3980,7 @@ function renderSafe(){
   el.innerHTML=`<h2>Safe room</h2>
     <div class="host"><b>${COOK}, the cook:</b> “${esc(x.host)}”</div>
     <div class="safegrid">
+      ${qtSafeBox()}
       <div class="safebox"><div class="label">Rest</div><p>${x.rested?"You've rested today.":gain>0?`Nap in a booth for +${gain} HP. Once a day.`:"You're at full HP."}</p>
         <button class="btn" type="button" id="restBtn" ${x.rested||gain<=0?"disabled":""}>${x.rested?"Rested":"Rest"}</button></div>
       <div class="safebox${shelteredToday()?" sheltering":""}"><div class="label">Shelter</div><p>${shelteredToday()?"You're sheltering today. Tomorrow morning's overdue damage can't reach you. Your quests earn no viewers until midnight."
@@ -3780,6 +3997,7 @@ function renderSafe(){
     <div class="mail"><div class="label">Fan mail</div><p>“${esc(x.mail.text)}”</p><span>— ${esc(x.mail.from)}</span></div>
     <div class="safefoot"><button class="btn ghost sm" type="button" id="toShop">Visit the shop</button><button class="btn sm" type="button" id="leaveSafe">Head back out</button></div>`;
   $("restBtn").onclick=rest;$("leaveSafe").onclick=leaveSafe;
+  {const q=$("qtOpen");if(q)q.onclick=()=>openQt(null);el.querySelectorAll("[data-qtvisit]").forEach(b=>b.onclick=()=>openQt(b.dataset.qtvisit));}
   const sb=$("shelterBtn");if(sb)sb.onclick=takeShelter;
   const sy=$("shelterYes");if(sy)sy.onclick=takeShelter;
   const sn=$("shelterNo");if(sn)sn.onclick=()=>{ui.confirmShelter=false;render();};
@@ -4471,6 +4689,7 @@ function openBox(bid){
     if(pool.length){const k=pool[Math.floor(Math.random()*pool.length)];player.eggs=player.eggs.concat({id:newId(),species:k,at:Date.now()});extras.push("A Mystery Egg rolled out of the box!");pushEvent("Found a Mystery Egg");}
   }
   if(CELESTIAL_IN[bx.tier]&&Math.random()<CELESTIAL_IN[bx.tier]){giveBox("celestial",`Hidden inside a ${BOXES[bx.tier].n}`);extras.push("Something heavier was tucked underneath: a Celestial Box!");pushEvent("Found a Celestial Box inside a box");}
+  if((bx.tier==="gold"&&Math.random()<.03)||(bx.tier==="celestial"&&Math.random()<.25)){player.deeds=(player.deeds||0)+1;extras.push("A Deed Coupon fluttered out of the box! Trade it for Personal Quarters at the Safe Room portal.");pushEvent("Found a Deed Coupon");}
   if(item&&!dupe)player.viewers=(player.viewers||0)+({common:300,uncommon:800,rare:2500,epic:8000,legendary:40000,magical:100000}[item.rar]||0);
   store.savePlayer(player).catch(writeFailed);render();
   const quip=bx.tier==="celestial"?pick("celestial"):dupe&&!res.kept?pick("dupe",{gold:res.gold}):item?pick(item.rar==="legendary"||item.rar==="epic"||item.rar==="magical"?"legendary":"item"):pick(res.kind==="gold"?"gold":res.kind==="cons"?"cons":"potion");
@@ -4869,6 +5088,7 @@ function dailyTick(force){
       toast(`You took ${dmg} damage overnight${how}${heal?`, and the boss healed by ${heal}`:""}.`,"bad");
     }
   }
+  if(qtHas("bed")){const mx=maxHp(player),h=Math.min(mx-player.hp,Math.round(mx*.1));if(h>0){player.hp+=h;pushEvent(`Slept in their own bed: +${h} HP`);setTimeout(()=>toast(`You slept in your own bed. +${h} HP.`),2400);}}
   store.savePlayer(player).catch(writeFailed);
 }
 function pushEvent(text,bad){player.events.unshift({text,bad:!!bad,at:Date.now()});player.events=player.events.slice(0,12);}
@@ -4929,7 +5149,7 @@ function completeQuest(id,actual,touched){
   const petMsg=bondUp(isChosen("bastet")?Math.round(fx*1.5):fx,wasSulking);
   player.doneCount=(player.doneCount||0)+1;if(r.onTarget)player.onTargetCount=(player.onTargetCount||0)+1;
   if(isChosen("anansi"))player.viewers=(player.viewers||0)+Math.round(fx*37*.3);
-  player.viewers=(player.viewers||0)+Math.round((fx*37+Math.random()*250)*(1+statFx(player).cha*2.5)*(1+rcFx(player,null).view)*Math.max(0,1+themeFx(player).view)*(shelteredToday()?0:1));
+  player.viewers=(player.viewers||0)+Math.round((fx*37+Math.random()*250)*(1+qtView())*(1+statFx(player).cha*2.5)*(1+rcFx(player,null).view)*Math.max(0,1+themeFx(player).view)*(shelteredToday()?0:1));
   const evs=[];if(t.effort===5)evs.push("raid");if(wasBoss)evs.push("late");if(new Date().getHours()<4)evs.push("night");
   if((t.steps||[]).length>=5)evs.push("steps5");
   {const now=new Date(),h=now.getHours(),tt=t.title||"";
@@ -5021,7 +5241,7 @@ function completeQuest(id,actual,touched){
 function bondUp(xp,wasSulking){
   const k=player.pet,pt=k&&player.pets[k];if(!pt)return null;
   const before=bondLevel(pt.bond);
-  pt.bond=(pt.bond||0)+Math.max(1,Math.round(xp*.6*(1+statFx(player).cha*2.5)*themeFx(player).bond*(1+trinketFx(player).rate)));
+  pt.bond=(pt.bond||0)+Math.max(1,Math.round((qtHas("bath")?1.15:1)*xp*.6*(1+statFx(player).cha*2.5)*themeFx(player).bond*(1+trinketFx(player).rate)));
   const notes=[];
   if(wasSulking)notes.push(`${pt.name} cheered up. Bonuses are back.`);
   const after=bondLevel(pt.bond);
@@ -5837,7 +6057,7 @@ function avatarSVG(eq){
 <filter id="${u}bl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5"/></filter>
 <filter id="${u}bl2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
 <filter id="${u}dof" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="1.2"/></filter>
-</defs><rect x="0" y="0" width="300" height="420" fill="#2b2440"/><g class="dungeon" filter="url(#${u}dof)">`;
+</defs><!--bg0--><rect x="0" y="0" width="300" height="420" fill="#2b2440"/><g class="dungeon" filter="url(#${u}dof)">`;
   // Stone wall: staggered bricks, a few lighter ones near the torches
   s+=`<rect x="0" y="0" width="300" height="420" fill="${WALL}"/><g stroke="${INK}" stroke-width="3" stroke-linejoin="round">`;
   for(let row=0,y=-6;y<350;row++,y+=30){
@@ -5862,7 +6082,7 @@ function avatarSVG(eq){
   s+=torch(46)+torch(254);
   // Out-of-focus torchlight: soft bokeh discs drifting in the blurred background
   s+=[[30,118,10,.35],[62,176,7,.25],[268,112,11,.35],[236,182,6,.22],[46,226,5,.18],[256,238,8,.2],[150,60,6,.12],[96,86,4,.15],[206,80,5,.15]].map(([x,y,r,o],i)=>`<circle class="bokeh" style="animation-delay:-${(i*.7).toFixed(1)}s" cx="${x}" cy="${y}" r="${r}" fill="#ffc46a" opacity="${o}"/>`).join("");
-  s+=`<ellipse cx="150" cy="384" rx="82" ry="12" fill="#000" opacity=".45"/></g>`;
+  s+=`<ellipse cx="150" cy="384" rx="82" ry="12" fill="#000" opacity=".45"/></g><!--bg1-->`;
 
   if(MA==="radiant")s+=`<ellipse class="mf-aura" cx="150" cy="220" rx="96" ry="160" fill="#ffd23f" opacity=".5" filter="url(#${u}bl2)"/>`;
   // Cape behind the figure
@@ -6090,13 +6310,15 @@ function avatarSVG(eq){
   }
   s+=`</g></g></g>`;
   // Vignette, then the active pet at the hero's feet (in front of the shadows), then the panel border
-  s+=`<rect x="0" y="0" width="300" height="420" fill="url(#${u}v)"/>`;
+  if(!eq.bare)s+=`<rect x="0" y="0" width="300" height="420" fill="url(#${u}v)"/>`;
   // Bare feet sit low enough for the vignette to darken them into sandal-brown; redraw them above it so they match the hands and face
   if(_bare)s+=`<g stroke="${INK}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${_bare}</g>`;
   if(eq.pet&&PETS[eq.pet]){
     s+=petSVG(eq.pet,{trinket:eq.trinket}).replace(/<rect (?:x="0" y="0" )?width="100" height="100"[^>]*\/>/g,"")
       .replace('<svg viewBox="0 0 100 100"',`<svg x="2" y="280" width="112" height="112" viewBox="0 0 100 100" class="petinframe${eq.petSulk?" pet-sulk":""}"`);
   }
+  // bare: just the hero and a floor shadow, for standing in other scenes
+  if(eq.bare)return s.replace(/<!--bg0-->[\s\S]*?<!--bg1-->/,`<ellipse cx="150" cy="384" rx="70" ry="10" fill="#000" opacity=".35"/>`)+`</svg>`;
   s+=`<rect x="0" y="0" width="300" height="420" fill="none" stroke="${INK}" stroke-width="8"/></svg>`;
   return s;
 }
@@ -7646,6 +7868,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.13.0",d:"2026-10-07",t:"Personal Quarters",items:["Step through the new portal in the Safe Room: Mortimer Plinth, Dungeon Realtor, will sell you a private room of your own for 1,500 gold. Deed Coupons (rare drops from Gold and Celestial boxes, and the weekly #1 prize) get you one free.",
+    "Seven upgrades, each drawn into your room: Bed (heal 10% max HP each morning), Kitchen (+5% XP for the day), Bath (pet never sulks, faster bond), Training Room (+10% XP on one stat), Crafting Studio (fuse 3 spares into something rarer), Quest Screen (more viewers, rematch warnings, episode replays) and Trophy Wall.",
+    "Private by default. Add crewmates to your guest list and they can visit from their Safe Room, admire your trophies and cook in your kitchen."]},
   {v:"2.12.0",d:"2026-10-07",t:"Rival crawlers",items:["The crawlers on the rankings now come after you for your loot: now and then after a quest, or from a new ⚔ ambush room on your map. About two a floor.",
     "Each quest you finish hits them, and they hit back each quest and overnight (never a knockout on their first night). Knock them out for XP, gold and a shot at an item they're wearing. They'll show as KO'd on the rankings.",
     "Don't want the fight? Bribe them, run (boots help), or walk to a shrine on your map.",
@@ -8081,7 +8306,7 @@ function myCard(){
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
     wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy}:null,
-    rvDone:player.rvDone||null,as:player.assist||null,sk:mySkulls(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
+    rvDone:player.rvDone||null,as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
