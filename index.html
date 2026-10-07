@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=a4c98a1e0f"></script>
+<script src="firebase-config.js?v=e9f4224437"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2488,6 +2488,7 @@ function openShow(){
           <button class="btn tbtn" type="button" data-p="dodge"><b>Dodge</b><span>No promise. −5% viewers and some jeering.</span></button></div>`);}
     else{ov.innerHTML=frame(st.final);}
     wire();
+    {const q=ov.querySelector(".bubble.tq");if(q)hostSpeak(inv.host,q.textContent);}
   };
   const react=(good)=>{const t=good?spick(r,H.good):spick(r,H.bad);return t;};
   const wire=()=>{
@@ -2501,6 +2502,7 @@ function openShow(){
       SFX.play(good?"coin":"shake");
       ov.querySelector(".tbody").innerHTML=`<div class="bubble tq treact ${good?"good":"bad"}">${esc(react(good))}</div><div class="tsub">${good?(style==="chaotic"?"That clip is already everywhere.":"The audience liked that."):"The audience did not like that."}</div><button class="btn gold" type="button" data-t="next">Next</button>`;
       ov.querySelector(".hype b").style.width=Math.max(4,Math.min(100,50+st.hype*8))+"%";
+      {const q=ov.querySelector(".bubble.treact");if(q)hostSpeak(inv.host,q.textContent);}
       ov.querySelector("[data-t=next]").onclick=()=>{st.step++;draw();};});
     ov.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>finishShow(b.dataset.p));
     ov.querySelectorAll("[data-t=close]").forEach(b=>b.onclick=()=>{ov.classList.add("out");setTimeout(()=>ov.remove(),300);});
@@ -6015,7 +6017,7 @@ function renderSound(){
       <button class="btn ghost sm" type="button" id="sndTest">Play the boss-kill sound</button>
       <div class="muted" style="font-size:12px">Saved on this device. Sounds stay silent until you tap something, and a quiet clock ticks on a floor's last day.</div>
       <label class="sndrow"><input type="checkbox" id="musOn"> Music during episode replays and the talk show</label>
-      ${tts.ok?`<label class="sndrow"><input type="checkbox" id="ttsOn"> Announcer voice: read breaking news aloud</label><div class="muted" style="font-size:12px">Uses your device's built-in voice, so it sounds different on each phone or computer. Also on the 🎙 button in the news ticker.</div>`:""}
+      ${tts.ok?`<label class="sndrow"><input type="checkbox" id="ttsOn"> Voices: read breaking news and talk show hosts aloud</label><div class="muted" style="font-size:12px">Uses your device's built-in voice, so it sounds different on each phone or computer. Also on the 🎙 button in the news ticker.</div>`:""}
       <div id="chatSndCtl"></div>`;
     renderChatSndCtl();
     $("sndOn").onchange=e=>{prefs.sound=e.target.checked;savePrefs();renderSound();if(prefs.sound)SFX.play("coin");};
@@ -6954,11 +6956,20 @@ function ttsVoice(){
   tts.voice=vs.sort((a,b)=>rank(b)-rank(a))[0];return tts.voice;
 }
 if(tts.ok)try{speechSynthesis.onvoiceschanged=()=>{tts.voice=null;};}catch(e){}
-function announce(text,force){
+function announce(text,force,how){
   if(!tts.ok||(!force&&(prefs.tts!==true||prefs.sound===false||document.visibilityState!=="visible")))return;
-  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(text).slice(0,280));const v=ttsVoice();if(v)u.voice=v;
-    u.rate=1.06;u.pitch=.92;u.volume=Math.max(.2,Math.min(1,prefs.vol==null?.6:+prefs.vol));speechSynthesis.speak(u);}catch(e){}
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(text).slice(0,280));const v=how&&how.pref?ttsPick(how.pref):ttsVoice();if(v)u.voice=v;
+    u.rate=how&&how.rate||1.06;u.pitch=how&&how.pitch||.92;u.volume=Math.max(.2,Math.min(1,prefs.vol==null?.6:+prefs.vol));speechSynthesis.speak(u);}catch(e){}
 }
+/* Talk show hosts each get their own voice: the device's built-in voices, picked by name where the device has
+   several, with pitch and speed doing most of the characterisation. Marla & Dex trade lines. */
+const HOST_VOICE={chet:[{pitch:.78,rate:.93,pref:/daniel|guy|ryan|arthur|david|george|male/i}],
+  spill:[{pitch:1.35,rate:1.15,pref:/samantha|zira|jenny|aria|sonia|libby|karen|moira|female|google us english/i},{pitch:.88,rate:1.06,pref:/guy|ryan|daniel|david|tom|male/i}],
+  coach:[{pitch:.6,rate:1.2,pref:/fred|ralph|tom|david|guy|male/i}]};
+let hostTurn=0;
+function ttsPick(re){if(!tts.ok)return null;const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));if(!vs.length)return null;
+  const rank=v=>(re.test(v.name)?5:0)+(/natural|neural|online/i.test(v.name)?3:0)+(v.localService?0:1);return vs.slice().sort((a,b)=>rank(b)-rank(a))[0];}
+function hostSpeak(host,text){const vs=HOST_VOICE[host]||HOST_VOICE.chet;announce(text,false,vs[(hostTurn++)%vs.length]);}
 function renderTtsBtn(){const b=$("ttsBtn");if(!b)return;if(!tts.ok){b.hidden=true;return;}const on=prefs.tts===true;
   b.textContent=on?"🎙":"🎙";b.classList.toggle("on",on);b.title=on?"Announcer on: breaking news is read aloud. Tap to turn off":"Turn on the announcer: read breaking news aloud";b.setAttribute("aria-pressed",String(on));}
 
