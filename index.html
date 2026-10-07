@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=4c8f66bb69"></script>
-<script>window.CRAWL_BUILD="4c8f66bb69";</script>
+<script src="firebase-config.js?v=7b85cca004"></script>
+<script>window.CRAWL_BUILD="7b85cca004";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2313,8 +2313,27 @@ const QUIPS = {
   god:["{name} has pledged themselves to {god}. The sponsor's stock is up two percent.","{god} has a new worshipper: {name}. Terms and conditions were not read.","Breaking: {name} kneels before {god}. Somewhere, a marketing team high-fives."],
   stairwell:["Final day on Floor {floor}. The stairwell closes at midnight. {boss} is still standing.","Tick tock. The Floor {floor} stairwell shuts tonight and {boss} knows it."],
   item:["New gear! Try not to trip over it.","Fresh loot. The fashion critics in chat have opinions."],
-  welcome:["Oh, you're back. The audience had started a betting pool.","Welcome back, {name}. The quests didn't do themselves. We checked.",
-    "And we're live! {name} has entered the dungeon. Try to look busy."],
+  // Welcomes always address you as "crawler", never by name
+  welcome:["Welcome back, crawler. The quests didn't do themselves. We checked.",
+    "Oh, you're back, crawler. The audience had started a betting pool.",
+    "And we're live! Welcome back, crawler. Try to look busy.",
+    "Welcome back, crawler. Your quests missed you. Not in a nice way.",
+    "Welcome back, crawler. Please keep your hands, feet and excuses inside the dungeon at all times.",
+    "Welcome back, crawler. The dungeon has been rearranged in your absence. Not really. We just like watching you check.",
+    "Look who crawled back. Welcome, crawler. The cameras never stopped rolling.",
+    "Welcome back, crawler. The mobs have been practicing. You should too.",
+    "Welcome back, crawler. Your rivals were hoping you'd stay gone.",
+    "Welcome back, crawler. Hydrate, stretch, and try not to die on camera. Dying off camera is worse for ratings.",
+    "Welcome back, crawler. Your loot is exactly where you left it. Probably. Somebody did ask about it.",
+    "Welcome back, crawler. The stairwell clock didn't stop while you were gone. It never does.",
+    "There you are, crawler. The audience was about to switch to the cooking channel.",
+    "Welcome back, crawler. We saved your seat. It's a rock. It's a nice rock.",
+    "Welcome back, crawler. Remember: every quest you finish is one the dungeon can't use against you.",
+    "Welcome back, crawler. The sponsors are watching. Smile. No, not like that.",
+    "Welcome back, crawler. Your pet has been staring at the door the whole time. It's fine. It's totally fine.",
+    "Welcome back, crawler. Today's forecast: quests, with a chance of glory and a strong chance of paperwork.",
+    "Welcome back, crawler. Chat is already typing. Brace yourself.",
+    "Welcome back, crawler. Let's make this one count. Or at least make it entertaining."],
   idle:["It's {time} and you've finished nothing today. Bold strategy. Let's see if it pays off."],
   reward:["{name} cashes in for a real-world prize. Treat yourself. Allegedly, you earned it."]};
 const SPONSORS = ["This floor is brought to you by Cold Coffee. It was hot when you started that task.",
