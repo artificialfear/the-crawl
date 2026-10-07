@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=6458f87d38"></script>
-<script>window.CRAWL_BUILD="6458f87d38";</script>
+<script src="firebase-config.js?v=f873a04414"></script>
+<script>window.CRAWL_BUILD="f873a04414";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1237,6 +1237,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .pt-stand li.me b{color:var(--gold)}
 .ps-pos{text-align:center;font-weight:700}.ps-dot{width:10px;height:10px;border-radius:50%;border:1px solid #111}
 .pt-stand i{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--blood),var(--gold));justify-self:start}
+.pt-stand li.pend{opacity:.75}.pt-stand li.pend .ps-why{grid-column:4 / -1;font-size:12px}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -3318,15 +3319,19 @@ function standings(){
   const rv=rivalBoard(b),me={n:player.name,c:"You",score:b.total||0,me:true};
   const list=rv.filter(x=>!x.dead).concat(me).sort((a,c)=>c.score-a.score||(a.me?1:c.me?-1:0));
   // Crewmates show up on the board for bragging rights; rewards (rank) still count the invented rivals only.
-  let crew=[];try{crew=crewRanks(b.week).filter(x=>!x.me).map(x=>({n:x.n,c:`👥 Party · Floor ${x.f||1}`,score:x.s,crew:true,col:x.col}));}catch(e){}
+  let crew=[];try{crew=crewRanks(b.week).filter(x=>!x.me&&!x.pending).map(x=>({n:x.n,c:`👥 Party · Floor ${x.f||1}`,score:x.s,crew:true,col:x.col}));}catch(e){}
   const shown=list.concat(crew).sort((a,c)=>c.score-a.score||(a.me?1:c.me?-1:0));
   return {list,shown,dead:rv.filter(x=>x.dead),rank:list.indexOf(me)+1,of:list.length,srank:shown.indexOf(me)+1,crew:crew.length};
 }
 /* This week's boss damage for everyone in your party (from their cards), you included. */
 function crewRanks(wk){
   if(!party||!party.cards)return [];const me=myUid();
-  return partyMembers().map(uid=>{const c=uid===me?myCard():party.cards[uid];if(!c||!c.rk||c.rk.wk!==wk)return null;
-    return {uid,me:uid===me,n:uid===me?"You":c.name||"Crawler",s:c.rk.s||0,f:c.rk.f,col:rfColor(uid)};}).filter(Boolean).sort((a,b)=>b.s-a.s);
+  return partyMembers().map(uid=>{const c=uid===me?myCard():party.cards[uid];if(!c)return null;
+    const base={uid,me:uid===me,n:uid===me?"You":c.name||"Crawler",col:rfColor(uid),f:c.floor};
+    // No score yet: they haven't opened the latest version, or haven't played since this week's floor opened.
+    if(!c.rk)return Object.assign(base,{s:0,pending:"old"});
+    if(c.rk.wk!==wk)return Object.assign(base,{s:0,pending:"idle"});
+    return Object.assign(base,{s:c.rk.s||0,f:c.rk.f});}).filter(Boolean).sort((a,b)=>(a.pending?1:0)-(b.pending?1:0)||b.s-a.s);
 }
 function checkRank(){
   const st=standings();if(!st)return {ch:false,evs:[]};
@@ -7096,6 +7101,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.6.1",d:"2026-10-07",t:"Standings fix",items:["This week's standings now lists your whole crew, and says who still needs to open the latest version (or hasn't played yet this week) instead of hiding them."]},
   {v:"2.6.0",d:"2026-10-07",t:"Friendly competition",items:[
     "Your crewmates now appear on your Crawler rankings (Show tab) with a 👥 tag, scored by their real boss damage this week.",
     "Prizes for the top 10 and #1 still only count the rival crawlers, so a friend can't cost you a reward.",
@@ -7951,8 +7957,9 @@ function renderParty(){
           return ch.length?`<div class="pt-charge">⚡ Charge waiting: ${ch.map(x=>`${esc(x.uid===me?"You":x.c.name||"Crawler")} <b>${x.c.chg}</b>`).join(" · ")}</div>`:"";})():""}
       </div></div>
     ${raidFloorHTML()}
-    ${(()=>{const cr=crewRanks(weekOf(td));if(cr.length<2)return "";const top=cr[0].s;
-      return `<div class="label" style="margin-top:14px">This week's standings</div><ol class="pt-stand">${cr.map((x,i)=>`<li class="${x.me?"me":""}"><span class="ps-pos">${i===0&&x.s>0?"👑":"#"+(i+1)}</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}</b><span class="muted">Floor ${x.f||1}</span><i style="width:${top?Math.max(3,Math.round(x.s/top*100)):3}%"></i><span class="num">${x.s.toLocaleString()}</span></li>`).join("")}</ol>
+    ${(()=>{const cr=crewRanks(weekOf(td));if(cr.length<2)return "";const top=Math.max(0,...cr.filter(x=>!x.pending).map(x=>x.s));
+      return `<div class="label" style="margin-top:14px">This week's standings</div><ol class="pt-stand">${cr.map((x,i)=>x.pending?`<li class="pend"><span class="ps-pos">–</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}</b><span class="muted ps-why">${x.pending==="old"?"Needs to open the latest version":"Hasn't played this week yet"}</span></li>`
+        :`<li class="${x.me?"me":""}"><span class="ps-pos">${i===0&&x.s>0?"👑":"#"+(i+1)}</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}</b><span class="muted">Floor ${x.f||1}</span><i style="width:${top?Math.max(3,Math.round(x.s/top*100)):3}%"></i><span class="num">${x.s.toLocaleString()}</span></li>`).join("")}</ol>
         <div class="muted" style="font-size:12px">Boss damage on this week's floor. Crewmates also appear on your Crawler rankings in the Show tab.</div>`;})()}
     <div class="label" style="margin-top:14px">Crew</div>
     <div class="pt-roster">${roster}</div>
