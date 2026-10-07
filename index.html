@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=f46259ecba"></script>
-<script>window.CRAWL_BUILD="f46259ecba";</script>
+<script src="firebase-config.js?v=808917d86c"></script>
+<script>window.CRAWL_BUILD="808917d86c";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -88,13 +88,14 @@ h2::after{content:"";display:block;height:3px;margin-top:8px;background:linear-g
 .invtorch .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flicker 1.3s ease-in-out infinite}
 .tiers{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:11px;color:#e8e2f6}
 .tiers i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid #111}
-.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor ring" ". trinket gloves";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
+.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor side" ". trinket .";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
 /* No side padding or column gap: each side slot centres between the panel edge and the body slot, so the spacing is even */
 .doll .sil{position:absolute;left:50%;top:8px;height:calc(100% - 16px);transform:translateX(-50%);fill:#0d0a18;opacity:.85;pointer-events:none}
 .dslot{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:1}
 .ds-trinket{grid-area:trinket}.ds-trinket .invcell{width:50px;height:50px}
-.ds-gloves{grid-area:gloves}.ds-gloves .invcell{width:52px;height:52px}
-.ds-head{grid-area:head}.ds-cape{grid-area:cape}.ds-weapon{grid-area:weapon}.ds-armor{grid-area:armor}.ds-ring{grid-area:ring}
+.ds-side{grid-area:side;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;margin-top:2px}
+.ds-side .dslot{margin-top:0}.ds-gloves .invcell{width:46px;height:46px}
+.ds-head{grid-area:head}.ds-cape{grid-area:cape}.ds-weapon{grid-area:weapon}.ds-armor{grid-area:armor}
 .ds-ring,.ds-weapon,.ds-armor{margin-top:2px}
 .dlabel{display:block;width:100%;text-align:center;padding-left:.12em;box-sizing:border-box;line-height:1.2;white-space:nowrap;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#f1ebff;text-shadow:0 1px 2px #000,0 0 6px #000}
 /* Slot sizes follow the gear: tall body, tall-ish weapon, square head and back, tiny ring */
@@ -6254,7 +6255,7 @@ function renderInv(){
   const slotCell=slot=>{const it=ITEMS.find(x=>x.id===w[slot]);
     return `<div class="dslot ds-${slot}"><span class="dlabel">${SLOT_NAME[slot]}</span>${it?invCell(it,true,slot==="weapon"?"weapon":slot==="armor"?"armor":false):`<button type="button" class="invcell invempty" data-invslot="${slot}" aria-label="Empty ${SLOT_NAME[slot]} slot"><span>${SLOT_NAME[slot]}</span></button>`}</div>`;};
   el.style.setProperty("--brick",BRICK_TILE);
-  const doll=`<div class="doll">${invTorch("l")}${invTorch("r")}<svg class="sil" viewBox="0 0 100 160" aria-hidden="true"><circle cx="50" cy="22" r="15"/><path d="M28 42 Q50 34 72 42 L82 92 L72 94 L68 62 L68 100 L64 152 L53 152 L50 108 L47 152 L36 152 L32 100 L32 62 L28 94 L18 92 Z"/></svg>${["head","cape","weapon","armor","ring","gloves","trinket"].map(slotCell).join("")}</div>`;
+  const doll=`<div class="doll">${invTorch("l")}${invTorch("r")}<svg class="sil" viewBox="0 0 100 160" aria-hidden="true"><circle cx="50" cy="22" r="15"/><path d="M28 42 Q50 34 72 42 L82 92 L72 94 L68 62 L68 100 L64 152 L53 152 L50 108 L47 152 L36 152 L32 100 L32 62 L28 94 L18 92 Z"/></svg>${["head","cape","weapon","armor"].map(slotCell).join("")}<div class="ds-side">${slotCell("ring")+slotCell("gloves")}</div>${slotCell("trinket")}</div>`;
   const gx=gearFx(p),xpB=XP_SLOTS.reduce((s,sl)=>{const b=bestOwned(p,sl);return s+(b?b.bonus:0);},0)+gx.xp;
   const cut=armorCut(p),rcut=rawCut(p);
   const tot=[xpB?`+${pct(xpB)}% XP`:"",gx.gold?`+${pct(gx.gold)}% gold`:"",gx.dmg?`+${pct(gx.dmg)}% boss damage`:"",cut?`overdue damage −${pct(cut)}%${rcut>cut+.005?` (soft cap; ${pct(rcut)}% raw)`:""}`:"",gx.hp?`+${gx.hp} max HP`:"",gx.win?`accuracy +${pct(gx.win)}%`:""].filter(Boolean);
@@ -7074,6 +7075,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.4.2",d:"2026-10-07",t:"Inventory tidy-up",items:["The Ring and Hands slots now stack together on the right, level with your body armour."]},
   {v:"2.4.1",d:"2026-10-07",t:"Inventory tidy-up",items:["The Hands slot now sits on the right side of the inventory, under your ring."]},
   {v:"2.4.0",d:"2026-10-07",t:"Update alerts",items:["When a new version of The Crawl goes live while you have it open, a pop-up asks you to refresh so you're never playing an old version. Later snoozes it for 30 minutes."]},
   {v:"2.3.0",d:"2026-10-07",t:"Trade from the Party tab",items:[
