@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=82dbbe623c"></script>
-<script>window.CRAWL_BUILD="82dbbe623c";</script>
+<script src="firebase-config.js?v=622e429122"></script>
+<script>window.CRAWL_BUILD="622e429122";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1257,7 +1257,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .crate .cr-glow{animation:crglow .5s ease-in-out infinite alternate}
 @keyframes crglow{from{opacity:.55}to{opacity:1}}
 .crate .cr-tw{animation:crglow .9s ease-in-out infinite alternate}
-.crate .cr-lid{transform-box:fill-box;transform-origin:100% 100%}
+.crate .cr-lid{transform-box:fill-box;transform-origin:50% 100%}
 .crate .cr-beams{opacity:0;transform-box:fill-box;transform-origin:50% 100%}
 .crate .cr-flash{opacity:0;transform-box:fill-box;transform-origin:50% 50%;pointer-events:none}
 .cratestage.open .crate{animation:crpop .9s ease-out forwards}
@@ -1265,7 +1265,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .cratestage.open .cr-beams{animation:crbeams .9s ease-out forwards}
 .cratestage.open .cr-flash{animation:crflash .9s ease-out forwards}
 .cratestage.open .cr-glow{animation:none;opacity:1}
-@keyframes lidopen{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(16px,-30px) rotate(16deg)}}
+@keyframes lidopen{0%{transform:translate(0,0) scale(1)}60%{transform:translate(0,-42px) scale(1.04)}100%{transform:translate(0,-36px) scale(1.02)}}
 @keyframes crbeams{0%{opacity:0;transform:scaleY(.15) scaleX(.6)}35%{opacity:1}100%{opacity:1;transform:scaleY(1.15) scaleX(1.1) rotate(4deg)}}
 @keyframes crflash{0%{opacity:0;transform:scale(.3)}55%{opacity:0}75%{opacity:1;transform:scale(1.6)}100%{opacity:0;transform:scale(2.4)}}
 @keyframes crpop{0%{transform:scale(1)}20%{transform:scale(1.08,.94)}45%{transform:scale(.97,1.04)}100%{transform:scale(1)}}
@@ -4251,28 +4251,26 @@ function crateSVG(tier){
   return `<svg class="crate" viewBox="0 0 200 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
 <linearGradient id="${u}r" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".45" stop-color="${C.s}" stop-opacity=".55"/><stop offset="1" stop-color="${C.s}" stop-opacity="0"/></linearGradient>
 <radialGradient id="${u}f"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${C.s}" stop-opacity=".8"/><stop offset="1" stop-color="${C.s}" stop-opacity="0"/></radialGradient></defs>
-<ellipse cx="102" cy="176" rx="74" ry="9" fill="#000" opacity=".45"/>
+<ellipse cx="100" cy="176" rx="74" ry="9" fill="#000" opacity=".45"/>
 <g class="cr-beams">${rays}<ellipse cx="100" cy="98" rx="70" ry="22" fill="url(#${u}f)"/></g>
 <g class="cr-body">
-  ${P("M30 100 L170 100 L182 92 L184 156 L172 168 L42 168 L30 158 Z",C.d)}
-  ${P("M30 100 L160 100 L160 166 L42 168 L30 158 Z",C.b)}
-  ${P("M160 100 L182 92 L184 156 L172 168 L160 166 Z",C.d)}
-  ${P("M38 110 L66 110 L66 152 L46 154 L38 148 Z",C.p,' opacity=".9"')}${P("M124 110 L152 110 L152 148 L144 154 L124 152 Z",C.p,' opacity=".9"')}
-  ${P("M88 100 L112 100 L112 166 L88 167 Z",K)}
-  ${P("M165 112 L178 106 L178 134 L165 140 Z",C.p,' opacity=".75"')}
-  <path d="M34 162 L160 160" stroke="${C.l}" stroke-width="2" opacity=".5"/>
+  ${P("M30 100 L170 100 L170 156 L158 168 L42 168 L30 156 Z",C.b)}
+  ${P("M30 100 L40 100 L40 167 L42 168 L30 156 Z",C.d)}${P("M170 100 L160 100 L160 167 L158 168 L170 156 Z",C.d)}
+  ${P("M46 110 L74 110 L74 152 L54 154 L46 148 Z",C.p,' opacity=".9"')}${P("M154 110 L126 110 L126 152 L146 154 L154 148 Z",C.p,' opacity=".9"')}
+  ${P("M88 100 L112 100 L112 167 L88 167 Z",K)}
+  <path d="M42 162 L158 162" stroke="${C.l}" stroke-width="2" opacity=".5"/>
   ${stars}
-  <g class="cr-glow"><rect x="70" y="118" width="12" height="4" rx="1" fill="${C.s}"/><rect x="70" y="126" width="12" height="4" rx="1" fill="${C.s}"/><rect x="118" y="118" width="12" height="4" rx="1" fill="${C.s}"/><rect x="118" y="126" width="12" height="4" rx="1" fill="${C.s}"/></g>
+  <g class="cr-glow"><rect x="76" y="118" width="8" height="4" rx="1" fill="${C.s}"/><rect x="76" y="126" width="8" height="4" rx="1" fill="${C.s}"/><rect x="116" y="118" width="8" height="4" rx="1" fill="${C.s}"/><rect x="116" y="126" width="8" height="4" rx="1" fill="${C.s}"/></g>
   ${P("M78 98 L122 98 L116 140 L100 152 L84 140 Z",G)}${P("M88 106 L112 106 L100 136 Z",C.p)}<path d="M80 100 L120 100" stroke="${GL}" stroke-width="2"/>
 </g>
 <g class="cr-lid">
-  ${P("M38 58 L58 44 L162 44 L182 56 L182 92 L170 100 L30 100 L26 92 L26 70 Z",C.b)}
-  ${P("M38 58 L58 44 L162 44 L182 56 L170 66 L46 68 Z",C.l)}
-  ${P("M160 66 L182 56 L182 92 L170 100 L160 100 Z",C.d)}
-  ${P("M84 44 L116 44 L118 67 L82 68 Z",K)}${P("M82 68 L118 67 L118 100 L82 100 Z",K)}
-  <g class="cr-glow"><rect x="40" y="78" width="16" height="4" rx="1" fill="${C.s}"/><rect x="40" y="86" width="16" height="4" rx="1" fill="${C.s}"/><rect x="138" y="76" width="14" height="4" rx="1" fill="${C.s}"/><rect x="166" y="70" width="10" height="3.4" rx="1" fill="${C.s}"/><rect x="166" y="78" width="10" height="3.4" rx="1" fill="${C.s}"/></g>
-  <path d="M46 66 L160 64" stroke="#fff" stroke-width="2" opacity=".35"/>
-  ${tier==="celestial"?`<path d="M60 52 L150 52" stroke="${C.s}" stroke-width="3" opacity=".8"/>`:""}
+  ${P("M24 70 L40 56 L58 44 L142 44 L160 56 L176 70 L176 92 L168 100 L32 100 L24 92 Z",C.b)}
+  ${P("M40 56 L58 44 L142 44 L160 56 L150 66 L50 66 Z",C.l)}
+  ${P("M24 70 L40 56 L50 66 L36 72 L36 100 L32 100 L24 92 Z",C.d)}${P("M176 70 L160 56 L150 66 L164 72 L164 100 L168 100 L176 92 Z",C.d)}
+  ${P("M84 44 L116 44 L116 66 L84 66 Z",K)}${P("M84 66 L116 66 L116 100 L84 100 Z",K)}
+  <g class="cr-glow"><rect x="44" y="78" width="18" height="4" rx="1" fill="${C.s}"/><rect x="44" y="86" width="18" height="4" rx="1" fill="${C.s}"/><rect x="138" y="78" width="18" height="4" rx="1" fill="${C.s}"/><rect x="138" y="86" width="18" height="4" rx="1" fill="${C.s}"/></g>
+  <path d="M52 64 L148 64" stroke="#fff" stroke-width="2" opacity=".35"/>
+  ${tier==="celestial"?`<path d="M64 52 L136 52" stroke="${C.s}" stroke-width="3" opacity=".8"/>`:""}
 </g>
 <circle class="cr-flash" cx="100" cy="98" r="90" fill="url(#${u}f)"/>
 </svg>`;
@@ -7271,6 +7269,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.10.1",d:"2026-10-07",t:"Crate polish",items:["Loot crates are now perfectly symmetrical, and the lid lifts straight up when it bursts open."]},
   {v:"2.10.0",d:"2026-10-07",t:"New loot crates",items:["Opening a box now shows a chunky sci-fi crate in the box's colour (bronze, silver, gold, crimson Legendary, starry Celestial) that rattles, bursts its lid open and pours out light before your prize appears."]},
   {v:"2.9.0",d:"2026-10-07",t:"Tidier quest board",items:["Your quests are now split into two groups you can fold away: 🔁 Repeating and 📜 One-off. Each shows how many are due today and the XP waiting. Upcoming repeats live inside the Repeating group.",
     "Overdue quests stay at the top, always open, so nothing rotting gets hidden."]},
