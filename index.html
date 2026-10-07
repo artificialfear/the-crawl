@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=a63fd69f6d"></script>
-<script>window.CRAWL_BUILD="a63fd69f6d";</script>
+<script src="firebase-config.js?v=e03e150be5"></script>
+<script>window.CRAWL_BUILD="e03e150be5";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2562,6 +2562,7 @@ function ensureBoss(){
     if(!player.created)player.created=Date.now();
     b.theme=legacy&&legacy.theme?legacy.theme:themeFor(floor);
     spawnTier(b,0);player.boss=b;player.bossCount=floor;changed=true;
+    if(!b.hunt&&playerExists)setTimeout(bossAppear,1200); // a new floor's first boss steps out (hunt floors hide theirs on the map)
   }
   return changed;
 }
@@ -2642,6 +2643,7 @@ function lootToast(l){
   const after=()=>{
     if(done)return;done=true;
     ui.mapDrop=null;
+    if(nb&&!nb.defeated&&!hunting(nb))setTimeout(bossAppear,500); // the next boss on the ladder steps up
     if(ui.celestialNote){const f=ui.celestialNote;ui.celestialNote=null;setTimeout(()=>{SFX.play("reveal","magical");toast(`<span class="big">A Celestial Box</span> The ceiling of Floor ${f} cracked open and something from the stars landed at your feet. It's in your Inventory.`,"lvl");},1400);}
     toast(`<span class="big">${esc(t.n)} defeated</span> ${esc(boxText)} ${boxes.length>1?"are":"is"} waiting in your loot boxes.`,"lvl",()=>goBoxes(),"To the Safe Room");
     if(nb&&!nb.defeated&&!hunting(nb))setTimeout(()=>say("next",{boss:nb.name,tier:TIERS[nb.tier].n}),1200);
@@ -5297,7 +5299,7 @@ function completeQuest(id,actual,touched){
   let mobMsgs=[];try{mobMsgs=mobFight(fx,t);}catch(e){console.error("mobs",e);}
   let rvMsgs=[];try{rvMsgs=rivalStep(fx,t);const a=rivalAssist(fx);if(a)rvMsgs.push(a);}catch(e){console.error("rival",e);}
   if(ui.ambush){const a=ui.ambush;ui.ambush=null;
-    setTimeout(()=>{SFX.play("hurt");toast(`<span class="big">Ambush!</span> You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?` It blocks the corridor until it falls.`:""}`,"lvl");},500);
+    setTimeout(()=>{bossAppear();toast(`<span class="big">Ambush!</span> You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?` It blocks the corridor until it falls.`:""}`,"lvl");},500);
     mapMsgs=mapMsgs.filter(x=>!/lair!|The stairwell!/.test(x));}
   player.stats[t.stat]=(player.stats[t.stat]||0)+fx;
   const after=levelInfo(player.xp).L;
@@ -5649,6 +5651,9 @@ function buy(itemId){
 }
 /* Each gear slot has its own equip sound (sfx/equip-<slot>.mp3); anywhere the clips can't play uses the synth. */
 const EQUIP_SND={weapon:.85,armor:.9,head:.9,gloves:1,boots:.9,cape:.9,ring:.85,trinket:.85};
+/* A boss shows up: one of five recorded stings at random, never the same one twice in a row. */
+let bossSting=0;
+function bossAppear(){let n;do{n=1+Math.floor(Math.random()*5);}while(n===bossSting);bossSting=n;if(!clip("boss-appear-"+n,.85))SFX.play("hurt");}
 /* Tapping a piece of gear to look at it (not equipping it, which has its own per-slot sounds). */
 function selectSound(){if(!clip("select-gear",.8))SFX.play("tick");}
 function equipSound(slot){if(!(EQUIP_SND[slot]&&clip("equip-"+slot,EQUIP_SND[slot])))SFX.play("equip");}
