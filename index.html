@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=f70f6ba28b"></script>
-<script>window.CRAWL_BUILD="f70f6ba28b";</script>
+<script src="firebase-config.js?v=5a3005d946"></script>
+<script>window.CRAWL_BUILD="5a3005d946";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -7925,6 +7925,10 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.14.0",d:"2026-10-07",t:"Communal Hall",items:["Own quarters? Tap Conjoin in your room and share a Communal Hall with any crewmates who conjoin theirs. Enter it from the Safe Room to see the whole crew together.",
+    "Every upgrade in the hall works for everyone: full strength if you own it, half strength if only a hallmate does. A shared kitchen feeds you +2.5% XP every day with no cooking, and a shared studio fuses 5 spares instead of 3.",
+    "On any day two or more of you finish a quest, everyone in the hall gets +5% XP.",
+    "The hall's Trophy Wall adds up everyone's kills, knockouts and bosses."]},
   {v:"2.13.0",d:"2026-10-07",t:"Personal Quarters",items:["Step through the new portal in the Safe Room: Mortimer Plinth, Dungeon Realtor, will sell you a private room of your own for 1,500 gold. Deed Coupons (rare drops from Gold and Celestial boxes, and the weekly #1 prize) get you one free.",
     "Seven upgrades, each drawn into your room: Bed (heal 10% max HP each morning), Kitchen (+5% XP for the day), Bath (pet never sulks, faster bond), Training Room (+10% XP on one stat), Crafting Studio (fuse 3 spares into something rarer), Quest Screen (more viewers, rematch warnings, episode replays) and Trophy Wall.",
     "Private by default. Add crewmates to your guest list and they can visit from their Safe Room, admire your trophies and cook in your kitchen."]},
