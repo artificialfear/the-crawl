@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=0ac3f50331"></script>
+<script src="firebase-config.js?v=d6b36a7bca"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1201,6 +1201,15 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 @media (max-width:600px){.floorbanner{padding:10px 10px;gap:8px}.fb-ic{font-size:30px}.fb-f{font-size:12px}}
 @media (max-width:860px){.tf-shelf{width:60px}.tf-web{width:90px}.tf-moon{width:56px;height:56px}}
 @media (prefers-reduced-motion:reduce){.themefx *,.floorbanner::after{animation:none!important}}
+.creacts{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.creact{all:unset;cursor:pointer;font-size:12px;line-height:1;padding:3px 6px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line-2);color:var(--fg)}
+.creact.on{border-color:var(--gold);background:rgba(255,210,63,.16)}.creact.static{cursor:default}
+.creact.add{color:var(--muted);opacity:.7}.creact.add:hover,.creact.add:focus-visible{opacity:1;border-color:var(--gold)}
+.creact:focus-visible{outline:2px solid var(--gold)}
+.cpick{display:flex;gap:2px;margin-top:4px;padding:3px 4px;border-radius:999px;background:var(--panel);border:1px solid var(--gold);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.cpick button{all:unset;cursor:pointer;font-size:20px;line-height:1;padding:3px 4px;border-radius:8px;transition:transform .12s}
+.cpick button:hover,.cpick button:focus-visible{transform:scale(1.25);background:var(--panel-2)}
+.cpick button.on{background:rgba(255,210,63,.2)}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -7375,7 +7384,13 @@ function partyListen(code){
     mine.chat=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>a.at-b.at);
     {const me=myUid(),first=!mine.chatIds;mine.chatIds=mine.chatIds||new Set();
       const fresh=mine.chat.filter(m=>!mine.chatIds.has(m.id)&&m.uid!==me);mine.chat.forEach(m=>mine.chatIds.add(m.id));
-      if(!first&&fresh.length)try{chatArrived(fresh);}catch(e){console.warn(e);}}
+      if(!first&&fresh.length)try{chatArrived(fresh);}catch(e){console.warn(e);}
+      const rk=m=>Object.entries(m.reacts||{}).filter(([u])=>u!==me).map(([u,k])=>m.id+"|"+u+"|"+k);
+      const now=new Set([].concat(...mine.chat.filter(m=>m.uid===me).map(rk)));
+      if(mine.reactSeen&&!(ui.tab==="party"&&ui.ptView==="chat")){const nw=[...now].filter(x=>!mine.reactSeen.has(x));
+        if(nw.length){const [id,u,k]=nw[nw.length-1].split("|"),r=REACTS.find(x=>x[0]===k),m=mine.chat.find(x=>x.id===id);
+          if(r&&m)toast(`<b>${esc((cardOf(u)||{}).name||"A crewmate")}</b> reacted ${r[1]} to “${esc(String(m.text).slice(0,60))}”`,"quest",()=>openPartyView("chat"),"Open chat");}}
+      mine.reactSeen=now;}
     if(prefs.chatSeen==null){prefs.chatSeen=Date.now();savePrefs();}
     if(ui.tab==="party"&&ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}
     render();},e=>console.warn("chat",e&&e.code)));
@@ -7409,7 +7424,7 @@ function giftsTick(){
     if(g.to===me&&g.kind==="gift"&&g.status==="open")giftAct(g,"claimed");
     else if(g.from===me&&!g.done&&["accepted","declined"].includes(g.status))giftSettle(g);
     else if(g.to===me&&g.kind==="trade"&&g.status==="open"&&!ui.giftSeen.has(g.id)){ui.giftSeen.add(g.id);
-      const it=itemOf(g.item),w=itemOf(g.want);if(it&&w)setTimeout(()=>toast(`<span class="big">Trade offer</span> ${esc(g.fromName||memberName(g.from))} offers their ${esc(it.n)} for your ${esc(w.n)}.`,"",()=>{setTab("loot");},"See it"),400);}
+      const it=itemOf(g.item),w=itemOf(g.want);if(it&&w)setTimeout(()=>toast(`<span class="big">Trade offer</span> ${esc(g.fromName||memberName(g.from))} offers their ${esc(it.n)} for your ${esc(w.n)}.`,"quest",()=>{setTab("loot");},"See it"),400);}
   }
 }
 async function giftAct(g,status){ // the receiver: claim a gift, or accept / decline a trade
@@ -7423,7 +7438,7 @@ async function giftAct(g,status){ // the receiver: claim a gift, or accept / dec
     const r=receiveItem(g.item);bump("giftsIn");
     coreSnd.reveal(it?it.rar:"rare");
     toast(`<span class="big">${esc(from)} ${status==="claimed"?"sent you a gift":"traded with you"}</span> ${esc(it?it.n:"An item")}${status==="accepted"?` for your ${esc(itemOf(g.want).n)}`:""}${r==="kept"?". It's a spare, so it went in your backpack":typeof r==="number"?`. You already had one, so it sold for ${r} gold`:""}.`,"lvl",r==="new"?()=>{setTab("loot");}:null,r==="new"?"See it":null);
-  }else toast(`You declined ${esc(from)}'s trade.`);
+  }else toast(`You declined ${from}'s trade.`);
   store.savePlayer(player).catch(writeFailed);render();checkAch();
 }
 async function giftSettle(g){ // the sender: the other side answered a trade
@@ -7433,13 +7448,13 @@ async function giftSettle(g){ // the sender: the other side answered a trade
   const it=itemOf(g.item),w=itemOf(g.want),nm=memberName(g.to);
   if(g.status==="accepted"){const r=receiveItem(g.want);coreSnd.reveal(w?w.rar:"rare");bump("trades");
     toast(`<span class="big">Trade done</span> ${esc(nm)} took your ${esc(it.n)} for their ${esc(w.n)}${typeof r==="number"?`. You already had one, so it sold for ${r} gold`:""}.`,"lvl");}
-  else{receiveItem(g.item,true);toast(`${esc(nm)} declined your trade. Your ${esc(it.n)} is back in your backpack.`);}
+  else{receiveItem(g.item,true);toast(`${nm} declined your trade. Your ${it.n} is back in your backpack.`);}
   store.savePlayer(player).catch(writeFailed);render();checkAch();
 }
 async function giftCancel(id){
   const g=(party&&party.gifts||[]).find(x=>x.id===id);if(!g||g.from!==myUid()||g.status!=="open"||giftBusy(id))return;setBusy(id,true);
   try{await giftRef(id).update({status:"cancelled",done:true});}catch(e){setBusy(id,false);toast("Couldn't cancel: they may have just answered it.","bad");render();return;}
-  setBusy(id,false);markGifted(id);receiveItem(g.item,true);store.savePlayer(player).catch(writeFailed);render();toast(`Offer cancelled. Your ${esc(itemOf(g.item).n)} is back.`);
+  setBusy(id,false);markGifted(id);receiveItem(g.item,true);store.savePlayer(player).catch(writeFailed);render();toast(`Offer cancelled. Your ${itemOf(g.item).n} is back.`);
 }
 async function giftSend(id,to,want){
   if(!party||!fb)return;const it=itemOf(id);if(!it||!partyMembers().includes(to)||to===myUid())return;
@@ -7449,8 +7464,8 @@ async function giftSend(id,to,want){
   const doc={from:myUid(),fromName:String(player.name||"Crawler").slice(0,40),to,item:id,want:want||null,kind:want?"trade":"gift",status:"open",at:Date.now()};
   try{await giftRef(gid).set(doc);}catch(e){receiveItem(id,true);store.savePlayer(player).catch(writeFailed);render();toast("Couldn't send that. It's back in your backpack.","bad");console.warn("gift send",e&&e.code);return;}
   const nm=memberName(to);
-  if(!want){bump("giftsOut");partyPost("gift",`gave ${nm} a ${RARITY[it.rar].n} item: ${it.n}`);toast(`Sent your ${esc(it.n)} to ${esc(nm)}.`);}
-  else toast(`Trade offer sent to ${esc(nm)}: your ${esc(it.n)} for their ${esc(itemOf(want).n)}.`);
+  if(!want){bump("giftsOut");partyPost("gift",`gave ${nm} a ${RARITY[it.rar].n} item: ${it.n}`);toast(`Sent your ${it.n} to ${nm}.`);}
+  else toast(`Trade offer sent to ${nm}: your ${it.n} for their ${itemOf(want).n}.`);
   checkAch();
 }
 /* Open offers, shown above the backpack. */
@@ -7721,6 +7736,8 @@ function renderParty(){
     $("ptChatIn").oninput=e=>{ui.chatDraft=e.target.value;};
     $("ptChatForm").onsubmit=e=>{e.preventDefault();ui.chatDraft=$("ptChatIn").value;partyChatSend();};
     el.querySelectorAll("[data-cdel]").forEach(b=>b.onclick=()=>partyChatDelete(b.dataset.cdel));
+    el.querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>partyChatReact(b.dataset.react,b.dataset.rk));
+    el.querySelectorAll("[data-reactopen]").forEach(b=>b.onclick=()=>{ui.reactOpen=ui.reactOpen===b.dataset.reactopen?null:b.dataset.reactopen;render();});
     wireNotifyCtl();updateTitle();
     if(cu&&ui.tab==="party"){prefs.chatSeen=Date.now();savePrefs();}
     return;
@@ -7918,13 +7935,32 @@ function partyChatSend(){
 }
 function partyChatDelete(id){if(!party||!fb)return;party.chat=(party.chat||[]).filter(m=>m.id!==id);render();
   fb.fs.doc(`parties/${party.code}/chat/${id}`).delete().catch(e=>console.warn("chat delete",e&&e.code));}
+/* Reactions: each crewmate can leave one small emoji on someone else's message (tap again to take it back). */
+const REACTS=[["like","👍","Like"],["love","❤️","Love"],["shock","😮","Shocked"],["laugh","😂","Laugh"],["cry","😢","Cry"]];
+function partyChatReact(id,kind){
+  if(!party||!fb)return;const m=(party.chat||[]).find(x=>x.id===id),me=myUid();if(!m||m.uid===me||m.pending||!REACTS.some(r=>r[0]===kind))return;
+  const on=(m.reacts||{})[me]!==kind;
+  m.reacts=Object.assign({},m.reacts||{});if(on)m.reacts[me]=kind;else delete m.reacts[me];ui.reactOpen=null;render();
+  fb.fs.doc(`parties/${party.code}/chat/${id}`).update({["reacts."+me]:on?kind:firebase.firestore.FieldValue.delete()}).catch(e=>{console.warn("react",e&&e.code);toast("That reaction didn't stick. Try again.","bad");});
+  if(on){bump("reacts");SFX.play("tick");checkAch();store.savePlayer(player).catch(writeFailed);}
+}
+function reactRow(m,me){
+  const rs=m.reacts||{},mineK=rs[me],mine=m.uid===me;
+  const chips=REACTS.map(([k,e,n])=>{const who=Object.keys(rs).filter(u=>rs[u]===k);if(!who.length)return "";
+    const names=who.map(u=>u===me?"You":(cardOf(u)||{}).name||"Crawler").join(", ");
+    return mine?`<span class="creact static" title="${esc(n)}: ${esc(names)}">${e}${who.length>1?` ${who.length}`:""}</span>`
+      :`<button type="button" class="creact${mineK===k?" on":""}" data-react="${esc(m.id)}" data-rk="${k}" aria-pressed="${mineK===k}" title="${esc(n)}: ${esc(names)}">${e}${who.length>1?` ${who.length}`:""}</button>`;}).join("");
+  const add=!mine&&!m.pending?`<button type="button" class="creact add" data-reactopen="${esc(m.id)}" aria-label="React" aria-expanded="${ui.reactOpen===m.id}" title="React">☺+</button>`:"";
+  const pick=ui.reactOpen===m.id?`<div class="cpick" role="group" aria-label="Pick a reaction">${REACTS.map(([k,e,n])=>`<button type="button" class="${mineK===k?"on":""}" data-react="${esc(m.id)}" data-rk="${k}" aria-label="${n}" title="${n}">${e}</button>`).join("")}</div>`:"";
+  return chips||add||pick?`<div class="creacts">${chips}${add}</div>${pick}`:"";
+}
 function chatUnseen(){if(!party)return 0;const me=myUid(),s=prefs.chatSeen||0;return (party.chat||[]).filter(m=>m.uid!==me&&m.at>s).length;}
 function chatHTML(){
   const me=myUid(),msgs=(party.chat||[]).slice(-60);
   const body=msgs.map((m,i)=>{const mine=m.uid===me,prev=msgs[i-1],same=prev&&prev.uid===m.uid&&m.at-prev.at<5*6e4;
     const t=new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
     return `<div class="cmsg${mine?" mine":""}${same?" cont":""}">${same?"":`<div class="cwho" style="color:${rfColor(m.uid)}">${esc(mine?"You":m.name||"Crawler")} <span>${t}</span></div>`}
-      <div class="cbub">${esc(m.text)}${mine&&!m.pending?`<button type="button" class="cdel" data-cdel="${esc(m.id)}" aria-label="Delete message" title="Delete">×</button>`:""}</div></div>`;}).join("")
+      <div class="cbub">${esc(m.text)}${mine&&!m.pending?`<button type="button" class="cdel" data-cdel="${esc(m.id)}" aria-label="Delete message" title="Delete">×</button>`:""}</div>${reactRow(m,me)}</div>`;}).join("")
     ||`<p class="muted cempty">No messages yet. Say hi to your crew.</p>`;
   return `<div class="chatbox" id="chatBox">${body}</div>
     <form class="pt-row chatform" id="ptChatForm" autocomplete="off"><input type="text" id="ptChatIn" maxlength="300" placeholder="Message your party" value="${esc(ui.chatDraft||"")}"><button class="btn gold" type="submit">Send</button></form>

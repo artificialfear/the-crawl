@@ -58,6 +58,13 @@ service cloud.firestore {
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 300;
         allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+        // Reactions: a member may set or clear only their own emoji on someone else's message.
+        allow update: if isMember(code)
+          && resource.data.uid != request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reacts'])
+          && request.resource.data.get('reacts', {}).diff(resource.data.get('reacts', {})).affectedKeys().hasOnly([request.auth.uid])
+          && (!(request.auth.uid in request.resource.data.get('reacts', {}))
+            || request.resource.data.reacts[request.auth.uid] in ['like', 'love', 'shock', 'laugh', 'cry']);
       }
 
       // Gifts and trades: the sender creates an open offer to another member. Only the receiver can
