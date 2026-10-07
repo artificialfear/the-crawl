@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2d47ee622b"></script>
-<script>window.CRAWL_BUILD="2d47ee622b";</script>
+<script src="firebase-config.js?v=64c7b32bfd"></script>
+<script>window.CRAWL_BUILD="64c7b32bfd";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1719,7 +1719,7 @@ const BOSS_TAG = {"Baron Backlog":"Hoarder of unread paperwork","The Inbox Hydra
   "The Rotting Inbox Hydra":"Each head is a thread nobody closed","The Unread":"Rises from everything you marked to read later",
   "Duke Someday, the Stitched Widow":"Half deadline, half later, all teeth","The Clutter Golem, Unburied":"Came back with more stuff"};
 const XP_SLOTS = ["weapon","head","cape"]; // these slots' bonuses add XP; armor's reduces overdue damage
-const SLOTS = [["head","Head","Bare head"],["armor","Body","Ratty T-shirt and jeans"],["weapon","Weapon","Bare fists"],["gloves","Hands","Bare hands"],["boots","Feet","Starter sneakers"],["cape","Back","Nothing"],["ring","Ring","Bare knuckles"],["trinket","Pet trinket","No trinket"]];
+const SLOTS = [["head","Head","Bare head"],["armor","Body","Ratty T-shirt and jeans"],["weapon","Weapon","Bare fists"],["gloves","Hands","Bare hands"],["boots","Feet","Bare feet"],["cape","Back","Nothing"],["ring","Ring","Bare knuckles"],["trinket","Pet trinket","No trinket"]];
 const POTION = {price:25, heal:40};
 /* Consumables: drop from Bronze, Silver and Gold boxes, and the shop sells them. Used deliberately. */
 const CONSUMABLES = {
@@ -3642,7 +3642,7 @@ function lookSection(t){
   const sw=arr=>arr.map(([k,c,n])=>[k,n,c]);
   if(t==="face")return lookRow("Face shape","face",[["m","Square jaw"],["f","Soft features"]])+lookRow("Eyes","eyes",sw(EYEC))+lookRow("Eyebrows","brow",BROWS)+lookRow("Expression","mouth",MOUTHS)+lookRow("Facial hair","beard",BEARDS);
   if(t==="hair")return lookRow("Hair","hair",HAIRS)+lookRow("Hair colour","hc",HAIRC.map(([c,n],i)=>[i,n,c]));
-  if(t==="outfit")return lookRow("Shirt","tee",sw(TEES))+lookRow("Shirt print","print",PRINTS)+lookRow("Pants","pants",sw(PANTSC))+lookRow("Shoes","shoes",sw(SHOEC))
+  if(t==="outfit")return lookRow("Shirt","tee",sw(TEES))+lookRow("Shirt print","print",PRINTS)+lookRow("Pants","pants",sw(PANTSC))
     +`<div class="muted" style="font-size:12px">Your starter outfit shows whenever no armour is equipped.</div>`;
   if(t==="extras")return lookRow("Eyewear","eyewear",EYEWEAR)+lookRow("Earrings","ears",EARS)+lookRow("Scars & marks","marks",MARKS)+lookRow("Face paint","paint",PAINTS);
   return lookRow("Skin","skin",SKINS.map((c,i)=>[i,["Lightest","Light","Medium","Tan","Brown","Deep"][i],c]))+lookRow("Build","body",BODIES);
@@ -5512,7 +5512,7 @@ ${bg&&bg!=="none"?`<rect width="${W}" height="${H}" fill="${bg}"/>`:""}<rect wid
 }
 function avatarSVG(eq){
   /* Comic hero in a torchlit dungeon. Heroic proportions: big head and hands, broad shoulders,
-     thick limbs drawn as outlined tubes. Starts in a ratty T-shirt, jeans and sneakers; gear layers on top. */
+     thick limbs drawn as outlined tubes. Starts in a ratty T-shirt, jeans and bare feet; gear layers on top. */
   const u="av"+(++avUid);
   const HA=`url(#${u}a)`,HB=`url(#${u}b)`,MAIL=`url(#${u}m)`;
   const sh=(d,f,extra)=>`<path d="${d}" fill="${f}"${extra||""}/>`;
@@ -5586,7 +5586,7 @@ function avatarSVG(eq){
   s+=`</g></g>`;
   if(_cI&&_cI.tint)s=s.slice(0,capeAt)+tintStr(s.slice(capeAt),_cI.tint);
 
-  // Legs: jeans tubes, hips, belt, then chunky sneakers
+  // Legs: jeans tubes, hips, belt, then bare feet or boots
   const STANCE=!!weapon&&!ONE_HANDED.has(weapon); // two-handed: feet apart, knees bent
   if(STANCE){
     s+=tube("M136 280 L114 326 L106 364",LEGT,PANTS)+tube("M164 280 L190 326 L196 364",LEGT,PANTS);
@@ -5600,8 +5600,13 @@ function avatarSVG(eq){
   s+=sh(CURVY?"M114 248 L186 248 L196 296 L150 304 L104 296 Z":`M${112-hx} 248 L${188+hx} 248 L${192+hx} 296 L150 304 L${108-hx} 296 Z`,PANTS)+ov(`M${112-hx} 248 L128 248 L124 300 L${108-hx} 296 Z`,HB)+ln("M150 262 L150 300",2,PSEAM);}
   s+=sh("M111 246 L189 246 L190 258 L110 258 Z","#5a3920")+sh("M143 245 L157 245 L157 259 L143 259 Z","#c9cdd6");
   const shoe=(x,dir)=>sh(`M${x-22*dir} 372 Q${x-24*dir} 356 ${x-8*dir} 354 L${x+10*dir} 356 Q${x+30*dir} 364 ${x+30*dir} 376 L${x-22*dir} 376 Z`,SHOE)+sh(`M${x-24*dir} 376 L${x+31*dir} 376 L${x+31*dir} 384 L${x-24*dir} 384 Z`,INK)+ln(`M${x-10*dir} 366 Q${x+6*dir} 360 ${x+20*dir} 368`,4,LK.shoes==="red"?BONE:RED);
+  // Bare feet until the crawler finds boots: a short ankle under the jeans cuff, a foot and four little toes
+  const SKD=darker(SKIN,.78),bare=(x,dir)=>{const lx=x-4*dir;return sh(`M${lx-10} 360 L${lx+10} 360 L${lx+11} 370 L${lx-11} 370 Z`,SKIN)
+    +sh(`M${x-20*dir} 382 Q${x-24*dir} 368 ${x-10*dir} 366 L${x+8*dir} 368 Q${x+26*dir} 372 ${x+28*dir} 380 Q${x+28*dir} 384 ${x+24*dir} 384 L${x-16*dir} 384 Q${x-21*dir} 384 ${x-20*dir} 382 Z`,SKIN)
+    +[0,1,2,3].map(i=>`<ellipse cx="${x+(26-i*5.5)*dir}" cy="${381-i*.6}" rx="${(3.4-i*.4).toFixed(1)}" ry="${(3-i*.3).toFixed(1)}" fill="${SKIN}" stroke="${INK}" stroke-width="1.6"/>`).join("")
+    +ln(`M${x-14*dir} 378 Q${x-6*dir} 380 ${x+2*dir} 378`,1.6,SKD);};
   const _bI=itemOf(eq.boots);
-  s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):STANCE?shoe(102,-1)+shoe(200,1):shoe(124,-1)+shoe(176,1);
+  s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):STANCE?bare(102,-1)+bare(200,1):bare(124,-1)+bare(176,1);
 
   s+=`<g class="upper">`+narrow;
   // Torso
