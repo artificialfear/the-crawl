@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=1d50a25564"></script>
+<script src="firebase-config.js?v=4ef5ec0f78"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1905,7 +1905,7 @@ function recLabel(rec){
 const NEW_CRAWLER="Crawler #"+(1+Math.floor(Math.random()*100000)).toLocaleString("en-US");
 const isDefaultName=n=>!n||n==="Crawler"||/^Crawler #[\d,]+$/.test(n);
 function defaultPlayer(){return {name:NEW_CRAWLER,pets:{},pet:null,eggs:[],boxes:[],ach:{},viewers:0,doneCount:0,onTargetCount:0,opened:0,xp:0,gold:0,hp:BASE_HP,streak:0,lastDoneDate:null,lastTick:today(),owned:[],potions:0,stats:{STR:0,INT:0,CON:0,DEX:0,CHA:0},events:[],rewards:[],samples:[],boss:null,bossCount:0,weekHist:[]};}
-function normPlayer(d){const p=Object.assign(defaultPlayer(),d||{});if(!p.name||p.name==="Crawler")p.name=NEW_CRAWLER;p.stats=Object.assign({STR:0,INT:0,CON:0,DEX:0,CHA:0},p.stats||{});if(p.stats.WIS){p.stats.CON+=p.stats.WIS;}delete p.stats.WIS;p.owned=Array.isArray(p.owned)?p.owned:[];p.events=Array.isArray(p.events)?p.events:[];p.rewards=Array.isArray(p.rewards)?p.rewards:[];p.samples=Array.isArray(p.samples)?p.samples:[];p.weekHist=Array.isArray(p.weekHist)?p.weekHist:[];p.boxes=Array.isArray(p.boxes)?p.boxes:[];p.ach=p.ach&&typeof p.ach==="object"?p.ach:{};p.pets=p.pets&&typeof p.pets==="object"?p.pets:{};p.eggs=Array.isArray(p.eggs)?p.eggs:[];if(p.pet&&!p.pets[p.pet])p.pet=null;return p;}
+function normPlayer(d){const p=Object.assign(defaultPlayer(),d||{});if(p.show&&p.show.pledge&&p.show.pledge.box==="celestial")p.show.pledge.box="gold";if(!p.name||p.name==="Crawler")p.name=NEW_CRAWLER;p.stats=Object.assign({STR:0,INT:0,CON:0,DEX:0,CHA:0},p.stats||{});if(p.stats.WIS){p.stats.CON+=p.stats.WIS;}delete p.stats.WIS;p.owned=Array.isArray(p.owned)?p.owned:[];p.events=Array.isArray(p.events)?p.events:[];p.rewards=Array.isArray(p.rewards)?p.rewards:[];p.samples=Array.isArray(p.samples)?p.samples:[];p.weekHist=Array.isArray(p.weekHist)?p.weekHist:[];p.boxes=Array.isArray(p.boxes)?p.boxes:[];p.ach=p.ach&&typeof p.ach==="object"?p.ach:{};p.pets=p.pets&&typeof p.pets==="object"?p.pets:{};p.eggs=Array.isArray(p.eggs)?p.eggs:[];if(p.pet&&!p.pets[p.pet])p.pet=null;return p;}
 let player=defaultPlayer(), playerExists=false, tasks=[], loadedP=false, loadedT=false, ticked=false;
 let store=null; // backend
 let ui={claiming:null, confirmDel:null, editingName:false, editing:null, addStep:null, menu:null, news:[]};
@@ -2072,7 +2072,7 @@ function applyDamage(dmg){
     player.viewers=(player.viewers||0)+KILL_VIEWERS[b.tier];
     pushEvent(`Floor ${b.floor}: defeated ${b.name}, the ${t.n}, and won a ${BOXES[t.box].n}`);
     if(b.tier>=TIERS.length-1){b.defeated=true;b.defeatedOn=today();b.engaged=false;
-      if(Math.random()<.15){giveBox("celestial",`The stars watched you clear Floor ${b.floor}`);pushEvent(`Floor ${b.floor}: a Celestial Box fell from the ceiling`);ui.celestialNote=b.floor;}}
+      if(Math.random()<.10){giveBox("celestial",`The stars watched you clear Floor ${b.floor}`);pushEvent(`Floor ${b.floor}: a Celestial Box fell from the ceiling`);ui.celestialNote=b.floor;}}
     else{spawnTier(b,b.tier+1);
       if(b.hunt){b.engaged=false;b.charge=(b.charge||0)+dmg;dmg=0;break;} // the next boss is hiding deeper in the floor
     }
@@ -2455,7 +2455,7 @@ function pledgeOffer(cocky){
   const weak=Object.keys(STATS).sort((a,b)=>(player.stats[a]||0)-(player.stats[b]||0))[0];pool.push({kind:"stat",param:weak,need:2+cocky});
   const c=spick(r,pool);return Object.assign({have:0},c);
 }
-function pledgeReward(cond,ante,cocky){const g=Math.round((90+35*cond.need)*(ante?2:1)*(1+.25*cocky));return {gold:g,box:ante?"celestial":"silver"};}
+function pledgeReward(cond,ante,cocky){const g=Math.round((90+35*cond.need)*(ante?2:1)*(1+.25*cocky));return {gold:g,box:ante?"gold":"silver"};} // Celestial Boxes are too rare to promise on a talk show
 
 /* The interview */
 function openShow(){
