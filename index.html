@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=6528830367"></script>
-<script>window.CRAWL_BUILD="6528830367";</script>
+<script src="firebase-config.js?v=836b998f44"></script>
+<script>window.CRAWL_BUILD="836b998f44";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1241,6 +1241,12 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .maproom{cursor:pointer}.maproom:hover{fill:rgba(232,40,60,.08)}
 .mapbt{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px;padding:6px 8px;border:1px dashed #e8283c;border-radius:8px}
 .mapbt-hint{font-size:12px}
+.undobar{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:9500;display:flex;align-items:center;gap:10px;
+  max-width:calc(100vw - 24px);padding:8px 8px 8px 14px;border-radius:999px;background:#1e1533;border:2px solid var(--gold);box-shadow:0 0 0 2px #000,0 8px 24px rgba(0,0,0,.6);overflow:hidden;animation:updin .25s ease-out}
+.undobar .ub-txt{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56vw}
+.undobar .btn{flex:none}
+.ub-time{position:absolute;left:0;bottom:0;height:3px;background:var(--gold);width:100%;animation:ubtime 10s linear forwards}
+@keyframes ubtime{to{width:0}}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -4505,6 +4511,18 @@ function addQuest(q){
   if(!ui.quiet)sayText(addQuip(t));
   render();checkAch();return null;
 }
+/* Undo bar: after each completion, a pill at the top of the screen offers to take it back for 10 seconds.
+   It sits above pop-ups and overlays so it's always reachable. Undo restores the save from just before the
+   quest, so anything else done in those seconds is rolled back too; trades and gifts close the window. */
+let undoTimer=null;
+function clearUndo(){clearTimeout(undoTimer);undoTimer=null;const b=$("undoBar");if(b)b.remove();}
+function offerUndo(title,fn){
+  clearUndo();const el=document.createElement("div");el.id="undoBar";el.className="undobar";el.setAttribute("role","status");
+  el.innerHTML=`<span class="ub-txt">✔ <b>${esc(String(title).slice(0,40))}</b> completed</span><button type="button" class="btn sm" id="undoBtn">Undo</button><i class="ub-time"></i>`;
+  document.body.appendChild(el);
+  $("undoBtn").onclick=()=>{clearUndo();document.querySelectorAll(".victory").forEach(v=>v.remove());fn();SFX.play("tick");toast("Quest restored. Everything from that completion was taken back.");};
+  undoTimer=setTimeout(clearUndo,10000);
+}
 function completeQuest(id,actual,touched){
   const t=tasks.find(x=>x.id===id);if(!t||t.done||isResting(t))return;
   const prevP=JSON.parse(JSON.stringify(player));const prevT=Object.assign({},t);
@@ -4582,7 +4600,8 @@ function completeQuest(id,actual,touched){
     store.saveTask(log).catch(writeFailed);
     store.savePlayer(player).catch(writeFailed);
     render();
-    toast(qhtml(`${head}. Back ${fmtDue(next.due)}.`),"quest",()=>{
+    toast(qhtml(`${head}. Back ${fmtDue(next.due)}.`),"quest");
+    offerUndo(prevT.title,()=>{
       player=prevP;tasks=tasks.filter(x=>x.id!==log.id).map(x=>x.id===id?prevT:x);
       store.deleteTask(log.id).catch(writeFailed);store.saveTask(prevT).catch(writeFailed);store.savePlayer(player).catch(writeFailed);render();
     });
@@ -4592,7 +4611,8 @@ function completeQuest(id,actual,touched){
     store.saveTask(nt).catch(writeFailed);
     store.savePlayer(player).catch(writeFailed);
     render();
-    toast(qhtml(head),"quest",()=>{
+    toast(qhtml(head),"quest");
+    offerUndo(prevT.title,()=>{
       player=prevP;tasks=tasks.map(x=>x.id===id?prevT:x);
       store.saveTask(prevT).catch(writeFailed);store.savePlayer(player).catch(writeFailed);render();
     });
@@ -7170,6 +7190,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.8.1",d:"2026-10-07",t:"Undo",items:["After you complete a quest, an Undo button appears at the top of the screen for 10 seconds, even on top of boss-kill screens. Tap it to put the quest back as if it never happened."]},
   {v:"2.8.0",d:"2026-10-07",t:"One-tap complete",items:["Tapping Complete on a quest finishes it right away at your estimated time. No more confirm step.",
     "Want the accuracy bonus? Use the quest's ⋯ menu → Complete with time taken, and enter how long it really took."]},
   {v:"2.7.1",d:"2026-10-07",t:"Shortcuts",items:["Floors now have up to three shortcut passages (green dotted lines) between rooms that sit side by side. Once you've explored both ends, walking around the floor cuts through them automatically."]},
@@ -7671,7 +7692,7 @@ function giftsTick(){
       const it=itemOf(g.item),w=itemOf(g.want);if(it&&w)setTimeout(()=>toast(`<span class="big">Trade offer</span> ${esc(g.fromName||memberName(g.from))} offers their ${esc(it.n)} for your ${esc(w.n)}.`,"quest",()=>{setTab("loot");},"See it"),400);}
   }
 }
-async function giftAct(g,status){ // the receiver: claim a gift, or accept / decline a trade
+async function giftAct(g,status){clearUndo(); // the receiver: claim a gift, or accept / decline a trade
   if(giftBusy(g.id))return;setBusy(g.id,true);
   if(status==="accepted"&&!hasItem(g.want)){toast("You don't have that item any more, so the trade was declined.","bad");status="declined";}
   try{await giftRef(g.id).update({status});}catch(e){setBusy(g.id,false);console.warn("gift",e&&e.code);if(status!=="claimed")toast("That offer isn't open any more.","bad");render();return;}
@@ -7695,12 +7716,12 @@ async function giftSettle(g){ // the sender: the other side answered a trade
   else{receiveItem(g.item,true);toast(`${nm} declined your trade. Your ${it.n} is back in your backpack.`);}
   store.savePlayer(player).catch(writeFailed);render();checkAch();
 }
-async function giftCancel(id){
+async function giftCancel(id){clearUndo();
   const g=(party&&party.gifts||[]).find(x=>x.id===id);if(!g||g.from!==myUid()||g.status!=="open"||giftBusy(id))return;setBusy(id,true);
   try{await giftRef(id).update({status:"cancelled",done:true});}catch(e){setBusy(id,false);toast("Couldn't cancel: they may have just answered it.","bad");render();return;}
   setBusy(id,false);markGifted(id);receiveItem(g.item,true);store.savePlayer(player).catch(writeFailed);render();toast(`Offer cancelled. Your ${itemOf(g.item).n} is back.`);
 }
-async function giftSend(id,to,want){
+async function giftSend(id,to,want){clearUndo();
   if(!party||!fb)return;const it=itemOf(id);if(!it||!partyMembers().includes(to)||to===myUid())return;
   if(!takeItem(id)){toast("You don't have that item.","bad");return;}
   const gid="g"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
