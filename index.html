@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=eed47baaac"></script>
-<script>window.CRAWL_BUILD="eed47baaac";</script>
+<script src="firebase-config.js?v=78a2f3fd91"></script>
+<script>window.CRAWL_BUILD="78a2f3fd91";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -996,7 +996,17 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .pt-buff{border:1px solid var(--line-2);background:var(--panel-2);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
 .pt-buff.on{border-color:var(--leaf);box-shadow:0 0 0 1px var(--leaf) inset;color:var(--fg)}.pt-buff.on b{color:var(--leaf)}
 .pt-raid{display:grid;grid-template-columns:112px 1fr;gap:24px;align-items:start;border:1px solid var(--line-2);border-radius:12px;padding:10px;background:linear-gradient(160deg,rgba(255,46,110,.10),transparent 60%)}
-.pt-raidart{margin:5px 0 16px 5px}.pt-raidart svg{width:100%;height:auto;display:block}
+.pt-raidart{margin:5px 0 16px 5px;position:relative;cursor:zoom-in}.pt-raidart svg{width:100%;height:auto;display:block}
+.pt-raidart:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.pt-zoom{position:absolute;right:4px;bottom:4px;width:22px;height:22px;display:grid;place-items:center;font-size:14px;line-height:1;border-radius:50%;background:rgba(11,7,19,.8);color:#fff;border:1px solid rgba(255,255,255,.4);pointer-events:none}
+.vstamp.still{opacity:1;animation:none;transform:translate(-50%,-50%) rotate(-12deg) scale(1);z-index:2;pointer-events:none}
+.pt-raidart .vstamp.still{font-size:clamp(14px,5vw,22px);border-width:3px;padding:0 8px}
+.raiddlg .raid-big{position:relative;width:min(300px,80%);margin:0 auto}.raiddlg .raid-big svg{width:100%;height:auto;display:block}
+.raiddlg .raid-big .vstamp.still{font-size:clamp(28px,9vw,44px)}
+.raid-line{font-style:italic;text-align:center;margin:0;color:var(--muted)}
+.raid-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.raid-stats>div{display:grid;gap:2px;padding:8px;border:1px solid var(--line-2);border-radius:8px;background:var(--panel-2);text-align:center}
+.raid-stats b{font-size:14px}
+@media (max-width:480px){.raid-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pt-raidinfo h3{margin:2px 0 2px;font-size:18px}.pt-raidinfo p{margin:0 0 8px;font-size:13px}
 .pt-hp{height:12px;border-radius:6px;background:#000;border:1px solid var(--line-2);overflow:hidden}.pt-hp i{display:block;height:100%;background:linear-gradient(90deg,var(--blood),#ff7a3c);transition:width .6s}
 .pt-hpnum{font-size:13px;margin:4px 0 6px;color:var(--muted)}.pt-hpnum b{color:var(--leaf)}
@@ -8414,6 +8424,29 @@ let partyPubTimer=null,partyLastPub="";
 const avCache=new Map();
 const weekOf=d=>{const x=new Date(d+"T12:00:00");return addDays(d,-((x.getDay()+6)%7));};
 function partyBossFor(wk){let h=7;for(const c of wk)h=(h*31+c.charCodeAt(0))>>>0;return PARTY_BOSSES[h%PARTY_BOSSES.length];}
+/* Tap the raid boss card: a big look at the monster and the week's numbers. */
+function openRaidBoss(){
+  if(!party||!party.doc)return;const me=myUid(),td=today(),wk=weekOf(td),r=raidState(wk),mem=partyMembers();
+  const daysLeft=7-Math.round((new Date(td+"T12:00:00")-new Date(wk+"T12:00:00"))/864e5),left=Math.max(0,r.hp-r.tot),pct=Math.round(left/r.hp*100);
+  const contrib=Object.entries(r.per).filter(([u,v])=>v>0).sort((a,b)=>b[1]-a[1]),maxC=contrib.length?contrib[0][1]:1,storm=stormOn(wk);
+  let o=$("raidWrap");if(!o){o=document.createElement("div");o.id="raidWrap";o.className="gearwrap";document.body.appendChild(o);o.addEventListener("click",e=>{if(e.target===o)o.remove();});}
+  o.innerHTML=`<div class="geardlg inspdlg raiddlg" role="dialog" aria-modal="true" aria-label="${esc(r.boss.n)}">
+    <div class="gearhead"><h2>${esc(r.boss.n)}</h2><button class="btn ghost sm" type="button" id="raidClose">Close</button></div>
+    <div class="raid-big bossart${r.dead?" slain":""}">${bossSVG(r.boss.n,r.dead,{art:r.boss.art,num:"raid"})}${r.dead?`<div class="vstamp still" aria-hidden="true">Slain</div>`:""}</div>
+    <p class="raid-line">“${esc(r.boss.line)}”</p>
+    <div class="pt-hp" role="img" aria-label="${left} of ${r.hp} HP left"><i style="width:${pct}%"></i></div>
+    <div class="raid-stats">
+      <div><span class="label">HP</span><b>${r.dead?"0":left.toLocaleString()} / ${r.hp.toLocaleString()}</b></div>
+      <div><span class="label">Damage dealt</span><b>${Math.min(r.tot,r.hp).toLocaleString()}</b></div>
+      <div><span class="label">${r.dead?"Status":"Time left"}</span><b>${r.dead?"Defeated":`${daysLeft} day${daysLeft===1?"":"s"}`}</b></div>
+      <div><span class="label">Crew</span><b>${mem.length} crawler${mem.length===1?"":"s"}</b></div></div>
+    <div class="muted" style="font-size:12px">${storm?`HP is ${STORM_HP_EACH.toLocaleString()} per crewmate active this week. Damage only lands in the lair at the center of the raid floor; quests on the way store half their damage as Charge. Each crewmate in the lair with you adds +${Math.round(STORM_CREW*100)}% (up to +${Math.round(STORM_CREW_MAX*100)}%).`:"Every quest anyone in the party finishes this week chips at its HP."} Everyone who lands a hit gets a Gold Box when it falls.</div>
+    <div class="label">Damage by crawler</div>
+    ${contrib.length?`<ul class="pt-dmg">${contrib.map(([uid,v])=>{const c=cardOf(uid);return `<li><span>${esc(uid===me?"You":c&&c.name||"Crawler")}</span><i style="width:${Math.max(4,Math.round(v/maxC*100))}%"></i><b>${v.toLocaleString()}</b></li>`;}).join("")}</ul>`:`<p class="muted" style="font-size:13px">No hits yet this week.</p>`}
+  </div>`;
+  $("raidClose").onclick=()=>o.remove();SFX.play("tick");
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){const o=$("raidWrap");if(o)o.remove();}});
 function partyBuffOn(p){p=p||player;return !!(p&&p.party&&p.pbuff&&p.pbuff.d===today()&&p.pbuff.on);}
 function myUid(){return fb&&fb.user?fb.user.uid:null;}
 /* A crawler still using their intake number shows their Google first name alongside it, so friends know who's who. */
@@ -8887,7 +8920,7 @@ function renderParty(){
     </div>${err}
     ${buff}
     <div class="pt-raid">
-      <div class="pt-raidart bossart">${bossSVG(r.boss.n,r.dead,{art:r.boss.art,num:"raid"})}</div>
+      <div class="pt-raidart bossart${r.dead?" slain":""}" id="ptRaidArt" role="button" tabindex="0" aria-label="${esc(r.boss.n)}: tap to enlarge">${bossSVG(r.boss.n,r.dead,{art:r.boss.art,num:"raid"})}${r.dead?`<div class="vstamp still" aria-hidden="true">Slain</div>`:""}<span class="pt-zoom" aria-hidden="true">⤢</span></div>
       <div class="pt-raidinfo"><div class="label">Weekly raid boss</div><h3>${esc(r.boss.n)}</h3><p class="muted">${esc(r.boss.line)}</p>
         <div class="pt-hp" role="img" aria-label="${left} of ${r.hp} HP left"><i style="width:${pct}%"></i></div>
         <div class="pt-hpnum">${r.dead?"<b>Defeated!</b> Everyone who landed a hit gets a Gold Box.":`${left.toLocaleString()} / ${r.hp.toLocaleString()} HP · ${daysLeft} day${daysLeft===1?"":"s"} left`}</div>
@@ -8914,6 +8947,7 @@ function renderParty(){
   el.querySelectorAll("[data-cheer]").forEach(b=>b.onclick=()=>partyCheer(b.dataset.cheer));
   el.querySelectorAll("[data-nudge]").forEach(b=>b.onclick=()=>partyNudge(b.dataset.nudge));
   el.querySelectorAll("[data-rvhelp]").forEach(b=>b.onclick=()=>rivalHelp(b.dataset.rvhelp));
+  {const ra=$("ptRaidArt");if(ra){ra.onclick=openRaidBoss;ra.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openRaidBoss();}};}}
   el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
   el.querySelectorAll("[data-inspect]").forEach(b=>b.onclick=()=>openInspect(b.dataset.inspect));
   el.querySelectorAll("[data-trade]").forEach(b=>b.onclick=()=>openTradeWith(b.dataset.trade,null));
