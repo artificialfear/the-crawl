@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=fe0e0f8dd1"></script>
-<script>window.CRAWL_BUILD="fe0e0f8dd1";</script>
+<script src="firebase-config.js?v=f46259ecba"></script>
+<script>window.CRAWL_BUILD="f46259ecba";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -88,7 +88,7 @@ h2::after{content:"";display:block;height:3px;margin-top:8px;background:linear-g
 .invtorch .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flicker 1.3s ease-in-out infinite}
 .tiers{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:11px;color:#e8e2f6}
 .tiers i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid #111}
-.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor ring" "gloves trinket .";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
+.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor ring" ". trinket gloves";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
 /* No side padding or column gap: each side slot centres between the panel edge and the body slot, so the spacing is even */
 .doll .sil{position:absolute;left:50%;top:8px;height:calc(100% - 16px);transform:translateX(-50%);fill:#0d0a18;opacity:.85;pointer-events:none}
 .dslot{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:1}
@@ -7074,6 +7074,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.4.1",d:"2026-10-07",t:"Inventory tidy-up",items:["The Hands slot now sits on the right side of the inventory, under your ring."]},
   {v:"2.4.0",d:"2026-10-07",t:"Update alerts",items:["When a new version of The Crawl goes live while you have it open, a pop-up asks you to refresh so you're never playing an old version. Later snoozes it for 30 minutes."]},
   {v:"2.3.0",d:"2026-10-07",t:"Trade from the Party tab",items:[
     "Each crewmate's card on the Party tab now has a 🎁 Trade button: pick what you want from them, pick what you'll give, and send the offer.",
