@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=08d3e63947"></script>
-<script>window.CRAWL_BUILD="08d3e63947";</script>
+<script src="firebase-config.js?v=96dc166493"></script>
+<script>window.CRAWL_BUILD="96dc166493";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5833,7 +5833,8 @@ function avatarSVG(eq){
     +[0,1,2,3].map(i=>`<ellipse cx="${x+(26-i*5.5)*dir}" cy="${381-i*.6}" rx="${(3.4-i*.4).toFixed(1)}" ry="${(3-i*.3).toFixed(1)}" fill="${SKIN}" stroke="${INK}" stroke-width="1.6"/>`).join("")
     +ln(`M${x-14*dir} 378 Q${x-6*dir} 380 ${x+2*dir} 378`,1.6,SKD);};
   const _bI=itemOf(eq.boots);
-  s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):STANCE?bare(102,-1)+bare(200,1):bare(124,-1)+bare(176,1);
+  const _bare=_bI?"":STANCE?bare(102,-1)+bare(200,1):bare(124,-1)+bare(176,1);
+  s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):_bare;
 
   s+=`<g class="upper">`+narrow;
   // Torso
@@ -6023,6 +6024,8 @@ function avatarSVG(eq){
   s+=`</g></g></g>`;
   // Vignette, then the active pet at the hero's feet (in front of the shadows), then the panel border
   s+=`<rect x="0" y="0" width="300" height="420" fill="url(#${u}v)"/>`;
+  // Bare feet sit low enough for the vignette to darken them into sandal-brown; redraw them above it so they match the hands and face
+  if(_bare)s+=`<g stroke="${INK}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${_bare}</g>`;
   if(eq.pet&&PETS[eq.pet]){
     s+=petSVG(eq.pet,{trinket:eq.trinket}).replace(/<rect (?:x="0" y="0" )?width="100" height="100"[^>]*\/>/g,"")
       .replace('<svg viewBox="0 0 100 100"',`<svg x="2" y="280" width="112" height="112" viewBox="0 0 100 100" class="petinframe${eq.petSulk?" pet-sulk":""}"`);
