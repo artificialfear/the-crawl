@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2f964e1aba"></script>
+<script src="firebase-config.js?v=a1ab449f5f"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1371,7 +1371,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Quest XP</b> = threat base (Trash mob 10, Grunt 20, Elite 40, Mini-boss 80, Raid boss 150) + one-third of your time estimate in minutes (estimates cap at 240). Gold is a quarter of the XP.</div>
           <div><b>Accuracy bonus</b>: +15% when the time you enter lands within 20% under or 25% over your estimate. One-click claims at your estimate are quicker but earn no bonus and don't count toward your accuracy history.</div>
           <div><b>Streak</b>: +5% for each consecutive day you complete a quest, up to +25%.</div>
-          <div><b>Damage</b>: every morning each overdue quest hits you for 3× its threat (Trash mob 6 up to Raid boss 36 HP), growing 25% for each extra day overdue (up to 2.5×). While anything is overdue the floor boss also lashes out (4 + 2 per floor), and mobs still chasing you bite overnight. Armor and other damage cuts count fully up to 30%, then at half value, capped at 50%. Hit 0 HP and you're knocked out: you drop a fifth of your gold and lose your streak.</div>
+          <div><b>Damage</b>: every morning each overdue quest hits you for 2× its threat (Trash mob 4 up to Raid boss 24 HP), growing 25% for each extra day overdue (up to 2.5×). Armor and other damage cuts count fully up to 30%, then at half value, capped at 60%. Hit 0 HP and you're knocked out: you drop a fifth of your gold and lose your streak.</div>
           <div><b>Floors</b>: each week is a new floor with a ladder of six bosses: Neighborhood, Borough, City, Province, Country and Floor. Every XP you earn hits the boss in front of you; kill it and the next one steps up, with extra damage carrying over. Drops: Bronze, Bronze, Silver, Silver, Gold, Legendary. Climb as high as you can before the stairwell closes Sunday night. Overdue quests wound you and heal the current boss. At 0 HP you're knocked out: streak lost, a fifth of your gold dropped.</div>
           <div><b>Stats</b> level up from the quests you assign them. Each level above 1 adds: Strength +2% boss damage (max 30%), Intelligence +1% XP (max 15%), Constitution +5 max HP (max 75), Dexterity a 2% wider accuracy window on each side (max 20%), Charisma +2% gold and more viewers (max 30%).</div>
           <div><b>Loot boxes</b> come from achievements, level-ups (Bronze, or Silver every fifth level), bosses and the shop. Contents are random: gold, potions, or gear from Common to Legendary. Duplicates turn into gold.</div>
@@ -1609,7 +1609,7 @@ const PETS = {
   ferret:    {n:"Tunnel Ferret",      def:"Zip",      starter:true, fx:L=>({win:L*.005,gold:L*.01}),passive:L=>`+${L}% gold, accuracy window ${(L*.5).toFixed(1).replace(/\.0$/,"")}% wider`,
               ab:"Fetch", abd:"12% chance a finished quest turns up a potion, scroll or smoke bomb", line:"Steals your stuff, then proudly gives you someone else's."},
   gargoyle:  {n:"Gutter Gargoyle",    def:"Pebble",   starter:true, fx:L=>({dmg:L*.015}),        passive:L=>`+${(L*1.5).toFixed(1).replace(/\.0$/,"")}% boss damage`,
-              ab:"Stone Watch", abd:"Mobs chasing you can't bite while you sleep", line:"Sits perfectly still all day. Judges the mobs all night."},
+              ab:"Stone Watch", abd:"Mobs chasing you can't nip you", line:"Sits perfectly still all day. Judges the mobs all night."},
   wisp:      {n:"Lost Wisp",          def:"Flicker",  starter:true, fx:L=>({xp:L*.006,gold:L*.01}),passive:L=>`+${(L*.6).toFixed(1).replace(/\.0$/,"")}% XP, +${L}% gold`,
               ab:"Second Wind", abd:"Once per floor, a knockout leaves you at 1 HP instead", line:"Glows when it's happy. Flickers when you open your email."},
   mimic:     {n:"Pocket Mimic",       def:"Chompers", egg:true,     fx:L=>({dupe:L*.05}),         passive:L=>`Duplicates sell for +${L*5}%`,
@@ -3024,7 +3024,7 @@ function mobFight(fx,t){
   }
   player.mobs=left;
   if(left.length){
-    let shield=false;try{shield=auraFx().shield;}catch(e){}
+    let shield=petFx(player).ability==="gargoyle";try{shield=shield||auraFx().shield;}catch(e){}
     const nip=shield?0:Math.min(Math.max(0,player.hp-1),left.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0));
     if(nip>0){player.hp-=nip;}
     const lead=left[0];
@@ -3040,14 +3040,14 @@ function renderMobAlert(){
   const el=$("mobAlert");if(!el)return;const ms=playerExists&&player.mobs||[];
   if(!ms.length){if(el.innerHTML)el.innerHTML="";el.hidden=true;return;}
   const lead=ms[0],k=mobKind(lead),floor=floorOf();
-  const nip=ms.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0),bite=mobBite(player,floor);
+  const nip=ms.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0),bite=MOB_BITE?mobBite(player,floor):0;
   const key=JSON.stringify(ms.map(m=>[m.id,m.hp]))+bite;if(el.dataset.k===key&&!el.hidden)return;el.dataset.k=key;el.hidden=false;
   el.innerHTML=`<div class="mobalert k-${k}${lead.pack?" pack":""}" role="status" aria-live="polite">
     ${mobScene(lead)}
     <div class="ma-body"><div class="ma-k">⚠ ${lead.pack?"Mob pack":"Mob"} encounter</div>
       <div class="ma-n"><b>${esc(lead.a)} ${esc(lead.n)}</b> is on your heels${ms.length>1?` <span class="muted">(+${ms.length-1} more behind it)</span>`:""}</div>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(lead.hp/lead.max*100)}%"></b></div><span class="num">${lead.hp}/${lead.max} HP</span></div>
-      <div class="ma-tip">${esc(MOB_KINDS[k].line)} Your next quest hits ${ms.length>1?"them":"it"} first. Until ${ms.length>1?"they're":"it's"} dead, ${ms.length>1?"they nip":"it nips"} you for ${nip} HP per quest${bite?` and bite${ms.length>1?"":"s"} for ${bite} HP overnight`:""}.</div></div></div>`;
+      <div class="ma-tip">${esc(MOB_KINDS[k].line)} Your next quest hits ${ms.length>1?"them":"it"} first. Until ${ms.length>1?"they're":"it's"} dead, ${ms.length>1?"they nip":"it nips"} you for ${petFx(player).ability==="gargoyle"?0:nip} HP per quest${bite?` and bite${ms.length>1?"":"s"} for ${bite} HP overnight`:""}.</div></div></div>`;
 }
 function mobStrip(){
   const ms=player&&player.mobs||[];if(!ms.length)return "";
@@ -4279,15 +4279,14 @@ function renderTicker(){
 }
 
 /* ---------- Daily overdue damage ----------
-   Missed quests hurt. Each overdue quest hits for 3× its size every morning, and the hit grows 25% for each
-   extra day it sits there (up to 2.5×). On top of that the floor boss lashes out every morning you have
-   anything overdue, and any mob still chasing you bites overnight. Damage reduction has a soft cap:
-   the first 30% counts in full, the rest at half, never more than 50% in total. */
-const OD_MULT=3;
+   Missed quests hurt. Each overdue quest hits for 2× its size every morning, and the hit grows 25% for each
+   extra day it sits there (up to 2.5×). Damage reduction has a soft cap: the first 30% counts in full,
+   the rest at half, never more than 60% in total. (BOSS_LASH / MOB_BITE switch on the harsher extras.) */
+const OD_MULT=2,BOSS_LASH=false,MOB_BITE=false;
 const odEsc=od=>Math.min(2.5,1+.25*Math.max(0,od-1));
 const odHit=(t,od)=>EFFORT[t.effort].dmg*OD_MULT*odEsc(od);
 function rawCut(p){const a=bestOwned(p,"armor");return (a?a.bonus:0)+petFx(p).armor+rcFx(p,null).armor+gearFx(p).armor;}
-function armorCut(p){const r=rawCut(p);return Math.min(.5,r<=.3?r:.3+(r-.3)*.5);}
+function armorCut(p){const r=rawCut(p);return Math.min(.6,r<=.3?r:.3+(r-.3)*.5);}
 const bossLash=floor=>4+2*(floor||1);
 function mobBite(p,floor){if(petFx(p).ability==="gargoyle")return 0;return (p.mobs||[]).reduce((a,mb)=>a+(mb.pack?6+floor*2:3+floor),0);}
 function afterLoad(){
@@ -4326,9 +4325,9 @@ function dailyTick(force){
         if(b&&!b.defeated&&day>=b.week)heal+=EFFORT[t.effort].dmg*BOSS_HEAL;
       }
     }
-    if(any&&b&&b.tier!=null&&!b.defeated&&day>=b.week){const l=bossLash(fl)*(1-cut);if(covered)blocked+=l;else lash+=l;}
+    if(BOSS_LASH&&any&&b&&b.tier!=null&&!b.defeated&&day>=b.week){const l=bossLash(fl)*(1-cut);if(covered)blocked+=l;else lash+=l;}
     let shield=false;try{shield=auraFx().shield;}catch(e){}
-    if(!shield)bite+=mobBite(player,fl);
+    if(MOB_BITE&&!shield)bite+=mobBite(player,fl);
   }
   lash=Math.round(lash*themeFx(player).overdue);bite=Math.round(bite);
   dmg=Math.round(dmg*themeFx(player).overdue);
