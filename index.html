@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=7a7caa0feb"></script>
-<script>window.CRAWL_BUILD="7a7caa0feb";</script>
+<script src="firebase-config.js?v=62532f280d"></script>
+<script>window.CRAWL_BUILD="62532f280d";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5412,8 +5412,12 @@ function showHatch(k,quip){
       </div>
     </div>`;
   document.body.appendChild(ov);
+  // Three cracking bursts ride the egg's three wobbles (0.8s each); the shell bursts and the choir sings at 2.45s
+  if(!calm)clip("egg-hatch",.9);
   const stage=ov.querySelector(".boxstage"),rv=ov.querySelector(".reveal");let shown=calm,timers=[];
-  const reveal=()=>{if(shown)return;shown=true;timers.forEach(clearTimeout);stage.classList.add("burst");timers.push(setTimeout(()=>{stage.style.display="none";rv.classList.add("show");},300));};
+  const reveal=()=>{if(shown)return;shown=true;timers.forEach(clearTimeout);
+    try{const a=CROWD["egg-hatch"];if(a&&!a.paused&&a.currentTime<2.2)a.pause();}catch(e){}coreSnd.reveal("legendary");
+    stage.classList.add("burst");timers.push(setTimeout(()=>{stage.style.display="none";rv.classList.add("show");},300));};
   const close=()=>{timers.forEach(clearTimeout);document.removeEventListener("keydown",onKey);ov.classList.add("out");setTimeout(()=>ov.remove(),300);};
   const onKey=e=>{if(e.key==="Escape"){e.preventDefault();shown?close():reveal();}};
   document.addEventListener("keydown",onKey);
@@ -5422,7 +5426,7 @@ function showHatch(k,quip){
     if(e.target.closest("[data-closebox]")){close();return;}
     if(!shown)reveal();else if(!e.target.closest(".vcard"))close();
   });
-  if(!calm)timers.push(setTimeout(reveal,2450));
+  if(!calm)timers.push(setTimeout(reveal,2450));else coreSnd.reveal("legendary");
 }
 /* ---------- Quest steps ---------- */
 /* Steps share up to 60% of a quest's base XP as you check them off. The cap is tracked
