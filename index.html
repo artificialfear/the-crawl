@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=8f19d7c113"></script>
-<script>window.CRAWL_BUILD="8f19d7c113";</script>
+<script src="firebase-config.js?v=68f6c0c1dd"></script>
+<script>window.CRAWL_BUILD="68f6c0c1dd";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1112,6 +1112,9 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .gv-pick:focus-visible{outline:3px solid var(--mana)}
 #mobAlert:empty{display:none}
 #rivalAlert:empty{display:none}
+.boxnote{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border:2px solid var(--gold);border-radius:10px;background:var(--panel-2)}
+.boxnote>div{display:grid;gap:3px;flex:1;min-width:0}.boxnote .muted{font-size:12px}
+#boxPanel.flash{animation:boxflash 1.4s ease-out}@keyframes boxflash{0%{box-shadow:0 0 0 3px var(--gold),0 0 30px rgba(255,210,63,.8)}100%{box-shadow:none}}
 .dupeask{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;width:min(420px,calc(100% - 24px));display:flex;gap:12px;align-items:flex-start;padding:12px 14px;
   background:var(--panel);border:2px solid var(--gold);border-radius:12px;box-shadow:0 0 0 2px #000,0 10px 30px rgba(0,0,0,.6);transform:translate(-50%,140%);opacity:0;transition:transform .25s ease,opacity .25s ease}
 .dupeask.on{transform:translate(-50%,0);opacity:1}
@@ -1357,9 +1360,9 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
       <h2>Inventory <span class="purse" data-purse aria-label="Your gold"></span></h2>
       <div id="inv"></div>
     </section>
-    <section class="panel" id="boxPanel" aria-label="Loot boxes">
+    <section class="panel" id="boxNotePanel" aria-label="Loot boxes">
       <h2>Loot boxes</h2>
-      <div id="boxes"></div>
+      <div id="boxNote"></div>
     </section>
     <section class="panel" aria-label="Real-world prizes">
       <h2>Real-world prizes <span class="purse" data-purse aria-label="Your gold"></span></h2>
@@ -1407,6 +1410,10 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
     </section>
     </div>
     <div class="tabpane" data-pane="safe" role="tabpanel" aria-label="Safe room">
+    <section class="panel" id="boxPanel" aria-label="Loot boxes" hidden>
+      <h2>Loot boxes</h2>
+      <div id="boxes"></div>
+    </section>
     <section class="panel safepanel" id="safe" aria-label="Safe room" hidden></section>
     </div>
     <div class="tabpane" data-pane="party" role="tabpanel" aria-label="Party">
@@ -1500,6 +1507,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Gear</b>: weapons, helmets and capes can raise XP; gloves add boss damage; boots add max HP and faster movement speed (a chance each quest moves you an extra room on the floor map and raid floor); body armor reduces overdue damage. Your best item in each slot counts, whatever your crawler wears. Rings each have their own perk, and only the ring you wear counts. Pet trinkets boost your pet's own passive while it wears one. Unique items are very rare, glow, and carry an extra effect.</div>
           <div><b>Rival crawlers</b>: crawlers from the rankings sometimes come for your loot (now and then after a quest, or from a ⚔ ambush room on the map). Each quest you finish hits them; they hit back each quest and overnight, but never knock you out on their first night. Beat one and they're knocked out for the floor (XP, gold, maybe an item they're wearing). Or bribe them, run (better boots, better odds), or walk to a shrine. If they knock you out, they steal one spare backpack item (never worn gear, never Unique) and come back for a rematch a few days later: win it to get your item back. A rare psycho won't take a bribe and only backs off for a day: that one has to be killed. Crewmates can tap Help on the Party tab to chip at your rival, but the final blow is yours.</div>
           <div><b>Personal Quarters</b>: a private room through the portal in the Safe Room, 1,500 gold (or a Deed Coupon from a Gold or Celestial box, or the weekly #1 prize). Upgrades: Bed (heal 10% max HP each morning), Kitchen (cook once a day for +5% XP until midnight), Bath (pet never sulks, +15% bond), Training Room (+10% XP on one stat, switch weekly), Crafting Studio (fuse 3 spares of one rarity into an item one rarity higher), Quest Screen (+10% viewers, rematch warnings, episode replays) and Trophy Wall. Tick crewmates onto your guest list and they can visit and cook in your kitchen. <b>Communal Hall</b>: crewmates with quarters can each tap Conjoin to share a hall. Upgrades you own work at full strength; ones only a hallmate owns work for you at half strength (a shared kitchen feeds you +2.5% XP daily with no cooking, a shared studio fuses 5 spares instead of 3). On days 2+ hallmates finish a quest, everyone in the hall gets +5% XP.</div>
+          <div><b>Loot boxes</b> only open somewhere safe: the Safe Room tab, your quarters or the Communal Hall. Carrying unopened boxes doubles your odds of a rival crawler jumping you, and if one knocks you out, it grabs an unopened box first. Beat it in the rematch to take the box back.</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
@@ -2635,7 +2643,7 @@ function lootToast(l){
     if(done)return;done=true;
     ui.mapDrop=null;
     if(ui.celestialNote){const f=ui.celestialNote;ui.celestialNote=null;setTimeout(()=>{SFX.play("reveal","magical");toast(`<span class="big">A Celestial Box</span> The ceiling of Floor ${f} cracked open and something from the stars landed at your feet. It's in your Inventory.`,"lvl");},1400);}
-    toast(`<span class="big">${esc(t.n)} defeated</span> ${esc(boxText)} ${boxes.length>1?"are":"is"} waiting in your loot boxes.`,"lvl",()=>openBox(last.box.id),"Open it");
+    toast(`<span class="big">${esc(t.n)} defeated</span> ${esc(boxText)} ${boxes.length>1?"are":"is"} waiting in your loot boxes.`,"lvl",()=>goBoxes(),"To the Safe Room");
     if(nb&&!nb.defeated&&!hunting(nb))setTimeout(()=>say("next",{boss:nb.name,tier:TIERS[nb.tier].n}),1200);
     const evs=["kill"].concat(kills.some(k=>k.tier===TIERS.length-1)?["floorboss"]:[]).concat(ui.pendingAchAfterBoss||[]);
     if(evs.includes("floorboss"))partyPost("floor",`cleared Floor ${Math.max(1,(player.bossCount||1)-1)}`);
@@ -2810,7 +2818,7 @@ function acceptOffer(id){
   pushEvent(`Signed with ${o.brand}: ${goalText(o.cond)} by ${fmtDue(addDays(today(),3))}`);
   say("signed",{brand:o.brand});
   store.savePlayer(player).catch(writeFailed);render();
-  toast(`${o.brand} sent a ${BOXES[o.tier].n}. Now hold up your end: ${goalText(o.cond)} by ${fmtDue(addDays(today(),3))}.`,"",()=>openBox(box.id),"Open it");
+  toast(`${o.brand} sent a ${BOXES[o.tier].n}. Now hold up your end: ${goalText(o.cond)} by ${fmtDue(addDays(today(),3))}.`,"",()=>goBoxes(),"To the Safe Room");
   checkAch();
 }
 function declineOffer(id){
@@ -3285,6 +3293,7 @@ function spawnRival(opts){
   return rv;}
 function rvIntro(rv){const it=rv.item&&itemOf(rv.item);
   if(rv.rematch&&it)return `${rv.n} is back, and they're wearing your ${it.n}. Rematch!`;
+  if(rv.rematch&&(rv.boxes||[]).length)return `${rv.n} is back, still lugging your unopened ${BOXES[rv.boxes[0].tier].n}. Rematch!`;
   if(rv.rematch)return `${rv.n} found you again. ${rv.psy?"Of course they did.":""}`.trim();
   return `${rv.n}, the ${rv.c}, wants your loot! “${spick(Math.random,rv.psy?RV_PSY:RV_TAUNTS)}”${rv.psy?" Something is very wrong with this one.":""}`;}
 /* One spare backpack item: a duplicate first if you have any, else gear you aren't wearing. Never Unique, never worn. */
@@ -3297,11 +3306,18 @@ function rivalSteal(){
 /* The rival on you knocked you out: it takes something and leaves, to be found again later. */
 function rivalKO(){
   const rv=player.rival;if(!rv)return null;player.rival=null;
+  // unopened loot is the first thing they grab; then a spare from the backpack; then gold
+  const bxs=player.boxes||[];let box=null;
+  if(bxs.length){box=bxs[Math.floor(Math.random()*bxs.length)];player.boxes=bxs.filter(b=>b.id!==box.id);}
+  if(box){const due=addDays(today(),2+Math.floor(Math.random()*3));
+    player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item||null,item2:rv.item2||null,boxes:(rv.boxes||[]).concat({tier:box.tier,from:box.from}),psy:rv.psy,due});
+    bump("rivalLosses");pushEvent(`${rv.n} knocked you out and made off with your unopened ${BOXES[box.tier].n}`,true);
+    return {n:rv.n,box:box.tier};}
   let item=rivalSteal(),gold=0;if(!item){gold=Math.floor(player.gold/10);player.gold-=gold;}
   // a rematch rival who wins again keeps what it already had, on top of anything new
   const carry=item||rv.item||null,second=item&&rv.item?rv.item:(rv.item2||null);
   const due=addDays(today(),2+Math.floor(Math.random()*3));
-  player.rvq=(player.rvq||[]).concat({n:rv.n,item:carry,item2:second,psy:rv.psy,due});
+  player.rvq=(player.rvq||[]).concat({n:rv.n,item:carry,item2:second,boxes:rv.boxes||[],psy:rv.psy,due});
   const it=itemOf(item);bump("rivalLosses");
   pushEvent(item?`${rv.n} knocked you out and stole your ${it.n}`:`${rv.n} knocked you out and took ${gold} more gold`,true);
   return {n:rv.n,item,gold};}
@@ -3318,6 +3334,7 @@ function rivalDown(out,t){
   if(gear.length&&(kill||Math.random()<.35)){const id=gear[Math.floor(Math.random()*gear.length)],it=itemOf(id),r=receiveItem(id);
     extra.push(r==="new"?`they dropped their ${RARITY[it.rar].n} ${it.n}`:`they dropped a ${it.n} you already own`);
     if(r==="new"&&["epic","legendary"].includes(it.rar))partyPost("loot",`took a ${RARITY[it.rar].n} ${it.n} off ${rv.n}`);}
+  if((rv.boxes||[]).length){rv.boxes.forEach(b=>giveBox(b.tier,`Taken back from ${rv.n}`));extra.push(`you took back ${rv.boxes.length>1?rv.boxes.length+" stolen loot boxes":"your stolen "+BOXES[rv.boxes[0].tier].n}`);if(!rv.item)giveBox("silver",`Revenge on ${rv.n}`),extra.push("plus a Silver Box for the rematch");}
   if(kill)giveBox("gold",`Put down ${rv.n} for good`);
   const helpers=Object.keys(rv.as||{}).filter(u=>rv.as[u]>0);
   if(helpers.length)player.rvDone={id:rv.id,n:rv.n,by:helpers,at:Date.now()};
@@ -3340,24 +3357,25 @@ function rivalStep(fx,t){
     return out;}
   // A rematch that's come due finds you first
   const td=today(),q=(player.rvq||[]).find(x=>x.due<=td);
-  if(q){player.rvq=player.rvq.filter(x=>x!==q);const r=spawnRival({n:q.n,psy:q.psy,item:q.item,rematch:true});if(r){r.item2=q.item2||null;out.push(rvIntro(r));}return out;}
+  if(q){player.rvq=player.rvq.filter(x=>x!==q);const r=spawnRival({n:q.n,psy:q.psy,item:q.item||((q.boxes||[]).length?"__box":null),rematch:true});if(r){if(r.item==="__box")r.item=null;r.item2=q.item2||null;r.boxes=q.boxes||[];out.push(rvIntro(r));}return out;}
   const W=rvWeek();
-  if(!(player.mobs||[]).length&&W.n<RV_MAX&&Math.random()<RV_RATE){const r=spawnRival({});if(r)out.push(rvIntro(r));}
+  // unopened loot boxes draw rivals: twice the odds while you carry any
+  if(!(player.mobs||[]).length&&W.n<RV_MAX&&Math.random()<RV_RATE*((player.boxes||[]).length?2:1)){const r=spawnRival({});if(r)out.push(rvIntro(r));}
   return out;}
 /* A shrine on the map: hallowed ground. A normal rival gives up; a psycho waits a day. */
 function rivalSanctuary(m,out){const rv=player.rival;if(!rv)return;player.rival=null;
-  if(rv.psy){player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,psy:true,due:addDays(today(),1)});out.push(mapLog(m,`The shrine's light drives ${rv.n} back. They'll be waiting tomorrow.`));}
-  else{if(rv.item)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,psy:false,due:addDays(today(),2)});
+  if(rv.psy){player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,boxes:rv.boxes||[],psy:true,due:addDays(today(),1)});out.push(mapLog(m,`The shrine's light drives ${rv.n} back. They'll be waiting tomorrow.`));}
+  else{if(rv.item||(rv.boxes||[]).length)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,boxes:rv.boxes||[],psy:false,due:addDays(today(),2)});
     out.push(mapLog(m,`You reach the shrine. ${rv.n} won't follow you onto hallowed ground and slinks off.`));}
   bump("rivalShrine");}
 function rivalBribe(){const rv=player.rival;if(!rv||rv.psy)return;const c=rvBribe();if(player.gold<c){toast(`You need ${c} gold to pay ${rv.n} off.`,"bad");return;}
   player.gold-=c;player.rival=null;bump("rivalBribes");SFX.play("coin");
-  if(rv.item)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,psy:false,due:addDays(today(),2)});
+  if(rv.item||(rv.boxes||[]).length)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,boxes:rv.boxes||[],psy:false,due:addDays(today(),2)});
   pushEvent(`Paid ${rv.n} ${c} gold to go away`);store.savePlayer(player).catch(writeFailed);render();
   toast(`${rv.n} pockets your ${c} gold. “Pleasure doing business.”${rv.item?" They kept your item, though. They'll be back.":""}`);}
 function rivalRun(){const rv=player.rival;if(!rv||rv.ran===today())return;rv.ran=today();
   if(Math.random()<rvRunOdds()){player.rival=null;bump("rivalRuns");
-    if(rv.psy||rv.item)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,psy:rv.psy,due:addDays(today(),rv.psy?1:2)});
+    if(rv.psy||rv.item||(rv.boxes||[]).length)player.rvq=(player.rvq||[]).concat({n:rv.n,item:rv.item,item2:rv.item2||null,boxes:rv.boxes||[],psy:rv.psy,due:addDays(today(),rv.psy?1:2)});
     pushEvent(`Outran ${rv.n}`);toast(rv.psy?`You lose ${rv.n} in the corridors. For today.`:`You outran ${rv.n}! ${gearFx(player).spd?"Good boots.":"Barely."}`,"quest");}
   else{const h=Math.min(Math.max(0,player.hp-1),rvHit());player.hp-=h;SFX.play("hurt");toast(`${rv.n} cuts you off${h?` and hits you for ${h} HP`:""}. You can try running again tomorrow.`,"bad");}
   store.savePlayer(player).catch(writeFailed);render();}
@@ -3406,7 +3424,7 @@ function renderRivalAlert(){
     <div class="rv-body"><div class="ma-k">${rv.psy?"☠ Psycho crawler":"⚔ Rival crawler"}${rv.rematch?" · Rematch":""}</div>
       <div class="rv-n"><b>${esc(rv.n)}</b> <span class="muted">the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board</span></div>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(rv.hp/rv.max*100)}%"></b></div><span class="num">${rv.hp}/${rv.max} HP</span></div>
-      <div class="rv-tip">Each quest you finish hits them. They hit back for <b>${rvHit()} HP</b> a quest and <b>${rvNight()} HP</b> overnight${rv.nights?"":" (they won't knock you out tonight)"}. If they knock you out, they steal a spare item from your backpack.${it?` They're carrying your <b>${esc(it.n)}</b>: win to get it back.`:""}</div>
+      <div class="rv-tip">Each quest you finish hits them. They hit back for <b>${rvHit()} HP</b> a quest and <b>${rvNight()} HP</b> overnight${rv.nights?"":" (they won't knock you out tonight)"}. ${(player.boxes||[]).length?`If they knock you out, they'll grab one of your <b>${player.boxes.length} unopened loot box${player.boxes.length===1?"":"es"}</b>. Open them in the Safe Room to keep them safe.`:"If they knock you out, they steal a spare item from your backpack."}${it?` They're carrying your <b>${esc(it.n)}</b>: win to get it back.`:""}${(rv.boxes||[]).length?` They're carrying your unopened <b>${esc(BOXES[rv.boxes[0].tier].n)}</b>${rv.boxes.length>1?` and ${rv.boxes.length-1} more`:""}: win to get ${rv.boxes.length>1?"them":"it"} back.`:""}</div>
       ${rv.psy?`<div class="rv-psy">This one won't take a bribe, and running or a shrine only buys you a day. You'll have to kill them.</div>`:""}
       ${helpers.length?`<div class="rv-help">👥 ${helpers.join(", ")} ${helpers.length>1?"are":"is"} helping.</div>`:party?`<div class="rv-help muted">Your crew can see this on the Party tab and help.</div>`:""}
       <div class="rv-acts">${rv.psy?"":`<button type="button" class="btn sm gold" id="rvBribe"${player.gold<bribe?" disabled":""}>Bribe · ${bribe}g</button>`}
@@ -3615,6 +3633,7 @@ function renderQt(){
     title="The Communal Hall";
     body=`<div class="qt-scene">${quartersSVG(up,avs,tr,false)}</div>
       <div class="qt-hallbar${act>=2?" on":""}">${act>=2?`🔥 Hall bonus on: ${act} of ${all.length} of you have finished a quest today. +5% XP for everyone in the hall.`:`Hall bonus: when 2 or more of you finish a quest on the same day, everyone here gets +5% XP. ${act} of ${all.length} so far today.`}</div>
+      ${(player.boxes||[]).length?`<div class="label">Your loot boxes</div><div class="boxes">${boxListHTML()}</div>`:""}
       <div class="muted" style="font-size:12px">In the hall: ${names.join(", ")}. Upgrades you own work at full strength; ones only a hallmate owns work for you at half strength.</div>
       <div class="label">Shared upgrades</div>
       ${QT_UP.map(u=>{const l=qtLvl(u.k),w=who(u.k);let extra="";
@@ -3652,6 +3671,7 @@ function renderQt(){
     const crew=party?partyMembers().filter(u=>u!==myUid()):[];
     body=`<div class="qt-scene">${quartersSVG(up,bareAvatar(myAvatarEq()),qtCard().tr,true)}</div>
       <div class="muted" style="font-size:12px">Purse: ${player.gold.toLocaleString()} gold</div>
+      ${(player.boxes||[]).length?`<div class="label">Loot boxes</div><div class="boxes">${boxListHTML()}</div>`:""}
       <div class="label">Upgrades</div>${QT_UP.map(row).join("")}
       <div class="label">Communal Hall</div>
       <div class="qt-row${q.cj?" own":""}"><div><b>${q.cj?"Conjoined":"Conjoin your quarters"}</b><div class="muted">${q.cj?(inHall()?`Sharing a hall with ${hallMates().map(([u,c])=>esc(c.name||"Crawler")).join(", ")}. Their upgrades work for you at half strength, yours for them.`:"Waiting for a crewmate with quarters to conjoin too.")
@@ -3670,6 +3690,7 @@ function renderQt(){
   o.querySelectorAll("[data-qttrain]").forEach(b=>b.onclick=()=>qtTrain(b.dataset.qttrain));
   o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>qtFuse(b.dataset.qtfuse));
   o.querySelectorAll("[data-qtguest]").forEach(b=>b.onclick=()=>qtGuest(b.dataset.qtguest));
+  o.querySelectorAll("[data-openbox]").forEach(b=>b.onclick=()=>{openBox(b.dataset.openbox);const v=document.querySelector(".victory");if(v)v.style.zIndex=50;renderQt();});
   o.querySelectorAll("[data-qtep]").forEach(b=>b.onclick=()=>{closeQt();playEpisode(b.dataset.qtep);});
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.qt)closeQt();});
@@ -4789,7 +4810,7 @@ function buyBox(tier){
   player.gold-=priceOf(B.price);const box=giveBox(tier,"Safe room shop");bump("boxBought");
   pushEvent(`Bought a ${B.n}`);
   store.savePlayer(player).catch(writeFailed);render();
-  toast(`${B.n} added to your loot boxes.`,"",()=>openBox(box.id),"Open it");
+  toast(`${B.n} added to your loot boxes.`,"",()=>goBoxes(),"To the Safe Room");
   checkAch();
 }
 const BOX_GLOW={bronze:"rgba(214,140,74,.6)",silver:"rgba(210,220,240,.55)",gold:"rgba(255,210,63,.65)",legendary:"rgba(255,46,110,.7)",celestial:"rgba(150,120,255,.9)"};
@@ -5036,7 +5057,7 @@ function renderTicker(){
   if(nb)lines.push(`${nb} unopened loot box${nb===1?"":"es"} just sitting there. Open ${nb===1?"it":"them"}, coward.`);
   // Rivals, gear and crew
   if(player.rival){const rv=player.rival;lines.push(rv.psy?`${rv.n} is hunting ${player.name} and won't stop. Producers have stopped pretending this is fine.`:`${rv.n}, the ${rv.c}, is after ${player.name}'s loot. Chat is split ${40+Math.floor(rv.hp/rv.max*40)}/${60-Math.floor(rv.hp/rv.max*40)} on who walks away.`);}
-  {const q=(player.rvq||[])[0];if(q){const it=q.item&&itemOf(q.item);lines.push(it?`${q.n} is still out there wearing ${player.name}'s ${it.n}. A rematch is coming.`:`${q.n} hasn't forgotten about ${player.name}. Neither has the audience.`);}}
+  {const q=(player.rvq||[])[0];if(q){const it=q.item&&itemOf(q.item);lines.push(it?`${q.n} is still out there wearing ${player.name}'s ${it.n}. A rematch is coming.`:(q.boxes||[]).length?`${q.n} is still out there with ${player.name}'s unopened ${BOXES[q.boxes[0].tier].n}. Rumor says they haven't opened it either.`:`${q.n} hasn't forgotten about ${player.name}. Neither has the audience.`);}}
   {const k=C(player,"rivalKOs"),kl=C(player,"rivalKills");
     if(kl)lines.push(`${player.name} has ${kl} crawler kill${kl===1?"":"s"} to their name. ${"☠".repeat(Math.min(kl,10))} Other crawlers are giving them a wide berth.`);
     else if(k)lines.push(`${player.name} has knocked out ${k} rival crawler${k===1?"":"s"}. Nobody's sure whether to be impressed or worried.`);}
@@ -5168,7 +5189,7 @@ function dailyTick(force){
       const lost=Math.floor(player.gold/5);
       player.gold-=lost;player.streak=0;player.hp=50;bump("kos");
       let robbed=null;try{robbed=rivalKO();}catch(e){console.error("rival ko",e);}
-      if(robbed){const it=itemOf(robbed.item);ui.robbed=robbed;setTimeout(()=>toast(`<b>${esc(robbed.n)}</b> ${it?`stole your <b>${esc(it.n)}</b> while you were down`:`took ${robbed.gold} more gold while you were down`}. They'll be back in a few days. Win the rematch to get it back.`,"bad"),1800);}
+      if(robbed){const it=itemOf(robbed.item);ui.robbed=robbed;setTimeout(()=>toast(`<b>${esc(robbed.n)}</b> ${robbed.box?`made off with your unopened <b>${esc(BOXES[robbed.box].n)}</b>`:it?`stole your <b>${esc(it.n)}</b>`:`took ${robbed.gold} more gold`} while you were down. They'll be back in a few days. Win the rematch to get it back.`,"bad"),1800);}
       pushEvent(`Knocked out overnight: −${dmg} HP${how}, dropped ${lost} gold, streak lost`,true);
       toast(`You were knocked out overnight${how}. You dropped ${lost} gold and lost your streak.`,"bad");
       ui.pendingSay=["knocked",{}];ui.pendingAch=(ui.pendingAch||[]).concat("ko");
@@ -5326,7 +5347,7 @@ function completeQuest(id,actual,touched){
   if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;setTimeout(()=>{if(w)SFX.play("kill");else if(player.rival)SFX.play("hurt");toast(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500+(goals.msgs.length+mapMsgs.length)*700);}
   if(usedFocus)setTimeout(()=>toast("Potion of Focus spent: that quest earned double XP."),400);
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
-  if(goblinBox)setTimeout(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>openBox(goblinBox.id),"Open it"),600);
+  if(goblinBox)setTimeout(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>goBoxes(),"To the Safe Room"),600);
   react(fx>0);
   if(petMsg)setTimeout(()=>toast(petMsg),500);
   if(ui.kindled){ui.kindled=false;const a=activePet();if(a)setTimeout(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),300);}
@@ -7210,22 +7231,31 @@ function wireInv(el){
     document.addEventListener("click",e=>{if(ui.invPin&&!e.target.closest(".invtip,.invcell")){ui.invPin=null;const t=$("invTip");if(t)t.hidden=true;document.querySelectorAll(".invcell.sel").forEach(x=>x.classList.remove("sel"));}});
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.invPin){ui.invPin=null;const t=$("invTip");if(t)t.hidden=true;}});}
 }
+/* Loot boxes open only somewhere safe: the Safe Room tab or your quarters. The Inventory keeps your collection and a pointer. */
+function goBoxes(){setTab("safe");render();setTimeout(()=>{const p=$("boxPanel");if(p){p.scrollIntoView({behavior:"smooth",block:"start"});p.classList.remove("flash");void p.offsetWidth;p.classList.add("flash");}},80);}
+function boxListHTML(){const bx=player.boxes||[];if(!bx.length)return "";
+  return BOX_ORDER.filter(t=>bx.some(b=>b.tier===t)).map(t=>{const these=bx.filter(b=>b.tier===t).sort((a,b)=>a.at-b.at);
+    return `<div class="boxrow"><div class="bico">${boxIconSVG(t)}</div><div class="what"><b>${these.length>1?these.length+"× ":""}${esc(BOXES[t].n)}</b><span>From ${esc(these[0].from||"the dungeon")}${these.length>1?` and ${these.length-1} more`:""}</span></div>
+      <button class="btn gold" type="button" data-openbox="${these[0].id}">Open</button></div>`;}).join("");}
 function renderBoxes(){
-  const el=$("boxes");const bx=player.boxes||[];
+  {const n=$("boxNote");if(n){const k=(player.boxes||[]).length,e=(player.eggs||[]).length,owned=ITEMS.filter(i=>player.owned.includes(i.id)).length;
+    n.innerHTML=`<div class="boxes">${k||e?`<div class="boxnote"><div><b>${k?`${k} loot box${k===1?"":"es"}`:""}${k&&e?" and ":""}${e?`${e} Mystery Egg${e===1?"":"s"}`:""} waiting.</b><span class="muted">Crawlers only open loot somewhere safe: the Safe Room${hasQt()?" or your quarters":""}. Carrying unopened boxes draws rival crawlers.</span></div><button class="btn gold sm" type="button" id="toBoxes">To the Safe Room</button></div>`
+      :`<div class="muted" style="font-size:14px">No loot boxes waiting. When you earn one, open it in the Safe Room.</div>`}
+      <div class="collect"><span>Collection: <b>${owned}</b> of ${ITEMS.length}</span>${ITEMS.map(i=>`<span class="mini-ico${player.owned.includes(i.id)?"":" no"}" title="${player.owned.includes(i.id)?esc(i.n):"Not found yet"}">${lootIconSVG(i.id)}</span>`).join("")}</div></div>`;
+    const tb=$("toBoxes");if(tb)tb.onclick=goBoxes;}}
+  const el=$("boxes");if(!el)return;const bx=player.boxes||[];
+  {const pn=$("boxPanel");if(pn)pn.hidden=!bx.length&&!(player.eggs||[]).length;}
   const owned=ITEMS.filter(i=>player.owned.includes(i.id)).length;
-  const coll=`<div class="collect"><span>Collection: <b>${owned}</b> of ${ITEMS.length}</span>${ITEMS.map(i=>`<span class="mini-ico${player.owned.includes(i.id)?"":" no"}" title="${player.owned.includes(i.id)?esc(i.n):"Not found yet"}">${lootIconSVG(i.id)}</span>`).join("")}</div>`;
+  const coll="";
   const eggs=(player.eggs||[]).map(e=>`<div class="boxrow"><div class="bico">${petSVG("egg")}</div><div class="what"><b>Mystery Egg</b><span>Something inside is already judging you</span></div><button class="btn gold" type="button" data-hatch="${e.id}">Hatch</button></div>`).join("");
   const wireEggs=()=>el.querySelectorAll("[data-hatch]").forEach(b=>b.onclick=()=>hatchEgg(b.dataset.hatch));
   const bag="";
   const wireBag=()=>{el.querySelectorAll("[data-usefocus]").forEach(b=>b.onclick=drinkFocus);el.querySelectorAll("[data-bagdrink]").forEach(b=>b.onclick=drink);};
   if(!bx.length&&eggs){el.innerHTML=`<div class="boxes">${bag}${eggs}${coll}</div>`;wireEggs();wireBag();return;}
   if(!bx.length){
-    el.innerHTML=`<div class="boxes">${bag}<div class="muted" style="font-size:14px">No loot boxes. You earn them from achievements, level-ups and floor bosses, or buy one in the shop, you impatient gremlin.</div>${coll}</div>`;wireBag();return;
+    el.innerHTML=`<div class="boxes">${bag}<div class="muted" style="font-size:14px">No loot boxes. You earn them from achievements, level-ups and floor bosses, or buy one in the shop, you impatient gremlin. This is where you open them: the dungeon's rules, not ours.</div>${coll}</div>`;wireBag();return;
   }
-  const rows=BOX_ORDER.filter(t=>bx.some(b=>b.tier===t)).map(t=>{
-    const these=bx.filter(b=>b.tier===t).sort((a,b)=>a.at-b.at);
-    return `<div class="boxrow"><div class="bico">${boxIconSVG(t)}</div><div class="what"><b>${these.length>1?these.length+"× ":""}${esc(BOXES[t].n)}</b><span>From ${esc(these[0].from||"the dungeon")}${these.length>1?` and ${these.length-1} more`:""}</span></div>
-      <button class="btn gold" type="button" data-openbox="${these[0].id}">Open</button></div>`;}).join("");
+  const rows=boxListHTML();
   el.innerHTML=`<div class="boxes">${bag}${eggs}${rows}${coll}</div>`;
   el.querySelectorAll("[data-openbox]").forEach(b=>b.onclick=()=>openBox(b.dataset.openbox));wireEggs();wireBag();
 }
@@ -7940,9 +7970,9 @@ function tabBadges(){
   const td=today(),od=tasks.filter(t=>!t.done&&t.due&&t.due<td&&!isResting(t)).length;
   if(od)B.quests=String(od);
   if((rcUnlocked()&&!rcDone())||!Object.keys(player.pets||{}).length||petSulking()||!player.look)B.hero="!";
-  const nb=(player.boxes||[]).length+(player.eggs||[]).length;if(nb)B.loot=String(nb);
+  const nb=(player.boxes||[]).length+(player.eggs||[]).length;
   const ne=(player.episodes||[]).filter(e=>!e.watched).length;if(ne)B.show=String(ne);else if(player.show&&player.show.invite)B.show="!";
-  const x=safeToday(),no=(player.offers||[]).length;if(no)B.safe=String(no);else if(x&&!x.left)B.safe="•";
+  const x=safeToday(),no=(player.offers||[]).length;if(no+nb)B.safe=String(no+nb);else if(x&&!x.left)B.safe="•";
   try{const pu=partyUnseen();if(pu)B.party=String(pu);}catch(e){}
   return B;
 }
@@ -8643,7 +8673,7 @@ function partyRaidCheck(){
     const box=giveBox("gold",`Party raid: ${r.boss.n}`);
     partyPost("raid",`The party defeated ${r.boss.n}!`,"raid-"+w);
     store.savePlayer(player).catch(writeFailed);
-    setTimeout(()=>{SFX.play("reveal","legendary");toast(`<span class="big">${esc(r.boss.n)} defeated</span> Your party took down this week's raid boss. A Gold Box is waiting for you.`,"lvl",()=>openBox(box.id),"Open it");checkAch(["partyraid"]);},900);
+    setTimeout(()=>{SFX.play("reveal","legendary");toast(`<span class="big">${esc(r.boss.n)} defeated</span> Your party took down this week's raid boss. A Gold Box is waiting for you.`,"lvl",()=>goBoxes(),"To the Safe Room");checkAch(["partyraid"]);},900);
   }
 }
 function partyPost(kind,text,id,extra){
