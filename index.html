@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=74846065ff"></script>
-<script>window.CRAWL_BUILD="74846065ff";</script>
+<script src="firebase-config.js?v=e80c6264cb"></script>
+<script>window.CRAWL_BUILD="e80c6264cb";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -4888,7 +4888,8 @@ function showBoxOpen(tier,res,item,dupe,quip){
   const stage=ov.querySelector(".cratestage"),rv=ov.querySelector(".reveal");
   let shown=calm,timers=[];
   // The lid bursts open and light pours out; a beat later the prize takes its place.
-  const reveal=()=>{if(shown)return;shown=true;coreSnd.reveal(rar||(res.kind==="gold"?"common":"none"));if(res.gold)setTimeout(coreSnd.gold,350);timers.forEach(clearTimeout);
+  // Skipping ahead: jump the shaking clip to its lid-opening moment (1.65s in) so the bang lands with the lid
+  const reveal=()=>{if(shown)return;shown=true;try{const a=CROWD["box-open"];if(a&&!a.paused&&a.currentTime<1.6)a.currentTime=1.62;}catch(e){}coreSnd.reveal(rar||(res.kind==="gold"?"common":"none"));if(res.gold)setTimeout(coreSnd.gold,350);timers.forEach(clearTimeout);
     const was=stage.classList.contains("open");stage.classList.add("open");
     timers.push(setTimeout(()=>{stage.style.display="none";rv.classList.add("show");ov.querySelector(".vskip").textContent="";const b=ov.querySelector("[data-equipnow]")||ov.querySelector("[data-dupesell]")||ov.querySelector("[data-closebox]");if(b)b.focus();},was?350:900));};
   const close=()=>{timers.forEach(clearTimeout);document.removeEventListener("keydown",onKey);ov.classList.add("out");setTimeout(()=>ov.remove(),300);};
