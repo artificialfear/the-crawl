@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=fdb48da97e"></script>
+<script src="firebase-config.js?v=77a792157d"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1218,6 +1218,8 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .cl-d{font-size:12px;color:var(--muted)}
 .cl-new{font:700 11px var(--body);color:#111;background:var(--gold);border-radius:4px;padding:1px 6px;text-transform:uppercase}
 .clog ul{margin:6px 0 0;padding-left:20px;font-size:13px;line-height:1.5}.clog li{margin:3px 0}
+.gv-pick{position:relative}.gv-pick .qty{position:absolute;right:2px;bottom:2px;background:#000c;color:#fff;font:700 10px/1 system-ui,sans-serif;padding:2px 3px;border-radius:3px}
+.gv-sum{margin-top:10px;font-size:14px;text-align:center}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -7065,6 +7067,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.3.0",d:"2026-10-07",t:"Trade from the Party tab",items:[
+    "Each crewmate's card on the Party tab now has a 🎁 Trade button: pick what you want from them, pick what you'll give, and send the offer.",
+    "Inspecting a crewmate's gear? Tap an item and hit \"Trade for this\" to start a trade for it."]},
   {v:"2.2.0",d:"2026-10-07",t:"Changelog",items:["This changelog. Each update now has a version number, and the ⚙ button shows a dot when there's something new to read."]},
   {v:"2.1.0",d:"2026-10-07",t:"Reactions and tidy-ups",items:[
     "Party chat reactions: tap ☺+ under a crewmate's message to react with 👍 ❤️ 😮 😂 or 😢. You'll get a pop-up when someone reacts to yours.",
@@ -7562,6 +7567,35 @@ function wireGifts(el){
   el.querySelectorAll("[data-gcan]").forEach(b=>b.onclick=e=>{e.stopPropagation();giftCancel(b.dataset.gcan);});
 }
 /* The give/trade picker: who, then gift or trade (and for what). */
+/* Trade started from a crewmate: pick what you want from them (optional), then what you give. */
+function openTradeWith(uid,want){
+  if(!party||!partyMembers().includes(uid)||uid===myUid())return;
+  const st={want:want||null,give:null};
+  document.querySelectorAll(".givemodal").forEach(n=>n.remove());
+  const ov=document.createElement("div");ov.className="victory givemodal";document.body.appendChild(ov);
+  const close=()=>{document.removeEventListener("keydown",onKey);ov.remove();};
+  const onKey=e=>{if(e.key==="Escape")close();};document.addEventListener("keydown",onKey);
+  const sortIt=a=>a.map(itemOf).filter(Boolean).sort((x,y)=>SLOTS.findIndex(s=>s[0]===x.slot)-SLOTS.findIndex(s=>s[0]===y.slot)||RAR_ORDER.indexOf(x.rar)-RAR_ORDER.indexOf(y.rar));
+  const pick=(it,key,on)=>`<button type="button" class="gv-pick${on?" on":""}" data-${key}="${it.id}" title="${esc(it.n)}" aria-label="${esc(it.n)}" aria-pressed="${on}">${tierIcon(it.id,it.rar)}${key==="tgive"&&spareN(it.id)?`<span class="qty">×${1+spareN(it.id)}</span>`:""}</button>`;
+  const draw=()=>{
+    const nm=memberName(uid),c=cardOf(uid),theirs=sortIt(c&&c.own||[]),mine=sortIt(player.owned||[]);
+    const w=itemOf(st.want),g=itemOf(st.give);
+    ov.innerHTML=`<div class="vcard givecard" role="dialog" aria-label="Trade with ${esc(nm)}"><div class="label vkicker">Trade with ${esc(nm)}</div>
+      <div class="label" style="margin-top:6px">You get <span class="muted" style="text-transform:none;letter-spacing:0">(optional)</span></div>
+      <div class="gv-grid">${theirs.length?theirs.map(it=>pick(it,"twant",st.want===it.id)).join(""):`<span class="muted" style="font-size:12px">${esc(nm)} hasn't shown any gear yet. They need to open the latest version of the app.</span>`}</div>
+      <div class="label" style="margin-top:10px">You give</div>
+      <div class="gv-grid">${mine.length?mine.map(it=>pick(it,"tgive",st.give===it.id)).join(""):`<span class="muted" style="font-size:12px">Your backpack is empty.</span>`}</div>
+      <div class="gv-sum">${g?`<b class="rar-${g.rar}">${esc(g.n)}</b>`:`<span class="muted">Pick something to give</span>`} ⇄ ${w?`<b class="rar-${w.rar}">${esc(w.n)}</b>`:`<span class="muted">nothing (a gift)</span>`}</div>
+      ${w&&player.owned.includes(w.id)?`<div class="muted" style="font-size:12px">You already own a ${esc(w.n)}.${player.keepDupes?" It'll go in your backpack as a spare.":" It'll sell for gold unless you turn on Keep duplicates."}</div>`:""}
+      <div class="acts"><button type="button" class="btn gold" data-tsend ${g?"":"disabled"}>${w?"Offer trade":"Send gift"}</button><button type="button" class="btn" data-tclose>Cancel</button></div></div>`;
+    ov.querySelectorAll("[data-twant]").forEach(b=>b.onclick=()=>{st.want=st.want===b.dataset.twant?null:b.dataset.twant;draw();});
+    ov.querySelectorAll("[data-tgive]").forEach(b=>b.onclick=()=>{st.give=st.give===b.dataset.tgive?null:b.dataset.tgive;draw();});
+    ov.querySelector("[data-tclose]").onclick=close;
+    ov.querySelector("[data-tsend]").onclick=()=>{if(!st.give)return;close();giftSend(st.give,uid,st.want);};
+  };
+  ov.addEventListener("click",e=>{if(e.target===ov)close();});
+  draw();
+}
 function openGive(id){
   const it=itemOf(id);if(!it||!party)return;const me=myUid();
   const others=partyMembers().filter(u=>u!==me);if(!others.length)return;
@@ -7797,7 +7831,7 @@ function renderParty(){
       <div class="pt-meta">Lv ${c.lvl||1} · ${esc(c.title||"")}</div>
       <div class="pt-meta">Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}`:""}</div>
       <div class="pt-today${n?" yes":""}">${n?`✔ ${n} quest${n===1?"":"s"} today`:mia&&uid!==me?"Missing in action":"No quests yet today"}</div>
-      <div class="pt-cbtns"><button class="btn ghost sm" type="button" data-inspect="${esc(uid)}">${uid===me?"My gear":"Gear"}</button>${uid!==me&&!n?`<button class="btn ghost sm" type="button" data-nudge="${esc(uid)}"${nudged?" disabled":""}>${nudged?"Nudged":"Nudge"}</button>`:""}</div></div>`;}).join("");
+      <div class="pt-cbtns"><button class="btn ghost sm" type="button" data-inspect="${esc(uid)}">${uid===me?"My gear":"Gear"}</button>${uid!==me?`<button class="btn ghost sm" type="button" data-trade="${esc(uid)}">🎁 Trade</button>`:""}${uid!==me&&!n?`<button class="btn ghost sm" type="button" data-nudge="${esc(uid)}"${nudged?" disabled":""}>${nudged?"Nudged":"Nudge"}</button>`:""}</div></div>`;}).join("");
   const feed=party.feed.slice(0,25).map(f=>{const ch=Object.keys(f.cheers||{}).length,mine=(f.cheers||{})[me];
     return `<li class="pt-ev k-${esc(f.kind||"")}"><div><b>${esc(f.uid===me?"You":f.name||"Crawler")}</b> ${esc(f.uid===me?String(f.text||"").replace(/^hit /,"hit "):f.text||"")}<span class="pt-ago">${ago(f.at||0)}</span></div>
       ${f.uid!==me&&f.kind!=="leave"?`<button type="button" class="pt-cheer${mine?" on":""}" data-cheer="${esc(f.id)}" aria-pressed="${mine?"true":"false"}" aria-label="Cheer">🔥${ch?` ${ch}`:""}</button>`:ch?`<span class="pt-cheer static">🔥 ${ch}</span>`:""}</li>`;}).join("")||`<li class="muted">Nothing yet. Clear a quest and get the show started.</li>`;
@@ -7846,6 +7880,7 @@ function renderParty(){
   el.querySelectorAll("[data-nudge]").forEach(b=>b.onclick=()=>partyNudge(b.dataset.nudge));
   el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
   el.querySelectorAll("[data-inspect]").forEach(b=>b.onclick=()=>openInspect(b.dataset.inspect));
+  el.querySelectorAll("[data-trade]").forEach(b=>b.onclick=()=>openTradeWith(b.dataset.trade,null));
   wireRaidFloor(el);
   if(ui.inspect)renderInspect();
   updateTitle();
@@ -7979,7 +8014,7 @@ function renderInspect(){
   const cell=it=>`<button type="button" class="invcell r-${it.rar}${wear[it.slot]===it.id?" eq":""}${ui.inspectItem===it.id?" sel":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:` style="background:${UNIQUE_BG}"`} data-insp="${it.id}" aria-label="${esc(it.n)}">${lootIconSVG(it.id).replace(/<rect width="100" height="100" fill="[^"]+"\/>/,"")}${wear[it.slot]===it.id?`<span class="eqtag">E</span>`:""}</button>`;
   const sel=ITEMS.find(i=>i.id===ui.inspectItem);
   const det=sel?`<div class="insp-det"><div class="thead"><span class="tico">${tierIcon(sel.id,sel.rar==="magical"?"legendary":sel.rar)}</span><div><b class="rar-${sel.rar}">${esc(sel.n)}</b><div class="tsub">${RARITY[sel.rar].n} · ${SLOT_NAME[sel.slot]}${wear[sel.slot]===sel.id?" · Equipped":""}</div></div></div>
-      <ul class="tstats">${itemLines(sel).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>${!me&&player.owned.includes(sel.id)?`<div class="tline muted">You own one too.</div>`:""}</div>`
+      <ul class="tstats">${itemLines(sel).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>${!me&&player.owned.includes(sel.id)?`<div class="tline muted">You own one too.</div>`:""}${!me?`<div class="tacts"><button class="btn gold sm" type="button" data-asktrade="${sel.id}">🎁 Trade for this</button></div>`:""}</div>`
     :`<div class="insp-det muted">Tap an item to see what it does.</div>`;
   const worn=SLOTS.map(([slot,label,none])=>{const it=ITEMS.find(x=>x.id===wear[slot]);
     return `<li><span class="muted">${label}:</span> ${it?`<button type="button" class="linkbtn rar-${it.rar}" data-insp="${it.id}">${esc(it.n)}</button>`:`<span class="muted">${esc(slot==="armor"?"Starter outfit":none)}</span>`}</li>`;}).join("");
@@ -7995,6 +8030,7 @@ function renderInspect(){
     ${det}</div>`;
   $("inspClose").onclick=closeInspect;
   o.querySelectorAll("[data-insp]").forEach(b=>b.onclick=()=>{ui.inspectItem=b.dataset.insp;renderInspect();});
+  o.querySelectorAll("[data-asktrade]").forEach(b=>b.onclick=()=>{const w=b.dataset.asktrade;closeInspect();openTradeWith(uid,w);});
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.inspect)closeInspect();});
 
