@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=4d8e430251"></script>
-<script>window.CRAWL_BUILD="4d8e430251";</script>
+<script src="firebase-config.js?v=f1461def4a"></script>
+<script>window.CRAWL_BUILD="f1461def4a";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1112,6 +1112,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .gv-pick:focus-visible{outline:3px solid var(--mana)}
 #mobAlert:empty{display:none}
 #rivalAlert:empty{display:none}
+.skulls{display:inline-block;margin-left:4px;color:#f4f2f8;font-size:.9em;letter-spacing:.06em;text-shadow:0 0 6px rgba(232,40,60,.9),0 0 2px #000;white-space:nowrap;vertical-align:baseline}
 .rvalert{position:relative;display:grid;grid-template-columns:118px 1fr;border:3px solid #ff7a1f;border-radius:12px;overflow:hidden;background:#140c08;box-shadow:0 0 0 2px #000,0 0 18px rgba(255,122,31,.55);animation:mobpulse 2.2s ease-in-out infinite}
 .rvalert.psy{border-color:#e8283c;box-shadow:0 0 0 2px #000,0 0 22px rgba(232,40,60,.75);background:#170606}
 .rv-av{position:relative;overflow:hidden;border-right:2px solid #000;min-height:150px}
@@ -3288,6 +3289,10 @@ function rivalRun(){const rv=player.rival;if(!rv||rv.ran===today())return;rv.ran
   else{const h=Math.min(Math.max(0,player.hp-1),rvHit());player.hp-=h;SFX.play("hurt");toast(`${rv.n} cuts you off${h?` and hits you for ${h} HP`:""}. You can try running again tomorrow.`,"bad");}
   store.savePlayer(player).catch(writeFailed);render();}
 /* Crewmates' Help: their cards carry a running total of damage aimed at your rival. Apply what's new. */
+/* One skull beside a crawler's name for every rival they've killed (psychos; knockouts don't count). */
+const mySkulls=()=>playerExists&&player?C(player,"rivalKills"):0;
+const skullsOf=n=>n>0?` <span class="skulls" title="${n} crawler kill${n===1?"":"s"}" aria-label="${n} crawler kill${n===1?"":"s"}">${n>10?"☠×"+n:"☠".repeat(n)}</span>`:"";
+const skullsFor=uid=>uid===myUid()?mySkulls():((party&&party.cards&&party.cards[uid])||{}).sk||0;
 function rivalCrew(){
   if(!party||!party.cards||!playerExists)return;const rv=player.rival,me=myUid();let ch=false;
   if(rv){rv.as=rv.as||{};
@@ -3639,13 +3644,13 @@ function rivalBoard(b){
 }
 function standings(){
   const b=player.boss;if(!playerExists||!b||b.tier==null)return null;
-  const rv=rivalBoard(b),me={n:player.name,c:"You",score:b.total||0,me:true};
+  const rv=rivalBoard(b),me={n:player.name,c:"You",score:b.total||0,me:true,sk:mySkulls()};
   {const W=player.rvwk&&player.rvwk.wk===b.week?player.rvwk:null;if(W)for(const x of rv){
     if(W.kill.includes(x.n)&&!x.dead){x.dead=true;x.cause="came after you and didn't walk away. ☠ Killed by you.";}
     else if(W.ko.includes(x.n))x.c+=" · 💫 KO'd by you";}}
   const list=rv.filter(x=>!x.dead).concat(me).sort((a,c)=>c.score-a.score||(a.me?1:c.me?-1:0));
   // Crewmates show up on the board for bragging rights; rewards (rank) still count the invented rivals only.
-  let crew=[];try{crew=crewRanks(b.week).filter(x=>!x.me&&!x.pending).map(x=>({n:x.n,c:`👥 Party · Floor ${x.f||1}`,score:x.s,crew:true,col:x.col}));}catch(e){}
+  let crew=[];try{crew=crewRanks(b.week).filter(x=>!x.me&&!x.pending).map(x=>({n:x.n,c:`👥 Party · Floor ${x.f||1}`,score:x.s,crew:true,col:x.col,sk:x.sk}));}catch(e){}
   const shown=list.concat(crew).sort((a,c)=>c.score-a.score||(a.me?1:c.me?-1:0));
   return {list,shown,dead:rv.filter(x=>x.dead),rank:list.indexOf(me)+1,of:list.length,srank:shown.indexOf(me)+1,crew:crew.length};
 }
@@ -3653,7 +3658,7 @@ function standings(){
 function crewRanks(wk){
   if(!party||!party.cards)return [];const me=myUid();
   return partyMembers().map(uid=>{const c=uid===me?myCard():party.cards[uid];if(!c)return null;
-    const base={uid,me:uid===me,n:uid===me?"You":c.name||"Crawler",col:rfColor(uid),f:c.floor};
+    const base={uid,me:uid===me,n:uid===me?"You":c.name||"Crawler",col:rfColor(uid),f:c.floor,sk:skullsFor(uid)};
     // No score yet: they haven't opened the latest version, or haven't played since this week's floor opened.
     if(!c.rk)return Object.assign(base,{s:0,pending:"old"});
     if(c.rk.wk!==wk)return Object.assign(base,{s:0,pending:"idle"});
@@ -3767,7 +3772,7 @@ function renderSafe(){
 function renderRank(){
   const el=$("ranks");if(!el)return;const st=standings();
   if(!st){el.innerHTML=`<div class="muted" style="font-size:14px;margin-top:8px">Rankings open with the floor. Add a quest to start.</div>`;return;}
-  const row=(x,i)=>`<div class="rk${x.me?" me":""}${x.crew?" crew":""}"${x.crew?` style="--crew:${x.col}"`:""}><span class="pos">#${i+1}</span><div class="what"><b>${esc(x.n)}</b><span>${esc(x.c)}</span></div><span class="num">${x.score}</span></div>`;
+  const row=(x,i)=>`<div class="rk${x.me?" me":""}${x.crew?" crew":""}"${x.crew?` style="--crew:${x.col}"`:""}><span class="pos">#${i+1}</span><div class="what"><b>${esc(x.n)}${skullsOf(x.sk)}</b><span>${esc(x.c)}</span></div><span class="num">${x.score}</span></div>`;
   const L=st.shown,R=st.srank,me=L[R-1];
   let h=`<div class="rklist">${L.slice(0,10).map(row).join("")}`;
   if(R>10)h+=`<div class="rkgap" aria-hidden="true">⋯</div>${row(me,R-1)}`;
@@ -6869,7 +6874,7 @@ function renderSheet(){
       <div style="min-width:0;flex:1">
         ${ui.editingName
           ?`<input class="name" id="nameInput" maxlength="40" value="${esc(p.name)}" aria-label="Character name">`
-          :`<button class="name" id="nameBtn" title="Rename">${esc(p.name)}</button>`}
+          :`<button class="name" id="nameBtn" title="Rename">${esc(p.name)}</button>${skullsOf(mySkulls())}`}
         <button class="linkbtn lookbtn" type="button" id="lookBtn">${p.look?"Change look":"Create your look"}</button>
         <div><span class="title">${esc(titleFor(li.L))}</span> <span class="muted">· Level ${li.L}</span></div>
         ${p.focused?`<div class="focusline">Focused: next quest earns double XP</div>`:""}
@@ -8005,7 +8010,7 @@ function myCard(){
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
     wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy}:null,
-    rvDone:player.rvDone||null,as:player.assist||null,joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
+    rvDone:player.rvDone||null,as:player.assist||null,sk:mySkulls(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
@@ -8407,7 +8412,7 @@ function renderParty(){
     const n=(c.days||{})[td]||0;let mia=true;for(let i=0;i<PARTY_MIA_DAYS;i++)if((c.days||{})[addDays(td,-i)]){mia=false;break;}
     const nudged=player.nudged&&player.nudged.d===td&&player.nudged.u.includes(uid);
     return `<div class="pt-card${uid===me?" me":""}"><div class="pt-av print" aria-hidden="true">${miniAvatar(c)}</div>
-      <div class="pt-who"><b>${esc(c.name||"Crawler")}</b>${uid===me?` <span class="muted">(you)</span>`:""}</div>
+      <div class="pt-who"><b>${esc(c.name||"Crawler")}</b>${skullsOf(skullsFor(uid))}${uid===me?` <span class="muted">(you)</span>`:""}</div>
       <div class="pt-meta">Lv ${c.lvl||1} · ${esc(c.title||"")}</div>
       <div class="pt-meta">Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}`:""}</div>
       <div class="pt-today${n?" yes":""}">${n?`✔ ${n} quest${n===1?"":"s"} today`:mia&&uid!==me?"Missing in action":"No quests yet today"}</div>
@@ -8449,8 +8454,8 @@ function renderParty(){
       </div></div>
     ${raidFloorHTML()}
     ${(()=>{const cr=crewRanks(weekOf(td));if(cr.length<2)return "";const top=Math.max(0,...cr.filter(x=>!x.pending).map(x=>x.s));
-      return `<div class="label" style="margin-top:14px">This week's standings</div><ol class="pt-stand">${cr.map((x,i)=>x.pending?`<li class="pend"><span class="ps-pos">–</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}</b><span class="muted ps-why">${x.pending==="old"?"Needs to open the latest version":"Hasn't played this week yet"}</span></li>`
-        :`<li class="${x.me?"me":""}"><span class="ps-pos">${i===0&&x.s>0?"👑":"#"+(i+1)}</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}</b><span class="muted">Floor ${x.f||1}</span><i style="width:${top?Math.max(3,Math.round(x.s/top*100)):3}%"></i><span class="num">${x.s.toLocaleString()}</span></li>`).join("")}</ol>
+      return `<div class="label" style="margin-top:14px">This week's standings</div><ol class="pt-stand">${cr.map((x,i)=>x.pending?`<li class="pend"><span class="ps-pos">–</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}${skullsOf(x.sk)}</b><span class="muted ps-why">${x.pending==="old"?"Needs to open the latest version":"Hasn't played this week yet"}</span></li>`
+        :`<li class="${x.me?"me":""}"><span class="ps-pos">${i===0&&x.s>0?"👑":"#"+(i+1)}</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}${skullsOf(x.sk)}</b><span class="muted">Floor ${x.f||1}</span><i style="width:${top?Math.max(3,Math.round(x.s/top*100)):3}%"></i><span class="num">${x.s.toLocaleString()}</span></li>`).join("")}</ol>
         <div class="muted" style="font-size:12px">Boss damage on this week's floor. Crewmates also appear on your Crawler rankings in the Show tab.</div>`;})()}
     ${rivalCrewHTML()}
     <div class="label" style="margin-top:14px">Crew</div>
@@ -8611,7 +8616,7 @@ function renderInspect(){
   const worn=SLOTS.map(([slot,label,none])=>{const it=ITEMS.find(x=>x.id===wear[slot]);
     return `<li><span class="muted">${label}:</span> ${it?`<button type="button" class="linkbtn rar-${it.rar}" data-insp="${it.id}">${esc(it.n)}</button>`:`<span class="muted">${esc(slot==="armor"?"Starter outfit":none)}</span>`}</li>`;}).join("");
   o.innerHTML=`<div class="geardlg inspdlg" role="dialog" aria-modal="true" aria-label="${esc(c.name)}'s gear">
-    <div class="gearhead"><h2>${esc(c.name||"Crawler")}</h2><button class="btn ghost sm" type="button" id="inspClose">Close</button></div>
+    <div class="gearhead"><h2>${esc(c.name||"Crawler")}${skullsOf(c.sk||0)}</h2><button class="btn ghost sm" type="button" id="inspClose">Close</button></div>
     <div class="insp-top"><div class="insp-av print">${miniAvatar(c)}</div>
       <div><div><b>Level ${c.lvl||1}</b> · ${esc(c.title||"")}</div><div class="muted">Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}-day streak`:""}</div>
         <div class="muted">${cls?`Class: <b>${esc(cls.n)}</b>`:"No class yet"}${pet?` · Pet: ${esc(pet)}`:""}</div>
@@ -8662,7 +8667,7 @@ function chatHTML(){
   const me=myUid(),msgs=(party.chat||[]).slice(-60);
   const body=msgs.map((m,i)=>{const mine=m.uid===me,prev=msgs[i-1],same=prev&&prev.uid===m.uid&&m.at-prev.at<5*6e4;
     const t=new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
-    return `<div class="cmsg${mine?" mine":""}${same?" cont":""}">${same?"":`<div class="cwho" style="color:${rfColor(m.uid)}">${esc(mine?"You":m.name||"Crawler")} <span>${t}</span></div>`}
+    return `<div class="cmsg${mine?" mine":""}${same?" cont":""}">${same?"":`<div class="cwho" style="color:${rfColor(m.uid)}">${esc(mine?"You":m.name||"Crawler")}${skullsOf(skullsFor(m.uid))} <span>${t}</span></div>`}
       <div class="cbub">${esc(m.text)}${mine&&!m.pending?`<button type="button" class="cdel" data-cdel="${esc(m.id)}" aria-label="Delete message" title="Delete">×</button>`:""}</div>${reactRow(m,me)}</div>`;}).join("")
     ||`<p class="muted cempty">No messages yet. Say hi to your crew.</p>`;
   return `<div class="chatbox" id="chatBox">${body}</div>
