@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=1274d12ff5"></script>
+<script src="firebase-config.js?v=dd065fb681"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5898,6 +5898,9 @@ const SFX=(()=>{
     level:()=>{[67,71,74,79,83].forEach((n,i)=>tone(NOTE(n),.16,"square",.07,i*.06));tone(NOTE(86),.5,"triangle",.16,.32);},
     ach:()=>{tone(1320,.7,"sine",.22,0);tone(1760,.8,"sine",.16,.12);tone(2640,.4,"sine",.05,.12);},
     coin:()=>{tone(988,.07,"square",.07,0);tone(1319,.18,"square",.07,.07);},
+    // Party chat: three quick rising system blips, then a soft bell. Original, made for The Crawl.
+    chat:()=>{tone(NOTE(84),.045,"square",.05,0);tone(NOTE(91),.045,"square",.05,.06);tone(NOTE(96),.05,"square",.045,.12);
+      tone(NOTE(79),.42,"sine",.16,.17);tone(NOTE(91),.32,"sine",.06,.17);tone(NOTE(98),.18,"triangle",.025,.18);},
     hurt:()=>{chord([NOTE(33),NOTE(34)],.45,0,.18);tone(110,.35,"sawtooth",.08,0,60);},
     gong:()=>{tone(73,2.2,"sine",.6,0,68);tone(146,1.6,"sine",.18,0);noise(.6,.1,"lowpass",500);},
     tick:()=>{noise(.012,.06,"highpass",5000);},
@@ -6822,7 +6825,7 @@ function chatArrived(msgs){
   const last=msgs[msgs.length-1],onChat=ui.tab==="party"&&ui.ptView==="chat";
   const txt=String(last.text||""),short=txt.length>90?txt.slice(0,88)+"…":txt;
   if(document.visibilityState==="visible"){
-    if(!onChat){SFX.play("coin");toast(`<b>${esc(last.name||"Crawler")}</b> ${esc(short)}${msgs.length>1?` <span class="quip">+${msgs.length-1} more</span>`:""}`,"quest",()=>openPartyView("chat"),"Open chat");}
+    if(!onChat){SFX.play("chat");toast(`<b>${esc(last.name||"Crawler")}</b> ${esc(short)}${msgs.length>1?` <span class="quip">+${msgs.length-1} more</span>`:""}`,"quest",()=>openPartyView("chat"),"Open chat");}
   }else bgNotify(`${last.name||"Crawler"} · ${party&&party.doc&&party.doc.name||"Party chat"}`,txt,"crawl-chat");
 }
 function updateTitle(){let n=0;try{n=partyUnseen();}catch(e){}const t=(n?`(${n}) `:"")+"The Crawl";if(document.title!==t)document.title=t;}
