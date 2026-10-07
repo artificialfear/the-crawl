@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=63e9ca01a0"></script>
+<script src="firebase-config.js?v=7caeb64ff8"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1019,6 +1019,10 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .bossart.thumb.unknown::after{font-size:30px}
 .boss-compact.hunt .bar.charge b{background:linear-gradient(90deg,var(--mana),#b98cff)}
 .boss-facts .block{color:var(--blood);font-weight:600}
+.mobstrip{margin-top:10px;border-top:1px dashed var(--line-2);padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.mobstrip .mob{display:grid;grid-template-columns:28px 1fr minmax(90px,140px);gap:8px;align-items:center;font-size:13px}
+.mobstrip .mob b{display:block}.mobstrip .mob span{color:var(--muted);font-size:12px}
+.mobhp{display:flex;align-items:center;gap:6px}.mobhp .bar{flex:1;height:8px}.mobhp .bar>b{background:#7fbf4a}.mobhp .num{font-size:12px;color:var(--muted)}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -1523,6 +1527,12 @@ function rewardFor(p,t,actual){
 const C=(p,k)=>((p&&p.cnt)||{})[k]||0;
 function bump(k,n){if(!player)return;player.cnt=Object.assign({},player.cnt||{});player.cnt[k]=(player.cnt[k]||0)+(n===undefined?1:n);}
 const ACH = [
+  {id:"mob25",  n:"Pest Control",                 how:"Kill 25 mobs",                          box:"bronze",    test:p=>C(p,"mobKills")>=25,
+   line:"Twenty-five small things, flattened. The cleaning crew has started following you around."},
+  {id:"mob100", n:"Exterminator",                 how:"Kill 100 mobs",                         box:"silver",    test:p=>C(p,"mobKills")>=100,
+   line:"A hundred mobs. The local rat population has filed a formal complaint."},
+  {id:"pack10", n:"Pack Hunter",                  how:"Wipe out 10 mob packs",                 box:"silver",    test:p=>C(p,"packKills")>=10,
+   line:"Ten packs. They've started warning each other about you in the group chat."},
   {id:"partyup",n:"Strength in Numbers",         how:"Start or join a party",                 box:"bronze",    ev:"partyjoin",
    line:"You've formed a party. The producers love a group dynamic. Mostly for the drama."},
   {id:"raid1",  n:"Raid Night",                   how:"Help defeat a weekly party boss",       gold:50,         ev:"partyraid",
@@ -2525,6 +2535,61 @@ function talkScenes(ep){
   return sc;
 }
 
+/* ---------- Mobs ----------
+   Small fry that fill the floor between bosses. They live in corridor rooms (packs are tougher), guard some chests,
+   and now and then a wanderer jumps you on any quest. Each finished quest hits whatever is on you for the same
+   damage it does to a boss, but mob damage is free: it never comes out of the boss fight. Most mobs die in one hit;
+   a survivor follows you and nips for a little HP each quest until it falls. Kills pay a little bonus XP and gold. */
+const MOBS=["Rat Swarm","Goblin Intern","Dust Bunny Brute","Feral Roomba","Sock Mimic","Gremlin Accountant","Cave Pigeon","Mildew Slime",
+  "Kobold Telemarketer","Skeleton Temp","Gelatinous Inbox","Spam Imp","Lint Elemental","Feral Shopping Cart","Mold Sprite","Sewer Gnome"];
+const MOB_PACKS=["Goblin Union Meeting","Mimic Nest","Kobold Call Center","Rat King's Court","Skeleton Book Club","Gremlin Carpool"];
+const MOB_WANDER=.12; // doubled on hidden-lair floors, whose rooms are mostly lairs
+function heroHit(xp){return Math.round(xp*(1+statFx(player).dmg+petFx(player).dmg+gearFx(player).dmg));}
+function mobScale(){const x=rewardFor(player,{effort:3,est:30,stat:"STR",title:""},null).xp;return {xp:x,hit:Math.max(8,heroHit(x))};}
+function spawnMob(kind,room){
+  const sc=mobScale(),pack=kind==="pack";
+  const n=pack?MOB_PACKS[Math.floor(Math.random()*MOB_PACKS.length)]:MOBS[Math.floor(Math.random()*MOBS.length)];
+  const hp=Math.max(5,Math.round(sc.hit*(pack?1.4+Math.random()*.6:.35+Math.random()*.6)));
+  return {id:newId(),n,a:pack?"The":/^[AEIOU]/.test(n)?"An":"A",pack,hp,max:hp,room:room==null?null:room};
+}
+/* One quest's hit against everything on you, in the order they showed up. Returns toast lines. */
+function mobFight(fx,t){
+  const out=[];if(!player.mobs)player.mobs=[];
+  if(!player.mobs.length&&Math.random()<(player.boss&&player.boss.hunt?MOB_WANDER*2:MOB_WANDER)){const w=spawnMob("mob",null);player.mobs.push(w);bump("wanderers");out.push(`${w.a} wandering ${w.n} jumps you!`);}
+  if(!player.mobs.length)return out;
+  let hit=heroHit(fx);const sc=mobScale(),floor=floorOf(),m=player.map;
+  const left=[];
+  for(const mb of player.mobs){
+    if(hit>0){const d=Math.min(hit,mb.hp);mb.hp-=d;hit-=d;}
+    if(mb.hp<=0){
+      const bx=Math.round(sc.xp*(mb.pack?.3:.15)),g=mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6);
+      player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
+      bump("mobKills");if(mb.pack)bump("packKills");
+      let box="";if(mb.pack&&Math.random()<.25){giveBox("bronze",`Mob pack: ${mb.n}`);box=" and a Bronze Box";}
+      if(m&&mb.room!=null&&m.rooms[mb.room])m.rooms[mb.room].cleared=true;
+      player.viewers=(player.viewers||0)+(mb.pack?900:250);
+      out.push(`${mb.pack?"Wiped out":"Squashed"} ${mb.a.toLowerCase()==="the"?"the":mb.a.toLowerCase()} ${mb.n}: +${bx} XP, +${g} gold${box}.`);
+    }else left.push(mb);
+  }
+  player.mobs=left;
+  if(left.length){
+    const nip=Math.min(Math.max(0,player.hp-1),left.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0));
+    if(nip>0){player.hp-=nip;}
+    const lead=left[0];
+    out.push(`${lead.a} ${lead.n} is still on you (${lead.hp}/${lead.max} HP)${left.length>1?` with ${left.length-1} more`:""}${nip?` and nips you for ${nip} HP`:""}.`);
+  }
+  return out;
+}
+function mobIcon(x,y,s,pack){const K="#2a1c10";s=s||1;
+  const one=(dx,dy,k)=>`<g transform="translate(${x+dx} ${y+dy}) scale(${s*k})"><path d="M-8 4 Q-9 -6 0 -7 Q9 -6 8 4 Q4 8 0 8 Q-4 8 -8 4 Z" fill="#7fbf4a" stroke="${K}" stroke-width="1.8"/><path d="M-6 -5 L-9 -11 L-3 -7 Z M6 -5 L9 -11 L3 -7 Z" fill="#7fbf4a" stroke="${K}" stroke-width="1.4"/><circle cx="-3" cy="-1" r="1.8" fill="#e8283c"/><circle cx="3" cy="-1" r="1.8" fill="#e8283c"/><path d="M-3 4 L-1.5 2.5 L0 4 L1.5 2.5 L3 4" fill="none" stroke="${K}" stroke-width="1.2"/></g>`;
+  return pack?one(-6,3,.75)+one(6,3,.75)+one(0,-5,.8):one(0,0,1);}
+function mobStrip(){
+  const ms=player&&player.mobs||[];if(!ms.length)return "";
+  return `<div class="mobstrip" role="status">${ms.map(mb=>`<div class="mob"><svg viewBox="-12 -13 24 24" width="26" height="26" aria-hidden="true">${mobIcon(0,0,1,mb.pack)}</svg><div><b>${esc(mb.n)}</b><span>${mb.pack?"Mob pack":"Mob"} · chasing you</span></div>
+    <div class="mobhp"><div class="bar"><b style="width:${Math.round(mb.hp/mb.max*100)}%"></b></div><span class="num">${mb.hp}/${mb.max}</span></div></div>`).join("")}
+    <div class="muted" style="font-size:12px">Your next quest hits ${ms.length>1?"them":"it"}. Mob damage doesn't come out of your boss fight.</div></div>`;
+}
+
 /* ---------- Floor map ----------
    Each floor is a winding corridor of 16 rooms on a 5×5 grid, drawn like a hand-inked dungeon map.
    Every finished quest moves you one room deeper and resolves what's in it. Two secret rooms hang off
@@ -2538,6 +2603,8 @@ const ROOM={
   trap:{n:"Trap",d:"A small HP hit, unless your map already showed it or your Dexterity is 3+."},
   shrine:{n:"Shrine",d:"Heals 15% of your max HP."},
   lair:{n:"Monster lair",d:"Costs a little HP. Pays a Bronze Box."},
+  mob:{n:"Mob",d:"A small monster. Most die to one quest; a survivor chases you and nips for a little HP until you finish it. Kills pay a little bonus XP and gold."},
+  pack:{n:"Mob pack",d:"A tougher group. Usually takes two quests. Pays more XP and gold, and sometimes a Bronze Box."},
   merchant:{n:"Wandering merchant",d:"Sells one item until the floor ends."},
   door:{n:"Sealed door",d:"Opens on any Elite or harder quest, or after 3 lock-picking quests."},
   stairs:{n:"Stairwell",d:"The end of the map. Reaching it pays an exploration bonus."},
@@ -2578,7 +2645,7 @@ function buildMap(b){
       const nx=opts[Math.min(k,opts.length-1)];p.push(nx);seen.add(nx[0]+","+nx[1]);}
     if(p.length===LEN)path=p;}
   if(!path){path=[];for(let i=0;i<LEN;i++){const row=Math.floor(i/4),col=row%2?3-i%4:i%4;path.push([col,MAP_H-1-row]);}}
-  const kinds=["chest","chest","chest","trap","trap","shrine","shrine","lair","merchant","door","empty","empty","empty","empty"];
+  const kinds=["chest","chest","chest","trap","trap","shrine","shrine","pack","merchant","door","mob","mob","mob","empty"];
   for(let i=kinds.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[kinds[i],kinds[j]]=[kinds[j],kinds[i]];}
   if(kinds[0]==="door"){const j=kinds.indexOf("empty");[kinds[0],kinds[j]]=[kinds[j],kinds[0]];}
   const rooms=path.map(([x,y],i)=>({x,y,t:i===0?"entrance":i===LEN-1?"stairs":kinds[(i-1)%kinds.length]}));
@@ -2595,10 +2662,13 @@ function buildMap(b){
     const nb=[[1,0],[-1,0],[0,-1],[0,1]].map(([dx,dy])=>[rm.x+dx,rm.y+dy]).filter(([a,c])=>a>=0&&c>=0&&a<MAP_W&&c<MAP_H&&!used.has(a+","+c));
     if(nb.length&&!secrets.some(s=>s.link===i)){const [a,c]=nb[Math.floor(r()*nb.length)];used.add(a+","+c);secrets.push({x:a,y:c,link:i,found:false});}}
   rooms.forEach((rm,i)=>{if(rm.t==="merchant"){const pool=ITEMS.filter(it=>["common","uncommon","rare"].includes(it.rar)&&!it.base);rm.item=pool[Math.floor(r()*pool.length)].id;}});
-  return {week:b.week,floor:b.floor,rooms,secrets,pos:0,lock:0,log:[],rev:[0],drops:0,len:LEN,hunt:!!b.hunt};
+  rooms.forEach(rm=>{if(rm.t==="chest"&&r()<.5)rm.guard=1;});
+  return {week:b.week,floor:b.floor,rooms,secrets,pos:0,lock:0,log:[],rev:[0],drops:0,len:LEN,hunt:!!b.hunt,mobs:1};
 }
 function ensureMap(){const b=player.boss;if(!b)return null;if(!player.map||player.map.week!==b.week||player.map.floor!==b.floor){player.map=buildMap(b);}
-  const m=player.map;if(!m.rev){m.rev=[];for(let i=0;i<=Math.min(mapLen(m)-1,m.pos+1);i++)m.rev.push(i);} // older saves keep what they could already see
+  const m=player.map;
+  if(!m.mobs){m.mobs=1;m.rooms.forEach((rm,i)=>{if(i<=m.pos)return;if(rm.t==="empty"&&Math.random()<.75)rm.t="mob";else if(rm.t==="lair")rm.t="pack";else if(rm.t==="chest"&&Math.random()<.5)rm.guard=1;});}
+  if(!m.rev){m.rev=[];for(let i=0;i<=Math.min(mapLen(m)-1,m.pos+1);i++)m.rev.push(i);} // older saves keep what they could already see
   return m;}
 const MERCH_PRICE={common:90,uncommon:200,rare:420};
 function mapLog(m,t){m.log=[t].concat(m.log||[]).slice(0,4);return t;}
@@ -2630,6 +2700,9 @@ function mapStep(t){
     else if(lvlOf(player,"DEX")>=3)out.push(mapLog(m,`Room ${m.pos+1}: a tripwire. Your Dexterity saw it coming. No damage.`));
     else{const d=Math.min(player.hp-1,6+floor*2);player.hp-=Math.max(0,d);out.push(mapLog(m,`Room ${m.pos+1}: a trap! The floor bit you for ${d} HP.`));}}
   if(rm.t==="shrine"){const h=Math.min(H-player.hp,Math.round(H*.15));player.hp+=h;out.push(mapLog(m,`Room ${m.pos+1}: a flickering shrine. ${h?`+${h} HP.`:"You were already healthy. It flickered at you anyway."}`));}
+  if((rm.t==="mob"||rm.t==="pack"||(rm.t==="chest"&&rm.guard))&&!rm.cleared){
+    const mb=spawnMob(rm.t==="pack"?"pack":"mob",m.pos);player.mobs=(player.mobs||[]).concat(mb);
+    out.push(mapLog(m,rm.t==="chest"?`Room ${m.pos+1}: ${mb.a} ${mb.n} was guarding the chest!`:`Room ${m.pos+1}: ${mb.a} ${mb.n}${rm.t==="pack"?" (a whole pack of them)":""}!`));}
   if(rm.t==="lair"){const d=Math.min(player.hp-1,4+floor);player.hp-=Math.max(0,d);giveBox("bronze","A monster lair on the map");out.push(mapLog(m,`Room ${m.pos+1}: a monster lair. You lost ${d} HP and took their Bronze Box.`));}
   if(rm.t==="merchant"){const it=ITEMS.find(i=>i.id===rm.item);out.push(mapLog(m,`Room ${m.pos+1}: a wandering merchant is selling ${it?it.n:"something"}. Check the map.`));}
   if(rm.t==="door")out.push(mapLog(m,`Room ${m.pos+1}: through the door.`));
@@ -2662,6 +2735,8 @@ function mapIcon(t,cx,cy){
   if(t==="door")return `<path d="M${cx-8} ${cy+10} L${cx-8} ${cy-3} Q${cx-8} ${cy-11} ${cx} ${cy-11} Q${cx+8} ${cy-11} ${cx+8} ${cy-3} L${cx+8} ${cy+10} Z" fill="#7a4a26" stroke="${K}" stroke-width="1.8"/><circle cx="${cx}" cy="${cy+1}" r="2.6" fill="#ffd23f" stroke="${K}" stroke-width="1"/>`;
   if(t==="stairs")return `<path d="M${cx-10} ${cy+9} L${cx-10} ${cy+3} L${cx-4} ${cy+3} L${cx-4} ${cy-3} L${cx+2} ${cy-3} L${cx+2} ${cy-9} L${cx+10} ${cy-9} L${cx+10} ${cy+9} Z" fill="#8a7a6a" stroke="${K}" stroke-width="1.8"/>`;
   if(t==="entrance")return `<path d="M${cx} ${cy+10} L${cx} ${cy-6} M${cx-6} ${cy} L${cx} ${cy-7} L${cx+6} ${cy}" fill="none" stroke="${K}" stroke-width="2.4"/>`;
+  if(t==="mob")return mobIcon(cx,cy,1.25,false);
+  if(t==="pack")return mobIcon(cx,cy,1.2,true);
   if(t==="boss")return `<path d="M${cx-9} ${cy-4} L${cx-12} ${cy-13} L${cx-5} ${cy-8} Z M${cx+9} ${cy-4} L${cx+12} ${cy-13} L${cx+5} ${cy-8} Z" fill="#e8283c" stroke="${K}" stroke-width="1.4"/><path d="M${cx-8} ${cy+1} Q${cx-9} ${cy-10} ${cx} ${cy-10} Q${cx+9} ${cy-10} ${cx+8} ${cy+1} L${cx+5} ${cy+4} L${cx+5} ${cy+9} L${cx-5} ${cy+9} L${cx-5} ${cy+4} Z" fill="#f5ead0" stroke="${K}" stroke-width="1.8"/><circle cx="${cx-3.5}" cy="${cy-3}" r="2.6" fill="#e8283c" stroke="${K}" stroke-width="1"/><circle cx="${cx+3.5}" cy="${cy-3}" r="2.6" fill="#e8283c" stroke="${K}" stroke-width="1"/><path d="M${cx-3} ${cy+6} L${cx-3} ${cy+9} M${cx} ${cy+6} L${cx} ${cy+9} M${cx+3} ${cy+6} L${cx+3} ${cy+9}" stroke="${K}" stroke-width="1.2"/>`;
   if(t==="secret")return `<path d="M${cx} ${cy-10} L${cx+3} ${cy-3} L${cx+10} ${cy} L${cx+3} ${cy+3} L${cx} ${cy+10} L${cx-3} ${cy+3} L${cx-10} ${cy} L${cx-3} ${cy-3} Z" fill="#ffd23f" stroke="${K}" stroke-width="1.4"/>`;
   return "";
@@ -2680,9 +2755,10 @@ function mapSVG(m){
   for(let gx=0;gx<MAP_W;gx++)for(let gy=0;gy<MAP_H;gy++){if(known.has(gx+","+gy))continue;const [x,y]=c(gx,gy);s+=`<rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="10" fill="#3a2f2a" opacity=".82"/><path d="M${x-14} ${y+4} q6 -8 12 -2 q6 -9 14 0" fill="none" stroke="#5a4a3a" stroke-width="2" stroke-linecap="round"/>`;}
   m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos,past=i<m.pos,nw=fresh.has(i);
     s+=`<g${nw?' class="mapnew"':""}><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="${here?"#fff3c4":past?"#f5ead0":"#e2cfa2"}" stroke="${here?"#e8283c":K}" stroke-width="${here?4:2.4}" ${!past&&!here?'stroke-dasharray="5 3"':""}/>`;
-    const bossDead=rm.boss!=null&&player.boss&&player.boss.week===m.week&&(player.boss.defeated||player.boss.tier>rm.boss);
+    const bossDead=(rm.boss!=null&&player.boss&&player.boss.week===m.week&&(player.boss.defeated||player.boss.tier>rm.boss))||((rm.t==="mob"||rm.t==="pack")&&rm.cleared);
     s+=`<g opacity="${(past&&rm.t!=="merchant")||bossDead?.55:1}">${mapIcon(rm.t==="door"&&rm.open?"entrance":rm.t,x,y)}</g>`
       +(rm.t==="stairs"&&rm.boss!=null&&!bossDead?`<g transform="translate(${x+12} ${y+12}) scale(.55)">${mapIcon("boss",0,0)}</g>`:"")
+      +(rm.t==="chest"&&rm.guard&&!rm.cleared&&i>m.pos?`<g transform="translate(${x+13} ${y-13})">${mobIcon(0,0,.7,false)}</g>`:"")
       +(bossDead?`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`:"")+(rm.t==="merchant"&&rm.sold?`<path d="M${x-12} ${y+12} L${x+12} ${y-12}" stroke="#e8283c" stroke-width="3"/>`:"")+`</g>`;
     if(here)s+=`<g class="mapme"><circle cx="${x+16}" cy="${y-16}" r="8" fill="#e8283c" stroke="${K}" stroke-width="2"/><circle cx="${x+16}" cy="${y-17}" r="2.6" fill="#fff"/></g>`;});
   (m.secrets||[]).forEach(se=>{if(!se.found&&!se.located)return;const [x,y]=c(se.x,se.y);
@@ -2705,7 +2781,7 @@ function renderMap(){
       <div class="muted">${player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated?`${esc(player.boss.name)} blocks the way. Beat it to keep exploring.`
         :m.pos>=mapLen(m)-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · a map marked one with a red X: any Elite quest opens it once you've passed it":""}. Maps this floor: ${m.drops||0}.</div>
       ${(m.log||[]).length?`<ul class="maplog">${m.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>${mh}
-    <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["chest","trap","shrine","lair","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
+    <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["mob","pack","chest","trap","shrine","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
   const bm=$("buyMerch");if(bm)bm.onclick=buyMerchant;
 }
 
@@ -3576,6 +3652,7 @@ function renderTicker(){
       :hunting(b)?`Floor ${b.floor}: the ${TIERS[b.tier].n} (${b.tier+1} of 6) is hiding somewhere on the map. ${player.name} has ${b.charge||0} Charge saved up for the ambush.`
       :`Floor ${b.floor}: ${b.name}, the ${TIERS[b.tier].n} (${b.tier+1} of 6), at ${hp} of ${b.maxHp} HP. The stairwell closes ${fmtDue(addDays(b.week,6))} at midnight.`);
   }
+  if(playerExists&&(player.mobs||[]).length){const mb=player.mobs[0];lines.push(`${mb.a} ${mb.n} is chasing ${player.name} through Floor ${floorOf()}. Viewers are taking bets on how long it lasts.`);}
   const od=tasks.filter(t=>!t.done&&t.due&&t.due<today()).length;
   if(od)lines.push(`${od} overdue quest${od===1?" is":"s are"} rotting on the board. The audience can smell ${od===1?"it":"them"}.`);
   const st=player.lastDoneDate===today()||player.lastDoneDate===addDays(today(),-1)?player.streak:0;
@@ -3750,6 +3827,7 @@ function completeQuest(id,actual,touched){
   const goals=progressGoals(t,{late:wasBoss,onTarget:!!r.onTarget});evs.push(...goals.evs);
   let mapMsgs=[];try{mapMsgs=mapStep(t);}catch(e){console.error("map",e);}
   if(ui.ambushLoot){loot={kills:((loot&&loot.kills)||[]).concat(ui.ambushLoot.kills)};ui.ambushLoot=null;}
+  let mobMsgs=[];try{mobMsgs=mobFight(fx,t);}catch(e){console.error("mobs",e);}
   if(ui.ambush){const a=ui.ambush;ui.ambush=null;
     setTimeout(()=>{SFX.play("hurt");toast(`<span class="big">Ambush!</span> You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?` It blocks the corridor until it falls.`:""}`,"lvl");},500);
     mapMsgs=mapMsgs.filter(x=>!/lair!|The stairwell!/.test(x));}
@@ -3792,6 +3870,7 @@ function completeQuest(id,actual,touched){
   lootToast(loot);
   goals.msgs.forEach((m,i)=>setTimeout(()=>toast(m,"lvl"),800+i*700));
   mapMsgs.forEach((m,i)=>setTimeout(()=>toast(`<b>Map</b> ${esc(m)}`,"quest"),1300+(goals.msgs.length+i)*700));
+  if(mobMsgs.length)setTimeout(()=>toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest"),1300+(goals.msgs.length+mapMsgs.length)*700);
   if(usedFocus)setTimeout(()=>toast("Potion of Focus spent: that quest earned double XP."),400);
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
   if(goblinBox)setTimeout(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>openBox(goblinBox.id),"Open it"),600);
@@ -5464,7 +5543,7 @@ function renderBoss(){
   const togo=Math.ceil(hp/typical);
   const fog=themeFx(player).fog&&!b.defeated,hpTxt=fog?"??? / ???":`${hp} / ${b.maxHp}`,barW=fog?100:(hp/b.maxHp*100),togoTxt=fog?"??":togo;
   const fd=finalDay(b),ec=escapeCost(b);
-  const tbar=(fd?`<div class="finalday" role="status"><span class="fd-k">Final day</span> The stairwell closes in <b data-countdown="${stairwellEnd(b)}">${fmtLeft(stairwellEnd(b)-Date.now())}</b>. ${hunting(b)?`The ${esc(T.n)} is still hiding`:`${esc(b.name)} is still standing${fog?"":` with <b>${hp}</b> HP`}`}. ${5-b.tier} more boss${5-b.tier===1?"":"es"} after this one.${b.firstWeek?"":` If any are left at midnight you lose <b>${Math.round(ec.goldPct*100)}% of your gold</b> and 10% of your viewers, and start the next floor as a Straggler.`}</div>`:"")
+  const tbar=mobStrip()+(fd?`<div class="finalday" role="status"><span class="fd-k">Final day</span> The stairwell closes in <b data-countdown="${stairwellEnd(b)}">${fmtLeft(stairwellEnd(b)-Date.now())}</b>. ${hunting(b)?`The ${esc(T.n)} is still hiding`:`${esc(b.name)} is still standing${fog?"":` with <b>${hp}</b> HP`}`}. ${5-b.tier} more boss${5-b.tier===1?"":"es"} after this one.${b.firstWeek?"":` If any are left at midnight you lose <b>${Math.round(ec.goldPct*100)}% of your gold</b> and 10% of your viewers, and start the next floor as a Straggler.`}</div>`:"")
     +(straggling()?`<div class="themebar"><span class="themechip strag">Straggler</span><span class="bane">▼ −10% XP through ${esc(fmtDue(player.straggler.until))}. You got caught on the stairs.</span></div>`:"")+themeBar(b);
   const closes=daysLeft===1?"tonight":`in ${daysLeft} days`;
   const ladder=`<ol class="ladder6" aria-label="Boss ladder, ${b.defeated?6:b.tier} of 6 defeated">${TIERS.map((t,i)=>`<li class="${b.defeated||i<b.tier?"done":i===b.tier?"now":""}" title="${t.n}${i<(b.kills||[]).length?": "+esc(b.kills[i].name):""}">${t.n.replace(" boss","")}</li>`).join("")}</ol>`;
