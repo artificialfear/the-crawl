@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=e9f4224437"></script>
+<script src="firebase-config.js?v=d9c1756da1"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2489,6 +2489,7 @@ function openShow(){
     else{ov.innerHTML=frame(st.final);}
     wire();
     {const q=ov.querySelector(".bubble.tq");if(q)hostSpeak(inv.host,q.textContent);}
+    if(st.step===0)crowd("cheer");
   };
   const react=(good)=>{const t=good?spick(r,H.good):spick(r,H.bad);return t;};
   const wire=()=>{
@@ -2503,11 +2504,13 @@ function openShow(){
       ov.querySelector(".tbody").innerHTML=`<div class="bubble tq treact ${good?"good":"bad"}">${esc(react(good))}</div><div class="tsub">${good?(style==="chaotic"?"That clip is already everywhere.":"The audience liked that."):"The audience did not like that."}</div><button class="btn gold" type="button" data-t="next">Next</button>`;
       ov.querySelector(".hype b").style.width=Math.max(4,Math.min(100,50+st.hype*8))+"%";
       {const q=ov.querySelector(".bubble.treact");if(q)hostSpeak(inv.host,q.textContent);}
+      crowd(good?(style==="chaotic"?"laugh":"cheer"):(style==="chaotic"?"shock":"disgust"));
       ov.querySelector("[data-t=next]").onclick=()=>{st.step++;draw();};});
     ov.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>finishShow(b.dataset.p));
     ov.querySelectorAll("[data-t=close]").forEach(b=>b.onclick=()=>{ov.classList.add("out");setTimeout(()=>ov.remove(),300);});
   };
   const finishShow=(choice)=>{
+    if(choice==="ante"){crowd("shock");setTimeout(()=>crowd("cheer"),1100);}else crowd(choice==="dodge"?"disgust":"cheer");
     const p=player,S2=p.show,v0=p.viewers||0,pct=Math.max(-.08,Math.min(.25,.02+st.hype*.025));
     const dv=Math.round(Math.max(500,v0)*pct);p.viewers=Math.max(0,v0+dv);
     S2.invite=null;S2.n=(S2.n||0)+1;S2.appearances=(S2.appearances||0)+1;
@@ -6960,6 +6963,14 @@ function announce(text,force,how){
   if(!tts.ok||(!force&&(prefs.tts!==true||prefs.sound===false||document.visibilityState!=="visible")))return;
   try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(text).slice(0,280));const v=how&&how.pref?ttsPick(how.pref):ttsVoice();if(v)u.voice=v;
     u.rate=how&&how.rate||1.06;u.pitch=how&&how.pitch||.92;u.volume=Math.max(.2,Math.min(1,prefs.vol==null?.6:+prefs.vol));speechSynthesis.speak(u);}catch(e){}
+}
+/* Studio audience: short crowd recordings (cheer, laughter, gasp, groan) served with the hosted site.
+   Preloaded once; each play restarts its clip. Silent where the files aren't available. */
+const CROWD={};
+function crowd(kind){
+  if(prefs.sound===false||!window.CRAWL_FB)return;
+  try{let a=CROWD[kind];if(!a){a=CROWD[kind]=new Audio(`sfx/crowd-${kind}.mp3`);a.preload="auto";}
+    a.volume=Math.max(0,Math.min(1,(prefs.vol==null?.6:+prefs.vol)*.75));a.currentTime=0;const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{});}catch(e){}
 }
 /* Talk show hosts each get their own voice: the device's built-in voices, picked by name where the device has
    several, with pitch and speed doing most of the characterisation. Marla & Dex trade lines. */
