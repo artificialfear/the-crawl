@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=96dc166493"></script>
-<script>window.CRAWL_BUILD="96dc166493";</script>
+<script src="firebase-config.js?v=4c8f66bb69"></script>
+<script>window.CRAWL_BUILD="4c8f66bb69";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -4701,6 +4701,20 @@ function renderTicker(){
   if(ap)lines.push(petSulking()?`${ap.name} the ${PETS[ap.key].n} is sulking. Finish a quest before it files a complaint.`:`${ap.name} the ${PETS[ap.key].n} is at bond level ${bondLevel(ap.bond)}. It still doesn't respect you.`);
   const nb=(player.boxes||[]).length;
   if(nb)lines.push(`${nb} unopened loot box${nb===1?"":"es"} just sitting there. Open ${nb===1?"it":"them"}, coward.`);
+  // Rivals, gear and crew
+  if(player.rival){const rv=player.rival;lines.push(rv.psy?`${rv.n} is hunting ${player.name} and won't stop. Producers have stopped pretending this is fine.`:`${rv.n}, the ${rv.c}, is after ${player.name}'s loot. Chat is split ${40+Math.floor(rv.hp/rv.max*40)}/${60-Math.floor(rv.hp/rv.max*40)} on who walks away.`);}
+  {const q=(player.rvq||[])[0];if(q){const it=q.item&&itemOf(q.item);lines.push(it?`${q.n} is still out there wearing ${player.name}'s ${it.n}. A rematch is coming.`:`${q.n} hasn't forgotten about ${player.name}. Neither has the audience.`);}}
+  {const k=C(player,"rivalKOs"),kl=C(player,"rivalKills");
+    if(kl)lines.push(`${player.name} has ${kl} crawler kill${kl===1?"":"s"} to their name. ${"☠".repeat(Math.min(kl,10))} Other crawlers are giving them a wide berth.`);
+    else if(k)lines.push(`${player.name} has knocked out ${k} rival crawler${k===1?"":"s"}. Nobody's sure whether to be impressed or worried.`);}
+  if(!wearing(player).boots)lines.push(`${player.name} is still crawling barefoot. The floor is cold, sticky and full of opinions.`);
+  if(player.gold>=500)lines.push(`${player.name} is carrying ${player.gold.toLocaleString()} gold. Every rival on the board has noticed.`);
+  if(party&&party.doc){const n=partyMembers().length;lines.push(`${party.doc.name||"Their party"} is ${n} crawler${n===1?"":"s"} strong this week. Group chat is reportedly unhinged.`);}
+  // Around the dungeon: a few rotating bits of gossip, reshuffled every hour
+  {const hr=new Date().getHours(),r=srand(today()+"|tk|"+hr),pool=TICKER_FLUFF.slice();
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+    const rv=()=>RIVALS[Math.floor(r()*RIVALS.length)][0];
+    pool.slice(0,4).forEach(x=>lines.push(x.replace(/\{name\}/g,player.name).replace(/\{rival\}/g,rv).replace(/\{rival2\}/g,rv)));}
   lines.push(`Now watching: ${fmtViewers(player.viewers)} viewers.`);
   lines.push(SPONSORS[(new Date().getDate()+new Date().getHours())%SPONSORS.length]);
   const html=lines.map(esc).join("<i>✦</i>");
@@ -4709,6 +4723,40 @@ function renderTicker(){
   run.style.setProperty("--tkdur",Math.max(35,Math.round(html.length/9))+"s");
 }
 
+/* Gossip for the news ticker. {name} is the player, {rival}/{rival2} a crawler from the rankings. */
+const TICKER_FLUFF=[
+  "{rival} was seen arguing with a vending machine on Floor 2. The vending machine is winning.",
+  "Sources confirm {rival} has been sleeping in a mimic. The mimic has asked for privacy.",
+  "{rival} and {rival2} were spotted sharing a sandwich. Alliance, or lunch? Experts disagree.",
+  "{rival} claims to have found a secret room. It was a closet. They're still in it.",
+  "A goblin union has filed a complaint about working conditions in the lower corridors.",
+  "Maintenance reminds crawlers not to lick the glowing moss. Again.",
+  "The safe room's coffee machine has been upgraded from 'hostile' to 'unhelpful.'",
+  "Lost and found: one boot, left foot, slightly haunted. Ask at the front desk.",
+  "{rival} has started charging admission to watch them do dishes.",
+  "Ratings spike as {name} finishes something they've been avoiding for weeks.",
+  "Viewers vote {name} 'Most Likely To Reorganize A Dungeon Instead Of Clearing It.'",
+  "An ooze on Floor 1 has learned to spell its own name. It's spelling it wrong.",
+  "The announcer would like to remind everyone that the stairwell is not a suggestion.",
+  "{rival} has been banned from the merchant's stall for 'excessive haggling and light arson.'",
+  "Reminder: shrines are for healing, not for drying your socks. You know who you are.",
+  "A crawler on Floor 4 reportedly finished their whole to-do list. Scientists are being called in.",
+  "{rival} is selling 'productivity tips' scrawled on a napkin. Ten gold. The napkin is used.",
+  "The pet daycare has hit capacity. Most of the capacity is one very large slime.",
+  "Sponsors report record sales of Scrolls of Extension. Nobody is surprised.",
+  "{name}'s pet has been seen stealing snacks from {rival}'s backpack. No charges filed.",
+  "Weather in the dungeon today: damp, with a 60% chance of something dripping on you.",
+  "{rival} insists the trap on Floor 2 'started it.'",
+  "A loot goblin was spotted wearing three hats. Investigators believe the hats are stolen.",
+  "The dungeon's suggestion box has been eaten. Management calls this 'feedback.'",
+  "{rival2} challenged {rival} to a duel. They are now arguing about the rules of the duel.",
+  "Today's motivational quote, from the walls of Floor 3: 'Just one more room.' It's carved in blood. Probably ketchup.",
+  "{name} has been rated 'surprisingly hard to kill' by a panel of very disappointed monsters.",
+  "Scientists confirm the mob packs are breeding. Scientists have since stopped answering emails.",
+  "A crawler tried to bribe the stairwell. The stairwell declined. It has standards.",
+  "{rival} wants everyone to know they 'let' that mob pack win.",
+  "The audience has started a petition to give {name} better boots.",
+  "Overheard in the safe room: 'I'll do it tomorrow.' The quest heard. The quest remembers."];
 /* ---------- Daily overdue damage ----------
    Missed quests hurt. Each overdue quest hits for 2× its size every morning, and the hit grows 25% for each
    extra day it sits there (up to 2.5×). Damage reduction has a soft cap: the first 30% counts in full,
