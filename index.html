@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9a3c3a132f"></script>
-<script>window.CRAWL_BUILD="9a3c3a132f";</script>
+<script src="firebase-config.js?v=ff36edfac5"></script>
+<script>window.CRAWL_BUILD="ff36edfac5";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -88,13 +88,13 @@ h2::after{content:"";display:block;height:3px;margin-top:8px;background:linear-g
 .invtorch .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flicker 1.3s ease-in-out infinite}
 .tiers{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:11px;color:#e8e2f6}
 .tiers i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid #111}
-.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor side" ". trinket .";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
+.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor side" "trinket boots .";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
 /* No side padding or column gap: each side slot centres between the panel edge and the body slot, so the spacing is even */
 .doll .sil{position:absolute;left:50%;top:8px;height:calc(100% - 16px);transform:translateX(-50%);fill:#241c3f;stroke:#a493e6;stroke-width:1.3;stroke-linejoin:round;opacity:.95;pointer-events:none;filter:drop-shadow(0 0 6px rgba(164,147,230,.55)) drop-shadow(0 0 18px rgba(63,224,255,.25))}
 .dslot{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:1}
 .ds-trinket{grid-area:trinket}.ds-trinket .invcell{width:50px;height:50px}
 .ds-side{grid-area:side;align-self:start;display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px}
-.ds-side .dslot{margin-top:0}.ds-gloves .invcell{width:58px;height:58px}
+.ds-side .dslot{margin-top:0}.ds-boots{grid-area:boots}.ds-boots .invcell{width:58px;height:58px}.ds-gloves .invcell{width:58px;height:58px}
 .ds-head{grid-area:head}.ds-cape{grid-area:cape}.ds-weapon{grid-area:weapon}.ds-armor{grid-area:armor}
 .ds-ring,.ds-weapon,.ds-armor{margin-top:2px}
 .dlabel{display:block;width:100%;text-align:center;padding-left:.12em;box-sizing:border-box;line-height:1.2;white-space:nowrap;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#f1ebff;text-shadow:0 1px 2px #000,0 0 6px #000}
@@ -1449,7 +1449,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Floors</b>: each week is a new floor with a ladder of six bosses: Neighborhood, Borough, City, Province, Country and Floor. Every XP you earn hits the boss in front of you; kill it and the next one steps up, with extra damage carrying over. Drops: Bronze, Bronze, Silver, Silver, Gold, Legendary. Climb as high as you can before the stairwell closes Sunday night. Overdue quests wound you and heal the current boss. At 0 HP you're knocked out: streak lost, a fifth of your gold dropped.</div>
           <div><b>Stats</b> level up from the quests you assign them. Each level above 1 adds: Strength +2% boss damage (max 30%), Intelligence +1% XP (max 15%), Constitution +5 max HP (max 75), Dexterity a 2% wider accuracy window on each side (max 20%), Charisma +2% gold and more viewers (max 30%).</div>
           <div><b>Loot boxes</b> come from achievements, level-ups (Bronze, or Silver every fifth level), bosses and the shop. Contents are random: gold, potions, or gear from Common to Legendary. Duplicates turn into gold.</div>
-          <div><b>Gear</b>: weapons, helmets and capes can raise XP; gloves add boss damage; body armor reduces overdue damage. Your best item in each slot counts, whatever your crawler wears. Rings each have their own perk, and only the ring you wear counts. Pet trinkets boost your pet's own passive while it wears one. Unique items are very rare, glow, and carry an extra effect.</div>
+          <div><b>Gear</b>: weapons, helmets and capes can raise XP; gloves add boss damage; boots add max HP and faster movement speed (a chance each quest moves you an extra room on the floor map and raid floor); body armor reduces overdue damage. Your best item in each slot counts, whatever your crawler wears. Rings each have their own perk, and only the ring you wear counts. Pet trinkets boost your pet's own passive while it wears one. Unique items are very rare, glow, and carry an extra effect.</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
@@ -1644,7 +1644,21 @@ const ITEMS = [
   {id:"t16",slot:"trinket",n:"Tiny Devil Horns",                    rar:"rare",     bonus:.033, look:"horns",    fx:{lv:1,rate:.5}, d:"Pet counts as +1 bond level, bond grows 50% faster"},
   {id:"t17",slot:"trinket",n:"Gold Chain of Clout",                 rar:"epic",     bonus:.042, look:"chain",    fx:{lv:3},         d:"Pet counts as +3 bond levels"},
   {id:"t18",slot:"trinket",n:"Tiny Halo",                           rar:"legendary",bonus:.052, look:"halo",     fx:{lv:3,rate:.5}, d:"Pet counts as +3 bond levels, bond grows 50% faster"},
-  {id:"m16",slot:"trinket",n:"Frost Collar",                        rar:"magical",  bonus:.062, look:"frost",    magic:"frost", fx:{lv:4,rate:.5}, d:"Pet counts as +4 bond levels, bond grows 50% faster",mnote:"Your pet's breath fogs up. It's very proud of this."}];
+  {id:"m16",slot:"trinket",n:"Frost Collar",                        rar:"magical",  bonus:.062, look:"frost",    magic:"frost", fx:{lv:4,rate:.5}, d:"Pet counts as +4 bond levels, bond grows 50% faster",mnote:"Your pet's breath fogs up. It's very proud of this."},
+  /* Boots: your best pair grants faster movement speed (bonus = chance a quest moves you an extra room on the
+     floor map and the raid floor) and extra max HP (hp). */
+  {id:"b1",slot:"boots",n:"Squeaky Sneakers",                      rar:"common",   price:50,  bonus:.05, hp:5,  look:"sneaker",c:"#e8283c",d:"5% faster movement speed · +5 max HP"},
+  {id:"b2",slot:"boots",n:"Flip-Flops of Questionable Grip",       rar:"common",   price:35,  bonus:.04, hp:6,  look:"flip",   c:"#3fae5a",d:"4% faster movement speed · +6 max HP"},
+  {id:"b3",slot:"boots",n:"Steel-Toe Work Boots",                  rar:"uncommon", price:150, bonus:.08, hp:10, look:"work",   c:"#b8863a",d:"8% faster movement speed · +10 max HP"},
+  {id:"b4",slot:"boots",n:"Fuzzy Slippers of Working From Home",   rar:"uncommon",            bonus:.09, hp:8,  look:"slipper",c:"#f08ab4",d:"9% faster movement speed · +8 max HP"},
+  {id:"b5",slot:"boots",n:"Ranger Boots of the Back Way",          rar:"rare",                bonus:.12, hp:14, look:"ranger", c:"#7a4a26",d:"12% faster movement speed · +14 max HP"},
+  {id:"b6",slot:"boots",n:"Hiking Boots of the Long Way Round",    rar:"rare",                bonus:.13, hp:15, look:"hiker",  c:"#8a6a3a",d:"13% faster movement speed · +15 max HP"},
+  {id:"b7",slot:"boots",n:"Iron Greaves of Standing Firm",         rar:"epic",                bonus:.16, hp:22, look:"greave", c:"#9aa0ad",d:"16% faster movement speed · +22 max HP"},
+  {id:"b8",slot:"boots",n:"Rocket Roller Skates",                  rar:"epic",                bonus:.20, hp:12, look:"roller", c:"#3fe0ff",d:"20% faster movement speed · +12 max HP"},
+  {id:"b9",slot:"boots",n:"Seven-League Boots (Six, Honestly)",    rar:"legendary",           bonus:.25, hp:26, look:"seven",  c:"#5a3920",d:"25% faster movement speed · +26 max HP"},
+  {id:"b10",slot:"boots",n:"Shadowstep Boots",                     rar:"legendary",           bonus:.24, hp:30, look:"shadow", c:"#2a2438",d:"24% faster movement speed · +30 max HP"},
+  {id:"b11",slot:"boots",n:"Emberstride Boots",                    rar:"magical",             bonus:.30, hp:35, look:"ember",  c:"#7a1a0e",magic:"fire", mfx:{dmg:.05}, d:"30% faster movement speed · +35 max HP · +5% boss damage",mnote:"Every step leaves a little scorch mark. The janitor has questions."},
+  {id:"b12",slot:"boots",n:"Frostwalker Greaves",                  rar:"magical",             bonus:.28, hp:40, look:"frost",  c:"#bfe6ff",magic:"frost",mfx:{armor:.05},d:"28% faster movement speed · +40 max HP · overdue damage −5%",mnote:"Puddles freeze where you stand. Very handy on the Flooded Floor."}];
 
 const SHOP = ITEMS.filter(i=>i.price);
 /* Display tiers (white, blue, yellow, orange, gold). Internal keys stay as they were because box odds use them:
@@ -1705,7 +1719,7 @@ const BOSS_TAG = {"Baron Backlog":"Hoarder of unread paperwork","The Inbox Hydra
   "The Rotting Inbox Hydra":"Each head is a thread nobody closed","The Unread":"Rises from everything you marked to read later",
   "Duke Someday, the Stitched Widow":"Half deadline, half later, all teeth","The Clutter Golem, Unburied":"Came back with more stuff"};
 const XP_SLOTS = ["weapon","head","cape"]; // these slots' bonuses add XP; armor's reduces overdue damage
-const SLOTS = [["head","Head","Bare head"],["armor","Body","Ratty T-shirt and jeans"],["weapon","Weapon","Bare fists"],["gloves","Hands","Bare hands"],["cape","Back","Nothing"],["ring","Ring","Bare knuckles"],["trinket","Pet trinket","No trinket"]];
+const SLOTS = [["head","Head","Bare head"],["armor","Body","Ratty T-shirt and jeans"],["weapon","Weapon","Bare fists"],["gloves","Hands","Bare hands"],["boots","Feet","Starter sneakers"],["cape","Back","Nothing"],["ring","Ring","Bare knuckles"],["trinket","Pet trinket","No trinket"]];
 const POTION = {price:25, heal:40};
 /* Consumables: drop from Bronze, Silver and Gold boxes, and the shop sells them. Used deliberately. */
 const CONSUMABLES = {
@@ -1931,8 +1945,9 @@ function gearFx(p){
   p=p||player;const z={xp:0,gold:0,dmg:0,hp:0,armor:0,win:0};if(!p||!p.owned)return z;
   const add=f=>{if(f)for(const k in f)z[k]=(z[k]||0)+f[k];};
   const rid=wearing(p).ring,r=rid&&ITEMS.find(i=>i.id===rid);if(r)add(r.fx);
-  for(const slot of ["weapon","armor","head","cape","gloves"]){const b=bestOwned(p,slot);if(b)add(b.mfx);}
+  for(const slot of ["weapon","armor","head","cape","gloves","boots"]){const b=bestOwned(p,slot);if(b)add(b.mfx);}
   const gl=bestOwned(p,"gloves");if(gl)z.dmg+=gl.bonus;
+  const bt=bestOwned(p,"boots");if(bt){z.hp+=bt.hp||0;z.spd=bt.bonus;}
   return z;
 }
 const baseXp = t => EFFORT[t.effort].xp + Math.round(Math.min(240,Math.max(5,+t.est||0))/3);
@@ -3235,14 +3250,16 @@ function mapPath(m,a,b){
 const MERCH_PRICE={common:90,uncommon:200,rare:420};
 function mapLog(m,t){m.log=[t].concat(m.log||[]).slice(0,4);return t;}
 /* One finished quest: maybe uncover a secret, then step forward and resolve the room. Returns toast lines. */
-function mapStep(t){
+function mapStep(t,dash){
   const m=ensureMap();if(!m)return [];
   const out=[],floor=m.floor;
+  if(!dash){
   // Secrets: a big day or a big quest finds one next to a room you've already walked through
   const bigDay=(player.dayCnt&&player.dayCnt.n===4)||t.effort>=4||(isChosen("nyx")&&t.effort>=3);
   if(bigDay||t.effort>=3){
     const s=(m.secrets||[]).find(s=>!s.found&&s.link<=farOf(m)&&(bigDay||s.located));
     if(s)openSecret(m,s,out);
+  }
   }
   const hb=player.boss;
   // Walking on rooms you've already explored: back toward a target, or forward again to the frontier.
@@ -4613,7 +4630,7 @@ function completeQuest(id,actual,touched){
   const before=levelInfo(player.xp).L;
   const wasSulking=petSulking();
   player.xp+=fx;player.gold+=fg;player.streak=r.streak;player.lastDoneDate=td;
-  let raidMsgs=[];try{raidMsgs=raidStep();}catch(e){console.error("raid",e);}
+  let raidMsgs=[];try{raidMsgs=raidStep();const spd=gearFx(player).spd||0;if(spd&&rfState()&&Math.random()<spd){const more=raidStep();raidMsgs.push("Faster movement speed: an extra room on the raid floor.",...more);}}catch(e){console.error("raid",e);}
   let godMsgs=[];try{godMsgs=godQuest(t,fx);}catch(e){console.error("gods",e);}
   partyTrack(fx);
   if([7,14,30,60,100].includes(r.streak)&&(prevP.streak||0)<r.streak)partyPost("streak",`hit a ${r.streak}-day streak`);
@@ -4645,7 +4662,8 @@ function completeQuest(id,actual,touched){
   let goblinBox=null;if(thq.loot&&Math.random()<thq.loot)goblinBox=giveBox("bronze","Loot goblin");
   player.rush={n:player.rush&&Date.now()-player.rush.at<18e5?Math.min(5,player.rush.n+1):1,at:Date.now()};
   const goals=progressGoals(t,{late:wasBoss,onTarget:!!r.onTarget});evs.push(...goals.evs);
-  let mapMsgs=[];try{mapMsgs=mapStep(t);}catch(e){console.error("map",e);}
+  let mapMsgs=[];try{mapMsgs=mapStep(t);
+    const spd=gearFx(player).spd||0;if(spd&&Math.random()<spd){const more=mapStep(Object.assign({},t,{effort:1}),true);mapMsgs.push("Faster movement speed! Your boots carry you an extra room.",...more);bump("dashes");}}catch(e){console.error("map",e);}
   if(ui.ambushLoot){loot={kills:((loot&&loot.kills)||[]).concat(ui.ambushLoot.kills)};ui.ambushLoot=null;}
   let mobMsgs=[];try{mobMsgs=mobFight(fx,t);}catch(e){console.error("mobs",e);}
   if(ui.ambush){const a=ui.ambush;ui.ambush=null;
@@ -5124,6 +5142,54 @@ function gloveIcon(G){
   if(G.magic==="shadow")s+=`<g class="mf-smoke">${[[36,16,0],[64,14,1],[50,10,2]].map(([a,b,d])=>`<path style="animation-delay:-${d}s" d="M${a} ${b} Q${a-4} ${b-5} ${a-1} ${b-9} Q${a+2} ${b-12} ${a-2} ${b-16}" fill="none" stroke="#9b6bff" stroke-width="3" stroke-linecap="round"/>`).join("")}</g>`;
   return s;
 }
+/* Boots on the avatar: a shaft over the shin and a foot shaped like the sneaker it replaces.
+   x = shoe anchor, dir = which way the toe points, B = the boot item. */
+function bootArt(x,dir,B,u){
+  const c=B.c||"#7a4a26",dk=darker(c,.6),lx=x-4*dir,f=v=>(+v).toFixed(1);
+  const sh=(d,fill,ex)=>`<path d="${d}" fill="${fill}"${ex||""}/>`,ln=(d,w,col)=>`<path d="${d}" fill="none" stroke="${col||INK}" stroke-width="${w}"/>`;
+  const L=B.look,top={flip:376,sneaker:358,slipper:350,roller:344,work:334,hiker:330,ranger:316,greave:314,seven:304,shadow:312,ember:318,frost:314}[L]||330;
+  const foot=`M${x-22*dir} 372 Q${x-24*dir} 356 ${x-8*dir} 354 L${x+10*dir} 356 Q${x+30*dir} 364 ${x+30*dir} 376 L${x-22*dir} 376 Z`;
+  let s="";
+  if(B.magic==="fire")s+=`<ellipse class="mf-glow" cx="${lx}" cy="352" rx="30" ry="34" fill="#ff7a1f" opacity=".5" filter="url(#${u}bl)"/>`;
+  if(B.magic==="frost")s+=`<ellipse class="mf-glow" cx="${lx}" cy="352" rx="30" ry="34" fill="#7fd8ff" opacity=".5" filter="url(#${u}bl)"/>`;
+  if(L==="flip"){s+=sh(`M${x-22*dir} 378 L${x+30*dir} 378 L${x+30*dir} 384 L${x-22*dir} 384 Z`,c)+ln(`M${x+2*dir} 378 L${lx} 366 M${x+2*dir} 378 L${x+14*dir} 368`,3,dk);return s;}
+  if(L!=="sneaker"&&L!=="slipper")s+=sh(`M${f(lx-16)} ${top} L${f(lx+16)} ${top} L${f(lx+16)} 368 L${f(lx-16)} 368 Z`,c)+ln(`M${f(lx-16)} ${top+4} L${f(lx+16)} ${top+4}`,2.4,dk);
+  s+=sh(L==="slipper"?`M${x-24*dir} 374 Q${x-26*dir} 350 ${x-6*dir} 350 L${x+12*dir} 352 Q${x+34*dir} 360 ${x+33*dir} 376 L${x-24*dir} 376 Z`:foot,c);
+  s+=sh(`M${x-24*dir} 376 L${x+31*dir} 376 L${x+31*dir} 384 L${x-24*dir} 384 Z`,L==="slipper"?"#f4f2f8":INK);
+  if(L==="sneaker")s+=ln(`M${x-10*dir} 366 Q${x+6*dir} 360 ${x+20*dir} 368`,4,"#fff");
+  if(L==="slipper")s+=`<circle cx="${x+16*dir}" cy="356" r="5" fill="#fff"/><circle cx="${x+14*dir}" cy="355" r="1.4" fill="${INK}"/><circle cx="${x+19*dir}" cy="355" r="1.4" fill="${INK}"/>`;
+  if(L==="work")s+=sh(`M${x+14*dir} 358 Q${x+30*dir} 362 ${x+30*dir} 376 L${x+14*dir} 376 Z`,"#9aa0ad")+ln(`M${f(lx-10)} 344 L${f(lx+10)} 350 M${f(lx-10)} 354 L${f(lx+10)} 360`,2,"#f0d23a");
+  if(L==="hiker"||L==="ranger")s+=ln(`M${f(lx-10)} ${top+12} L${f(lx+10)} ${top+18} M${f(lx+10)} ${top+12} L${f(lx-10)} ${top+18} M${f(lx-10)} ${top+26} L${f(lx+10)} ${top+32} M${f(lx+10)} ${top+26} L${f(lx-10)} ${top+32}`,2,L==="hiker"?"#e8283c":"#e8d8b0")+(L==="ranger"?sh(`M${f(lx-18)} ${top-4} L${f(lx+18)} ${top-4} L${f(lx+16)} ${top+8} L${f(lx-16)} ${top+8} Z`,dk):"");
+  if(L==="greave"||L==="frost")s+=ln(`M${f(lx-16)} ${top+18} L${f(lx+16)} ${top+18} M${f(lx-16)} ${top+34} L${f(lx+16)} ${top+34}`,2.4,dk)+sh(`M${f(lx-10)} ${top-2} L${f(lx+10)} ${top-2} L${lx} ${top+14} Z`,L==="frost"?"#e6fbff":"#d5d9e2")+`<ellipse cx="${f(lx-6)}" cy="${top+24}" rx="3" ry="8" fill="#fff" opacity=".4"/>`;
+  if(L==="roller")s+=[x-12*dir,x+4*dir,x+20*dir].map(wx=>`<circle cx="${wx}" cy="390" r="6" fill="#ff5fa8" stroke="${INK}" stroke-width="2.4"/>`).join("")+ln(`M${f(lx-14)} 350 L${f(lx+14)} 350`,3,"#fff");
+  if(L==="seven")s+=[top+14,top+30,top+46].map(y=>sh(`M${f(lx-17)} ${y} L${f(lx+17)} ${y} L${f(lx+17)} ${y+5} L${f(lx-17)} ${y+5} Z`,dk)+`<rect x="${f(lx-4)}" y="${y-1}" width="8" height="7" rx="1" fill="#ffd23f" stroke="${INK}" stroke-width="1.4"/>`).join("")+sh(`M${f(lx+16)} ${top+6} Q${f(lx+34*dir)} ${top-8} ${f(lx+38*dir)} ${top+14} Q${f(lx+26*dir)} ${top+10} ${f(lx+16)} ${top+18} Z`,"#f4f2f8");
+  if(L==="shadow")s+=`<g class="mf-smoke">${[0,1,2].map(i=>`<path style="animation-delay:-${i*.7}s" d="M${f(lx-8+i*8)} ${top} Q${f(lx-14+i*8)} ${top-10} ${f(lx-6+i*8)} ${top-20}" fill="none" stroke="#6b4aa8" stroke-width="4" stroke-linecap="round"/>`).join("")}</g>`;
+  if(L==="ember")s+=`<g class="mf-fire" fill="#ffb21f" stroke="${INK}" stroke-width="1.4">${[-10,0,10].map((dx,i)=>`<path style="animation-delay:-${(i*.13).toFixed(2)}s" d="M${f(lx+dx)} ${top+2} Q${f(lx+dx+8)} ${top-8} ${f(lx+dx+2)} ${top-20} Q${f(lx+dx-6)} ${top-8} ${f(lx+dx)} ${top+2} Z"/>`).join("")}</g>`+ln(`M${f(lx-12)} ${top+20} L${f(lx-2)} ${top+30} L${f(lx-10)} ${top+40}`,2.4,"#ff7a1f");
+  if(L==="frost")s+=`<g class="mf-frost" fill="#f2fcff" stroke="#2f7fc0" stroke-width="1">${_st(lx-20,top+10,5,0)+_st(lx+20,top+30,4,.7)}</g>`;
+  return s;
+}
+/* A boot for the loot icon (100 units), side view: shaft up top, toe to the right. */
+function bootIcon(B){
+  const c=B.c||"#7a4a26",dk=darker(c,.6),L=B.look,P=(d,f)=>`<path d="${d}" fill="${f}"/>`,Ln=(d,w,col)=>`<path d="${d}" fill="none" stroke="${col||INK}" stroke-width="${w}"/>`;
+  const top={flip:70,sneaker:50,slipper:48,roller:38,work:30,hiker:28,ranger:16,greave:16,seven:10,shadow:16,ember:20,frost:16}[L]||28;
+  let s="";
+  if(B.magic==="fire")s+=`<circle class="mf-glow" cx="50" cy="56" r="40" fill="#ff7a1f" opacity=".4" stroke="none"/>`;
+  if(B.magic==="frost")s+=`<circle class="mf-glow" cx="50" cy="56" r="40" fill="#7fd8ff" opacity=".4" stroke="none"/>`;
+  if(L==="flip")return s+P("M14 74 L86 74 Q90 80 86 84 L14 84 Q10 80 14 74 Z",c)+Ln("M40 74 L30 56 M40 74 L54 58",3,dk);
+  if(L==="slipper")s+=P("M14 82 Q12 56 34 52 L62 52 Q88 56 88 78 L88 82 Z",c)+`<circle cx="72" cy="60" r="8" fill="#fff"/><circle cx="69" cy="58" r="1.8" fill="${INK}"/><circle cx="75" cy="58" r="1.8" fill="${INK}"/>`;
+  else s+=P(`M22 ${top} L54 ${top} L54 60 Q80 62 86 78 L86 84 L22 84 Z`,c)+Ln(`M22 ${top+5} L54 ${top+5}`,2.4,dk);
+  s+=P("M18 82 L90 82 L90 92 L18 92 Z",L==="slipper"?"#f4f2f8":INK);
+  if(L==="sneaker")s+=Ln("M30 70 Q56 60 80 74",4,"#fff");
+  if(L==="work")s+=P("M66 62 Q84 64 86 80 L66 80 Z","#9aa0ad")+Ln("M28 40 L48 46 M28 50 L48 56",2,"#f0d23a");
+  if(L==="hiker"||L==="ranger")s+=Ln(`M28 ${top+12} L48 ${top+18} M48 ${top+12} L28 ${top+18} M28 ${top+26} L48 ${top+32} M48 ${top+26} L28 ${top+32}`,2,L==="hiker"?"#e8283c":"#e8d8b0")+(L==="ranger"?P(`M18 ${top-4} L58 ${top-4} L56 ${top+8} L20 ${top+8} Z`,dk):"");
+  if(L==="greave"||L==="frost")s+=Ln(`M22 ${top+18} L54 ${top+18} M22 ${top+34} L54 ${top+34}`,2.4,dk)+P(`M30 ${top-2} L46 ${top-2} L38 ${top+14} Z`,L==="frost"?"#e6fbff":"#d5d9e2");
+  if(L==="roller")s+=[30,52,74].map(x=>`<circle cx="${x}" cy="94" r="5" fill="#ff5fa8"/>`).join("");
+  if(L==="seven")s+=[22,38,54].map(y=>P(`M20 ${y} L56 ${y} L56 ${y+5} L20 ${y+5} Z`,dk)+`<rect x="34" y="${y-1}" width="8" height="7" rx="1" fill="#ffd23f"/>`).join("")+P("M54 16 Q74 2 80 24 Q68 20 56 28 Z","#f4f2f8");
+  if(L==="shadow")s+=`<g class="mf-smoke">${[0,1,2].map(i=>`<path style="animation-delay:-${i*.7}s" d="M${28+i*10} ${top} Q${22+i*10} ${top-8} ${30+i*10} ${top-14}" fill="none" stroke="#9b6bff" stroke-width="3" stroke-linecap="round"/>`).join("")}</g>`;
+  if(L==="ember")s+=`<g class="mf-fire" fill="#ffb21f" stroke="${INK}" stroke-width="1.2">${[28,38,48].map((x,i)=>`<path style="animation-delay:-${(i*.13).toFixed(2)}s" d="M${x} ${top+2} Q${x+7} ${top-6} ${x+2} ${top-16} Q${x-5} ${top-6} ${x} ${top+2} Z"/>`).join("")}</g>`;
+  if(L==="frost")s+=`<g class="mf-frost" fill="#f2fcff" stroke="none">${_st(70,30,5,0)+_st(16,50,4,.7)}</g>`;
+  return s;
+}
 /* ---------- Expansion art: armour, headgear and capes drawn from a style table ---------- */
 const ONE_HANDED=new Set(["w1","w2","w4","w6","w7","w11","w12","w14","w15","w16","w19"]);
 const WEAPON_SCALE={w8:.6,w10:.64,w9:.72,w5:.74,w13:.62,w17:.7,w18:.6,w20:.56};
@@ -5534,7 +5600,8 @@ function avatarSVG(eq){
   s+=sh(CURVY?"M114 248 L186 248 L196 296 L150 304 L104 296 Z":`M${112-hx} 248 L${188+hx} 248 L${192+hx} 296 L150 304 L${108-hx} 296 Z`,PANTS)+ov(`M${112-hx} 248 L128 248 L124 300 L${108-hx} 296 Z`,HB)+ln("M150 262 L150 300",2,PSEAM);}
   s+=sh("M111 246 L189 246 L190 258 L110 258 Z","#5a3920")+sh("M143 245 L157 245 L157 259 L143 259 Z","#c9cdd6");
   const shoe=(x,dir)=>sh(`M${x-22*dir} 372 Q${x-24*dir} 356 ${x-8*dir} 354 L${x+10*dir} 356 Q${x+30*dir} 364 ${x+30*dir} 376 L${x-22*dir} 376 Z`,SHOE)+sh(`M${x-24*dir} 376 L${x+31*dir} 376 L${x+31*dir} 384 L${x-24*dir} 384 Z`,INK)+ln(`M${x-10*dir} 366 Q${x+6*dir} 360 ${x+20*dir} 368`,4,LK.shoes==="red"?BONE:RED);
-  s+=STANCE?shoe(102,-1)+shoe(200,1):shoe(124,-1)+shoe(176,1);
+  const _bI=itemOf(eq.boots);
+  s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):STANCE?shoe(102,-1)+shoe(200,1):shoe(124,-1)+shoe(176,1);
 
   s+=`<g class="upper">`+narrow;
   // Torso
@@ -6023,8 +6090,9 @@ function lootIconSVG(id,raw){
   const tinted=!!(it0&&it0.tint&&it0.base),aid=tinted?it0.base:id;
   const newArt=it0&&(tinted||(!OLD_ART.has(id)&&!it0.base));
   const t0=s.length;
-  switch(it0&&it0.slot==="ring"?"__ring":it0&&it0.slot==="trinket"?"__trinket":it0&&it0.slot==="gloves"?"__glove":newArt&&it0.slot==="weapon"?"__wpn":newArt&&it0.slot==="armor"?"__arm":newArt&&it0.slot==="head"?"__head":newArt&&it0.slot==="cape"?"__cape":id){
+  switch(it0&&it0.slot==="ring"?"__ring":it0&&it0.slot==="trinket"?"__trinket":it0&&it0.slot==="gloves"?"__glove":it0&&it0.slot==="boots"?"__boot":newArt&&it0.slot==="weapon"?"__wpn":newArt&&it0.slot==="armor"?"__arm":newArt&&it0.slot==="head"?"__head":newArt&&it0.slot==="cape"?"__cape":id){
     case "__glove":s+=gloveIcon(it0);break;
+    case "__boot":s+=bootIcon(it0);break;
     case "__wpn":{const [x0,x1,y0,y1]=WEAPON_BOX[aid],k=Math.min(98/(y1-y0),1.2),cx=(x0+x1)/2,cy=(y0+y1)/2;
       s+=`<g transform="translate(50 50) rotate(42) scale(${k.toFixed(3)}) translate(${-cx} ${-cy})" stroke-width="${(1.7/k).toFixed(2)}">${weaponUpright(aid,null,u).replace(/stroke-width="(\d+(?:\.\d+)?)"/g,(m,v)=>`stroke-width="${(+v*.65).toFixed(2)}"`)}</g>`;break;}
     case "__arm":s+=armorIcon(ARMOR_STYLE[aid]);break;
@@ -6400,7 +6468,7 @@ function renderPet(){
 /* ---------- Inventory: paper doll + item grid, with tooltips ---------- */
 const RAR_ORDER=["magical","legendary","epic","rare","uncommon","common"];
 
-const SLOT_NAME={head:"Head",armor:"Body",weapon:"Weapon",gloves:"Hands",cape:"Back",ring:"Ring",trinket:"Pet"};
+const SLOT_NAME={head:"Head",armor:"Body",weapon:"Weapon",gloves:"Hands",boots:"Feet",cape:"Back",ring:"Ring",trinket:"Pet"};
 const pct=v=>Math.round(v*100);
 /* Inventory cell backgrounds: one colour per tier, consumables their own. */
 const RAR_BG={common:"#dcd9e3",uncommon:"#3b74dc",rare:"#f0d23a",epic:"#ec7a1c",legendary:"#ec7a1c",magical:"none",cons:"#2d8f86"};
@@ -6415,6 +6483,7 @@ function itemLines(it){
   const L=[];
   if(it.slot==="armor")L.push(`Overdue damage −${pct(it.bonus)}%`);
   else if(it.slot==="gloves")L.push(`+${pct(it.bonus)}% boss damage`);
+  else if(it.slot==="boots")L.push(`${pct(it.bonus)}% faster movement speed (chance a quest moves you an extra room)`,`+${it.hp||0} max HP`);
   else if(it.slot!=="ring"&&it.slot!=="trinket"&&it.bonus>0)L.push(`+${pct(it.bonus)}% XP`);
   L.push(...fxLines(it.fx),...fxLines(it.mfx));
   return L.length?L:["Cosmetic"];
@@ -6431,7 +6500,7 @@ function itemStatus(it){
 function invCell(it,eq,tall){
   return `<button type="button" class="invcell r-${it.rar}${eq?" eq":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-inv="${it.id}" aria-label="${esc(it.n)}${eq?" (equipped)":""}">${tall==="weapon"?tallWeaponSVG(it.id,RAR_BG[it.rar]):tall?tierIcon(it.id,it.rar).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '):tierIcon(it.id,it.rar)}${eq?`<span class="eqtag" aria-hidden="true">E</span>`:""}</button>`;
 }
-const INV_CATS=[["all","All"],["weapon","Weapons"],["armor","Body"],["head","Head"],["gloves","Hands"],["cape","Back"],["ring","Rings"],["trinket","Pet"],["cons","Bag"]];
+const INV_CATS=[["all","All"],["weapon","Weapons"],["armor","Body"],["head","Head"],["gloves","Hands"],["boots","Feet"],["cape","Back"],["ring","Rings"],["trinket","Pet"],["cons","Bag"]];
 const INV_PAGE=25;
 function renderInv(){
   const el=$("inv");if(!el||!playerExists)return;
@@ -6439,7 +6508,7 @@ function renderInv(){
   const slotCell=slot=>{const it=ITEMS.find(x=>x.id===w[slot]);
     return `<div class="dslot ds-${slot}"><span class="dlabel">${SLOT_NAME[slot]}</span>${it?invCell(it,true,slot==="weapon"?"weapon":slot==="armor"?"armor":false):`<button type="button" class="invcell invempty" data-invslot="${slot}" aria-label="Empty ${SLOT_NAME[slot]} slot"><span>${SLOT_NAME[slot]}</span></button>`}</div>`;};
   el.style.setProperty("--brick",BRICK_TILE);
-  const doll=`<div class="doll">${invTorch("l")}${invTorch("r")}<svg class="sil" viewBox="0 0 100 160" aria-hidden="true"><circle cx="50" cy="22" r="15"/><path d="M28 42 Q50 34 72 42 L82 92 L72 94 L68 62 L68 100 L64 152 L53 152 L50 108 L47 152 L36 152 L32 100 L32 62 L28 94 L18 92 Z"/></svg>${["head","cape","weapon","armor"].map(slotCell).join("")}<div class="ds-side">${slotCell("ring")+slotCell("gloves")}</div>${slotCell("trinket")}</div>`;
+  const doll=`<div class="doll">${invTorch("l")}${invTorch("r")}<svg class="sil" viewBox="0 0 100 160" aria-hidden="true"><circle cx="50" cy="22" r="15"/><path d="M28 42 Q50 34 72 42 L82 92 L72 94 L68 62 L68 100 L64 152 L53 152 L50 108 L47 152 L36 152 L32 100 L32 62 L28 94 L18 92 Z"/></svg>${["head","cape","weapon","armor"].map(slotCell).join("")}<div class="ds-side">${slotCell("ring")+slotCell("gloves")}</div>${slotCell("trinket")+slotCell("boots")}</div>`;
   const gx=gearFx(p),xpB=XP_SLOTS.reduce((s,sl)=>{const b=bestOwned(p,sl);return s+(b?b.bonus:0);},0)+gx.xp;
   const cut=armorCut(p),rcut=rawCut(p);
   const tot=[xpB?`+${pct(xpB)}% XP`:"",gx.gold?`+${pct(gx.gold)}% gold`:"",gx.dmg?`+${pct(gx.dmg)}% boss damage`:"",cut?`overdue damage −${pct(cut)}%${rcut>cut+.005?` (soft cap; ${pct(rcut)}% raw)`:""}`:"",gx.hp?`+${gx.hp} max HP`:"",gx.win?`accuracy +${pct(gx.win)}%`:""].filter(Boolean);
