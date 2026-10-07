@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=5f3438dd56"></script>
-<script>window.CRAWL_BUILD="5f3438dd56";</script>
+<script src="firebase-config.js?v=6528830367"></script>
+<script>window.CRAWL_BUILD="6528830367";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1411,7 +1411,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
         <summary class="label" style="margin-top:12px">How the show works</summary>
         <div class="rules">
           <div><b>Quest XP</b> = threat base (Trash mob 10, Grunt 20, Elite 40, Mini-boss 80, Raid boss 150) + one-third of your time estimate in minutes (estimates cap at 240). Gold is a quarter of the XP.</div>
-          <div><b>Accuracy bonus</b>: +15% when the time you enter lands within 20% under or 25% over your estimate. One-click claims at your estimate are quicker but earn no bonus and don't count toward your accuracy history.</div>
+          <div><b>Accuracy bonus</b>: +15% when the time you enter lands within 20% under or 25% over your estimate. Tapping Complete claims at your estimate: quick, but no bonus and it doesn't count toward your accuracy history. For the bonus, use ⋯ → Complete with time taken and enter the real minutes.</div>
           <div><b>Streak</b>: +5% for each consecutive day you complete a quest, up to +25%.</div>
           <div><b>Damage</b>: every morning each overdue quest hits you for 2× its threat (Trash mob 4 up to Raid boss 24 HP), growing 25% for each extra day overdue (up to 2.5×). Armor and other damage cuts count fully up to 30%, then at half value, capped at 60%. Hit 0 HP and you're knocked out: you drop a fifth of your gold and lose your streak.</div>
           <div><b>Floors</b>: each week is a new floor with a ladder of six bosses: Neighborhood, Borough, City, Province, Country and Floor. Every XP you earn hits the boss in front of you; kill it and the next one steps up, with extra damage carrying over. Drops: Bronze, Bronze, Silver, Silver, Gold, Legendary. Climb as high as you can before the stairwell closes Sunday night. Overdue quests wound you and heal the current boss. At 0 HP you're knocked out: streak lost, a fifth of your gold dropped.</div>
@@ -6752,6 +6752,7 @@ function questCard(t){
   // Complete sits beside the title; the rarer actions live in the ⋯ menu.
   const menuOpen=ui.menu===t.id;
   const menu=menuOpen?`<div class="qmenu" role="menu">
+      ${resting?"":`<button type="button" role="menuitem" data-timed>Complete with time taken (accuracy bonus)</button>`}
       <button type="button" role="menuitem" data-edit>Edit quest</button>
       ${resting?"":`<button type="button" role="menuitem" data-steps>Add steps</button>`}
       ${t.due&&bagN("scroll")?`<button type="button" role="menuitem" data-scroll>Read Scroll of Extension (+2 days) · ${bagN("scroll")} left</button>`:""}
@@ -6826,8 +6827,13 @@ function renderBoard(){
   board.querySelectorAll(".quest").forEach(card=>{
     const id=card.dataset.id;const t=tasks.find(x=>x.id===id);
     const on=(sel,fn)=>{const b=card.querySelector(sel);if(b)b.onclick=fn;};
-    on("[data-done]",()=>{ui.menu=null;ui.claiming={id,actual:t.est,touched:false,editTime:false};ui.confirmDel=null;ui.editing=null;render();
-      const b=document.querySelector(`.quest[data-id="${id}"] [data-claim]`);if(b)b.focus();});
+    // One tap completes at your estimate. "Complete with time taken" in the ⋯ menu enters real minutes for the accuracy bonus.
+    on("[data-done]",()=>{if(card.dataset.doing)return;card.dataset.doing="1";ui.menu=null;ui.claiming=null;ui.confirmDel=null;ui.editing=null;
+      try{const rr=rewardFor(player,t,null),xp=Math.max(0,rr.xp-(t.stepXp||0));
+        attackFx(card,{dmg:Math.round(xp*(1+statFx(player).dmg)),big:t.effort>=4||!!player.focused});}catch(e){console.warn("attackFx",e);}
+      completeQuest(id,t.est,false);});
+    on("[data-timed]",()=>{ui.menu=null;ui.claiming={id,actual:t.est,touched:true,editTime:true};ui.confirmDel=null;ui.editing=null;render();
+      const i=$("act-"+id);if(i){i.focus();i.select();}});
     on("[data-edittime]",()=>{ui.claiming.editTime=true;ui.claiming.touched=true;render();const i=$("act-"+id);if(i){i.focus();i.select();}});
     on("[data-menu]",()=>{ui.menu=ui.menu===id?null:id;renderBoard();const m=card.isConnected?null:document.querySelector(`.quest[data-id="${id}"] .qmenu button`);if(m)m.focus();});
     on("[data-stepsdone]",()=>{ui.addStep=null;render();});
@@ -7164,6 +7170,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.8.0",d:"2026-10-07",t:"One-tap complete",items:["Tapping Complete on a quest finishes it right away at your estimated time. No more confirm step.",
+    "Want the accuracy bonus? Use the quest's ⋯ menu → Complete with time taken, and enter how long it really took."]},
   {v:"2.7.1",d:"2026-10-07",t:"Shortcuts",items:["Floors now have up to three shortcut passages (green dotted lines) between rooms that sit side by side. Once you've explored both ends, walking around the floor cuts through them automatically."]},
   {v:"2.7.0",d:"2026-10-07",t:"Backtracking",items:[
     "Tap any room you've explored on the floor map to walk back to it, one room per quest. Tap \"Head forward\" (or the next room) to push on again.",
