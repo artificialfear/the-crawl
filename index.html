@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=62532f280d"></script>
-<script>window.CRAWL_BUILD="62532f280d";</script>
+<script src="firebase-config.js?v=eed47baaac"></script>
+<script>window.CRAWL_BUILD="eed47baaac";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -7832,7 +7832,7 @@ const CHAT_SND_KEY="crawl.chatsnd";
 const chatSnd=()=>{try{return localStorage.getItem(CHAT_SND_KEY);}catch(e){return null;}};
 function playChatSound(){
   if(prefs.sound===false)return;const d=chatSnd();
-  if(!d){SFX.play("chat");return;}
+  if(!d){if(!clip("chat-chime",.9))SFX.play("chat");return;} // the default chime; a sound you picked in Settings still wins
   try{const a=new Audio(d);a.volume=Math.max(0,Math.min(1,prefs.vol==null?.6:+prefs.vol));const p=a.play();if(p&&p.catch)p.catch(()=>SFX.play("chat"));}catch(e){SFX.play("chat");}
 }
 function pickChatSound(file){
