@@ -14,7 +14,7 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9015b8ec30"></script>
+<script src="firebase-config.js?v=074bc5ed02"></script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1067,6 +1067,11 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .godperks{list-style:none;padding:0;margin:0 0 8px;font-size:13px;color:var(--faint)}.godperks li{margin:3px 0}.godperks li::before{content:"○ "}.godperks li.on{color:var(--leaf)}.godperks li.on::before{content:"● "}
 .godwrath{border:1px solid var(--blood);border-radius:8px;padding:6px 9px;margin:8px 0;font-size:13px;background:rgba(255,46,110,.08)}
 .godconfirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px}
+.toast.ach .achacts{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.achinbox{position:relative;width:auto;padding:0 8px;gap:3px;display:inline-flex;align-items:center;font-size:15px}.achinbox[hidden]{display:none}
+.achinbox .num{font-size:12px;font-weight:700;color:var(--gold)}
+.achsaved{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line-2);padding:10px 0}
+.achsaved b{display:block;font-size:16px}.achsaved .line{font-size:14px;margin:2px 0 4px}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
 .signcard{max-width:420px;width:100%;text-align:center;background:var(--panel);border:2px solid var(--line-2);border-radius:16px;padding:28px 22px;box-shadow:0 0 0 4px #000,0 18px 60px #000a}
 .signcard h1{font-family:Bangers,Bungee,sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 6px;color:var(--fg)}
@@ -1081,6 +1086,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
   <h1>The <span>Crawl</span></h1>
   <div class="onair"><span class="live">Live</span><span class="viewers num" id="viewers">0 viewers</span><span class="floorno" id="floorNo"></span></div>
   <div class="sync" id="sync"><i></i><span>Opening your save…</span></div>
+  <button class="gearbtn achinbox" type="button" id="achInbox" hidden title="Achievements saved for later"></button>
   <button class="gearbtn" type="button" id="sndBtn" aria-label="Sound">🔊</button>
   <button class="gearbtn" type="button" id="gearBtn" aria-label="Settings and help" title="Settings and help">⚙</button>
 </header>
@@ -3696,9 +3702,9 @@ function checkAch(evs){ evs=evs||[];if(!player||!player.ach)return;const got=[];
     // A flood of unlocks becomes one toast; the System is "handing these out like candy" on purpose, but nobody wants 12 popups.
     const g=got.reduce((n,a)=>n+(a.gold||0),0),bx=got.filter(a=>a.box).length;
     const spam=["The System is handing these out like candy.","Achievement spam detected. The System does not care.","Your notification tray just filed a complaint.","Congratulations. Congratulations. Congratulations."][got.length%4];
-    setTimeout(()=>toast(`<span class="big">${got.length} achievements unlocked</span><span class="line">${esc(spam)}</span><ul class="achlist">${got.slice(0,6).map(a=>`<li>${a.sec?"🔒 ":""}${esc(a.n)}</li>`).join("")}${got.length>6?`<li class="more">+${got.length-6} more on your Hero tab</li>`:""}</ul>${g||bx?`<span class="rew">+ ${[g?g+" gold":"",bx?bx+" loot box"+(bx>1?"es":""):""].filter(Boolean).join(", ")}</span>`:""}`,"ach"),400);
+    setTimeout(()=>achToast(`<span class="big">${got.length} achievements unlocked</span><span class="line">${esc(spam)}</span><ul class="achlist">${got.slice(0,6).map(a=>`<li>${a.sec?"🔒 ":""}${esc(a.n)}</li>`).join("")}${got.length>6?`<li class="more">+${got.length-6} more on your Hero tab</li>`:""}</ul>${g||bx?`<span class="rew">+ ${[g?g+" gold":"",bx?bx+" loot box"+(bx>1?"es":""):""].filter(Boolean).join(", ")}</span>`:""}`,got.map(a=>a.id)),400);
     return;}
-  got.forEach((a,i)=>setTimeout(()=>toast(`<span class="big">${a.sec?"Secret achievement":"Achievement unlocked"}</span><b>${esc(a.n)}</b><span class="line">${esc(a.line)}</span>${rew(a)}`,"ach"),400+i*700));
+  got.forEach((a,i)=>setTimeout(()=>achToast(`<span class="big">${a.sec?"Secret achievement":"Achievement unlocked"}</span><b>${esc(a.n)}</b><span class="line">${esc(a.line)}</span>${rew(a)}`,[a.id]),400+i*700));
 }
 
 function fmtViewers(n){n=Math.max(0,Math.round(n||0));return n>=1e6?(n/1e6).toFixed(n>=1e7?0:1).replace(/\.0$/,"")+"M":n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,"")+"K":String(n);}
@@ -4286,7 +4292,7 @@ function render(){
   const ae=document.activeElement;const aeId=ae&&ae.id;const sel=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null;
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   // Each panel draws independently, so a bug in one can't blank the others.
-  for(const fn of [renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
+  for(const fn of [renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
 }
 
@@ -6219,7 +6225,38 @@ function toast(html,kind,undo,label){
   el.innerHTML=`<span>${["lvl","ach","quest"].includes(kind)?html:esc(html)}</span>`;
   if(undo){const b=document.createElement("button");b.className="btn ghost";b.textContent=label||"Undo";b.onclick=()=>{undo();el.remove();};el.appendChild(b);}
   const box=$("toasts");box.appendChild(el);box.scrollTop=box.scrollHeight;
-  setTimeout(()=>el.remove(),kind==="ach"?9000:undo?8000:5000);
+  if(kind!=="ach")setTimeout(()=>el.remove(),undo?8000:5000);
+  return el;
+}
+/* Achievement notices stay up until the crawler deals with them: "Got it" clears one, "Later" files it in the
+   trophy inbox (🏆 in the header) to read when there's time. Only three stay on screen; older ones file themselves. */
+function achToast(html,ids){
+  const el=toast(html,"ach");el.dataset.ach=(ids||[]).join(",");
+  const acts=document.createElement("div");acts.className="achacts";
+  acts.innerHTML=`<button class="btn ghost sm" type="button" data-later>Later</button><button class="btn gold sm" type="button" data-gotit>Got it</button>`;
+  el.appendChild(acts);
+  acts.querySelector("[data-gotit]").onclick=()=>el.remove();
+  acts.querySelector("[data-later]").onclick=()=>{fileAch(el);el.remove();};
+  const all=[...document.querySelectorAll(".toast.ach")];
+  if(all.length>3)all.slice(0,all.length-3).forEach(o=>{fileAch(o);o.remove();});
+}
+function fileAch(el){const ids=(el.dataset.ach||"").split(",").filter(Boolean);if(!ids.length||!player)return;
+  player.achLater=[...new Set((player.achLater||[]).concat(ids))].slice(-60);store.savePlayer(player).catch(writeFailed);renderAchInbox();}
+function renderAchInbox(){const b=$("achInbox");if(!b)return;const n=(player&&player.achLater||[]).length;b.hidden=!n;b.innerHTML=`🏆<span class="num">${n}</span>`;
+  b.setAttribute("aria-label",`${n} achievement${n===1?"":"s"} saved to read later`);}
+function openAchInbox(){
+  let o=$("achWrap");if(!o){o=document.createElement("div");o.id="achWrap";o.className="gearwrap";document.body.appendChild(o);o.addEventListener("click",e=>{if(e.target===o)o.remove();});}
+  const list=(player.achLater||[]).map(id=>ACH.find(a=>a.id===id)).filter(Boolean);
+  o.innerHTML=`<div class="geardlg inspdlg" role="dialog" aria-modal="true" aria-label="Saved achievements"><div class="gearhead"><h2>Saved achievements</h2><button class="btn ghost sm" type="button" id="achClose">Close</button></div>
+    ${list.length?list.map(a=>`<div class="achsaved"><div><span class="label">${a.sec?"Secret achievement":"Achievement"}</span><b>${esc(a.n)}</b><div class="line">${esc(a.line||"")}</div>
+      <div class="muted" style="font-size:12px">${esc(a.how||"")}${a.box?` · Reward: ${esc(BOXES[a.box].n)}`:a.gold?` · Reward: ${a.gold} gold`:""}</div></div>
+      <button class="btn ghost sm" type="button" data-achread="${esc(a.id)}">Done</button></div>`).join("")
+      +`<div class="acts" style="justify-content:flex-end"><button class="btn sm" type="button" id="achAll">Mark all read</button></div>`
+      :`<p class="muted">Nothing saved. Tap "Later" on an achievement to keep it here.</p>`}</div>`;
+  const done=ids=>{player.achLater=(player.achLater||[]).filter(x=>!ids.includes(x));store.savePlayer(player).catch(writeFailed);renderAchInbox();if(!player.achLater.length)o.remove();else openAchInbox();};
+  $("achClose").onclick=()=>o.remove();
+  o.querySelectorAll("[data-achread]").forEach(b=>b.onclick=()=>done([b.dataset.achread]));
+  const all=$("achAll");if(all)all.onclick=()=>done((player.achLater||[]).slice());
 }
 
 /* ---------- Add form ---------- */
@@ -7169,6 +7206,7 @@ async function boot(){
   try{setupForm();}catch(e){console.error(e);}
   try{renderTabs();
     $("gearBtn").onclick=openGear;
+    $("achInbox").onclick=openAchInbox;
     {const tb=$("ttsBtn");if(tb)tb.onclick=()=>{prefs.tts=prefs.tts!==true;savePrefs();renderTtsBtn();const c=$("ttsOn");if(c)c.checked=prefs.tts;
       if(prefs.tts){const r=$("tickerRun");announce(ui.news&&ui.news[0]||"The announcer is live. Try not to embarrass yourself.",true);}else if(tts.ok)try{speechSynthesis.cancel();}catch(e){}};}
     $("lookWrap").addEventListener("click",e=>{if(e.target.id==="lookWrap")closeLook();});
