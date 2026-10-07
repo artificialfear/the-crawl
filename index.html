@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=622e429122"></script>
-<script>window.CRAWL_BUILD="622e429122";</script>
+<script src="firebase-config.js?v=9fd29472b6"></script>
+<script>window.CRAWL_BUILD="9fd29472b6";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1270,6 +1270,9 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 @keyframes crflash{0%{opacity:0;transform:scale(.3)}55%{opacity:0}75%{opacity:1;transform:scale(1.6)}100%{opacity:0;transform:scale(2.4)}}
 @keyframes crpop{0%{transform:scale(1)}20%{transform:scale(1.08,.94)}45%{transform:scale(.97,1.04)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.cratestage .crate,.cratestage::before,.crate .cr-glow{animation:none!important}}
+.print svg .bokeh{animation:bokeh 5s ease-in-out infinite alternate}
+@keyframes bokeh{from{opacity:.08}to{opacity:.38}}
+@media (prefers-reduced-motion:reduce){.print svg .bokeh{animation:none}}
 </style>
 
 <div class="themefx" id="themeFx" aria-hidden="true"></div>
@@ -5473,7 +5476,8 @@ function avatarSVG(eq){
 <radialGradient id="${u}v" cx="150" cy="200" r="250" gradientUnits="userSpaceOnUse"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
 <filter id="${u}bl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5"/></filter>
 <filter id="${u}bl2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
-</defs><g class="dungeon">`;
+<filter id="${u}dof" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="2.4"/></filter>
+</defs><rect x="0" y="0" width="300" height="420" fill="#2b2440"/><g class="dungeon" filter="url(#${u}dof)">`;
   // Stone wall: staggered bricks, a few lighter ones near the torches
   s+=`<rect x="0" y="0" width="300" height="420" fill="${WALL}"/><g stroke="${INK}" stroke-width="3" stroke-linejoin="round">`;
   for(let row=0,y=-6;y<350;row++,y+=30){
@@ -5496,6 +5500,8 @@ function avatarSVG(eq){
   const torch=(x)=>`<g stroke="${INK}" stroke-width="3" stroke-linejoin="round">${sh(`M${x-4} 160 L${x+4} 160 L${x+3} 206 L${x-3} 206 Z`,"#7a4a26")}${sh(`M${x-12} 150 L${x+12} 150 L${x+8} 164 L${x-8} 164 Z`,"#5b5f6e")}${sh(`M${x-16} 196 L${x+16} 196 L${x+16} 202 L${x-16} 202 Z`,"#5b5f6e")}</g>
     <g class="flame" style="transform-origin:${x}px 150px">${sh(`M${x} 102 Q${x+18} 124 ${x+13} 140 Q${x+10} 152 ${x} 152 Q${x-10} 152 ${x-13} 140 Q${x-16} 122 ${x} 102 Z`,"#ff8a1f",` stroke="${INK}" stroke-width="3"`)}${ov(`M${x} 118 Q${x+9} 132 ${x+6} 142 Q${x} 150 ${x-6} 142 Q${x-8} 132 ${x} 118 Z`,"#ffd23f")}${ov(`M${x} 132 Q${x+4} 140 ${x} 147 Q${x-4} 140 ${x} 132 Z`,"#fff6c8")}</g>`;
   s+=torch(46)+torch(254);
+  // Out-of-focus torchlight: soft bokeh discs drifting in the blurred background
+  s+=[[30,118,10,.35],[62,176,7,.25],[268,112,11,.35],[236,182,6,.22],[46,226,5,.18],[256,238,8,.2],[150,60,6,.12],[96,86,4,.15],[206,80,5,.15]].map(([x,y,r,o],i)=>`<circle class="bokeh" style="animation-delay:-${(i*.7).toFixed(1)}s" cx="${x}" cy="${y}" r="${r}" fill="#ffc46a" opacity="${o}"/>`).join("");
   s+=`<ellipse cx="150" cy="384" rx="82" ry="12" fill="#000" opacity=".45"/></g>`;
 
   if(MA==="radiant")s+=`<ellipse class="mf-aura" cx="150" cy="220" rx="96" ry="160" fill="#ffd23f" opacity=".5" filter="url(#${u}bl2)"/>`;
@@ -7269,6 +7275,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.10.2",d:"2026-10-07",t:"Depth of field",items:["Your crawler's dungeon backdrop is now softly out of focus, with glowing torchlight bokeh, so your crawler and gear pop."]},
   {v:"2.10.1",d:"2026-10-07",t:"Crate polish",items:["Loot crates are now perfectly symmetrical, and the lid lifts straight up when it bursts open."]},
   {v:"2.10.0",d:"2026-10-07",t:"New loot crates",items:["Opening a box now shows a chunky sci-fi crate in the box's colour (bronze, silver, gold, crimson Legendary, starry Celestial) that rattles, bursts its lid open and pours out light before your prize appears."]},
   {v:"2.9.0",d:"2026-10-07",t:"Tidier quest board",items:["Your quests are now split into two groups you can fold away: 🔁 Repeating and 📜 One-off. Each shows how many are due today and the XP waiting. Upcoming repeats live inside the Repeating group.",
