@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=1b4771eef9"></script>
-<script>window.CRAWL_BUILD="1b4771eef9";</script>
+<script src="firebase-config.js?v=8f19d7c113"></script>
+<script>window.CRAWL_BUILD="8f19d7c113";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1112,6 +1112,12 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .gv-pick:focus-visible{outline:3px solid var(--mana)}
 #mobAlert:empty{display:none}
 #rivalAlert:empty{display:none}
+.dupeask{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;width:min(420px,calc(100% - 24px));display:flex;gap:12px;align-items:flex-start;padding:12px 14px;
+  background:var(--panel);border:2px solid var(--gold);border-radius:12px;box-shadow:0 0 0 2px #000,0 10px 30px rgba(0,0,0,.6);transform:translate(-50%,140%);opacity:0;transition:transform .25s ease,opacity .25s ease}
+.dupeask.on{transform:translate(-50%,0);opacity:1}
+.dupeask .da-ico{flex:none;width:56px;height:56px}.dupeask .da-ico svg{width:100%;height:100%;display:block}
+.dupeask .da-body{flex:1;min-width:0;display:grid;gap:3px}.dupeask .da-k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.dupeask .da-q{font-size:13px;font-style:italic;color:var(--muted)}.dupeask .da-acts{display:flex;gap:8px;margin-top:4px}
 .qtbox .qt-mini{border-radius:8px;overflow:hidden;border:2px solid #000;max-height:140px}
 .qtbox .qt-mini>svg{display:block;width:100%;height:auto}
 .qt-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -1788,8 +1794,29 @@ function takeItem(id){
    Returns "new", "kept", or the gold it sold for. refund:true always keeps it (a cancelled trade coming home). */
 function receiveItem(id,refund){const it=itemOf(id);if(!it)return null;
   if(!player.owned.includes(id)){player.owned=player.owned.concat(id);return "new";}
-  if(player.keepDupes||refund){addSpare(id,1);return "kept";}
-  const g=dupeValue(it);player.gold+=g;return g;}
+  if(player.keepDupes||refund){addSpare(id,1);if(!refund)dupeAsk(id,"kept");return "kept";}
+  const g=dupeValue(it);player.gold+=g;dupeAsk(id,g);return g;}
+/* Any duplicate loot (outside loot boxes, which ask in their own reveal): the announcer asks sell or keep.
+   The "Keep duplicates" default is already applied; answering just switches it. Questions queue up one at a time. */
+const dupeQ=[];
+function dupeAsk(id,r){dupeQ.push({id,kept:r==="kept",g:r==="kept"?dupeValue(itemOf(id)):r});if(dupeQ.length===1)setTimeout(dupeShow,900);}
+function dupeShow(){
+  const q=dupeQ[0];if(!q)return;const it=itemOf(q.id);if(!it){dupeQ.shift();return dupeShow();}
+  let el=$("dupeAsk");if(!el){el=document.createElement("div");el.id="dupeAsk";el.className="dupeask";el.setAttribute("role","dialog");el.setAttribute("aria-label","Duplicate item");document.body.appendChild(el);}
+  const have=spareN(it.id)-(q.kept?1:0);
+  el.innerHTML=`<div class="da-ico">${tierIcon(it.id,it.rar==="magical"?"legendary":it.rar)}</div>
+    <div class="da-body"><div class="da-k rar-${it.rar}">${RARITY[it.rar].n} · duplicate</div><b>${esc(it.n)}</b>
+      <div class="da-q">${esc(pick("dupeask",{gold:q.g}))}</div><div class="muted" style="font-size:12px">You already own one${have>0?` (plus ${have} spare${have===1?"":"s"})`:""}.</div>
+      <div class="da-acts"><button class="btn gold sm" type="button" id="daSell">Sell · ${q.g}g</button><button class="btn sm" type="button" id="daKeep">Keep</button></div></div>`;
+  el.classList.add("on");
+  const done=sell=>{dupeQ.shift();
+    if(sell&&q.kept&&spareN(it.id)>0){addSpare(it.id,-1);player.gold+=q.g;pushEvent(`Sold the duplicate ${it.n} for ${q.g} gold`);SFX.play("coin");}
+    else if(!sell&&!q.kept&&player.gold>=q.g){player.gold-=q.g;addSpare(it.id,1);pushEvent(`Kept the duplicate ${it.n}`);}
+    store.savePlayer(player).catch(writeFailed);render();
+    toast(sell?`Sold the spare ${it.n} for ${q.g} gold.`:`Kept the spare ${it.n}. You have ${1+spareN(it.id)} now.`);
+    el.classList.remove("on");setTimeout(()=>{if(dupeQ.length)dupeShow();else el.remove();},250);};
+  $("daSell").onclick=()=>done(true);$("daKeep").onclick=()=>done(false);
+}
 function sellSpare(id){const it=itemOf(id);if(!it||spareN(id)<1)return;const g=dupeValue(it);addSpare(id,-1);player.gold+=g;ui.invPin=null;store.savePlayer(player).catch(writeFailed);render();toast(`Sold a spare ${it.n} for ${g} gold.`);}
 const BASE_HP = 100;
 /* Each stat level above 1 adds a small, capped effect. */
@@ -3289,7 +3316,7 @@ function rivalDown(out,t){
     giveBox("silver",`Revenge on ${rv.n}`);extra.push("plus a Silver Box for the rematch");}
   const gear=Object.values(rvGear(rv.n));
   if(gear.length&&(kill||Math.random()<.35)){const id=gear[Math.floor(Math.random()*gear.length)],it=itemOf(id),r=receiveItem(id);
-    extra.push(r==="new"?`they dropped their ${RARITY[it.rar].n} ${it.n}`:r==="kept"?`they dropped a ${it.n} (a spare, kept)`:`they dropped a ${it.n} (a duplicate, sold for ${r} gold)`);
+    extra.push(r==="new"?`they dropped their ${RARITY[it.rar].n} ${it.n}`:`they dropped a ${it.n} you already own`);
     if(r==="new"&&["epic","legendary"].includes(it.rar))partyPost("loot",`took a ${RARITY[it.rar].n} ${it.n} off ${rv.n}`);}
   if(kill)giveBox("gold",`Put down ${rv.n} for good`);
   const helpers=Object.keys(rv.as||{}).filter(u=>rv.as[u]>0);
@@ -3476,7 +3503,7 @@ function qtFuse(rar){const need=qtFuseN();if(!need||!QT_NEXT[rar])return;const s
   const pool=ITEMS.filter(i=>i.rar===QT_NEXT[rar]&&!i.base),fresh=pool.filter(i=>!player.owned.includes(i.id)),pk=(fresh.length?fresh:pool);
   const it=pk[Math.floor(Math.random()*pk.length)],r=receiveItem(it.id);bump("fusions");SFX.play("kill");
   pushEvent(`Fused ${need} ${RARITY[rar].n} spares into ${it.n}`);store.savePlayer(player).catch(writeFailed);render();renderQt();
-  toast(`<span class="big">Fused!</span> ${need===3?"Three":"Five"} ${RARITY[rar].n} spares became <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":r==="kept"?" (a spare, kept)":` (a duplicate, sold for ${r} gold)`}.`,"lvl");}
+  toast(`<span class="big">Fused!</span> ${need===3?"Three":"Five"} ${RARITY[rar].n} spares became <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":" (one you already own)"}.`,"lvl");}
 function qtGuest(uid){const q=player.quarters;if(!q)return;const g=new Set(q.guests||[]);if(g.has(uid))g.delete(uid);else g.add(uid);q.guests=[...g];
   store.savePlayer(player).catch(writeFailed);partyPublish(true);renderQt();}
 /* What goes on the party card: just enough for a guest's visit. */
@@ -8467,7 +8494,7 @@ async function giftAct(g,status){clearUndo(); // the receiver: claim a gift, or 
     if(status==="accepted"){takeItem(g.want);bump("trades");}
     const r=receiveItem(g.item);bump("giftsIn");
     coreSnd.reveal(it?it.rar:"rare");
-    toast(`<span class="big">${esc(from)} ${status==="claimed"?"sent you a gift":"traded with you"}</span> ${esc(it?it.n:"An item")}${status==="accepted"?` for your ${esc(itemOf(g.want).n)}`:""}${r==="kept"?". It's a spare, so it went in your backpack":typeof r==="number"?`. You already had one, so it sold for ${r} gold`:""}.`,"lvl",r==="new"?()=>{setTab("loot");}:null,r==="new"?"See it":null);
+    toast(`<span class="big">${esc(from)} ${status==="claimed"?"sent you a gift":"traded with you"}</span> ${esc(it?it.n:"An item")}${status==="accepted"?` for your ${esc(itemOf(g.want).n)}`:""}${r!=="new"?". You already have one":""}.`,"lvl",r==="new"?()=>{setTab("loot");}:null,r==="new"?"See it":null);
   }else toast(`You declined ${from}'s trade.`);
   store.savePlayer(player).catch(writeFailed);render();checkAch();
 }
@@ -8477,7 +8504,7 @@ async function giftSettle(g){ // the sender: the other side answered a trade
   setBusy(g.id,false);markGifted(g.id);
   const it=itemOf(g.item),w=itemOf(g.want),nm=memberName(g.to);
   if(g.status==="accepted"){const r=receiveItem(g.want);coreSnd.reveal(w?w.rar:"rare");bump("trades");
-    toast(`<span class="big">Trade done</span> ${esc(nm)} took your ${esc(it.n)} for their ${esc(w.n)}${typeof r==="number"?`. You already had one, so it sold for ${r} gold`:""}.`,"lvl");}
+    toast(`<span class="big">Trade done</span> ${esc(nm)} took your ${esc(it.n)} for their ${esc(w.n)}${r!=="new"?". You already had one":""}.`,"lvl");}
   else{receiveItem(g.item,true);toast(`${nm} declined your trade. Your ${it.n} is back in your backpack.`);}
   store.savePlayer(player).catch(writeFailed);render();checkAch();
 }
