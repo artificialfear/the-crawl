@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=94542464fa"></script>
-<script>window.CRAWL_BUILD="94542464fa";</script>
+<script src="firebase-config.js?v=27302e3e7f"></script>
+<script>window.CRAWL_BUILD="27302e3e7f";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1009,6 +1009,8 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .zoomdlg .bar{height:8px}.zoomdlg .bar.rvbar>b{background:#e8283c}
 .zboss{position:relative;line-height:0}.zboss svg{width:100%;height:auto;display:block}.zdead{text-decoration:line-through;text-decoration-color:var(--blood)}
 .zoomdlg.z-boss .zoom-art{width:min(280px,72%);border-radius:0;overflow:visible}.zboss .vstamp.still{font-size:clamp(28px,9vw,42px)}
+.raidpanel .bossart.thumb .vstamp.still{font-size:11px;border-width:2px;padding:0 4px}
+@media (min-width:861px){body[data-tab="party"] .pt-raid{display:none}}
 .zladder{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13px}.zladder .now{color:var(--gold)}
 .zoom-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.zgear{font-size:13px}
 .vstamp.still{opacity:1;animation:none;transform:translate(-50%,-50%) rotate(-12deg) scale(1);z-index:2;pointer-events:none}
@@ -7453,6 +7455,8 @@ function renderBoss(){
       <div class="muted" style="font-size:14px">Add or complete your first quest and the Floor 1 ladder opens. Six bosses stand between you and the stairwell. Every XP you earn hits the one in front of you.</div></div>`;return;
   }
   if(!player.boss||player.boss.tier==null||player.boss.week!==weekStart(today())){if(ensureBoss())store.savePlayer(player).catch(writeFailed);}
+  // On the Party tab (desktop shows the quest column alongside), the boss window shows your party's raid boss instead
+  if(ui.tab==="party"&&party&&party.doc){try{renderRaidPanel(el);return;}catch(e){console.warn("raid panel",e);}}
   const b=player.boss;const td=today();
   const daysLeft=6-daysBetween(b.week,td)+1;
   const endsOn=fmtDue(addDays(b.week,6));
@@ -7523,6 +7527,18 @@ function renderBoss(){
   </div>
   ${tbar}<div style="display:flex;justify-content:flex-end;margin-top:10px">${toggle(true)}</div>`;
   wire();wireBossZoom(el);
+}
+function renderRaidPanel(el){
+  const td=today(),wk=weekOf(td),r=raidState(wk),me=myUid(),left=Math.max(0,r.hp-r.tot),pct=left/r.hp*100;
+  const daysLeft=7-Math.round((new Date(td+"T12:00:00")-new Date(wk+"T12:00:00"))/864e5),mine=r.per[me]||0,storm=stormOn(wk);
+  const top=Object.entries(r.per).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1])[0];
+  const sub=r.dead?`Defeated! Everyone who landed a hit gets a Gold Box. A new raid boss arrives ${fmtDue(addDays(wk,7))}.`
+    :`${daysLeft} day${daysLeft===1?"":"s"} left · you've dealt <b class="num">${mine.toLocaleString()}</b>${top&&top[0]!==me?` · top hitter: ${esc(memberName(top[0]))} (${top[1].toLocaleString()})`:""}${storm?" · damage only lands in the lair":""}`;
+  el.innerHTML=`<div class="boss-compact raidpanel"><div class="bossart thumb zoomable${r.dead?" slain":""}" id="rpArt" role="button" tabindex="0" aria-label="${esc(r.boss.n)}: tap to see it up close">${bossSVG(r.boss.n,r.dead,{art:r.boss.art,num:"raid",crop:true})}${r.dead?`<div class="vstamp still" aria-hidden="true">Slain</div>`:""}</div>
+    <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">Party raid · ${esc(party.doc.name||"Your party")}</span><div class="bname${r.dead?" dead":""}">${esc(r.boss.n)}</div></div>
+    <div class="hpwrap"><div class="bar boss" role="progressbar" aria-label="Raid boss health" aria-valuemin="0" aria-valuemax="${r.hp}" aria-valuenow="${left}"><b style="width:${pct.toFixed(1)}%"></b></div><span class="num">${left.toLocaleString()} / ${r.hp.toLocaleString()}</span></div></div>
+    <div class="boss-sub">${sub}</div></div></div>`;
+  const a=$("rpArt");if(a){a.onclick=openRaidBoss;a.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openRaidBoss();}};}
 }
 function wireBossZoom(el){el.querySelectorAll("[data-zboss]").forEach(b=>{b.onclick=zoomBoss;b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomBoss();}};});}
 function renderRewards(){
