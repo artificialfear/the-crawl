@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=5adf4d4d24"></script>
-<script>window.CRAWL_BUILD="5adf4d4d24";</script>
+<script src="firebase-config.js?v=5b4841cf84"></script>
+<script>window.CRAWL_BUILD="5b4841cf84";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -6449,13 +6449,15 @@ function armorIcon(st){ // 100-unit loot icon
 }
 /* Headgear in avatar coordinates (head about x 116-184, crown at y 40, eyes at y 94) */
 const HIDES_HAIR=new Set(["l3","h1","l1","h3","h4","h5","h10","h11","h12","h14"]);
-const HEAD_CENTER={h2:[150,53,.8],h3:[150,56,.72],h4:[150,44,.6],h5:[150,56,.62],h6:[150,24,1.1],m8:[150,66,.85],
+const HEAD_CENTER={h2:[150,53,.8],h3:[150,56,.72],h4:[150,50,.56],h5:[150,56,.62],h6:[150,24,1.1],m8:[150,66,.85],
   h7:[150,24,.62],h9:[150,76,.6],h10:[174,52,.56],h11:[150,82,.5],h12:[150,82,.6],h13:[150,28,.52],h14:[150,54,.6],m13:[150,44,.72]};
 function headArt(id,u){
   const HA=`url(#${u}a)`;let s="";
   if(id==="h2")s+=_sh("M118 70 L118 42 L130 54 L140 34 L150 52 L160 34 L170 54 L182 42 L182 70 Z","#fff3c4")+_ln("M118 62 L182 62",2)+`<circle cx="130" cy="66" r="3" fill="${RED}"/><circle cx="150" cy="66" r="3" fill="#2f78d0"/><circle cx="170" cy="66" r="3" fill="#3fae5a"/>`+_ln("M126 48 l4 6 M156 44 l3 7",1.4,"#ff8a1f");
   if(id==="h3")s+=_sh("M114 74 Q114 30 150 28 Q186 30 186 74 Z","#ffc21f")+_ov("M114 74 Q114 30 150 28 Q130 38 128 74 Z",HA)+_sh("M104 70 L196 70 Q198 80 192 82 L108 82 Q102 80 104 70 Z","#ffb000")+_ln("M150 30 L150 70",3)+_sh("M158 44 L172 44 L172 56 L158 56 Z","#fff")+_ln("M161 50 L169 50",1.6,RED);
-  if(id==="h4")s+=_sh("M122 72 Q140 40 166 2 Q168 40 180 72 Z","#4b35a8")+_ov("M122 72 Q140 40 166 2 Q148 40 140 72 Z",HA)+_sh("M104 74 Q150 58 196 74 Q150 90 104 74 Z","#3b2a8a")+`<path d="M152 34 l2 5 5 .6 -4 3.4 1.2 5 -4.2 -2.6 -4.2 2.6 1.2 -5 -4 -3.4 5 -.6 Z" fill="#ffd23f"/><path d="M164 54 a6 6 0 1 0 6 8 a4.5 4.5 0 1 1 -6 -8 Z" fill="#ffd23f"/>`;
+  if(id==="h4")s+=_sh("M110 82 C118 58 132 34 142 16 Q148 4 160 5 Q178 8 190 30 Q176 22 164 24 C168 46 180 64 190 82 Z","#4b35a8")+_ov("M110 82 C118 58 132 34 142 16 Q140 42 132 82 Z",HA)
+    +`<circle cx="190" cy="31" r="4.5" fill="#ffd23f" stroke="${INK}" stroke-width="2"/>`+_sh("M96 82 Q150 64 204 82 Q150 98 96 82 Z","#3b2a8a")+_ln("M112 76 Q150 66 188 76",3,"#ffd23f")
+    +`<path d="M148 40 l2 5 5 .6 -4 3.4 1.2 5 -4.2 -2.6 -4.2 2.6 1.2 -5 -4 -3.4 5 -.6 Z" fill="#ffd23f"/><path d="M166 52 a6 6 0 1 0 6 8 a4.5 4.5 0 1 1 -6 -8 Z" fill="#ffd23f"/>`;
   if(id==="h5")s+=_sh("M122 62 Q94 54 90 18 Q104 44 124 50 Z",BONE)+_sh("M178 62 Q206 54 210 18 Q196 44 176 50 Z",BONE)+_ln("M100 36 l7 -4 M106 46 l7 -4 M200 36 l-7 -4 M194 46 l-7 -4",1.6)
     +_sh("M116 76 Q116 34 150 32 Q184 34 184 76 Z","#c98a3c")+_ov("M116 76 Q116 34 150 32 Q132 42 130 76 Z",HA)+_sh("M110 70 L190 70 L190 80 L110 80 Z","#a86a24")+_sh("M146 76 L154 76 L153 106 L147 106 Z","#c98a3c")+[124,138,162,176].map(x=>`<circle cx="${x}" cy="75" r="2" fill="${INK}" stroke="none"/>`).join("");
   if(id==="h6")s+=`<ellipse class="mf-glow" cx="150" cy="24" rx="36" ry="11" fill="none" stroke="#fff6c8" stroke-width="12" opacity=".6"/>`+`<ellipse cx="150" cy="24" rx="32" ry="9" fill="none" stroke="${INK}" stroke-width="9"/><ellipse cx="150" cy="24" rx="32" ry="9" fill="none" stroke="#ffd23f" stroke-width="4.5"/>`;
