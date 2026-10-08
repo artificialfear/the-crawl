@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=871eaab125"></script>
-<script>window.CRAWL_BUILD="871eaab125";</script>
+<script src="firebase-config.js?v=9535fe5812"></script>
+<script>window.CRAWL_BUILD="9535fe5812";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1196,7 +1196,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .rv-acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:2px}.rv-shr{font-size:11px}
 .pt-hunt{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:14px;padding:10px 12px;border:2px solid #ff7a1f;border-radius:10px;background:rgba(255,122,31,.08)}
 .pt-hunt.psy{border-color:#e8283c;background:rgba(232,40,60,.1)}
-.pt-hunt>div{flex:1;min-width:0}.pt-hunt .mobhp{display:flex;align-items:center;gap:8px;margin:4px 0}.pt-hunt .mobhp .bar{flex:1}
+.pt-hunt>div{flex:1;min-width:0}.pt-hunt>.pt-hunt-av{flex:none;width:56px;height:78px;border-radius:6px;overflow:hidden;border:2px solid #000;background:#000}.pt-hunt-av svg{width:100%;height:100%;display:block}.pt-hunt .mobhp{display:flex;align-items:center;gap:8px;margin:4px 0}.pt-hunt .mobhp .bar{flex:1}
 .mobalert{position:relative;border:3px solid #e8283c;border-radius:12px;overflow:hidden;background:#120a0a;box-shadow:0 0 0 2px #000,0 0 18px rgba(232,40,60,.55);animation:mobpulse 2.2s ease-in-out infinite}
 .mobalert.k-ooze{border-color:#8adf3a;box-shadow:0 0 0 2px #000,0 0 18px rgba(138,223,58,.5)}
 .mobalert.k-goblin{border-color:#ffb21f;box-shadow:0 0 0 2px #000,0 0 18px rgba(255,178,31,.5)}
@@ -3492,7 +3492,7 @@ function rivalCrewHTML(){
   const hunted=partyMembers().filter(u=>u!==me).map(u=>[u,party.cards[u]]).filter(([u,c])=>c&&c.rvl&&c.rvl.hp>0);
   if(!hunted.length)return "";
   return hunted.map(([u,c])=>{const on=player.helping&&player.helping.to===u&&player.helping.rid===c.rvl.id;
-    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
+    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div class="pt-hunt-av zoomable" data-zhunt="${esc(u)}" role="button" tabindex="0" aria-label="${esc(c.rvl.n)} up close">${rvAvatar({n:c.rvl.n})}</div><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
       <b>${esc(c.rvl.n)}</b> is hunting <b>${esc(c.name||"your crewmate")}</b>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(c.rvl.hp/c.rvl.max*100)}%"></b></div><span class="num">${c.rvl.hp}/${c.rvl.max}</span></div>
       <div class="muted" style="font-size:12px">${on?"Each quest you finish hits them for half your damage. You can't land the final blow: that's theirs.":"Help, and each quest you finish also hits this rival for half your damage."}</div></div>
@@ -8799,6 +8799,18 @@ function zoomBoss(){
       :[["HP",fog?"??? / ???":`${hp} / ${b.maxHp}`],["You've dealt",b.dealt],["Elite quests to go",fog?"??":togo],["Healed by overdue",b.healed||0],["Floor total",b.total||0],["Drops",esc(box.n)],["Stairwell closes",closes],["Next up",b.tier<5?esc(TIERS[b.tier+1].n):"Stairwell"]],
     body:`${!b.defeated?`<div class="hpwrap">${zbar(fog?1:hp/b.maxHp,"boss")}</div>`:""}${!b.defeated&&BOSS_TAUNT[b.name]?`<p class="zoom-sub">“${esc(BOSS_TAUNT[b.name])}”</p>`:""}${ladder}`});
 }
+/* The rival crawler hunting a crewmate (from their party card) */
+function zoomCrewRival(uid){
+  const c=party&&party.cards[uid];if(!c||!c.rvl)return;const rv=c.rvl,g=rvGear(rv.n),i=rvIdx(rv.n),cls=(RIVALS[i]||[])[1]||"Crawler";
+  const helping=player.helping&&player.helping.to===uid&&player.helping.rid===rv.id,mine=player.assist&&player.assist.rid===rv.id?player.assist.dmg||0:0;
+  const fl=c.floor||1;
+  zoomCard({kind:"rival",title:rv.n,art:rvAvatar({n:rv.n}),sub:`the ${esc(cls)} · #${i+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""} · hunting <b>${esc(c.name||"your crewmate")}</b>`,
+    tiles:[["HP",`${rv.hp} / ${rv.max}`],["Your help",helping||mine?`${mine.toLocaleString()} dmg`:"–"],["Hits them for",`~${Math.round((6+3*fl)*(rv.psy?1.25:1))} / quest`],["Overnight",`~${Math.round((10+4*fl)*(rv.psy?1.25:1))} HP`]],
+    body:`${zbar(rv.hp/rv.max,"rvbar")}
+      <div class="label">Wearing</div><div class="zgear">${Object.values(g).map(id=>{const it=itemOf(id);return it?`<span class="rar-${it.rar}">${esc(it.n)}</span>`:"";}).join(" · ")||"Rags"}</div>
+      <div class="muted" style="font-size:12px">${helping?"You're helping: each quest you finish hits it for half your damage. It can't fall to you; the last hit is theirs.":"Tap Help and each quest you finish also hits it for half your damage."} Hit numbers are before ${esc(c.name||"their")}'s armor.</div>`,
+    acts:[{label:helping?"Stop helping":"Help",gold:!helping,fn:()=>rivalHelp(uid)}]});
+}
 /* The rival crawler on your heels */
 function zoomRival(){
   const rv=player.rival;if(!rv)return;const g=rvGear(rv.n),it=rv.item&&itemOf(rv.item);
@@ -9332,6 +9344,7 @@ function renderParty(){
   el.querySelectorAll("[data-cheer]").forEach(b=>b.onclick=()=>partyCheer(b.dataset.cheer));
   el.querySelectorAll("[data-nudge]").forEach(b=>b.onclick=()=>partyNudge(b.dataset.nudge));
   el.querySelectorAll("[data-rvhelp]").forEach(b=>b.onclick=()=>rivalHelp(b.dataset.rvhelp));
+  el.querySelectorAll("[data-zhunt]").forEach(b=>{b.onclick=()=>zoomCrewRival(b.dataset.zhunt);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomCrewRival(b.dataset.zhunt);}};});
   el.querySelectorAll("[data-zcrew]").forEach(b=>{b.onclick=()=>zoomCrew(b.dataset.zcrew);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomCrew(b.dataset.zcrew);}};});
   {const ra=$("ptRaidArt");if(ra){ra.onclick=openRaidBoss;ra.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openRaidBoss();}};}}
   el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
