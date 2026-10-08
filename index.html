@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=320aabf5be"></script>
-<script>window.CRAWL_BUILD="320aabf5be";</script>
+<script src="firebase-config.js?v=d3522ae976"></script>
+<script>window.CRAWL_BUILD="d3522ae976";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -6234,7 +6234,7 @@ function completeQuest(id,actual,touched){
   if(mapMsgs.length)beat(()=>{if(rvNew&&!rvMsgs.length){rvSoundDone=true;if(!clip("crawler-appear",.9))SFX.play("hurt");}toast(`<b>Map</b> ${mapMsgs.map(x=>esc(x)).join("<br>")}`,"quest");},rvNew&&!rvMsgs.length?1400:1000);
   if(lairLi!=null)beat(()=>{bossAppear();lairPrompt(lairLi);},700); // waits while the card is open
   if(mobMsgs.length)beat(()=>{if(mobSnd0&&!clip("mob-"+mobSnd0,.85))SFX.play("hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobSnd0?1500:1000);
-  if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;beat(()=>{if(rvNew&&!rvSoundDone){if(!clip("crawler-appear",.9))SFX.play("hurt");}else if(w)SFX.play("kill");else if(player.rival)SFX.play("hurt");
+  if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;beat(()=>{if(rvNew&&!rvSoundDone){if(!clip("crawler-appear",.9))SFX.play("hurt");}else if(w){if(!clip("boss-kill",.8))SFX.play("kill");}else if(player.rival)SFX.play("hurt");
     toastH(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500);}
   goals.msgs.forEach(m=>beat(()=>toast(m,"lvl"),900));
   if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;godMsgs.forEach(m=>pushEvent(m));beat(()=>toastH(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest"),900);}
