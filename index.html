@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=90a7e28b3b"></script>
-<script>window.CRAWL_BUILD="90a7e28b3b";</script>
+<script src="firebase-config.js?v=320aabf5be"></script>
+<script>window.CRAWL_BUILD="320aabf5be";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3003,7 +3003,7 @@ function lootToast(l){
   if(calm){flash();after();return;}
   // Let the quest attack land before the victory card covers the screen.
   const show=()=>{
-  SFX.play("kill");
+  if(!clip("boss-kill",.8))SFX.play("kill");
   document.querySelectorAll(".victory,.flyloot").forEach(n=>n.remove());
   const ov=document.createElement("div");ov.className="victory";
   setTimeout(()=>{ui.mapDrop=null;},0);
@@ -4883,7 +4883,7 @@ function hbUse(i){const k=beltRow()[i];if(!k){openBelt(i);return;}
   if(consN(k)<1){toast(`Out of ${BELT_PLURAL[k]}. The shop sells more.`,"bad");return;}
   const flash=()=>{const b=document.querySelector(`#hotbar [data-hb="${i}"]`);if(b){b.classList.remove("used");void b.offsetWidth;b.classList.add("used");}};
   if(k==="potion"){if(player.hp>=maxHp(player)){toast("You're already at full HP.");return;}
-    const hp0=player.hp;drink();SFX.play("pop");flash();toast(`Gulp. +${player.hp-hp0} HP.`);return;}
+    const hp0=player.hp;drink();flash();toast(`Gulp. +${player.hp-hp0} HP.`);return;}
   if(k==="focus"){if(player.focused){toast("You're already focused. Your next finished quest uses it up.");return;}drinkFocus();SFX.play("pop");flash();return;}
   pickQuest(k);}
 function closeHbDlg(){const o=$("hbDlg");if(o){o.remove();const h=$("hotbar");if(h&&ui.hbBack!=null){const b=h.querySelector(`[data-hb="${ui.hbBack}"]`)||h.querySelector("[data-hbedit]");if(b)b.focus();}ui.hbBack=null;}}
@@ -6559,7 +6559,7 @@ function equip(slot,id){
   store.savePlayer(player).catch(writeFailed);render();
 }
 function buyPotion(){if(player.gold<priceOf(POTION.price))return;SFX.play("coin");player.gold-=priceOf(POTION.price);player.potions++;store.savePlayer(player).catch(writeFailed);render();}
-function drink(){if(player.potions<1||player.hp>=maxHp(player))return;player.potions--;player.hp=Math.min(maxHp(player),player.hp+healAmt(player));bump("potions");store.savePlayer(player).catch(writeFailed);render();checkAch();}
+function drink(){if(player.potions<1||player.hp>=maxHp(player))return;if(!clip("potion-drink",.9))SFX.play("pop");player.potions--;player.hp=Math.min(maxHp(player),player.hp+healAmt(player));bump("potions");store.savePlayer(player).catch(writeFailed);render();checkAch();}
 function rename(n){n=n.trim().slice(0,40);if(n&&n!==player.name){player.name=n;store.savePlayer(player).catch(writeFailed);}ui.editingName=false;render();}
 function loadExamples(){
   const td=today();ui.quiet=true;setTimeout(()=>{ui.quiet=false;},0);
@@ -9296,7 +9296,7 @@ function renderSound(){
     $("sndOn").onchange=e=>{prefs.sound=e.target.checked;savePrefs();renderSound();if(prefs.sound)SFX.play("coin");};
     $("sndVol").oninput=e=>{prefs.vol=+e.target.value;savePrefs();};
     $("sndVol").onchange=()=>SFX.play("coin");
-    $("sndTest").onclick=()=>SFX.test();
+    $("sndTest").onclick=()=>{if(!clip("boss-kill",.8))SFX.test();};
     $("musOn").onchange=e=>{prefs.music=e.target.checked;savePrefs();};
     if($("ttsOn"))$("ttsOn").onchange=e=>{prefs.tts=e.target.checked;savePrefs();renderTtsBtn();if(prefs.tts)announce(VO_LIVE,true);};
   }
