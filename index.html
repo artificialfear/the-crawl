@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=b9acce0b7d"></script>
-<script>window.CRAWL_BUILD="b9acce0b7d";</script>
+<script src="firebase-config.js?v=b1974f4ce0"></script>
+<script>window.CRAWL_BUILD="b1974f4ce0";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3734,7 +3734,10 @@ function qtSafeBox(){
     ${vis.map(([uid,c])=>`<button class="btn ghost sm" type="button" data-qtvisit="${esc(uid)}">Visit ${esc(c.name||"crewmate")}</button>`).join("")}</div></div>`;}
 function qtVisitable(){if(!party||!party.cards)return [];const me=myUid();
   return partyMembers().filter(u=>u!==me).map(u=>[u,party.cards[u]]).filter(([u,c])=>c&&c.qt&&(c.qt.g||[]).includes(me));}
-function openQt(host){ui.qt={host:host||null};renderQt();}
+function openQt(host){if(host||player.qt)portalSound();ui.qt={host:host||null};renderQt();}
+function portalSound(){if(!clip("portal",.6))SFX.play("reveal","magical");}
+function hallSound(){if(!clip("hall-enter",.85))SFX.play("tick");}
+function enterHall(){hallSound();ui.qt={hall:true};renderQt();}
 function closeQt(){ui.qt=null;const o=$("qtWrap");if(o)o.remove();}
 function renderQt(){
   if(!ui.qt){const o=$("qtWrap");if(o)o.remove();return;}
@@ -3805,7 +3808,7 @@ function renderQt(){
   o.innerHTML=`<div class="geardlg inspdlg qtdlg" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="gearhead"><h2>${esc(title)}</h2><button class="btn ghost sm" type="button" id="qtClose">Close</button></div>${body}</div>`;
   $("qtClose").onclick=closeQt;
   const on=(id,f)=>{const x=$(id);if(x)x.onclick=f;};
-  on("qtBuy",qtBuy);on("qtCook",()=>qtCook(null));on("qtConjoin",qtConjoin);on("qtToHall",()=>{ui.qt={hall:true};renderQt();});on("qtCookHost",()=>qtCook(host));
+  on("qtBuy",qtBuy);on("qtCook",()=>qtCook(null));on("qtConjoin",qtConjoin);on("qtToHall",enterHall);on("qtCookHost",()=>qtCook(host));
   o.querySelectorAll("[data-qtup]").forEach(b=>b.onclick=()=>qtUpgrade(b.dataset.qtup));
   o.querySelectorAll("[data-qttrain]").forEach(b=>b.onclick=()=>qtTrain(b.dataset.qttrain));
   o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>qtFuse(b.dataset.qtfuse));
@@ -4445,7 +4448,7 @@ function renderSafe(){
     <div class="mail"><div class="label">Fan mail</div><p>“${esc(x.mail.text)}”</p><span>— ${esc(x.mail.from)}</span></div>
     <div class="safefoot"><button class="btn ghost sm" type="button" id="toShop">Visit the shop</button><button class="btn sm" type="button" id="leaveSafe">Head back out</button></div>`;
   $("restBtn").onclick=rest;$("leaveSafe").onclick=leaveSafe;
-  {const q=$("qtOpen");if(q)q.onclick=()=>openQt(null);const h=$("qtHallOpen");if(h)h.onclick=()=>{ui.qt={hall:true};renderQt();};el.querySelectorAll("[data-qtvisit]").forEach(b=>b.onclick=()=>openQt(b.dataset.qtvisit));}
+  {const q=$("qtOpen");if(q)q.onclick=()=>openQt(null);const h=$("qtHallOpen");if(h)h.onclick=enterHall;el.querySelectorAll("[data-qtvisit]").forEach(b=>b.onclick=()=>openQt(b.dataset.qtvisit));}
   const sb=$("shelterBtn");if(sb)sb.onclick=takeShelter;
   const sy=$("shelterYes");if(sy)sy.onclick=takeShelter;
   const sn=$("shelterNo");if(sn)sn.onclick=()=>{ui.confirmShelter=false;render();};
