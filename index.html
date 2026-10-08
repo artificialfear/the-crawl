@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=112b6975e7"></script>
-<script>window.CRAWL_BUILD="112b6975e7";</script>
+<script src="firebase-config.js?v=89215cb47b"></script>
+<script>window.CRAWL_BUILD="89215cb47b";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1007,7 +1007,7 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
   .sync span{display:none}
   .mast .onair{grid-column:1;grid-row:2;margin:0;gap:4px 8px;font-size:12px;flex-wrap:nowrap;min-width:0;overflow:hidden}
   .mast .onair .live{font-size:10px;padding:0 6px}
-  .mast .onair .floorno{display:none}.mast .onair .floorno.fb-restore{display:inline}
+  .mast .onair .floorno{display:none}
   .mast .gearbtn{width:32px;height:32px;font-size:16px}.mast .achinbox{width:auto}
   body{padding-inline:10px;padding-top:10px}
   .col{gap:12px}
@@ -1403,6 +1403,12 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .fb-rules .boon{color:var(--leaf)}.fb-rules .bane{color:var(--blood)}
 .fb-rules{font-weight:600;display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:5px;font-size:12px}
 .floorno.fb-restore{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+/* Phones: once the theme strip is hidden, a small chip takes its place (the header floor label is hidden there). */
+.floorbanner.fb-gone{display:none}
+@media (max-width:860px){.floorbanner.fb-gone{display:flex;width:max-content;max-width:100%;margin:0 0 8px;padding:0;border-width:1px;border-style:dashed;background:transparent;box-shadow:none}
+  .floorbanner.fb-gone::after{display:none}
+  .fb-back{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:12px;color:var(--th-acc,var(--muted));border-radius:10px}
+  .fb-back:focus-visible{outline:2px solid var(--gold);outline-offset:2px}}
 @media (max-width:860px){body:not([data-tab="quests"]) #floorBanner{display:none}}
 /* flooded */
 .tf-water{position:absolute;left:0;right:0;bottom:0;height:16vh;background:linear-gradient(transparent,rgba(13,74,106,.45) 30%,rgba(6,30,44,.8))}
@@ -2181,11 +2187,14 @@ function renderTheme(){
   }
   if(!bn)return;
   if(!th||!player.boss){bn.hidden=true;bn.innerHTML="";return;}
-  /* A one-line strip: tap it for the details, ✕ hides it for the rest of this floor (tap the floor name in the header
-     to bring it back). On phones it only shows on the Quests tab (see CSS). */
+  /* A one-line strip: tap it for the details, ✕ hides it for the rest of this floor (tap the floor name in the header,
+     or the small "▸ Floor theme" chip on phones, to bring it back). On phones it only shows on the Quests tab (see CSS). */
   const L=THEME_LOOK[id]||THEME_LOOK.lobby,b=player.boss,open=prefs.bannerOpen===b.week,gone=prefs.bannerHide===b.week;
   const fl=$("floorNo");if(fl){fl.classList.toggle("fb-restore",gone);fl.title=gone?"Show this floor's theme":"";fl.onclick=gone?()=>{prefs.bannerHide=null;savePrefs();renderTheme();}:null;}
-  if(gone){bn.hidden=true;bn.dataset.k="";return;}
+  if(gone){const gk="gone|"+id+"|"+b.floor;if(bn.dataset.k===gk&&!bn.hidden)return;bn.dataset.k=gk;bn.hidden=false;
+    bn.className="floorbanner fb-gone tb-"+id;
+    bn.innerHTML=`<button type="button" class="fb-back" id="fbBack" title="Show this floor's theme"><span aria-hidden="true">${L.icon}</span>▸ Floor theme</button>`;
+    $("fbBack").onclick=()=>{prefs.bannerHide=null;savePrefs();renderTheme();const t=$("fbToggle");if(t)t.focus();};return;}
   const key=[id,b.floor,open].join("|");if(bn.dataset.k===key&&!bn.hidden)return;bn.dataset.k=key;bn.hidden=false;
   bn.className="floorbanner tb-"+id+(open?" open":"");
   bn.innerHTML=`<button type="button" class="fb-row" id="fbToggle" aria-expanded="${open}" title="${open?"Hide the details":"This floor's theme: tap for details"}">
@@ -2194,7 +2203,7 @@ function renderTheme(){
     <button type="button" class="fb-x" id="fbHide" aria-label="Hide the floor theme for this floor" title="Hide for this floor">✕</button>
     ${open?`<div class="fb-more"><div class="fb-f">${esc(th.flavor)}</div><div class="fb-rules"><span class="boon">▲ ${esc(th.boon)}</span><span class="bane">▼ ${esc(th.bane)}</span></div></div>`:""}`;
   $("fbToggle").onclick=()=>{prefs.bannerOpen=open?null:b.week;savePrefs();renderTheme();const t=$("fbToggle");if(t)t.focus();};
-  $("fbHide").onclick=()=>{prefs.bannerHide=b.week;prefs.bannerOpen=null;savePrefs();renderTheme();toast("Floor theme hidden for this floor. Tap the floor name at the top to bring it back.");};
+  $("fbHide").onclick=()=>{prefs.bannerHide=b.week;prefs.bannerOpen=null;savePrefs();renderTheme();toast(innerWidth<=860?"Floor theme hidden for this floor. Tap “▸ Floor theme” to bring it back.":"Floor theme hidden for this floor. Tap the floor name at the top to bring it back.");};
 }
 function themeBar(b){
   const th=themeById(b.theme);if(!th||th.id==="lobby")return "";
@@ -4860,7 +4869,7 @@ function openBelt(sel){
 function renderHotbar(){
   let el=$("hotbar");const show=!!(store&&loadedP&&playerExists&&player);
   if(!el){if(!show)return;el=document.createElement("div");el.id="hotbar";el.className="hotbar";el.setAttribute("role","toolbar");el.setAttribute("aria-label","Belt hotbar");document.body.appendChild(el);
-    el.addEventListener("click",e=>{const s=e.target.closest("[data-hb]");if(s){hbUse(+s.dataset.hb);return;}if(e.target.closest("[data-hbedit]"))openBelt(-1);});
+    el.addEventListener("click",e=>{const s=e.target.closest("[data-hb]");if(s){hbUse(+s.dataset.hb);return;}if(e.target.closest("[data-hbedit]")){equipSound("belt");openBelt(-1);}});
     addEventListener("resize",()=>{ui.hbHtml=null;renderHotbar();});}
   el.hidden=!show;document.body.classList.toggle("has-hb",show);if(!show)return;
   const tb=$("tabbar");if(tb&&getComputedStyle(tb).position==="fixed")document.documentElement.style.setProperty("--tbh",tb.offsetHeight+"px");
@@ -6485,7 +6494,7 @@ function buy(itemId){
   store.savePlayer(player).catch(writeFailed);render();toast(`Bought and equipped ${it.n}.`);checkAch();
 }
 /* Each gear slot has its own equip sound (sfx/equip-<slot>.mp3); anywhere the clips can't play uses the synth. */
-const EQUIP_SND={weapon:.85,armor:.9,head:.9,gloves:1,boots:.9,cape:.9,ring:.85,trinket:.85};
+const EQUIP_SND={belt:.9,weapon:.85,armor:.9,head:.9,gloves:1,boots:.9,cape:.9,ring:.85,trinket:.85};
 /* A boss shows up: one of five recorded stings at random, never the same one twice in a row. */
 let bossSting=0;
 function bossAppear(){let n;do{n=1+Math.floor(Math.random()*5);}while(n===bossSting);bossSting=n;if(!clip("boss-appear-"+n,.85))SFX.play("hurt");}
