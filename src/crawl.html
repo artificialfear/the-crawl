@@ -4489,37 +4489,91 @@ function buyMerchant(){
   pushEvent(`Bought ${it.n} from a wandering merchant`);mapLog(m,`You bought ${it.n} from the merchant.`);
   store.savePlayer(player).catch(writeFailed);render();toast(`Bought ${it.n}. The merchant vanishes into a wall, as merchants do.`,"",()=>{equip(it.slot,it.id);},"Equip");checkAch();
 }
+/* Worn parchment for the dungeon maps: torn edges with a scorched rim, an aged border, paper grain, fold creases,
+   a coffee ring and a few stains. Seeded, so a given map keeps the same wear every time it's drawn. */
+function mapRand(seed){let h=2166136261;for(const ch of String(seed))h=Math.imul(h^ch.charCodeAt(0),16777619);return ()=>{h=Math.imul(h^(h>>>15),2246822507);h=Math.imul(h^(h>>>13),3266489909);h^=h>>>16;return (h>>>0)/4294967296;};}
+const MAP_HATCH=id=>`<pattern id="${id}hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0 L0 6" stroke="#1a1008" stroke-width="1.4" opacity=".55"/></pattern>`;
+function mapParchment(W,H,id,seed){
+  const R=mapRand(seed),f=v=>v.toFixed(1),pts=[];
+  // ragged outline: walk the edge with small bites, plus a couple of deeper tears
+  const tears=new Set([Math.floor(R()*4)*1000+Math.floor(R()*10),Math.floor(R()*4)*1000+Math.floor(R()*10)]);
+  const edge=(x0,y0,x1,y1,side)=>{const len=Math.hypot(x1-x0,y1-y0),n=Math.max(4,Math.round(len/12)),nx=(y1-y0)/len,ny=-(x1-x0)/len;
+    for(let i=0;i<n;i++){const t=i/n;let d=1.5+R()*3.6;if(tears.has(side*1000+i%10)&&i>1&&i<n-2)d+=6+R()*5;pts.push([x0+(x1-x0)*t-nx*d,y0+(y1-y0)*t-ny*d]);}};
+  edge(0,0,W,0,0);edge(W,0,W,H,1);edge(W,H,0,H,2);edge(0,H,0,0,3);
+  const outline="M"+pts.map(p=>f(p[0])+" "+f(p[1])).join(" L")+" Z";
+  let s=`<defs><radialGradient id="${id}pg" cx="50%" cy="46%" r="70%"><stop offset="0" stop-color="#f1e3bf"/><stop offset=".62" stop-color="#e6d1a0"/><stop offset="1" stop-color="#c9a76a"/></radialGradient>`
+    +`<filter id="${id}grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="${Math.floor(R()*99)}"/><feColorMatrix values="0 0 0 0 .35  0 0 0 0 .24  0 0 0 0 .1  0 0 0 .55 -.18"/></filter>`
+    +`<clipPath id="${id}pc"><path d="${outline}"/></clipPath></defs>`;
+  s+=`<path d="${outline}" fill="#5a3a18" opacity=".55" transform="translate(1.6 2.2)"/>`; // shadow under the sheet
+  s+=`<path d="${outline}" fill="url(#${id}pg)"/>`;
+  s+=`<g clip-path="url(#${id}pc)"><rect width="${W}" height="${H}" filter="url(#${id}grain)" opacity=".55"/>`;
+  // stains: a couple of tea blotches, a coffee ring and a scorch near one corner
+  for(let i=0;i<3;i++){const x=W*(.15+R()*.7),y=H*(.15+R()*.7),rx=14+R()*30,ry=rx*(.6+R()*.5);s+=`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}" fill="#8a5a20" opacity="${(.06+R()*.06).toFixed(2)}" transform="rotate(${Math.floor(R()*180)} ${f(x)} ${f(y)})"/>`;}
+  {const x=W*(.2+R()*.6),y=H*(.2+R()*.6),r=16+R()*10;s+=`<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="none" stroke="#7a4a18" stroke-width="2.4" opacity=".16" stroke-dasharray="${f(r*4.2)} ${f(r*.8)}"/><circle cx="${f(x+1)}" cy="${f(y+1)}" r="${f(r-2.4)}" fill="none" stroke="#7a4a18" stroke-width="1" opacity=".1"/>`;}
+  {const cx=R()<.5?0:W,cy=R()<.5?0:H;s+=`<circle cx="${cx}" cy="${cy}" r="${f(Math.min(W,H)*.22)}" fill="#3a2008" opacity=".22"/>`;}
+  // fold creases
+  s+=`<path d="M${f(W/2+R()*6-3)} 0 L${f(W/2+R()*6-3)} ${H}" stroke="#7a5a2a" stroke-width="1.4" opacity=".22"/><path d="M${f(W/2+2)} 0 L${f(W/2+2)} ${H}" stroke="#fff6dc" stroke-width="1.2" opacity=".35"/>`
+    +`<path d="M0 ${f(H/2+R()*6-3)} L${W} ${f(H/2+R()*6-3)}" stroke="#7a5a2a" stroke-width="1.4" opacity=".2"/><path d="M0 ${f(H/2+2)} L${W} ${f(H/2+2)}" stroke="#fff6dc" stroke-width="1.2" opacity=".3"/>`;
+  // a few ink flecks
+  for(let i=0;i<6;i++)s+=`<circle cx="${f(W*R())}" cy="${f(H*R())}" r="${f(.6+R()*1.4)}" fill="#2a1c10" opacity=".35"/>`;
+  s+=`</g>`;
+  // scorched, slightly darker rim right at the torn edge
+  s+=`<path d="${outline}" fill="none" stroke="#8a5a24" stroke-width="5" opacity=".35"/><path d="${outline}" fill="none" stroke="#3a2410" stroke-width="1.4" opacity=".75"/>`;
+  return s;
+}
 /* Hand-drawn map */
 function mapIcon(t,cx,cy){
-  const K="#2a1c10";
-  if(t==="chest")return `<rect x="${cx-9}" y="${cy-4}" width="18" height="11" rx="1.5" fill="#c98a3c" stroke="${K}" stroke-width="1.8"/><path d="M${cx-9} ${cy-4} Q${cx} ${cy-13} ${cx+9} ${cy-4}" fill="#a86a24" stroke="${K}" stroke-width="1.8"/><rect x="${cx-2}" y="${cy-3}" width="4" height="5" fill="#ffd23f" stroke="${K}" stroke-width="1"/>`;
-  if(t==="ambush")return `<path d="M${cx-9} ${cy-9} L${cx+7} ${cy+7} M${cx+9} ${cy-9} L${cx-7} ${cy+7}" stroke="#c9cdd6" stroke-width="3.4" stroke-linecap="round"/><path d="M${cx-9} ${cy-9} L${cx+7} ${cy+7} M${cx+9} ${cy-9} L${cx-7} ${cy+7}" fill="none" stroke="${K}" stroke-width="1.4"/><path d="M${cx+3} ${cy+7} L${cx+9} ${cy+1} M${cx-3} ${cy+7} L${cx-9} ${cy+1}" stroke="#7a4a26" stroke-width="3.2" stroke-linecap="round"/>`;
-  if(t==="trap")return `<path d="M${cx-10} ${cy+7} L${cx-6} ${cy-6} L${cx-2} ${cy+7} L${cx+2} ${cy-6} L${cx+6} ${cy+7} L${cx+10} ${cy-6}" fill="none" stroke="${K}" stroke-width="2"/><path d="M${cx-12} ${cy+8} L${cx+12} ${cy+8}" stroke="${K}" stroke-width="2"/>`;
-  if(t==="shrine")return `<rect x="${cx-3}" y="${cy-2}" width="6" height="10" fill="#f5ead0" stroke="${K}" stroke-width="1.6"/><path d="M${cx} ${cy-12} Q${cx+5} ${cy-6} ${cx} ${cy-3} Q${cx-5} ${cy-6} ${cx} ${cy-12} Z" fill="#ff8a1f" stroke="${K}" stroke-width="1.2"/><path d="M${cx-9} ${cy+9} L${cx+9} ${cy+9}" stroke="${K}" stroke-width="2"/>`;
-  if(t==="lair")return `<path d="M${cx-8} ${cy+1} Q${cx-9} ${cy-10} ${cx} ${cy-10} Q${cx+9} ${cy-10} ${cx+8} ${cy+1} L${cx+5} ${cy+4} L${cx+5} ${cy+8} L${cx-5} ${cy+8} L${cx-5} ${cy+4} Z" fill="#f5ead0" stroke="${K}" stroke-width="1.8"/><circle cx="${cx-3.5}" cy="${cy-3}" r="2.4" fill="${K}"/><circle cx="${cx+3.5}" cy="${cy-3}" r="2.4" fill="${K}"/>`;
-  if(t==="merchant")return `<path d="M${cx-8} ${cy-2} Q${cx-10} ${cy+9} ${cx} ${cy+9} Q${cx+10} ${cy+9} ${cx+8} ${cy-2} Z" fill="#7a4a26" stroke="${K}" stroke-width="1.8"/><path d="M${cx-5} ${cy-2} L${cx-3} ${cy-8} L${cx+3} ${cy-8} L${cx+5} ${cy-2}" fill="#a86a24" stroke="${K}" stroke-width="1.6"/><text x="${cx}" y="${cy+6}" text-anchor="middle" font-size="9" font-weight="800" fill="#ffd23f">$</text>`;
-  if(t==="door")return `<path d="M${cx-8} ${cy+10} L${cx-8} ${cy-3} Q${cx-8} ${cy-11} ${cx} ${cy-11} Q${cx+8} ${cy-11} ${cx+8} ${cy-3} L${cx+8} ${cy+10} Z" fill="#7a4a26" stroke="${K}" stroke-width="1.8"/><circle cx="${cx}" cy="${cy+1}" r="2.6" fill="#ffd23f" stroke="${K}" stroke-width="1"/>`;
-  if(t==="stairs")return `<path d="M${cx-10} ${cy+9} L${cx-10} ${cy+3} L${cx-4} ${cy+3} L${cx-4} ${cy-3} L${cx+2} ${cy-3} L${cx+2} ${cy-9} L${cx+10} ${cy-9} L${cx+10} ${cy+9} Z" fill="#8a7a6a" stroke="${K}" stroke-width="1.8"/>`;
-  if(t==="entrance")return `<path d="M${cx} ${cy+10} L${cx} ${cy-6} M${cx-6} ${cy} L${cx} ${cy-7} L${cx+6} ${cy}" fill="none" stroke="${K}" stroke-width="2.4"/>`;
+  const K="#2a1c10",x=cx,y=cy,P=(d,f,w,e)=>`<path d="${d}" fill="${f}" stroke="${K}" stroke-width="${w==null?1.6:w}"${e||""}/>`,L=(d,c,w,e)=>`<path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w||1.2}" stroke-linecap="round"${e||""}/>`;
+  if(t==="chest")return P(`M${x-10} ${y-3} L${x+10} ${y-3} L${x+10} ${y+8} L${x-10} ${y+8} Z`,"#b8742e",1.8)+L(`M${x-10} ${y+2.4} L${x+10} ${y+2.4}`,"#7a4a1a",1)
+    +P(`M${x-10} ${y-3} Q${x} ${y-14} ${x+10} ${y-3} Z`,"#9a5a22",1.8)+L(`M${x-6} ${y-6.6} Q${x} ${y-11} ${x+6} ${y-6.6}`,"#c98a4a",1)
+    +P(`M${x-7.6} ${y-8.4} L${x-5.6} ${y-8.8} L${x-5.6} ${y+8} L${x-7.6} ${y+8} Z M${x+5.6} ${y-8.8} L${x+7.6} ${y-8.4} L${x+7.6} ${y+8} L${x+5.6} ${y+8} Z`,"#8a8f9c",.9)
+    +P(`M${x-2.4} ${y-3.6} L${x+2.4} ${y-3.6} L${x+2.4} ${y+2.6} L${x-2.4} ${y+2.6} Z`,"#ffd23f",1)+`<circle cx="${x}" cy="${y-1}" r=".9" fill="${K}"/>`+L(`M${x-8} ${y-1.4} L${x-3.4} ${y-1.4}`,"#fff",.8,` opacity=".5"`);
+  if(t==="ambush")return [-1,1].map(d=>L(`M${x-9*d} ${y-10} L${x+6*d} ${y+5}`,K,4.4)+L(`M${x-9*d} ${y-10} L${x+6*d} ${y+5}`,"#d5d9e2",2.4)+L(`M${x-8*d} ${y-9.4} L${x+1*d} ${y-.4}`,"#fff",.8)
+      +L(`M${x+2.4*d} ${y+6} L${x+8*d} ${y+.4}`,K,1.6)+L(`M${x+5.4*d} ${y+5.4} L${x+9.6*d} ${y+9.6}`,K,4.2)+L(`M${x+5.4*d} ${y+5.4} L${x+9.6*d} ${y+9.6}`,"#7a4a26",2.4)+`<circle cx="${x+10.4*d}" cy="${y+10.4}" r="1.6" fill="#ffd23f" stroke="${K}" stroke-width=".8"/>`).join("")
+    ;
+  if(t==="trap")return `<ellipse cx="${x}" cy="${y+6}" rx="12" ry="4.4" fill="#3a2410" stroke="${K}" stroke-width="1.6"/>`
+    +[[-8,-4],[-3,-8],[2,-6],[7,-9]].map(([dx,h])=>P(`M${x+dx-2.4} ${y+6} L${x+dx} ${y+h} L${x+dx+2.4} ${y+6} Z`,"#c9cdd6",1.1)+L(`M${x+dx-.6} ${y+5} L${x+dx} ${y+h+2}`,"#fff",.7)).join("")
+    +`<path d="M${x+7} ${y-9} l0 4" stroke="#c0392b" stroke-width="1.6"/>`+L(`M${x-14} ${y+11} L${x-8} ${y+9} M${x+8} ${y+10} L${x+14} ${y+12}`,K,1);
+  if(t==="shrine")return `<circle cx="${x}" cy="${y-8}" r="7" fill="#ffd23f" opacity=".35"/>`+P(`M${x-9} ${y+6} L${x+9} ${y+6} L${x+10} ${y+10} L${x-10} ${y+10} Z`,"#a89a86",1.4)+P(`M${x-6} ${y+3} L${x+6} ${y+3} L${x+6} ${y+6} L${x-6} ${y+6} Z`,"#c9bca6",1.2)
+    +P(`M${x-3} ${y-2} L${x+3} ${y-2} L${x+3} ${y+3} L${x-3} ${y+3} Z`,"#f5ead0",1.4)+P(`M${x+1.4} ${y-2} Q${x+2.2} ${y} ${x+1.4} ${y+1.4}`,"none",.8)
+    +P(`M${x} ${y-12} Q${x+5} ${y-6.4} ${x} ${y-3} Q${x-5} ${y-6.4} ${x} ${y-12} Z`,"#ff8a1f",1.1)+`<path d="M${x} ${y-9} Q${x+2} ${y-6} ${x} ${y-4.4} Q${x-2} ${y-6} ${x} ${y-9} Z" fill="#ffe58a" stroke="none"/>`;
+  if(t==="lair")return P(`M${x-8} ${y+1} Q${x-9} ${y-10} ${x} ${y-10} Q${x+9} ${y-10} ${x+8} ${y+1} L${x+5} ${y+4} L${x+5} ${y+8} L${x-5} ${y+8} L${x-5} ${y+4} Z`,"#f5ead0",1.8)
+    +`<circle cx="${x-3.5}" cy="${y-3}" r="2.4" fill="${K}"/><circle cx="${x+3.5}" cy="${y-3}" r="2.4" fill="${K}"/>`+L(`M${x-2} ${y+5} L${x-2} ${y+8} M${x+2} ${y+5} L${x+2} ${y+8} M${x+4} ${y-9} L${x+2} ${y-6}`,K,1);
+  if(t==="merchant")return P(`M${x-8} ${y-2} Q${x-11} ${y+10} ${x} ${y+10} Q${x+11} ${y+10} ${x+8} ${y-2} Z`,"#7a4a26",1.8)+P(`M${x-5} ${y-2} L${x-3.4} ${y-8} L${x+3.4} ${y-8} L${x+5} ${y-2}`,"#a86a24",1.5)
+    +L(`M${x-6} ${y-2.4} Q${x} ${y} ${x+6} ${y-2.4}`,"#e8c89a",1.6)+L(`M${x-5} ${y+2} Q${x-6} ${y+6} ${x-3} ${y+8}`,"#a86a24",1)
+    +`<text x="${x}" y="${y+7}" text-anchor="middle" font-size="9" font-weight="800" fill="#ffd23f" stroke="${K}" stroke-width=".4">$</text>`+[[x+10,y+8],[x+12.4,y+5]].map(([a,b])=>`<ellipse cx="${a}" cy="${b}" rx="3" ry="1.6" fill="#ffd23f" stroke="${K}" stroke-width=".8"/>`).join("");
+  if(t==="door")return P(`M${x-8} ${y+10} L${x-8} ${y-3} Q${x-8} ${y-11} ${x} ${y-11} Q${x+8} ${y-11} ${x+8} ${y-3} L${x+8} ${y+10} Z`,"#7a4a26",1.8)
+    +L(`M${x-2.6} ${y-10.4} L${x-2.6} ${y+10} M${x+2.6} ${y-10.4} L${x+2.6} ${y+10}`,"#5a3418",1)+L(`M${x-8} ${y-4} L${x+8} ${y-4} M${x-8} ${y+5} L${x+8} ${y+5}`,"#3a3a46",1.8)
+    +`<circle cx="${x+4}" cy="${y+1}" r="2.2" fill="none" stroke="#ffd23f" stroke-width="1.4"/><circle cx="${x+4}" cy="${y-1}" r="1.1" fill="#ffd23f" stroke="${K}" stroke-width=".6"/>`+P(`M${x-11} ${y+10} L${x+11} ${y+10} L${x+11} ${y+12} L${x-11} ${y+12} Z`,"#8a7a6a",1);
+  if(t==="stairs")return P(`M${x-11} ${y+10} L${x-11} ${y+4} L${x-5} ${y+4} L${x-5} ${y-2} L${x+1} ${y-2} L${x+1} ${y-8} L${x+11} ${y-8} L${x+11} ${y+10} Z`,"#8a7a6a",1.8)
+    +L(`M${x-11} ${y+4.8} L${x-5} ${y+4.8} M${x-5} ${y-1.2} L${x+1} ${y-1.2} M${x+1} ${y-7.2} L${x+11} ${y-7.2}`,"#c9bca6",1.2)+`<path d="M${x+5} ${y-8} L${x+11} ${y-8} L${x+11} ${y+10} L${x+5} ${y+10} Z" fill="#000" opacity=".2"/>`+L(`M${x-8} ${y+7} L${x-6} ${y+9}`,"#5a4a3a",1);
+  if(t==="entrance")return P(`M${x-10} ${y+11} L${x-10} ${y-2} Q${x-10} ${y-12} ${x} ${y-12} Q${x+10} ${y-12} ${x+10} ${y-2} L${x+10} ${y+11}`,"none",1.6)+`<path d="M${x-7} ${y+11} L${x-7} ${y-1} Q${x-7} ${y-9} ${x} ${y-9} Q${x+7} ${y-9} ${x+7} ${y-1} L${x+7} ${y+11} Z" fill="#3a2410" opacity=".25"/>`
+    +L(`M${x} ${y+9} L${x} ${y-5} M${x-5} ${y} L${x} ${y-6} L${x+5} ${y}`,K,2.4)+L(`M${x-12} ${y-6} L${x-12} ${y-2} M${x+12} ${y-6} L${x+12} ${y-2}`,"#ff8a1f",2);
   if(t==="mob")return mobIcon(cx,cy,1.25,false);
   if(t==="pack")return mobIcon(cx,cy,1.2,true);
-  if(t==="boss")return `<path d="M${cx-9} ${cy-4} L${cx-12} ${cy-13} L${cx-5} ${cy-8} Z M${cx+9} ${cy-4} L${cx+12} ${cy-13} L${cx+5} ${cy-8} Z" fill="#e8283c" stroke="${K}" stroke-width="1.4"/><path d="M${cx-8} ${cy+1} Q${cx-9} ${cy-10} ${cx} ${cy-10} Q${cx+9} ${cy-10} ${cx+8} ${cy+1} L${cx+5} ${cy+4} L${cx+5} ${cy+9} L${cx-5} ${cy+9} L${cx-5} ${cy+4} Z" fill="#f5ead0" stroke="${K}" stroke-width="1.8"/><circle cx="${cx-3.5}" cy="${cy-3}" r="2.6" fill="#e8283c" stroke="${K}" stroke-width="1"/><circle cx="${cx+3.5}" cy="${cy-3}" r="2.6" fill="#e8283c" stroke="${K}" stroke-width="1"/><path d="M${cx-3} ${cy+6} L${cx-3} ${cy+9} M${cx} ${cy+6} L${cx} ${cy+9} M${cx+3} ${cy+6} L${cx+3} ${cy+9}" stroke="${K}" stroke-width="1.2"/>`;
-  if(t==="secret")return `<path d="M${cx} ${cy-10} L${cx+3} ${cy-3} L${cx+10} ${cy} L${cx+3} ${cy+3} L${cx} ${cy+10} L${cx-3} ${cy+3} L${cx-10} ${cy} L${cx-3} ${cy-3} Z" fill="#ffd23f" stroke="${K}" stroke-width="1.4"/>`;
+  if(t==="boss")return P(`M${x-9} ${y-4} L${x-12} ${y-13} L${x-5} ${y-8} Z M${x+9} ${y-4} L${x+12} ${y-13} L${x+5} ${y-8} Z`,"#e8283c",1.4)
+    +P(`M${x-8} ${y+1} Q${x-9} ${y-10} ${x} ${y-10} Q${x+9} ${y-10} ${x+8} ${y+1} L${x+5} ${y+4} L${x+5} ${y+9} L${x-5} ${y+9} L${x-5} ${y+4} Z`,"#f5ead0",1.8)
+    +`<circle cx="${x-3.5}" cy="${y-3}" r="2.6" fill="#e8283c" stroke="${K}" stroke-width="1"/><circle cx="${x+3.5}" cy="${y-3}" r="2.6" fill="#e8283c" stroke="${K}" stroke-width="1"/><circle cx="${x-4.2}" cy="${y-3.8}" r=".8" fill="#fff"/><circle cx="${x+2.8}" cy="${y-3.8}" r=".8" fill="#fff"/>`
+    +L(`M${x-3} ${y+6} L${x-3} ${y+9} M${x} ${y+6} L${x} ${y+9} M${x+3} ${y+6} L${x+3} ${y+9}`,K,1.2)+L(`M${x+4} ${y-9.4} L${x+2} ${y-6.4} L${x+3.4} ${y-5}`,K,.9)+P(`M${x-1} ${y+1.6} L${x+1} ${y+1.6} L${x} ${y+3.6} Z`,K,.6);
+  if(t==="secret")return `<circle cx="${x}" cy="${y}" r="10" fill="#ffd23f" opacity=".3"/>`+P(`M${x} ${y-11} L${x+3} ${y-3} L${x+11} ${y} L${x+3} ${y+3} L${x} ${y+11} L${x-3} ${y+3} L${x-11} ${y} L${x-3} ${y-3} Z`,"#ffd23f",1.4)
+    +P(`M${x} ${y-6} L${x+1.6} ${y-1.6} L${x+6} ${y} L${x+1.6} ${y+1.6} L${x} ${y+6} L${x-1.6} ${y+1.6} L${x-6} ${y} L${x-1.6} ${y-1.6} Z`,"#fff6c8",.6)
+    +`<path d="M${x+8} ${y-10} l.8 1.8 1.8 .8 -1.8 .8 -.8 1.8 -.8 -1.8 -1.8 -.8 1.8 -.8 Z" fill="#fff" stroke="none"/>`;
   return "";
 }
 function mapSVG(m){
   const S=58,P=10,W=MAP_W*S+P*2,H=MAP_H*S+P*2,K="#2a1c10",c=(x,y)=>[P+x*S+S/2,P+y*S+S/2];
-  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor ${m.floor} map, room ${m.pos+1} of ${mapLen(m)}"><defs><pattern id="mapgrid" width="${S}" height="${S}" patternUnits="userSpaceOnUse" x="${P}" y="${P}"><path d="M${S} 0 L0 0 0 ${S}" fill="none" stroke="#c9b48a" stroke-width=".8" stroke-dasharray="2 3"/></pattern></defs>`;
-  s+=`<rect width="${W}" height="${H}" rx="8" fill="#ead9b0"/><rect x="${P}" y="${P}" width="${MAP_W*S}" height="${MAP_H*S}" fill="url(#mapgrid)"/>`;
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor ${m.floor} map, room ${m.pos+1} of ${mapLen(m)}"><defs><pattern id="mapgrid" width="${S}" height="${S}" patternUnits="userSpaceOnUse" x="${P}" y="${P}"><path d="M${S} 0 L0 0 0 ${S}" fill="none" stroke="#a88a5a" stroke-width=".8" stroke-dasharray="2 3"/></pattern>${MAP_HATCH("mp")}</defs>`;
+  s+=mapParchment(W,H,"mp","map"+m.week+"-"+m.floor)+`<rect x="${P}" y="${P}" width="${MAP_W*S}" height="${MAP_H*S}" fill="url(#mapgrid)" opacity=".7"/>`;
+  const tilt=mapRand("tilt"+m.week+m.floor),ang=m.rooms.map(()=>((tilt()*2-1)*2.2).toFixed(1));
   const far=farOf(m),rev=new Set(m.rev||[]),visible=i=>i<=far||rev.has(i),fresh=m.fresh&&Date.now()-m.fresh.at<6000?new Set(m.fresh.rooms):new Set();
   // corridors (secret links only once found)
   m.rooms.forEach((rm,i)=>{if(!i||!visible(i)||!visible(i-1))return;const [a,b]=c(m.rooms[i-1].x,m.rooms[i-1].y),[x,y]=c(rm.x,rm.y);
-    s+=`<path${fresh.has(i)?' class="mapnew"':""} d="M${a} ${b} L${x} ${y}" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path${fresh.has(i)?' class="mapnew"':""} d="M${a} ${b} L${x} ${y}" stroke="#d6c193" stroke-width="3" stroke-linecap="round"/>`;});
+    s+=`<path${fresh.has(i)?' class="mapnew"':""} d="M${a} ${b} L${x} ${y}" stroke="#3a2814" stroke-width="7.4" stroke-linecap="round"/><path${fresh.has(i)?' class="mapnew"':""} d="M${a} ${b} L${x} ${y}" stroke="#e6d2a2" stroke-width="3" stroke-linecap="round"/><path${fresh.has(i)?' class="mapnew"':""} d="M${a} ${b} L${x} ${y}" stroke="#a88a5a" stroke-width="1" stroke-dasharray="2 4"/>`;});
   (m.secrets||[]).forEach(se=>{if(!se.found)return;const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y),[x,y]=c(se.x,se.y);s+=`<path d="M${a} ${b} L${x} ${y}" stroke="${K}" stroke-width="5" stroke-dasharray="4 3"/>`;});
   // Fog over every cell nobody has charted
   const known=new Set();m.rooms.forEach((rm,i)=>{if(visible(i))known.add(rm.x+","+rm.y);});(m.secrets||[]).forEach(se=>{if(se.found||se.located)known.add(se.x+","+se.y);});
   {const b=player.boss;if(lairMode(b)&&b.week===m.week)(m.lairs||[]).forEach(lc=>{const L=b.lairs[lc.li];if(L&&(L.found||visible(lc.link)))known.add(lc.x+","+lc.y);});}
-  for(let gx=0;gx<MAP_W;gx++)for(let gy=0;gy<MAP_H;gy++){if(known.has(gx+","+gy))continue;const [x,y]=c(gx,gy);s+=`<rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="10" fill="#3a2f2a" opacity=".82"/><path d="M${x-14} ${y+4} q6 -8 12 -2 q6 -9 14 0" fill="none" stroke="#5a4a3a" stroke-width="2" stroke-linecap="round"/>`;}
+  for(let gx=0;gx<MAP_W;gx++)for(let gy=0;gy<MAP_H;gy++){if(known.has(gx+","+gy))continue;const [x,y]=c(gx,gy);s+=`<rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="10" fill="#3a2a1c" opacity=".8"/><rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="10" fill="url(#mphatch)"/><path d="M${x-14} ${y+4} q6 -8 12 -2 q6 -9 14 0" fill="none" stroke="#6a5440" stroke-width="2" stroke-linecap="round"/>`;}
   // The walk to a target you picked, as a dotted red route
   // Shortcut passages: drawn once both rooms are on your map; usable once you've walked both
   (m.links||[]).forEach(([i,j])=>{if(!visible(i)||!visible(j))return;const [a,b]=c(m.rooms[i].x,m.rooms[i].y),[x,y]=c(m.rooms[j].x,m.rooms[j].y),open=i<=far&&j<=far;
@@ -4527,7 +4581,7 @@ function mapSVG(m){
   if(m.tgt!=null&&m.tgt!==m.pos){const pth=mapPath(m,m.pos,m.tgt)||[];let d="";pth.forEach((i,k)=>{const [x,y]=c(m.rooms[i].x,m.rooms[i].y);d+=(k?"L":"M")+x+" "+y+" ";});
     if(d)s+=`<path d="${d}" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="5 5" opacity=".85"/>`;}
   m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos,past=i<=far&&!here,nw=fresh.has(i);
-    s+=`<g${nw?' class="mapnew"':""}><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="${here?"#fff3c4":past?"#f5ead0":"#e2cfa2"}" stroke="${here?"#e8283c":K}" stroke-width="${here?4:2.4}" ${!past&&!here?'stroke-dasharray="5 3"':""}/>`;
+    s+=`<g${nw?' class="mapnew"':""}><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="${here?"#fff3c4":past?"#f2e4c2":"#dcc596"}" stroke="${here?"#e8283c":K}" stroke-width="${here?4:2.4}" ${!past&&!here?'stroke-dasharray="5 3"':""} transform="rotate(${ang[i]} ${x} ${y})"/>`;
     const bossDead=(rm.boss!=null&&player.boss&&player.boss.week===m.week&&(player.boss.defeated||player.boss.tier>rm.boss))||((rm.t==="mob"||rm.t==="pack")&&rm.cleared);
     s+=`<g opacity="${(past&&rm.t!=="merchant")||bossDead?.55:1}">${mapIcon(rm.t==="door"&&rm.open?"entrance":rm.t,x,y)}</g>`
       +(rm.t==="stairs"&&rm.boss!=null&&!bossDead?`<g transform="translate(${x+12} ${y+12}) scale(.55)">${mapIcon("boss",0,0)}</g>`:"")
@@ -4549,7 +4603,7 @@ function mapSVG(m){
     if(L.found&&!L.dead)s+=`<rect class="maproom" data-lair="${lc.li}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>${esc(L.n)}: tap for the fight</title></rect>`;});
    if(LM){const f=b.lairs.find(l=>l.t===5),st=m.rooms[mapLen(m)-1];if(f&&f.found&&visible(mapLen(m)-1)){const [x,y]=c(st.x,st.y);
      s+=f.dead?`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`:`<g transform="translate(${x+12} ${y+12}) scale(.55)">${mapIcon("boss",0,0)}</g><rect class="maproom" data-lair="${b.lairs.indexOf(f)}" x="${x+2}" y="${y+2}" width="20" height="20" fill="transparent" stroke="none"><title>${esc(f.n)}: tap for the fight</title></rect>`;}}}
-  s+=`<text x="${W-P-2}" y="${H-3}" text-anchor="end" font-size="10" font-style="italic" fill="#7a6040" font-family="Georgia,serif">Floor ${m.floor}</text>`;
+  s+=`<text x="${W-P-4}" y="${H-5}" text-anchor="end" font-size="10.5" font-style="italic" fill="#5a3a18" font-family="Georgia,serif">Floor ${m.floor}</text>`;
   return s+`</svg>`;
 }
 /* Lair buttons under the map / in the boss window: the doorway you're standing at, or the fight you're in. */
@@ -10771,12 +10825,13 @@ function raidFloorHTML(){
   const known=new Set(r.rv||[]);crew.forEach(c=>{(c.rv||[]).forEach(i=>known.add(i));known.add(c.pos);});known.add(r.pos);
   const S=40,P=6,W=RF_N*S+P*2,K="#2a1c10",cxy=i=>[P+(i%RF_N)*S+S/2,P+Math.floor(i/RF_N)*S+S/2];
   const path=r.tgt!=null?rfPath(adj,r.pos,r.tgt):null,rally=rfRally();
-  let s=`<svg class="rfmap" viewBox="0 0 ${W} ${W}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Raid floor map"><rect width="${W}" height="${W}" rx="8" fill="#ead9b0"/>`;
-  for(let i=0;i<RF_N*RF_N;i++)for(const n of adj[i])if(n>i&&known.has(i)&&known.has(n)){const [a,b]=cxy(i),[x,y]=cxy(n);s+=`<path d="M${a} ${b} L${x} ${y}" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M${a} ${b} L${x} ${y}" stroke="#d6c193" stroke-width="3" stroke-linecap="round"/>`;}
+  let s=`<svg class="rfmap" viewBox="0 0 ${W} ${W}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Raid floor map"><defs>${MAP_HATCH("rp")}</defs>`+mapParchment(W,W,"rp","raid"+r.wk+r.code);
+  const tilt=mapRand("rtilt"+r.wk+r.code),ang=[...Array(RF_N*RF_N)].map(()=>((tilt()*2-1)*2.4).toFixed(1));
+  for(let i=0;i<RF_N*RF_N;i++)for(const n of adj[i])if(n>i&&known.has(i)&&known.has(n)){const [a,b]=cxy(i),[x,y]=cxy(n);s+=`<path d="M${a} ${b} L${x} ${y}" stroke="#3a2814" stroke-width="7" stroke-linecap="round"/><path d="M${a} ${b} L${x} ${y}" stroke="#e6d2a2" stroke-width="2.8" stroke-linecap="round"/>`;}
   if(path&&path.length>1)s+=`<path d="${path.map((c,j)=>{const [x,y]=cxy(c);return (j?"L":"M")+x+" "+y;}).join(" ")}" fill="none" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 4" opacity=".8"/>`;
   for(let i=0;i<RF_N*RF_N;i++){const [x,y]=cxy(i);
-    if(!known.has(i)){s+=`<rect data-rf="${i}" x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="7" fill="#3a2f2a" opacity=".85" class="rfcell"/>`;continue;}
-    s+=`<rect data-rf="${i}" x="${x-14}" y="${y-14}" width="28" height="28" rx="5" fill="${i===RF_LAIR?"#f3c6c6":"#f5ead0"}" stroke="${K}" stroke-width="2" class="rfcell"/>`;
+    if(!known.has(i)){s+=`<rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="7" fill="#3a2a1c" opacity=".82"/><rect data-rf="${i}" x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="7" fill="url(#rphatch)" class="rfcell"/>`;continue;}
+    s+=`<rect data-rf="${i}" x="${x-14}" y="${y-14}" width="28" height="28" rx="5" fill="${i===RF_LAIR?"#f0c0b4":"#f2e4c2"}" stroke="${K}" stroke-width="2" class="rfcell" transform="rotate(${ang[i]} ${x} ${y})"/>`;
     if(i===RF_LAIR)s+=`<g transform="translate(${x} ${y}) scale(.8)" pointer-events="none">${mapIcon("boss",0,0)}</g>`;}
   if(r.tgt!=null&&r.tgt!==r.pos){const [x,y]=cxy(r.tgt);s+=`<rect x="${x-17}" y="${y-17}" width="34" height="34" rx="7" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="5 3" pointer-events="none"/>`;}
   if(rally){const [x,y]=cxy(rally.cell);s+=`<g pointer-events="none"><path d="M${x+6} ${y-18} L${x+6} ${y-2}" stroke="${K}" stroke-width="2"/><path d="M${x+6} ${y-18} L${x+17} ${y-14} L${x+6} ${y-10} Z" fill="#ffd23f" stroke="${K}" stroke-width="1.4"/></g>`;}
