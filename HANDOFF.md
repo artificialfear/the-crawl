@@ -37,4 +37,5 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
   rejects it unless `b` equals the server's `_rev`. A rejected save calls `onStaleSave`, which adopts the server copy
   (`adopt`, waits for a clean snapshot if needed) and warns the player. Any hand-written REST repair of a player doc must
   set `b` to the current `_rev` and `_rev` to `b+1`, or it will be rejected.
+- Belt hotbar (v3.1.0): belts are gear with `slot:"belt"` and `belt:N` slots; `bestBelt`/`beltSlots` (best owned counts, 1 with none), `player.belt` = slot order, `renderHotbar`, `hbUse`, `openBelt`, `pickQuest`. New consumables must be added to `BELT_KEYS`/`consN`. Avatar belt: `avatarBelt` (under/over layers).
 - Close-ups: `zoomCard({...})`. Mobs: `MOB_KINDS`, `pokeMob`, bestiary (`renderBestiary`). Party: `renderParty`, `ptSec`. Crafting: `openBench`. Quarters/hall: `openQt`, `enterHall`.

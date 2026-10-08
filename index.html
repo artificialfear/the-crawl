@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=8bdade2a78"></script>
-<script>window.CRAWL_BUILD="8bdade2a78";</script>
+<script src="firebase-config.js?v=9a75c134d7"></script>
+<script>window.CRAWL_BUILD="9a75c134d7";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -88,10 +88,57 @@ h2::after{content:"";display:block;height:3px;margin-top:8px;background:linear-g
 .invtorch .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flicker 1.3s ease-in-out infinite}
 .tiers{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:11px;color:#e8e2f6}
 .tiers i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid #111}
-.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor side" "trinket boots .";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
+.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor side" "trinket boots belt";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
 /* No side padding or column gap: each side slot centres between the panel edge and the body slot, so the spacing is even */
 .doll .sil{position:absolute;left:50%;top:8px;height:calc(100% - 16px);transform:translateX(-50%);fill:#241c3f;stroke:#a493e6;stroke-width:1.3;stroke-linejoin:round;opacity:.95;pointer-events:none;filter:drop-shadow(0 0 6px rgba(164,147,230,.55)) drop-shadow(0 0 18px rgba(63,224,255,.25))}
 .dslot{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:1}
+/* Belt hotbar: centred above the ticker on wide screens, above the tab bar on phones */
+.hotbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(44px + env(safe-area-inset-bottom,0px));z-index:10;display:flex;gap:6px;align-items:center;padding:6px 8px;background:rgba(13,8,24,.94);border:2px solid var(--line-2);border-radius:12px;box-shadow:0 6px 22px #000a;max-width:calc(100vw - 16px)}
+.hotbar[hidden]{display:none}
+.hb-slot,.hb-belt{position:relative;flex:none;width:48px;height:48px;padding:0;border:2px solid var(--line-2);border-radius:8px;background:#1a1530;cursor:pointer;overflow:hidden;line-height:0}
+.hb-belt{width:40px;height:40px;margin-right:4px;border-radius:50%;border-color:#a493e6}
+.hb-slot svg,.hb-belt svg{width:100%;height:100%;display:block}
+.hb-slot:hover,.hb-belt:hover{border-color:var(--mana)}
+.hb-slot:focus-visible,.hb-belt:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.hb-slot.out svg{filter:grayscale(1);opacity:.35}
+.hb-slot.on{border-color:var(--gold);box-shadow:0 0 10px rgba(255,210,63,.55)}
+.hb-slot.empty{border-style:dashed;color:var(--muted);font:700 20px/1 var(--body)}
+.hb-n{position:absolute;right:3px;bottom:2px;font:800 13px/1 var(--body);color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
+.hb-slot.out .hb-n{color:var(--blood)}
+.hb-key{position:absolute;left:3px;top:2px;font:700 10px/1 var(--body);color:#fff;opacity:.85;text-shadow:0 0 3px #000,0 0 3px #000}
+.hb-slot.used{animation:hbpop .35s ease-out}
+@keyframes hbpop{40%{transform:scale(1.14)}}
+body.has-hb{padding-bottom:150px}
+body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+@media (max-width:860px){
+  .hotbar{bottom:calc(42px + var(--tbh,64px) + env(safe-area-inset-bottom,0px));gap:5px;padding:5px 6px}
+  .hb-slot{width:44px;height:44px}.hb-belt{width:36px;height:36px}
+  body.has-hb{padding-bottom:calc(206px + env(safe-area-inset-bottom,0px))}
+  body.has-hb .toasts{bottom:calc(172px + env(safe-area-inset-bottom,0px))}
+}
+.hbwrap{position:fixed;inset:0;z-index:36;background:rgba(5,3,10,.78);display:grid;place-items:center;padding:16px}
+.hbdlg{width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px #000c}
+.hbhead{display:flex;align-items:center;gap:10px}
+.hbhead>div{flex:1;min-width:0;display:flex;flex-direction:column}
+.hbhead>div span{color:var(--muted);font-size:14px}
+.hbhead .mini-ico{width:42px;margin:0;flex:none;border-radius:6px;overflow:hidden}
+.hbrows{display:flex;flex-direction:column;gap:8px}
+.hbrow{display:flex;align-items:center;gap:8px}
+.hbnum{width:24px;height:24px;border-radius:50%;background:var(--panel-2);display:grid;place-items:center;font:700 13px var(--body);flex:none}
+.hbrow.sel .hbnum{background:var(--gold);color:#111}
+.hbopts{display:flex;gap:6px;flex-wrap:wrap}
+.hbopt{position:relative;width:44px;height:44px;padding:0;border:2px solid var(--line-2);border-radius:8px;background:#1a1530;cursor:pointer;overflow:hidden;color:var(--muted);font:700 18px/1 var(--body);line-height:0}
+.hbopt.none{line-height:1}
+.hbopt svg{width:100%;height:100%;display:block}
+.hbopt i{position:absolute;right:3px;bottom:2px;font:800 11px/1 var(--body);font-style:normal;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
+.hbopt.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.hbopt:focus-visible{outline:2px solid var(--mana);outline-offset:2px}
+.hbfoot{font-size:13px}
+.hbpick{display:flex;flex-direction:column;gap:6px}
+.hbq{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:var(--r);padding:10px 12px;color:var(--fg);cursor:pointer;display:flex;flex-direction:column;gap:2px;font:inherit}
+.hbq:hover,.hbq:focus-visible{border-color:var(--mana)}
+.hbq span{color:var(--muted);font-size:13px}.hbq.late span{color:var(--blood)}
+.ds-belt{grid-area:belt}.ds-belt .invcell{width:50px;height:50px}
 .ds-trinket{grid-area:trinket}.ds-trinket .invcell{width:50px;height:50px}
 .ds-side{grid-area:side;align-self:start;display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px}
 .ds-side .dslot{margin-top:0}.ds-boots{grid-area:boots}.ds-boots .invcell{width:58px;height:58px}.ds-gloves .invcell{width:58px;height:58px}
@@ -1607,6 +1654,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Pets</b>: pick one of seven starters; three more hatch from Mystery Eggs (8% of Gold Boxes, 20% of Platinum Boxes). Your active pet gives a passive bonus that grows with bond level (1–10) plus a special ability. Every quest you finish builds bond, faster with Charisma. Go three days without finishing a quest and your pet sulks: its bonuses pause until you finish one.</div>
           <div><b>Recap episodes</b>: every boss kill gets a short recap and every floor gets a full finale, whether you clear it or the stairwell closes on you. They wait for you in the banner above the boss and the Episode guide, which keeps the last 10.</div>
           <div><b>Consumables</b>: Potions of Focus (double XP on your next quest), Scrolls of Extension (push a due date back 2 days) and Smoke Bombs (skip one occurrence of a repeating quest, chain intact). They drop from boxes and the shop sells them. Scrolls and bombs are used from a quest's ⋯ menu.</div>
+          <div><b>Belt hotbar</b>: the bar at the bottom holds consumables for one-tap use (or keys 1–6 on a keyboard). Your best belt sets how many slots you get, from 1 with no belt to 6; it counts even when you're not wearing it. Tap the belt icon on the bar to choose what goes in each slot. Scrolls and Smoke Bombs ask which quest to use them on.</div>
           <div><b>Leaving bosses behind</b>: if the stairwell closes with bosses still out there, they just stay behind. No penalty, only loot you didn't get.</div>
           <div><b>Floor themes</b>: every floor (one week) has a theme with a boon and a bane, like half-price shopping that pays less gold, or hidden boss HP with extra damage. Themes never repeat back to back, and the finale episode teases the next one.</div>
           <div><b>Race &amp; class</b>: when Floor 3 opens you pick a race (shifts your stat levels and adds a quirk) and a class (a perk that rewards how you work). You're offered 3 of each, tilted toward your history, with one reroll per step. It's permanent.</div>
@@ -1809,7 +1857,17 @@ const ITEMS = [
   {id:"b9",slot:"boots",n:"Seven-League Boots (Six, Honestly)",    rar:"legendary",           bonus:.25, hp:26, look:"seven",  c:"#5a3920",d:"25% faster movement speed · +26 max HP"},
   {id:"b10",slot:"boots",n:"Shadowstep Boots",                     rar:"legendary",           bonus:.24, hp:30, look:"shadow", c:"#2a2438",d:"24% faster movement speed · +30 max HP"},
   {id:"b11",slot:"boots",n:"Emberstride Boots",                    rar:"magical",             bonus:.30, hp:35, look:"ember",  c:"#7a1a0e",magic:"fire", mfx:{dmg:.05}, d:"30% faster movement speed · +35 max HP · +5% boss damage",mnote:"Every step leaves a little scorch mark. The janitor has questions."},
-  {id:"b12",slot:"boots",n:"Frostwalker Greaves",                  rar:"magical",             bonus:.28, hp:40, look:"frost",  c:"#bfe6ff",magic:"frost",mfx:{armor:.05},d:"28% faster movement speed · +40 max HP · overdue damage −5%",mnote:"Puddles freeze where you stand. Very handy on the Flooded Floor."}];
+  {id:"b12",slot:"boots",n:"Frostwalker Greaves",                  rar:"magical",             bonus:.28, hp:40, look:"frost",  c:"#bfe6ff",magic:"frost",mfx:{armor:.05},d:"28% faster movement speed · +40 max HP · overdue damage −5%",mnote:"Puddles freeze where you stand. Very handy on the Flooded Floor."},
+  /* Belts: no stat bonus; your best belt sets how many consumables ride on your hotbar (see beltSlots). */
+  {id:"bt1",slot:"belt",n:"Frayed Rope Belt",                      rar:"common",   price:60,  bonus:0, belt:2, d:"2 hotbar slots"},
+  {id:"bt2",slot:"belt",n:"Duct Tape Belt (Load-Bearing)",         rar:"common",              bonus:0, belt:2, d:"2 hotbar slots"},
+  {id:"bt3",slot:"belt",n:"Utility Belt of Mild Preparedness",     rar:"uncommon", price:240, bonus:0, belt:3, d:"3 hotbar slots"},
+  {id:"bt4",slot:"belt",n:"Fanny Pack of Bold Choices",            rar:"uncommon",            bonus:0, belt:3, d:"3 hotbar slots"},
+  {id:"bt5",slot:"belt",n:"Adventurer's Bandolier",                rar:"rare",                bonus:0, belt:4, d:"4 hotbar slots"},
+  {id:"bt6",slot:"belt",n:"Belt of Many Pockets (Most Empty)",     rar:"rare",                bonus:0, belt:4, d:"4 hotbar slots"},
+  {id:"bt7",slot:"belt",n:"Girdle of Ominous Jingling",            rar:"epic",                bonus:0, belt:5, d:"5 hotbar slots"},
+  {id:"bt8",slot:"belt",n:"Championship Belt (Self-Awarded)",      rar:"legendary",           bonus:0, belt:5, d:"5 hotbar slots"},
+  {id:"bt9",slot:"belt",n:"Sash of Bottomless Pockets",            rar:"magical",             bonus:0, belt:6, heal:.5, magic:"arcane", mnote:"Potions come out of it fizzing. They taste like static.", d:"6 hotbar slots · healing potions heal 50% more"}];
 
 const SHOP = ITEMS.filter(i=>i.price);
 /* Display tiers (white, blue, yellow, orange, gold). Internal keys stay as they were because box odds use them:
@@ -1870,7 +1928,7 @@ const BOSS_TAG = {"Baron Backlog":"Hoarder of unread paperwork","The Inbox Hydra
   "The Rotting Inbox Hydra":"Each head is a thread nobody closed","The Unread":"Rises from everything you marked to read later",
   "Duke Someday, the Stitched Widow":"Half deadline, half later, all teeth","The Clutter Golem, Unburied":"Came back with more stuff"};
 const XP_SLOTS = ["weapon","head","cape"]; // these slots' bonuses add XP; armor's reduces overdue damage
-const SLOTS = [["head","Head","Bare head"],["armor","Body","Ratty T-shirt and jeans"],["weapon","Weapon","Bare fists"],["gloves","Hands","Bare hands"],["boots","Feet","Bare feet"],["cape","Back","Nothing"],["ring","Ring","Bare knuckles"],["trinket","Pet trinket","No trinket"]];
+const SLOTS = [["head","Head","Bare head"],["armor","Body","Ratty T-shirt and jeans"],["weapon","Weapon","Bare fists"],["gloves","Hands","Bare hands"],["boots","Feet","Bare feet"],["belt","Belt","Old leather belt"],["cape","Back","Nothing"],["ring","Ring","Bare knuckles"],["trinket","Pet trinket","No trinket"]];
 const POTION = {price:25, heal:40};
 /* Consumables: drop from Bronze, Silver and Gold boxes, and the shop sells them. Used deliberately. */
 const CONSUMABLES = {
@@ -2111,7 +2169,7 @@ function wearing(p){
   const eq=p.equipped||{};const out={};
   for(const [slot] of SLOTS){
     if(Object.prototype.hasOwnProperty.call(eq,slot)){const id=eq[slot];out[slot]=id&&p.owned.includes(id)?id:null;}
-    else{const b=bestOwned(p,slot)||ITEMS.find(i=>i.slot===slot&&p.owned.includes(i.id));out[slot]=b?b.id:null;}
+    else{const b=(slot==="belt"?bestBelt(p):bestOwned(p,slot))||ITEMS.find(i=>i.slot===slot&&p.owned.includes(i.id));out[slot]=b?b.id:null;}
   }
   return out;
 }
@@ -4589,6 +4647,117 @@ function renderRank(){
   el.innerHTML=h;
 }
 
+/* ---------- Belt hotbar ----------
+   Your best belt (most slots, whatever the avatar wears) sets how many consumables ride on the hotbar.
+   player.belt holds the slot order (consumable keys or null); slots past your belt's size are kept, just hidden.
+   Tap a slot or press 1-6 to use it at once. Scrolls and Smoke Bombs ask which quest. */
+const BELT_KEYS=["potion","focus","scroll","smoke"],BELT_BARE=1,BELT_MAX=6;
+const BELT_PLURAL={potion:"healing potions",focus:"Potions of Focus",scroll:"Scrolls of Extension",smoke:"Smoke Bombs"};
+/* s strap, b buckle, p pouches; k picks a special shape */
+const BELT_STYLE={bt1:{s:"#c9a46a",b:"#8a6a3a",p:"#a9844e",k:"rope"},bt2:{s:"#9aa3b2",b:"#c9cdd6",p:"#7d8698",k:"tape"},
+  bt3:{s:"#3a3f4c",b:"#ffd23f",p:"#5b6b3a"},bt4:{s:"#2f78d0",b:"#ff2e6e",p:"#ff8fc2"},bt5:{s:"#7a4a26",b:"#ffd23f",p:"#5a3920"},
+  bt6:{s:"#5b6b3a",b:"#c9cdd6",p:"#7d8b4e"},bt7:{s:"#2a2438",b:"#c9b8ff",p:"#41365d"},bt8:{s:"#1b1b1f",b:"#ffd23f",p:"#e8283c",k:"champ"},
+  bt9:{s:"#5b1f7a",b:"#3fe0ff",p:"#7a3ff0",k:"sash"}};
+function bestBelt(p){p=p||player;let b=null;if(!p||!p.owned)return null;
+  for(const it of ITEMS)if(it.slot==="belt"&&p.owned.includes(it.id)&&(!b||it.belt>b.belt||(it.belt===b.belt&&(it.heal||0)>(b.heal||0))))b=it;return b;}
+const beltSlots=p=>{const b=bestBelt(p);return b?b.belt:BELT_BARE;};
+const consN=(k,p)=>{p=p||player;return k==="potion"?(p.potions||0):((p.bag||{})[k]||0);};
+const consName=k=>k==="potion"?"Healing potion":CONSUMABLES[k].n;
+const healAmt=p=>{const b=bestBelt(p);return Math.round(POTION.heal*(1+(b&&b.heal||0)));};
+function beltRow(p){p=p||player;if(!Array.isArray(p.belt))p.belt=BELT_KEYS.slice();
+  const n=beltSlots(p),out=[];for(let i=0;i<n;i++)out.push(BELT_KEYS.includes(p.belt[i])?p.belt[i]:null);return out;}
+/* Put k in slot i. Picking something already on the belt swaps the two slots. */
+function beltSet(i,k){const b=Array.isArray(player.belt)?player.belt.slice():BELT_KEYS.slice();while(b.length<BELT_MAX)b.push(null);
+  const j=k?b.indexOf(k):-1;if(j>=0&&j!==i)b[j]=b[i]||null;b[i]=k||null;
+  player.belt=b;store.savePlayer(player).catch(writeFailed);}
+function beltAdd(k){const row=beltRow();if(row.includes(k)){toast(`${consName(k)} is already on your belt (slot ${row.indexOf(k)+1}).`);return;}
+  const i=row.indexOf(null);if(i<0){toast("Your belt is full. Tap the belt on your hotbar to swap something out.","bad");return;}
+  beltSet(i,k);SFX.play("pop");render();toast(`${consName(k)} is on your belt, slot ${i+1}.`);}
+/* Belt drawings: the icon (100x100, inside lootIconSVG's inked group) and the strap on the avatar's waist. */
+function beltArt(st,belt){st=st||{s:"#5a3920",b:"#c9cdd6",p:"#7a4a26"};
+  const P=(d,f)=>`<path d="${d}" fill="${f}"/>`,L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"/>`;
+  const xs=(belt>=5?[10,66,82]:belt>=3?[14,70]:belt>=2?[18]:[]);
+  let s=xs.map(x=>P(`M${x} 56 L${x+15} 56 L${x+15} 76 Q${x+7.5} 83 ${x} 76 Z`,st.p)+L(`M${x} 63 L${x+15} 63`,2)).join("");
+  s+=P("M6 42 Q50 34 94 42 L94 58 Q50 50 6 58 Z",st.s);
+  if(st.k==="rope")s+=L("M14 41 l5 15 M26 39 l5 15 M70 39 l5 15 M82 41 l5 15",1.8);
+  if(st.k==="tape")s+=L("M8 50 Q50 42 92 50",1.6,"#eef0f4");
+  if(st.k==="champ")s+=P("M30 30 Q50 22 70 30 L72 62 Q50 70 28 62 Z",st.b)+`<circle cx="50" cy="46" r="9" fill="${st.p}"/>`+L("M38 35 Q50 31 62 35",1.6,"#fff");
+  else if(st.k==="sash")s+=P("M48 56 L38 90 L49 87 Z",st.s)+P("M52 56 L64 87 L72 81 Z",st.s)+P("M40 36 Q50 28 60 36 L60 56 Q50 62 40 56 Z",st.b);
+  else s+=P("M38 34 L62 34 L62 62 L38 62 Z",st.b)+P("M44 40 L56 40 L56 56 L44 56 Z",st.s)+L("M50 40 L50 56",3);
+  return s;}
+function beltIconSVG(b){if(b)return tierIcon(b.id,b.rar);
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect width="100" height="100" fill="${RAR_BG.common}"/><g stroke="${INK}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">${beltArt(null,1)}</g></svg>`;}
+/* Two layers: "under" goes in with the jeans (the default belt, hidden by the shirt, or a worn belt's pouches
+   hanging below the hem); "over" goes on after the shirt or armor, so a worn belt shows across the waist. */
+function avatarBelt(id,sh,ln,layer){
+  const it=id&&ITEMS.find(i=>i.id===id&&i.slot==="belt"),st=it&&BELT_STYLE[id];
+  if(!st)return layer==="under"?sh("M111 246 L189 246 L190 258 L110 258 Z","#5a3920")+sh("M143 245 L157 245 L157 259 L143 259 Z","#c9cdd6"):"";
+  const pouch=x=>sh(`M${x} 250 L${x+16} 250 L${x+16} 274 Q${x+8} 280 ${x} 274 Z`,st.p)+ln(`M${x} 262 L${x+16} 262`,2);
+  if(layer==="under")return (it.belt>=3?pouch(116):"")+(it.belt>=5?pouch(168):"");
+  let s=sh("M112 244 Q150 240 188 244 L189 256 Q150 252 111 256 Z",st.s);
+  if(st.k==="rope")s+=ln("M120 244 l5 11 M130 243 l5 11 M164 243 l5 11 M174 244 l5 11",1.6);
+  if(st.k==="tape")s+=ln("M114 250 Q150 246 186 250",1.4,"#eef0f4");
+  if(st.k==="champ")s+=sh("M132 238 Q150 232 168 238 L170 260 Q150 266 130 260 Z",st.b)+`<circle cx="150" cy="249" r="6" fill="${st.p}" stroke="${INK}" stroke-width="2"/>`;
+  else if(st.k==="sash")s+=sh("M148 254 L140 284 L149 282 Z",st.s)+sh("M152 254 L162 282 L168 277 Z",st.s)+sh("M141 242 Q150 236 159 242 L159 255 Q150 259 141 255 Z",st.b);
+  else s+=sh("M143 241 L157 241 L157 256 L143 256 Z",st.b)+sh("M147 245 L153 245 L153 252 L147 252 Z",st.s);
+  return s;}
+function hbUse(i){const k=beltRow()[i];if(!k){openBelt(i);return;}
+  if(consN(k)<1){toast(`Out of ${BELT_PLURAL[k]}. The shop sells more.`,"bad");return;}
+  const flash=()=>{const b=document.querySelector(`#hotbar [data-hb="${i}"]`);if(b){b.classList.remove("used");void b.offsetWidth;b.classList.add("used");}};
+  if(k==="potion"){if(player.hp>=maxHp(player)){toast("You're already at full HP.");return;}
+    const hp0=player.hp;drink();SFX.play("pop");flash();toast(`Gulp. +${player.hp-hp0} HP.`);return;}
+  if(k==="focus"){if(player.focused){toast("You're already focused. Your next finished quest uses it up.");return;}drinkFocus();SFX.play("pop");flash();return;}
+  pickQuest(k);}
+function closeHbDlg(){const o=$("hbDlg");if(o){o.remove();const h=$("hotbar");if(h&&ui.hbBack!=null){const b=h.querySelector(`[data-hb="${ui.hbBack}"]`)||h.querySelector("[data-hbedit]");if(b)b.focus();}ui.hbBack=null;}}
+function hbDlg(label,inner,back){closeHbDlg();ui.hbBack=back;
+  const ov=document.createElement("div");ov.className="hbwrap";ov.id="hbDlg";
+  ov.innerHTML=`<div class="hbdlg" role="dialog" aria-modal="true" aria-label="${esc(label)}">${inner}</div>`;
+  document.body.appendChild(ov);ov.addEventListener("click",e=>{if(e.target===ov||e.target.closest("[data-hbx]"))closeHbDlg();});return ov;}
+/* Scrolls and Smoke Bombs need a target: a short list of the quests they can work on. */
+function pickQuest(k){
+  const td=today(),ok=k==="scroll"?t=>!t.done&&t.due:t=>!t.done&&t.rec&&!isResting(t);
+  const list=tasks.filter(ok).sort((a,b)=>(a.due||"9").localeCompare(b.due||"9"));
+  if(!list.length){toast(k==="scroll"?"No quests with a due date to push back.":"No repeating quests to skip right now.","bad");return;}
+  const ov=hbDlg(consName(k),`<div class="hbhead"><span class="mini-ico">${tierIcon(k,"cons")}</span><div><b>${esc(consName(k))}</b><span>${k==="scroll"?"Push which quest back 2 days?":"Skip the next turn of which repeating quest?"}</span></div><button class="btn ghost sm" type="button" data-hbx aria-label="Close">✕</button></div>
+    <div class="hbpick">${list.map(t=>`<button type="button" class="hbq${t.due&&t.due<td?" late":""}" data-hbq="${esc(t.id)}"><b>${esc(t.title)}</b><span>${t.due?(t.due<td?"Overdue · was due ":"Due ")+fmtDue(t.due):""}</span></button>`).join("")}</div>`,beltRow().indexOf(k));
+  ov.addEventListener("click",e=>{const q=e.target.closest("[data-hbq]");if(!q)return;const id=q.dataset.hbq;closeHbDlg();SFX.play("pop");if(k==="scroll")useScroll(id);else useSmoke(id);});
+  const f=ov.querySelector("[data-hbq]");if(f)f.focus();}
+/* The belt editor: one row per slot, pick what rides in it. */
+function openBelt(sel){
+  const b=bestBelt(),ov=hbDlg("Your belt","",sel>=0?sel:null),dlg=ov.querySelector(".hbdlg");
+  const keys=typeof matchMedia==="function"&&matchMedia("(hover:hover)").matches;
+  const draw=()=>{const r=beltRow(),n=r.length;
+    dlg.innerHTML=`<div class="hbhead"><span class="mini-ico">${beltIconSVG(b)}</span><div><b>${b?esc(b.n):"Old leather belt"}</b><span>${n} hotbar slot${n===1?"":"s"}${b&&b.heal?` · potions heal ${pct(b.heal)}% more`:""}</span></div><button class="btn ghost sm" type="button" data-hbx aria-label="Close">✕</button></div>
+      <div class="hbrows">${r.map((k,i)=>`<div class="hbrow${i===sel?" sel":""}" role="group" aria-label="Slot ${i+1}"><span class="hbnum">${i+1}</span><div class="hbopts">${BELT_KEYS.map(c=>`<button type="button" class="hbopt${c===k?" on":""}" data-slot="${i}" data-k="${c}" aria-pressed="${c===k}" title="${esc(consName(c))}: ${consN(c)}" aria-label="${esc(consName(c))}, ${consN(c)} in your bag">${tierIcon(c,"cons")}<i>${consN(c)}</i></button>`).join("")}<button type="button" class="hbopt none${!k?" on":""}" data-slot="${i}" data-k="" aria-pressed="${!k}" title="Empty" aria-label="Empty">–</button></div></div>`).join("")}</div>
+      <div class="muted hbfoot">${n<BELT_MAX?"Bigger belts mean more slots. They drop from boxes and bosses, you can craft them, and the shop sells two. ":"The biggest belt there is. "}${keys?`Press 1–${n} to use a slot.`:""}</div>`;};
+  draw();
+  dlg.addEventListener("click",e=>{const o=e.target.closest("[data-slot]");if(!o)return;const i=+o.dataset.slot,k=o.dataset.k||null;
+    if(beltRow()[i]===k)return;beltSet(i,k);sel=i;SFX.play("tick");draw();render();
+    const f=dlg.querySelector(`[data-slot="${i}"][data-k="${k||""}"]`);if(f)f.focus();});
+  const f=dlg.querySelector(sel>=0?`.hbrow.sel .hbopt`:".hbopt.on")||dlg.querySelector(".hbopt");if(f)f.focus();}
+function renderHotbar(){
+  let el=$("hotbar");const show=!!(store&&loadedP&&playerExists&&player);
+  if(!el){if(!show)return;el=document.createElement("div");el.id="hotbar";el.className="hotbar";el.setAttribute("role","toolbar");el.setAttribute("aria-label","Belt hotbar");document.body.appendChild(el);
+    el.addEventListener("click",e=>{const s=e.target.closest("[data-hb]");if(s){hbUse(+s.dataset.hb);return;}if(e.target.closest("[data-hbedit]"))openBelt(-1);});
+    addEventListener("resize",()=>{ui.hbHtml=null;renderHotbar();});}
+  el.hidden=!show;document.body.classList.toggle("has-hb",show);if(!show)return;
+  const tb=$("tabbar");if(tb&&getComputedStyle(tb).position==="fixed")document.documentElement.style.setProperty("--tbh",tb.offsetHeight+"px");
+  const row=beltRow(),b=bestBelt(),keys=typeof matchMedia==="function"&&matchMedia("(hover:hover)").matches;
+  const html=`<button type="button" class="hb-belt" data-hbedit aria-label="${esc(b?b.n:"Old leather belt")}: change what's on your belt" title="Change what's on your belt">${beltIconSVG(b)}</button>`
+    +row.map((k,i)=>{const key=keys?`<span class="hb-key" aria-hidden="true">${i+1}</span>`:"";
+      if(!k)return `<button type="button" class="hb-slot empty" data-hb="${i}" aria-label="Empty belt slot ${i+1}" title="Empty slot: tap to fill">+${key}</button>`;
+      const n=consN(k),on=k==="focus"&&player.focused;
+      return `<button type="button" class="hb-slot${n<1?" out":""}${on?" on":""}" data-hb="${i}" aria-label="${esc(consName(k))}, ${n} left, slot ${i+1}" title="${esc(consName(k))} · ${n} left${keys?` · key ${i+1}`:""}">${tierIcon(k,"cons")}<span class="hb-n">${n}</span>${key}</button>`;}).join("");
+  if(ui.hbHtml!==html){const fi=document.activeElement&&el.contains(document.activeElement)?document.activeElement.dataset.hb:undefined;
+    el.innerHTML=html;ui.hbHtml=html;if(fi!=null){const f=el.querySelector(`[data-hb="${fi}"]`);if(f)f.focus();}}}
+/* Number keys 1-6 use belt slots, unless you're typing or a dialog is open. */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&$("hbDlg")){closeHbDlg();return;}
+  if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||!/^[1-6]$/.test(e.key))return;
+  const t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))return;
+  const hb=$("hotbar");if(!hb||hb.hidden)return;
+  if(document.querySelector(".victory,#zoomWrap,#hbDlg,#raidWrap,.signin,#lookWrap:not([hidden]),#gearWrap:not([hidden])")||ui.qt||ui.bench||ui.inspect)return;
+  const i=+e.key-1;if(i>=beltRow().length)return;e.preventDefault();hbUse(i);});
 /* ---------- Consumables ---------- */
 function drinkFocus(){
   if(bagN("focus")<1||player.focused)return;
@@ -6212,7 +6381,7 @@ function equip(slot,id){
   store.savePlayer(player).catch(writeFailed);render();
 }
 function buyPotion(){if(player.gold<priceOf(POTION.price))return;SFX.play("coin");player.gold-=priceOf(POTION.price);player.potions++;store.savePlayer(player).catch(writeFailed);render();}
-function drink(){if(player.potions<1||player.hp>=maxHp(player))return;player.potions--;player.hp=Math.min(maxHp(player),player.hp+POTION.heal);bump("potions");store.savePlayer(player).catch(writeFailed);render();checkAch();}
+function drink(){if(player.potions<1||player.hp>=maxHp(player))return;player.potions--;player.hp=Math.min(maxHp(player),player.hp+healAmt(player));bump("potions");store.savePlayer(player).catch(writeFailed);render();checkAch();}
 function rename(n){n=n.trim().slice(0,40);if(n&&n!==player.name){player.name=n;store.savePlayer(player).catch(writeFailed);}ui.editingName=false;render();}
 function loadExamples(){
   const td=today();ui.quiet=true;setTimeout(()=>{ui.quiet=false;},0);
@@ -6239,7 +6408,7 @@ function render(){
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   try{goldWatch();renderPurse();}catch(e){}
   // Each panel draws independently, so a bug in one can't blank the others.
-  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
+  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker,renderHotbar]){try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
 }
 
@@ -6790,7 +6959,7 @@ function avatarSVG(eq){
   }
   {const hx=(BWID-1)*40;
   s+=sh(CURVY?"M114 248 L186 248 L196 296 L150 304 L104 296 Z":`M${112-hx} 248 L${188+hx} 248 L${192+hx} 296 L150 304 L${108-hx} 296 Z`,PANTS)+ov(`M${112-hx} 248 L128 248 L124 300 L${108-hx} 296 Z`,HB)+ln("M150 262 L150 300",2,PSEAM);}
-  s+=sh("M111 246 L189 246 L190 258 L110 258 Z","#5a3920")+sh("M143 245 L157 245 L157 259 L143 259 Z","#c9cdd6");
+  s+=avatarBelt(eq.belt,sh,ln,"under");
   const shoe=(x,dir)=>sh(`M${x-22*dir} 372 Q${x-24*dir} 356 ${x-8*dir} 354 L${x+10*dir} 356 Q${x+30*dir} 364 ${x+30*dir} 376 L${x-22*dir} 376 Z`,SHOE)+sh(`M${x-24*dir} 376 L${x+31*dir} 376 L${x+31*dir} 384 L${x-24*dir} 384 Z`,INK)+ln(`M${x-10*dir} 366 Q${x+6*dir} 360 ${x+20*dir} 368`,4,LK.shoes==="red"?BONE:RED);
   // Bare feet until the crawler finds boots: a short ankle under the jeans cuff, a foot and four little toes
   const SKD=darker(SKIN,.78),bare=(x,dir)=>{const lx=x-4*dir;return sh(`M${lx-10} 360 L${lx+10} 360 L${lx+11} 370 L${lx-11} 370 Z`,SKIN)
@@ -6867,6 +7036,7 @@ function avatarSVG(eq){
     s+=`<circle class="mf-glow" cx="150" cy="184" r="16" fill="#fff6c8" filter="url(#${u}bl)"/><circle cx="150" cy="184" r="8" fill="#ffd23f" stroke="${INK}" stroke-width="2.4"/>`+ln("M150 168 L150 172 M150 196 L150 200 M134 184 L138 184 M162 184 L166 184",2.4,"#ffd23f");
   }
   if(AS)s+=sh(TORSO,AS.fill==="TEE"?TEEC:AS.fill)+ov(TORSOS,HA)+armorDetail(AS,u);
+  s+=avatarBelt(eq.belt,sh,ln,"over");
   if(cape==="royal")s+=sh("M98 140 Q150 160 202 140 L206 154 Q150 176 94 154 Z",BONE)+ov("M114 150 l2 6 l-4 0 Z",INK)+ov("M138 158 l2 6 l-4 0 Z",INK)+ov("M162 158 l2 6 l-4 0 Z",INK)+ov("M186 150 l2 6 l-4 0 Z",INK);
   if(cape==="crimson"||cape==="midnight"||CAPE_STYLE[eq.cape])s+=`<circle cx="114" cy="150" r="6" fill="#ffd23f"/><circle cx="186" cy="150" r="6" fill="#ffd23f"/>`;
 
@@ -7292,7 +7462,8 @@ function lootIconSVG(id,raw){
   const tinted=!!(it0&&it0.tint&&it0.base),aid=tinted?it0.base:id;
   const newArt=it0&&(tinted||(!OLD_ART.has(id)&&!it0.base));
   const t0=s.length;
-  switch(it0&&it0.slot==="ring"?"__ring":it0&&it0.slot==="trinket"?"__trinket":it0&&it0.slot==="gloves"?"__glove":it0&&it0.slot==="boots"?"__boot":newArt&&it0.slot==="weapon"?"__wpn":newArt&&it0.slot==="armor"?"__arm":newArt&&it0.slot==="head"?"__head":newArt&&it0.slot==="cape"?"__cape":id){
+  switch(it0&&it0.slot==="belt"?"__belt":it0&&it0.slot==="ring"?"__ring":it0&&it0.slot==="trinket"?"__trinket":it0&&it0.slot==="gloves"?"__glove":it0&&it0.slot==="boots"?"__boot":newArt&&it0.slot==="weapon"?"__wpn":newArt&&it0.slot==="armor"?"__arm":newArt&&it0.slot==="head"?"__head":newArt&&it0.slot==="cape"?"__cape":id){
+    case "__belt":s+=beltArt(BELT_STYLE[aid],it0.belt);break;
     case "__glove":s+=gloveIcon(it0);break;
     case "__boot":s+=bootIcon(it0);break;
     case "__wpn":{const [x0,x1,y0,y1]=WEAPON_BOX[aid],k=Math.min(98/(y1-y0),1.2),cx=(x0+x1)/2,cy=(y0+y1)/2;
@@ -7667,7 +7838,7 @@ function renderPet(){
 /* ---------- Inventory: paper doll + item grid, with tooltips ---------- */
 const RAR_ORDER=["magical","legendary","epic","rare","uncommon","common"];
 
-const SLOT_NAME={head:"Head",armor:"Body",weapon:"Weapon",gloves:"Hands",boots:"Feet",cape:"Back",ring:"Ring",trinket:"Pet"};
+const SLOT_NAME={head:"Head",armor:"Body",weapon:"Weapon",gloves:"Hands",boots:"Feet",cape:"Back",ring:"Ring",trinket:"Pet",belt:"Belt"};
 const pct=v=>Math.round(v*100);
 /* Inventory cell backgrounds: one colour per tier, consumables their own. */
 const RAR_BG={common:"#dcd9e3",uncommon:"#3b74dc",rare:"#f0d23a",epic:"#ec7a1c",legendary:"#ec7a1c",magical:"none",cons:"#2d8f86"};
@@ -7680,6 +7851,7 @@ function fxLines(f){const L=[];if(!f)return L;
   if(f.hp)L.push(`+${f.hp} max HP`);if(f.lv)L.push(`Pet counts as +${f.lv} bond level${f.lv>1?"s":""}`);if(f.rate)L.push(`Bond grows ${f.rate>=1?"twice as fast":pct(f.rate)+"% faster"}`);if(f.armor)L.push(`Overdue damage −${pct(f.armor)}%`);if(f.win)L.push(`Accuracy window ${pct(f.win)}% wider each side`);return L;}
 function itemLines(it,p){
   const L=[],b=bonusOf(it,p||player);
+  if(it.slot==="belt"){L.push(`${it.belt} hotbar slots`);if(it.heal)L.push(`Healing potions heal ${pct(it.heal)}% more`);return L;}
   if(it.slot==="armor")L.push(`Overdue damage −${pct(b)}%`);
   else if(it.slot==="gloves")L.push(`+${pct(b)}% boss damage`);
   else if(it.slot==="boots")L.push(`${pct(b)}% faster movement speed (chance a quest moves you an extra room)`,`+${hpOf(it,p||player)} max HP`);
@@ -7692,6 +7864,7 @@ function itemStatus(it){
   const p=player,w=wearing(p);
   if(it.slot==="trinket"){const a=activePet(p);if(!a)return {on:false,t:"You need a pet before it can wear this"};
     return w.trinket===it.id?{on:true,t:`Worn by ${a.name}: active`}:{on:false,t:`Only counts while ${a.name} wears it`};}
+  if(it.slot==="belt"){const bb=bestBelt(p);return bb&&bb.id===it.id?{on:true,t:"Active: your biggest belt sets your hotbar, even when not worn"}:{on:false,t:`Inactive: ${bb?bb.n:"another belt"} gives as many slots or more`};}
   if(it.slot==="ring")return w.ring===it.id?{on:true,t:"Worn: its perk is active"}:{on:false,t:"Perk only counts while you wear it"};
   if(!(it.bonus>0)&&!it.mfx)return {on:w[it.slot]===it.id,t:w[it.slot]===it.id?"Worn (looks only)":"Cosmetic: wear it for the look"};
   const b=bestOwned(p,it.slot);
@@ -7700,7 +7873,7 @@ function itemStatus(it){
 function invCell(it,eq,tall){
   return `<button type="button" class="invcell r-${it.rar}${eq?" eq":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-inv="${it.id}" aria-label="${esc(it.n)}${eq?" (equipped)":""}">${tall==="weapon"?tallWeaponSVG(it.id,RAR_BG[it.rar]):tall?tierIcon(it.id,it.rar).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '):tierIcon(it.id,it.rar)}${eq?`<span class="eqtag" aria-hidden="true">E</span>`:""}${mwOf(player,it.id)?`<span class="mwbadge" aria-hidden="true">${"★".repeat(mwOf(player,it.id))}</span>`:""}</button>`;
 }
-const INV_CATS=[["all","All"],["weapon","Weapons"],["armor","Body"],["head","Head"],["gloves","Hands"],["boots","Feet"],["cape","Back"],["ring","Rings"],["trinket","Pet"],["cons","Bag"]];
+const INV_CATS=[["all","All"],["weapon","Weapons"],["armor","Body"],["head","Head"],["gloves","Hands"],["boots","Feet"],["cape","Back"],["ring","Rings"],["trinket","Pet"],["belt","Belts"],["cons","Bag"]];
 const INV_PAGE=25;
 function renderInv(){
   const el=$("inv");if(!el||!playerExists)return;
@@ -7708,7 +7881,7 @@ function renderInv(){
   const slotCell=slot=>{const it=ITEMS.find(x=>x.id===w[slot]);
     return `<div class="dslot ds-${slot}"><span class="dlabel">${SLOT_NAME[slot]}</span>${it?invCell(it,true,slot==="weapon"?"weapon":slot==="armor"?"armor":false):`<button type="button" class="invcell invempty" data-invslot="${slot}" aria-label="Empty ${SLOT_NAME[slot]} slot"><span>${SLOT_NAME[slot]}</span></button>`}</div>`;};
   el.style.setProperty("--brick",BRICK_TILE);
-  const doll=`<div class="doll">${invTorch("l")}${invTorch("r")}<svg class="sil" viewBox="0 0 100 160" aria-hidden="true"><circle cx="50" cy="22" r="15"/><path d="M28 42 Q50 34 72 42 L82 92 L72 94 L68 62 L68 100 L64 152 L53 152 L50 108 L47 152 L36 152 L32 100 L32 62 L28 94 L18 92 Z"/></svg>${["head","cape","weapon","armor"].map(slotCell).join("")}<div class="ds-side">${slotCell("ring")+slotCell("gloves")}</div>${slotCell("trinket")+slotCell("boots")}</div>`;
+  const doll=`<div class="doll">${invTorch("l")}${invTorch("r")}<svg class="sil" viewBox="0 0 100 160" aria-hidden="true"><circle cx="50" cy="22" r="15"/><path d="M28 42 Q50 34 72 42 L82 92 L72 94 L68 62 L68 100 L64 152 L53 152 L50 108 L47 152 L36 152 L32 100 L32 62 L28 94 L18 92 Z"/></svg>${["head","cape","weapon","armor"].map(slotCell).join("")}<div class="ds-side">${slotCell("ring")+slotCell("gloves")}</div>${slotCell("trinket")+slotCell("boots")+slotCell("belt")}</div>`;
   const gx=gearFx(p),xpB=XP_SLOTS.reduce((s,sl)=>{const b=bestOwned(p,sl);return s+bonusOf(b,p);},0)+gx.xp;
   const cut=armorCut(p),rcut=rawCut(p);
   const tot=[xpB?`+${pct(xpB)}% XP`:"",gx.gold?`+${pct(gx.gold)}% gold`:"",gx.dmg?`+${pct(gx.dmg)}% boss damage`:"",cut?`overdue damage −${pct(cut)}%${rcut>cut+.005?` (soft cap; ${pct(rcut)}% raw)`:""}`:"",gx.hp?`+${gx.hp} max HP`:"",gx.win?`accuracy +${pct(gx.win)}%`:""].filter(Boolean);
@@ -7747,11 +7920,12 @@ function invTipHtml(cell,pinned){
   const p=player,w=wearing(p);
   if(cell.dataset.invslot){const sl=cell.dataset.invslot,n=ITEMS.filter(i=>i.slot===sl&&p.owned.includes(i.id)).length;
     return `<b>Empty ${SLOT_NAME[sl]} slot</b><div class="tline muted">${n?`You own ${n} item${n>1?"s":""} for this slot. Tap one in your backpack to wear it.`:"Nothing for this slot yet. Keep opening boxes."}</div>`;}
-  if(cell.dataset.cons){const k=cell.dataset.cons,isP=k==="potion",c=isP?{n:"Healing potion",d:`Restores ${POTION.heal} HP`}:CONSUMABLES[k],n=isP?p.potions:bagN(k);
+  if(cell.dataset.cons){const k=cell.dataset.cons,isP=k==="potion",c=isP?{n:"Healing potion",d:`Restores ${healAmt(p)} HP`}:CONSUMABLES[k],n=isP?p.potions:bagN(k);
     let act="";
     if(pinned&&isP)act=`<button class="btn gold sm" type="button" data-tipdrink ${p.hp>=maxHp(p)?"disabled":""}>${p.hp>=maxHp(p)?"Already at full HP":"Drink"}</button>`;
     else if(pinned&&k==="focus")act=`<button class="btn gold sm" type="button" data-tipfocus ${p.focused?"disabled":""}>${p.focused?"Already focused":"Drink"}</button>`;
-    else if(pinned)act=`<span class="muted tline">Use it from a quest's ⋯ menu.</span>`;
+    else if(pinned)act=`<span class="muted tline">Use it from a quest's ⋯ menu or your belt.</span>`;
+    if(pinned){const on=beltRow().indexOf(k);act+=on>=0?`<span class="muted tline">On your belt · slot ${on+1}</span>`:`<button class="btn sm" type="button" data-tipbelt="${k}">Put on belt</button>`;}
     return `<div class="thead"><span class="tico">${tierIcon(k,"cons")}</span><div><b>${esc(c.n)}</b><div class="tsub">Consumable · ${n} in your bag</div></div></div><div class="tline">${esc(c.d)}</div>${act?`<div class="tacts">${act}</div>`:""}`;}
   const it=ITEMS.find(x=>x.id===cell.dataset.inv);if(!it)return "";
   const st=itemStatus(it),worn=w[it.slot]===it.id,cur=ITEMS.find(x=>x.id===w[it.slot]);
@@ -7777,6 +7951,7 @@ function showInvTip(cell,pinned){
   tip.querySelectorAll("[data-tipsalv]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;tip.hidden=true;confirmSalvage(b.dataset.tipsalv);});
   tip.querySelectorAll("[data-tipgive]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;tip.hidden=true;openGive(b.dataset.tipgive);});
   tip.querySelectorAll("[data-tipdrink]").forEach(b=>b.onclick=e=>{e.stopPropagation();drink();});
+  tip.querySelectorAll("[data-tipbelt]").forEach(b=>b.onclick=e=>{e.stopPropagation();beltAdd(b.dataset.tipbelt);});
   tip.querySelectorAll("[data-tipfocus]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;drinkFocus();});
 }
 function hideInvTip(){const tip=$("invTip");if(tip&&!ui.invPin){tip.hidden=true;}}
@@ -8094,7 +8269,7 @@ function renderRewards(){
 const priceTag=n=>priceOf(n)!==n?`<s class="was">${n}</s><span class="price">${priceOf(n)}g</span>`:`<span class="price">${n}g</span>`;
 function renderShop(){
   const p=player;
-  let h=`<div class="item"><div class="what"><b>Healing potion</b><span>Restores ${POTION.heal} HP · you carry ${p.potions}</span></div>
+  let h=`<div class="item"><div class="what"><b>Healing potion</b><span>Restores ${healAmt(p)} HP · you carry ${p.potions}</span></div>
     <div style="display:flex;gap:6px"><button class="btn ghost" id="drink" ${p.potions<1||p.hp>=maxHp(player)?"disabled":""}>Drink</button>
     <button class="btn" id="buyPot" ${p.gold<priceOf(POTION.price)?"disabled":""}>${priceTag(POTION.price)}</button></div></div>`;
   for(const t of ["bronze","silver"]){
@@ -8602,6 +8777,10 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.1.0",d:"2026-10-08",t:"Belt hotbar",items:["A hotbar now sits at the bottom of the screen. Slot healing potions, Potions of Focus, Scrolls of Extension and Smoke Bombs, then use them with one tap (or keys 1 to 6) without digging through your inventory. Scrolls and Smoke Bombs ask which quest.",
+    "Your belt decides how many slots you get: 1 with your old leather belt, up to 6 with the best. Nine new belts drop from boxes and bosses, can be crafted, and two are in the shop. Like all gear, your best one counts even when you're not wearing it.",
+    "Tap the belt at the left of the hotbar to choose what goes in each slot, or use \"Put on belt\" on a consumable in your inventory.",
+    "Belts now show on your avatar, over your shirt or armor. Bigger ones carry pouches. The Unique one makes healing potions heal 50% more."]},
   {v:"3.0.3",d:"2026-10-08",t:"No more overwritten saves",items:["Fixed a bug where a phone or laptop left open in the background could wake up with an old copy of your save and write it over newer progress from your other device. Lost quarters, gear and pets were the usual victims.",
     "Now the server checks every save. If a device is behind, its save is turned away, it loads your latest progress instead, and it tells you the last thing you did there didn't stick."]},
   {v:"3.0.2",d:"2026-10-08",t:"Platinum Box",items:["The Legendary Box is now the Platinum Box, with a new pearl-white and gunmetal crate and a matching white-steel frame when you open it. Everything inside is the same."]},
