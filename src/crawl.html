@@ -6649,7 +6649,7 @@ function bootIcon(B){
 }
 /* ---------- Expansion art: armour, headgear and capes drawn from a style table ---------- */
 const ONE_HANDED=new Set(["w1","w2","w4","w6","w7","w11","w12","w14","w15","w16","w19"]);
-const WEAPON_SCALE={w8:.6,w10:.64,w9:.72,w5:.74,w13:.62,w17:.7,w18:.6,w20:.56};
+const WEAPON_SCALE={w8:.6,w10:.64,w9:.72,w5:.74,w13:.62,w17:.7,w18:.62,w20:.56};
 const _sh=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,_ov=(d,f)=>`<path d="${d}" fill="${f}" stroke="none"/>`,_ln=(d,w,c)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"/>`;
 const _st=(x,y,r,d)=>`<path class="st" style="animation-delay:${d}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z"/>`;
 /* Body armour: torso fill, sleeve colour (null = the tee), forearm colour (null = skin), glove colour, detail style */
@@ -6905,11 +6905,18 @@ function weaponUpright(weapon,MW,u){
     w+=`<ellipse cx="0" cy="-42" rx="14" ry="4.5" fill="#ffd23f"/>`;
     w+=sh("M-5 -47 L5 -47 Q8 -150 18 -226 Q10 -232 6 -222 Q-2 -150 -5 -47 Z","#e3e6ee")+ln("M1 -52 Q3 -150 12 -218",1.4,"#9aa0ad");
   }
-  if(weapon==="w18"){ // trident
-    w+=ln("M0 20 L0 -200",11)+ln("M0 20 L0 -200",6,"#5a3920")+ln("M-6 2 L6 -4 M-6 -8 L6 -14",1.6);
-    w+=sh("M-28 -194 Q-28 -210 0 -212 Q28 -210 28 -194 L22 -192 Q0 -202 -22 -192 Z","#e0b84a");
-    w+=sh("M-4 -210 L4 -210 L4 -246 L0 -262 L-4 -246 Z","#e0b84a")+sh("M-28 -198 L-20 -198 L-20 -232 L-24 -248 L-28 -232 Z","#e0b84a")+sh("M28 -198 L20 -198 L20 -232 L24 -248 L28 -232 Z","#e0b84a");
-    w+=sh("M-20 -230 L-14 -226 L-20 -222 Z","#e0b84a")+sh("M20 -230 L14 -226 L20 -222 Z","#e0b84a");
+  if(weapon==="w18"){ // trident: a stout shaft with a grip wrap, a metal collar, and a wide head of three barbed prongs
+    w+=ln("M0 22 L0 -196",17)+ln("M0 22 L0 -196",10,"#5a3920")+ln("M-2 14 L-2 -190",1.6,"#7a5232");
+    w+=ln("M-8 8 L8 0 M-8 -2 L8 -10 M-8 -12 L8 -20 M-8 -22 L8 -30",3.2)+ln("M-8 8 L8 0 M-8 -2 L8 -10 M-8 -12 L8 -20 M-8 -22 L8 -30",1.6,RED);
+    w+=sh("M-10 -192 L10 -192 L11 -212 L-11 -212 Z","#c9cdd6")+ln("M-10 -202 L10 -202",2);
+    // crossbar
+    w+=sh("M-44 -206 Q-44 -232 0 -236 Q44 -232 44 -206 L34 -202 Q0 -220 -34 -202 Z","#e0b84a");
+    // centre prong
+    w+=sh("M-7 -232 L7 -232 L7 -270 L16 -270 L0 -306 L-16 -270 L-7 -270 Z","#e0b84a");
+    // side prongs, flaring out slightly
+    w+=sh("M-44 -210 L-31 -214 L-31 -254 L-22 -256 L-40 -290 L-52 -252 L-44 -252 Z","#e0b84a")+sh("M44 -210 L31 -214 L31 -254 L22 -256 L40 -290 L52 -252 L44 -252 Z","#e0b84a");
+    // shine
+    w+=ln("M-2 -236 L-2 -276 M-37 -216 L-37 -254 M37 -216 L37 -254",1.8,"#fff6c8");
   }
   if(weapon==="w19"){ // flail: a spiked ball on a chain
     w+=sh("M-5 22 L5 22 L5 -54 L-5 -54 Z","#5a3920")+sh("M-7 -54 L7 -54 L6 -64 L-6 -64 Z","#8a8f9c");
@@ -6925,7 +6932,7 @@ function weaponUpright(weapon,MW,u){
     w+=sh("M-4 -238 L4 -238 L3 -268 L0 -282 L-3 -268 Z","#d5d9e2")+sh("M-7 -230 L7 -230 L7 -240 L-7 -240 Z","#8a8f9c");
   }
   // Magical weapon effects, drawn in the weapon's own upright coordinates so they follow every pose.
-  const fy=weapon==="w20"?-90:weapon==="w18"?24:0,G=x=>fy?`<g transform="translate(0 ${fy})">${x}</g>`:x;
+  const fy=weapon==="w20"?-90:weapon==="w18"?2:0,G=x=>fy?`<g transform="translate(0 ${fy})">${x}</g>`:x;
   const sparkle=(x,y,r,d)=>`<path class="st" style="animation-delay:${d}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z"/>`;
   if(MW==="fire"){
     const fl=(x,y,h,wd,d)=>`<path style="animation-delay:-${d}s" d="M${x} ${y} Q${x+wd} ${y-h*.5} ${x+wd*.25} ${y-h} Q${x-wd*.5} ${y-h*.45} ${x} ${y} Z"/>`;
@@ -6954,7 +6961,7 @@ function weaponUpright(weapon,MW,u){
 }
 /* Bounding box of each weapon's upright drawing: [minX,maxX,minY,maxY] */
 const WEAPON_BOX={w4:[-18,18,-125,25],w5:[-25,25,-216,20],w6:[-18,18,-95,25],w7:[-31,31,-128,24],w8:[-15,15,-250,20],w9:[-38,38,-228,20],w10:[-90,16,-238,20],w1:[-16,16,-128,24],w2:[-27,27,-168,28],w3:[-41,41,-226,29],l4:[-53,63,-312,22],l8:[-22,22,-228,28],
-  w11:[-30,30,-154,24],w12:[-20,20,-152,24],w13:[-14,22,-242,40],w14:[-10,36,-98,24],w15:[-24,22,-196,26],w16:[-32,32,-136,24],w17:[-16,20,-232,22],w18:[-30,30,-264,22],w19:[-48,10,-162,24],w20:[-34,52,-284,24]};
+  w11:[-30,30,-154,24],w12:[-20,20,-152,24],w13:[-14,22,-242,40],w14:[-10,36,-98,24],w15:[-24,22,-196,26],w16:[-32,32,-136,24],w17:[-16,20,-232,22],w18:[-54,54,-308,24],w19:[-48,10,-162,24],w20:[-34,52,-284,24]};
 /* The inventory weapon slot: the weapon stood upright and scaled to fill a tall frame. */
 function tallWeaponSVG(id,bg){
   const it=ITEMS.find(i=>i.id===id);if(!it)return "";
