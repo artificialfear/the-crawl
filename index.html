@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=0a3e92fbfd"></script>
-<script>window.CRAWL_BUILD="0a3e92fbfd";</script>
+<script src="firebase-config.js?v=94542464fa"></script>
+<script>window.CRAWL_BUILD="94542464fa";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1007,6 +1007,9 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .zoom-sub{text-align:center;margin:0;color:var(--muted)}
 .zstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.zstat{display:grid;gap:3px;font-size:13px}.zstat b{font-size:13px}
 .zoomdlg .bar{height:8px}.zoomdlg .bar.rvbar>b{background:#e8283c}
+.zboss{position:relative;line-height:0}.zboss svg{width:100%;height:auto;display:block}.zdead{text-decoration:line-through;text-decoration-color:var(--blood)}
+.zoomdlg.z-boss .zoom-art{width:min(280px,72%);border-radius:0;overflow:visible}.zboss .vstamp.still{font-size:clamp(28px,9vw,42px)}
+.zladder{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13px}.zladder .now{color:var(--gold)}
 .zoom-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.zgear{font-size:13px}
 .vstamp.still{opacity:1;animation:none;transform:translate(-50%,-50%) rotate(-12deg) scale(1);z-index:2;pointer-events:none}
 .pt-raidart .vstamp.still{font-size:clamp(14px,5vw,22px);border-width:3px;padding:0 8px}
@@ -7476,20 +7479,20 @@ function renderBoss(){
     const where=seen?`Your map shows its lair <b>${ahead} room${ahead===1?"":"s"}</b> ahead${b.tier===5?" at the stairwell":""}.`
       :b.tier===5?"Floor bosses always guard the stairwell. Keep going.":"Its lair isn't on your map. Every quest moves you one room deeper.";
     const chg=b.charge||0;
-    el.innerHTML=`<div class="boss-compact hunt"><div class="bossart thumb unknown" role="img" aria-label="An unknown boss">${bossSVG("",false,{crop:true,tier:b.tier,unknown:true})}</div>
+    el.innerHTML=`<div class="boss-compact hunt"><div class="bossart thumb unknown zoomable" data-zboss role="button" tabindex="0" aria-label="An unknown boss: tap for details">${bossSVG("",false,{crop:true,tier:b.tier,unknown:true})}</div>
       <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">${esc(T.n)} · Floor ${floor}</span><div class="bname">???</div></div>
       <div class="hpwrap"><div class="bar charge" role="progressbar" aria-label="Charge stored for the ambush" aria-valuemin="0" aria-valuemax="${b.maxHp}" aria-valuenow="${Math.min(chg,b.maxHp)}"><b style="width:${Math.min(100,chg/b.maxHp*100).toFixed(1)}%"></b></div><span class="num">⚡ ${chg}</span></div></div>
       <div class="boss-sub">${pips} ${b.tier+1} of 6 · hiding somewhere on Floor ${floor}. ${where} When you walk into its lair, your <b>Charge</b> hits all at once${chg>=b.maxHp?" (enough to drop it in one blow)":""}. Stairwell closes ${closes}.</div></div></div>${tbar}`;
-    return;
+    wireBossZoom(el);return;
   }
   if(!open){
     const sub=b.defeated?`Floor ${floor} cleared · all six bosses down · Floor ${floor+1} (${esc(themeById(themeFor(floor+1)).n)}) opens ${fmtDue(addDays(b.week,7))}`
       :`${pips} ${b.tier+1} of 6 · drops a <b><span class="mini-ico">${boxIconSVG(T.box)}</span>${esc(box.n)}</b> · about <b class="num">${togoTxt}</b> Elite quest${!fog&&togo===1?"":"s"} to go · stairwell closes ${closes}${b.healed?` · healed <b class="num">${b.healed}</b> by overdue quests`:""}`;
-    el.innerHTML=`<div class="boss-compact"><div class="bossart thumb${b.defeated?" slain":""}" role="img" aria-label="${esc(b.name)}">${bossSVG(b.name,b.defeated,{crop:true,tier:b.tier})}</div>
+    el.innerHTML=`<div class="boss-compact"><div class="bossart thumb zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="${esc(b.name)}: tap to see it up close">${bossSVG(b.name,b.defeated,{crop:true,tier:b.tier})}</div>
       <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">${b.defeated?`Floor ${floor} cleared`:`${esc(T.n)} · Floor ${floor}`}</span><div class="bname${b.defeated?" dead":""}">${esc(b.name)}</div></div>
       <div class="hpwrap"><div class="bar boss${fog?" fog":""}" role="progressbar" aria-label="Boss health${fog?" hidden by fog":""}" aria-valuemin="0" aria-valuemax="${fog?100:b.maxHp}" aria-valuenow="${fog?100:hp}"><b style="width:${barW.toFixed(1)}%"></b></div><span class="num">${hpTxt}</span></div>
       ${toggle(false)}</div><div class="boss-sub">${sub}</div></div></div>${tbar}`;
-    wire();return;
+    wire();wireBossZoom(el);return;
   }
   let main;
   if(b.defeated){
@@ -7516,11 +7519,12 @@ function renderBoss(){
     <div><div class="label">Drops</div><b>${esc(box.n)}</b><span>${b.tier<5?`Then the ${esc(TIERS[b.tier+1].n)} steps up`:"The last boss on this floor"}</span></div></div>`;
   el.innerHTML=`<div class="boss-grid">
     <div class="boss-main">${main}${dropRow}</div>
-    <figure class="bossfig">${b.defeated?"":`<div class="bubble">${esc(BOSS_TAUNT[b.name]||"You'll never finish!")}</div>`}<div class="bossart${b.defeated?" slain":""}" role="img" aria-label="Portrait of ${esc(b.name)}, the ${esc(T.n)} on Floor ${floor}">${bossSVG(b.name,b.defeated,{tier:b.tier})}</div><figcaption class="boss-tag">${esc(T.n)}</figcaption></figure>
+    <figure class="bossfig">${b.defeated?"":`<div class="bubble">${esc(BOSS_TAUNT[b.name]||"You'll never finish!")}</div>`}<div class="bossart zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="Portrait of ${esc(b.name)}, the ${esc(T.n)} on Floor ${floor}: tap to see it up close">${bossSVG(b.name,b.defeated,{tier:b.tier})}</div><figcaption class="boss-tag">${esc(T.n)}</figcaption></figure>
   </div>
   ${tbar}<div style="display:flex;justify-content:flex-end;margin-top:10px">${toggle(true)}</div>`;
-  wire();
+  wire();wireBossZoom(el);
 }
+function wireBossZoom(el){el.querySelectorAll("[data-zboss]").forEach(b=>{b.onclick=zoomBoss;b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomBoss();}};});}
 function renderRewards(){
   const p=player;
   const typical=rewardFor(p,{effort:3,est:30},null).gold;
@@ -8512,6 +8516,24 @@ function zoomPet(k){
         <div><span class="label">${esc(P.ab)}</span> ${esc(P.abd)}</div></div>
       ${active?"":`<div class="muted" style="font-size:12px">Only your active pet's bonuses count, and only it gains bond.</div>`}`,
     acts:active?[]:[{label:"Make active",gold:true,fn:()=>setPet(k)}]});
+}
+/* Your floor boss */
+function zoomBoss(){
+  const b=player.boss;if(!b||b.tier==null)return;const T=TIERS[b.tier],floor=b.floor,box=BOXES[T.box],fog=themeFx(player).fog&&!b.defeated;
+  const daysLeft=6-daysBetween(b.week,today())+1,closes=b.defeated?"–":daysLeft===1?"Tonight":`${daysLeft} days`;
+  const kills=(b.kills||[]).map(k=>`<li>✔ <b>${esc(k.name)}</b> <span class="muted">${esc(TIERS[k.tier].n)}</span></li>`).join("");
+  const ladder=`<div class="label">Floor ${floor} ladder</div><ul class="zladder">${kills}${b.defeated?"":`<li class="now">⚔ ${hunting(b)?"???":`<b>${esc(b.name)}</b>`} <span class="muted">${esc(T.n)}, now</span></li>`}${TIERS.slice(b.defeated?6:b.tier+1).map(t=>`<li class="muted">· ${esc(t.n)}</li>`).join("")}</ul>`;
+  if(hunting(b)){const chg=b.charge||0;
+    zoomCard({kind:"boss",title:`The ${T.n}`,art:`<div class="zboss">${bossSVG("",false,{tier:b.tier,unknown:true})}</div>`,sub:`Floor ${floor} · ${b.tier+1} of 6 · hiding somewhere on your map`,
+      tiles:[["Charge stored",`⚡ ${chg}`],["Its HP",fog?"???":b.maxHp],["Drops",esc(box.n)],["Stairwell",closes]],
+      body:`<div class="muted" style="font-size:13px">Every quest moves you a room deeper. Walk into its lair and your stored Charge hits all at once${chg>=b.maxHp?", enough to drop it in one blow":""}.</div>${ladder}`});return;}
+  const hp=bossHp(b),typical=Math.max(1,Math.round(rewardFor(player,{effort:3,est:30},null).xp*(1+statFx(player).dmg))),togo=Math.ceil(hp/typical);
+  zoomCard({kind:"boss",title:b.name,titleHTML:`<span class="${b.defeated?"zdead":""}">${esc(b.name)}</span>`,
+    art:`<div class="zboss${b.defeated?" slain":""} bossart">${bossSVG(b.name,b.defeated,{tier:b.tier})}${b.defeated?`<div class="vstamp still" aria-hidden="true">Slain</div>`:""}</div>`,
+    sub:b.defeated?`Floor ${floor} cleared · all six bosses down`:`${esc(T.n)} · Floor ${floor} · ${b.tier+1} of 6${BOSS_TAG[b.name]?` · ${esc(BOSS_TAG[b.name])}`:""}`,
+    tiles:b.defeated?[["Floor damage",(b.total||0).toLocaleString()],["Bosses slain","6 of 6"],["Next floor",fmtDue(addDays(b.week,7))],["Theme",esc(themeById(themeFor(floor+1)).n)]]
+      :[["HP",fog?"??? / ???":`${hp} / ${b.maxHp}`],["You've dealt",b.dealt],["Elite quests to go",fog?"??":togo],["Healed by overdue",b.healed||0],["Floor total",b.total||0],["Drops",esc(box.n)],["Stairwell closes",closes],["Next up",b.tier<5?esc(TIERS[b.tier+1].n):"Stairwell"]],
+    body:`${!b.defeated?`<div class="hpwrap">${zbar(fog?1:hp/b.maxHp,"boss")}</div>`:""}${!b.defeated&&BOSS_TAUNT[b.name]?`<p class="zoom-sub">“${esc(BOSS_TAUNT[b.name])}”</p>`:""}${ladder}`});
 }
 /* The rival crawler on your heels */
 function zoomRival(){
