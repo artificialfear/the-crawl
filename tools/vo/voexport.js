@@ -1,0 +1,12 @@
+const {chromium}=require("playwright");const {spawn}=require("child_process");const fs=require("fs");
+const srv=spawn("python3",["-m","http.server","8818","-d","site"],{stdio:"ignore"});
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{await wait(800);const b=await chromium.launch();const errs=[];
+  const p=await b.newPage();p.on("pageerror",e=>errs.push(e.message));
+  await p.goto("http://127.0.0.1:8818/index.html");await wait(1200);
+  const sc=await p.evaluate(()=>window.__ev("voScript()"));
+  fs.writeFileSync("/home/claude/vo-tools/script.json",JSON.stringify(sc,null,1));
+  const miss=sc.filter(x=>x.missing);console.log("lines",sc.length,"missing",miss.length,miss.map(m=>m.key).slice(0,10));
+  const ids=new Set(sc.map(x=>x.id));console.log("unique ids",ids.size);
+  const byV={};sc.forEach(x=>byV[x.voice]=(byV[x.voice]||0)+1);console.log(byV,"chars",sc.reduce((a,x)=>a+(x.text||"").length,0));
+  console.log("errs",errs);await b.close();srv.kill();})();
