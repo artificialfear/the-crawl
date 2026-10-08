@@ -6872,11 +6872,13 @@ function weaponUpright(weapon,MW,u){
     w+=sh("M-11 -166 L11 -166 L11 -222 L-11 -222 Z","#6b7383");
     w+=`<circle cx="-24" cy="-182" r="2.6" fill="${INK}" stroke="none"/><circle cx="24" cy="-182" r="2.6" fill="${INK}" stroke="none"/><circle cx="-24" cy="-206" r="2.6" fill="${INK}" stroke="none"/><circle cx="24" cy="-206" r="2.6" fill="${INK}" stroke="none"/>`+ln("M-36 -176 L-36 -212",1.6,"#d5d9e2");
   }
-  if(weapon==="w10"){ // scythe: thick snath, a big hand grip, and a large curved blade
-    w+=ln("M0 18 L-4 -214",16)+ln("M0 18 L-4 -214",9,"#2a2438")+ln("M-1 -46 L20 -56",10)+ln("M-1 -46 L20 -56",5,"#2a2438");
-    w+=`<g transform="translate(-4 -206) scale(1.32) translate(4 206)">`+sh("M-4 -208 Q-52 -240 -88 -184 Q-58 -214 -6 -192 Z","#d5d9e2")+ov("M-6 -192 Q-52 -216 -88 -184 Q-62 -202 -6 -198 Z",HB)
-      +`<g class="rune">`+ln("M-34 -212 l-6 5 M-56 -206 l-6 7",2.6,RED)+`</g></g>`;
-    w+=sh("M-11 -200 L5 -200 L5 -218 L-11 -218 Z","#5b5f6e");
+  if(weapon==="w10"){ // scythe: a long snath held mid-way (it runs on past the hands), two grips, and a huge curved blade
+    w+=ln("M3 96 L-4 -214",16)+ln("M3 96 L-4 -214",9,"#2a2438")+ln("M1 90 L-6 -208",1.6,"#4a4060");
+    w+=ln("M-1 -46 L20 -56",10)+ln("M-1 -46 L20 -56",5,"#2a2438")+ln("M2 46 L22 38",10)+ln("M2 46 L22 38",5,"#2a2438");
+    w+=sh("M-2 92 L8 92 L8 104 L-2 104 Z","#5b5f6e");
+    w+=`<g transform="translate(-4 -206) scale(2.05) translate(4 206)">`+sh("M-4 -208 Q-52 -240 -88 -184 Q-58 -214 -6 -192 Z","#d5d9e2")+ov("M-6 -192 Q-52 -216 -88 -184 Q-62 -202 -6 -198 Z",HB)
+      +ln("M-10 -204 Q-52 -230 -84 -188",.9,"#fff")+`<g class="rune">`+ln("M-34 -212 l-6 5 M-56 -206 l-6 7",2.2,RED)+`</g></g>`;
+    w+=sh("M-12 -198 L6 -198 L6 -220 L-12 -220 Z","#5b5f6e")+`<circle cx="-3" cy="-209" r="2.4" fill="${INK}" stroke="none"/>`;
   }
   if(weapon==="w11"){ // plunger
     w+=sh("M-5 24 L5 24 L5 -112 L-5 -112 Z","#a8723f")+ov("M-5 24 L-1 24 L-1 -112 L-5 -112 Z",HB);
@@ -6940,7 +6942,7 @@ function weaponUpright(weapon,MW,u){
     w+=`<g transform="translate(0 -214) scale(1.34) translate(0 214)">${hd}</g>`;
   }
   // Magical weapon effects, drawn in the weapon's own upright coordinates so they follow every pose.
-  const fy=weapon==="w20"?-90:weapon==="w18"?2:0,G=x=>fy?`<g transform="translate(0 ${fy})">${x}</g>`:x;
+  const fy=weapon==="w20"?-90:weapon==="w18"?2:weapon==="w10"?34:0,G=x=>fy?`<g transform="translate(0 ${fy})">${x}</g>`:x;
   const sparkle=(x,y,r,d)=>`<path class="st" style="animation-delay:${d}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z"/>`;
   if(MW==="fire"){
     const fl=(x,y,h,wd,d)=>`<path style="animation-delay:-${d}s" d="M${x} ${y} Q${x+wd} ${y-h*.5} ${x+wd*.25} ${y-h} Q${x-wd*.5} ${y-h*.45} ${x} ${y} Z"/>`;
@@ -6968,7 +6970,7 @@ function weaponUpright(weapon,MW,u){
   return w;
 }
 /* Bounding box of each weapon's upright drawing: [minX,maxX,minY,maxY] */
-const WEAPON_BOX={w4:[-18,18,-125,25],w5:[-42,42,-236,20],w6:[-18,18,-95,25],w7:[-31,31,-128,24],w8:[-24,24,-284,20],w9:[-54,54,-254,20],w10:[-120,22,-256,20],w1:[-16,16,-128,24],w2:[-27,27,-168,28],w3:[-48,48,-268,29],l4:[-68,90,-312,22],l8:[-36,36,-234,32],
+const WEAPON_BOX={w4:[-18,18,-125,25],w5:[-42,42,-236,20],w6:[-18,18,-95,25],w7:[-31,31,-128,24],w8:[-24,24,-284,20],w9:[-54,54,-254,20],w10:[-182,26,-278,106],w1:[-16,16,-128,24],w2:[-27,27,-168,28],w3:[-48,48,-268,29],l4:[-68,90,-312,22],l8:[-36,36,-234,32],
   w11:[-30,30,-154,24],w12:[-20,20,-152,24],w13:[-19,32,-249,46],w14:[-10,36,-98,24],w15:[-24,22,-196,26],w16:[-32,32,-136,24],w17:[-22,30,-246,22],w18:[-54,54,-308,24],w19:[-48,10,-162,24],w20:[-48,70,-306,24]};
 /* The inventory weapon slot: the weapon stood upright and scaled to fill a tall frame. */
 function tallWeaponSVG(id,bg){
