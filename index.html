@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9c857ee566"></script>
-<script>window.CRAWL_BUILD="9c857ee566";</script>
+<script src="firebase-config.js?v=bf8f6b3ba2"></script>
+<script>window.CRAWL_BUILD="bf8f6b3ba2";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5296,21 +5296,21 @@ function checkAch(evs){ evs=evs||[];if(!player||!player.ach)return;const got=[];
     if(ok){ player.ach[a.id]=Date.now();got.push(a);
       if(a.box)giveBox(a.box,`Achievement: ${a.n}`); if(a.gold)player.gold=(player.gold||0)+a.gold;
       player.viewers=(player.viewers||0)+(a.box?2000:500); pushEvent(`Achievement unlocked: ${a.n}`);}}}
-  if(!got.length)return; setTimeout(coreSnd.ach,400); store.savePlayer(player).catch(writeFailed);render();
+  if(!got.length)return; store.savePlayer(player).catch(writeFailed);{const h=ui.goldHush;ui.goldHush=true;render();ui.goldHush=h;ui.lastGold=player.gold||0;}
   const rew=a=>a.box?`<span class="rew">+ ${esc(BOXES[a.box].n)}</span>`:a.gold?`<span class="rew">+ ${a.gold} gold</span>`:"";
   if(got.length>=3){
     // A flood of unlocks becomes one toast; the System is "handing these out like candy" on purpose, but nobody wants 12 popups.
     const g=got.reduce((n,a)=>n+(a.gold||0),0),bx=got.filter(a=>a.box).length;
     const spam=["The System is handing these out like candy.","Achievement spam detected. The System does not care.","Your notification tray just filed a complaint.","Congratulations. Congratulations. Congratulations."][got.length%4];
-    setTimeout(()=>achToast(`<span class="big">${got.length} achievements unlocked</span><span class="line">${esc(spam)}</span><ul class="achlist">${got.slice(0,6).map(a=>`<li>${a.sec?"🔒 ":""}${esc(a.n)}</li>`).join("")}${got.length>6?`<li class="more">+${got.length-6} more on your Hero tab</li>`:""}</ul>${g||bx?`<span class="rew">+ ${[g?g+" gold":"",bx?bx+" loot box"+(bx>1?"es":""):""].filter(Boolean).join(", ")}</span>`:""}`,got.map(a=>a.id)),400);
+    beat(()=>{coreSnd.ach();achToast(`<span class="big">${got.length} achievements unlocked</span><span class="line">${esc(spam)}</span><ul class="achlist">${got.slice(0,6).map(a=>`<li>${a.sec?"🔒 ":""}${esc(a.n)}</li>`).join("")}${got.length>6?`<li class="more">+${got.length-6} more on your Hero tab</li>`:""}</ul>${g||bx?`<span class="rew">+ ${[g?g+" gold":"",bx?bx+" loot box"+(bx>1?"es":""):""].filter(Boolean).join(", ")}</span>`:""}`,got.map(a=>a.id));},1500);
     return;}
-  got.forEach((a,i)=>setTimeout(()=>achToast(`<span class="big">${a.sec?"Secret achievement":"Achievement unlocked"}</span><b>${esc(a.n)}</b><span class="line">${esc(a.line)}</span>${rew(a)}`,[a.id]),400+i*700));
+  got.forEach(a=>beat(()=>{coreSnd.ach();achToast(`<span class="big">${a.sec?"Secret achievement":"Achievement unlocked"}</span><b>${esc(a.n)}</b><span class="line">${esc(a.line)}</span>${rew(a)}`,[a.id]);},1400));
 }
 
 function fmtViewers(n){n=Math.max(0,Math.round(n||0));return n>=1e6?(n/1e6).toFixed(n>=1e7?0:1).replace(/\.0$/,"")+"M":n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,"")+"K":String(n);}
-function levelUp(before,after){
+function levelUp(before,after,quiet){
   partyPost("level",`reached Level ${after}: ${titleFor(after)}`);
-  setTimeout(()=>SFX.play("level"),350);
+  if(!quiet)setTimeout(()=>SFX.play("level"),350);
   for(let L=before+1;L<=after;L++)giveBox(L%5===0?"silver":"bronze",`Level ${L}`);
   player.viewers=(player.viewers||0)+5000*(after-before);
   say("level",{L:after});
@@ -5324,7 +5324,8 @@ function pickFresh(kind,a){const rec=recentQuips[kind]=recentQuips[kind]||[];con
   let pool=a.filter(x=>!rec.includes(x));if(!pool.length)pool=a;const line=pool[Math.floor(Math.random()*pool.length)];
   rec.push(line);while(rec.length>keep)rec.shift();return line;}
 function pick(kind,v){const a=QUIPS[kind]||[""];return fill(pickFresh(kind,a),v);}
-function say(kind,v){return sayText(pick(kind,v));}
+const SAY_PRI={boss:5,level:4,complete:1,late:1};
+function say(kind,v){ui.sayPri=SAY_PRI[kind]||2;const r=sayText(pick(kind,v));ui.sayPri=null;return r;}
 /* The System's commentary when a quest goes on the board: a big general pool, plus lines that react to the
    quest itself (its size, title, deadline, repeats), the hour, and how crowded the board is. Never repeats recently. */
 const ADD_QUIPS={
@@ -5390,7 +5391,7 @@ function addQuip(t){
   return fill(pickFresh("add",pool),{title,open,adds});
 }
 function sayText(line){
-  setTimeout(()=>announce(line),250);
+  if(ui.voCap)ui.voCap.push({line,pri:ui.sayPri||2});else setTimeout(()=>announce(line),250);
   ui.news=[line].concat(ui.news||[]).slice(0,5);
   const tag=$("tkTag");if(tag){tag.textContent="Breaking";tag.classList.remove("breaking");void tag.offsetWidth;tag.classList.add("breaking");setTimeout(()=>{tag.textContent="Crawler news";},4000);}
   renderTicker();
@@ -5623,6 +5624,7 @@ function offerUndo(title,fn){
 }
 function completeQuest(id,actual,touched){
   const t=tasks.find(x=>x.id===id);if(!t||t.done||isResting(t))return;
+  ui.voCap=[];const hush0=ui.goldHush;ui.goldHush=true;
   const prevP=JSON.parse(JSON.stringify(player));const prevT=Object.assign({},t);
   const td=today();
   const logId=t.rec?newId():t.id;
@@ -5676,15 +5678,16 @@ function completeQuest(id,actual,touched){
   if(ui.ambushLoot){loot={kills:((loot&&loot.kills)||[]).concat(ui.ambushLoot.kills)};ui.ambushLoot=null;}
   let mobMsgs=[];try{mobMsgs=mobFight(fx,t);}catch(e){console.error("mobs",e);}
   let rvMsgs=[];try{rvMsgs=rivalStep(fx,t);const a=rivalAssist(fx);if(a)rvMsgs.push(a);}catch(e){console.error("rival",e);}
-  if(ui.lairFound!=null){const li=ui.lairFound;ui.lairFound=null;if(!ui.ambush)setTimeout(()=>{bossAppear();lairPrompt(li);},1100);}
+  const lairLi=ui.lairFound!=null&&!ui.ambush?ui.lairFound:null;ui.lairFound=null;
+  let ambushBeat=null;
   if(ui.ambush){const a=ui.ambush;ui.ambush=null;
-    setTimeout(()=>{bossAppear();toast(`<span class="big">${a.roam?"It found you!":"Ambush!"}</span> ${a.roam?`<b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}, roams this floor and just jumped you.`:`You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.`}${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?" Fight it out, or retreat from the boss window.":" It blocks the corridor until it falls."):""}`,"lvl");},500);
+    ambushBeat=()=>{bossAppear();toast(`<span class="big">${a.roam?"It found you!":"Ambush!"}</span> ${a.roam?`<b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}, roams this floor and just jumped you.`:`You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.`}${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?" Fight it out, or retreat from the boss window.":" It blocks the corridor until it falls."):""}`,"lvl");};
     mapMsgs=mapMsgs.filter(x=>!/lair!|The stairwell!/.test(x));}
   player.stats[t.stat]=(player.stats[t.stat]||0)+fx;
   const after=levelInfo(player.xp).L;
   player.hp=after>before?maxHp(player):thq.regen?Math.min(maxHp(player),player.hp+5+rcq.hp):player.hp;
   {let au=null;try{au=auraFx(t);}catch(e){}if(au){if(au.hp)player.hp=Math.min(maxHp(player),player.hp+au.hp);if(au.view)player.viewers=(player.viewers||0)+Math.round(fx*37*au.view);}}
-  if(after>before)levelUp(before,after);
+  if(after>before)levelUp(before,after,true);
   ui.claiming=null;ui.addStep=null;
   const quip=say(wasBoss?"late":"complete");
   const qhtml=h=>`<b>${esc(h)}</b><br><span class="quip">${esc(quip)}</span>`;
@@ -5701,7 +5704,7 @@ function completeQuest(id,actual,touched){
     store.saveTask(log).catch(writeFailed);
     store.savePlayer(player).catch(writeFailed);
     render();
-    toast(qhtml(`${head}. Back ${fmtDue(next.due)}.`),"quest");
+    ui.questToast=qhtml(`${head}. Back ${fmtDue(next.due)}.`);
     offerUndo(prevT.title,()=>{
       player=prevP;tasks=tasks.filter(x=>x.id!==log.id).map(x=>x.id===id?prevT:x);
       store.deleteTask(log.id).catch(writeFailed);store.saveTask(prevT).catch(writeFailed);store.savePlayer(player).catch(writeFailed);render();
@@ -5712,28 +5715,39 @@ function completeQuest(id,actual,touched){
     store.saveTask(nt).catch(writeFailed);
     store.savePlayer(player).catch(writeFailed);
     render();
-    toast(qhtml(head),"quest");
+    ui.questToast=qhtml(head);
     offerUndo(prevT.title,()=>{
       player=prevP;tasks=tasks.map(x=>x.id===id?prevT:x);
       store.saveTask(prevT).catch(writeFailed);store.savePlayer(player).catch(writeFailed);render();
     });
   }
-  if(after>before)toast(`<span class="big">Level ${after}</span> ${esc(titleFor(after))} · HP restored · ${after-before>1?(after-before)+" loot boxes":"a loot box"} earned`,"lvl");
-  lootToast(loot);
-  goals.msgs.forEach((m,i)=>setTimeout(()=>toast(m,"lvl"),800+i*700));
-  mapMsgs.forEach((m,i)=>setTimeout(()=>toast(`<b>Map</b> ${esc(m)}`,"quest"),1300+(goals.msgs.length+i)*700));
-  if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;setTimeout(()=>{toast(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest");godMsgs.forEach(m=>pushEvent(m));},1900+(goals.msgs.length+mapMsgs.length)*700);}
-  if(raidMsgs.length)setTimeout(()=>toast(`<b>Raid floor</b> ${raidMsgs.map(x=>esc(x)).join("<br>")}`,"quest"),1600+(goals.msgs.length+mapMsgs.length)*700);
-  if(ui.stormMsg){const m=ui.stormMsg;ui.stormMsg=null;setTimeout(()=>{SFX.play("kill");toast(`<span class="big">⚡ Charged attack!</span> ${m}`,"lvl");},2200+(goals.msgs.length+mapMsgs.length)*700);}
-  if(mobMsgs.length)setTimeout(()=>toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest"),1300+(goals.msgs.length+mapMsgs.length)*700);
-  if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;setTimeout(()=>{if(w)SFX.play("kill");else if(player.rival)SFX.play("hurt");toast(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500+(goals.msgs.length+mapMsgs.length)*700);}
-  if(usedFocus)setTimeout(()=>toast("Potion of Focus spent: that quest earned double XP."),400);
+  /* Presentation, one beat at a time (see beat()): the slice plays first, then each consequence gets its own moment
+     with its sound and its popup together, loudest news first, quiet notes after, achievements last. */
+  ui.goldHush=hush0;ui.lastGold=player.gold||0;
+  const caps=ui.voCap||[];ui.voCap=null;const voice=caps.reduce((a,c)=>!a||c.pri>a.pri?c:a,null);
+  const qt=ui.questToast;ui.questToast=null;
+  const mobKind=ui.mobSnd,rvNew=ui.rvSnd;ui.mobSnd=null;ui.rvSnd=null;
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
-  if(goblinBox)setTimeout(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>goBoxes(),"To the Safe Room"),600);
   react(fx>0);
-  try{arrivalSounds();}catch(e){}
-  if(petMsg)setTimeout(()=>toast(petMsg),500);
-  if(ui.kindled){ui.kindled=false;const a=activePet();if(a)setTimeout(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),300);}
+  beatHold(850); // let the slice land
+  beat(()=>{if(fg>0)coreSnd.gold();if(qt)toast(qt,"quest");if(voice)announce(voice.line);},1000);
+  if(usedFocus)beat(()=>toast("Potion of Focus spent: that quest earned double XP."),700);
+  if(ui.kindled){ui.kindled=false;const a=activePet();if(a)beat(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),700);}
+  if(after>before)beat(()=>{SFX.play("level");toast(`<span class="big">Level ${after}</span> ${esc(titleFor(after))} · HP restored · ${after-before>1?(after-before)+" loot boxes":"a loot box"} earned`,"lvl");},1400);
+  if(loot)beat(()=>lootToast(loot),700); // the victory card holds everything after it until it's closed
+  if(ui.stormMsg){const m=ui.stormMsg;ui.stormMsg=null;beat(()=>{SFX.play("kill");toast(`<span class="big">⚡ Charged attack!</span> ${m}`,"lvl");},1300);}
+  if(ambushBeat)beat(ambushBeat,1500);
+  let rvSoundDone=false;
+  if(mapMsgs.length)beat(()=>{if(rvNew&&!rvMsgs.length){rvSoundDone=true;if(!clip("crawler-appear",.9))SFX.play("hurt");}toast(`<b>Map</b> ${mapMsgs.map(x=>esc(x)).join("<br>")}`,"quest");},rvNew&&!rvMsgs.length?1400:1000);
+  if(lairLi!=null)beat(()=>{bossAppear();lairPrompt(lairLi);},700); // waits while the card is open
+  if(mobMsgs.length)beat(()=>{if(mobKind&&!clip("mob-"+mobKind,.85))SFX.play("hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobKind?1500:1000);
+  if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;beat(()=>{if(rvNew&&!rvSoundDone){if(!clip("crawler-appear",.9))SFX.play("hurt");}else if(w)SFX.play("kill");else if(player.rival)SFX.play("hurt");
+    toast(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500);}
+  goals.msgs.forEach(m=>beat(()=>toast(m,"lvl"),900));
+  if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;godMsgs.forEach(m=>pushEvent(m));beat(()=>toast(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest"),900);}
+  if(raidMsgs.length)beat(()=>toast(`<b>Raid floor</b> ${raidMsgs.map(x=>esc(x)).join("<br>")}`,"quest"),900);
+  if(petMsg)beat(()=>toast(petMsg),800);
+  if(goblinBox)beat(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>goBoxes(),"To the Safe Room"),800);
   if(!loot)checkAch(evs);else ui.pendingAchAfterBoss=evs;
 }
 /* Every finished quest builds bond with the active pet; Charisma speeds it up. Returns a note worth showing, if any. */
@@ -8627,6 +8641,19 @@ function showAdded(id,title,from){
     const c=document.querySelector(`.quest[data-id="${id}"]`);if(!c)return;
     c.scrollIntoView({behavior:calm?"auto":"smooth",block:"center"});setTimeout(()=>flashCard(id),calm?0:450);
   },"Show");
+}
+/* ---------- Show order ----------
+   One thing at a time: each beat plays its sound and shows its popup together, then waits its gap before the next.
+   The queue pauses while a victory card or a close-up is open, so nothing plays behind it. */
+const SHOWQ={q:[],busy:false,hold:0};
+function beat(fn,gap){SHOWQ.q.push({fn,gap:gap==null?1100:gap});if(!SHOWQ.busy){SHOWQ.busy=true;setTimeout(beatNext,Math.max(0,SHOWQ.hold-Date.now()));}}
+function beatHold(ms){SHOWQ.hold=Math.max(SHOWQ.hold,Date.now()+ms);}
+function beatNext(){
+  if(document.querySelector(".victory")||document.getElementById("zoomWrap")){setTimeout(beatNext,400);return;}
+  const w=SHOWQ.hold-Date.now();if(w>0){setTimeout(beatNext,w);return;}
+  const b=SHOWQ.q.shift();if(!b){SHOWQ.busy=false;return;}
+  try{b.fn();}catch(e){console.error("beat",e);}
+  setTimeout(beatNext,b.gap);
 }
 function toast(html,kind,undo,label){
   const el=document.createElement("div");el.className="toast "+(kind||"");
