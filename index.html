@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=896724ea22"></script>
-<script>window.CRAWL_BUILD="896724ea22";</script>
+<script src="firebase-config.js?v=871eaab125"></script>
+<script>window.CRAWL_BUILD="871eaab125";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1018,6 +1018,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .benchdlg{min-width:0}.benchdlg .qt-row{min-width:0}.benchdlg .qt-row>div{overflow-wrap:anywhere}
 .grindbar{font-size:13px;padding:8px 10px;margin:6px 0;border:1px dashed var(--gold);border-radius:8px;color:var(--fg)}
 .salv-ico{flex:none;width:44px;height:44px;padding:0;cursor:zoom-in;position:relative}
+.confirm-row{justify-content:center;gap:8px}.zoomdlg.z-confirm .zoom-art{width:100%;overflow:visible;line-height:normal}.zoomdlg.z-confirm .zoom-sub{color:var(--fg)}
 .salv-ico.mini{width:32px;height:32px}.bench-designs{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .newdot{position:absolute;right:1px;top:1px;font-size:7px;line-height:1;padding:1px 2px;border-radius:3px;background:#3fe0ff;color:#111;font-weight:800;pointer-events:none;text-transform:uppercase}.salv-ico svg{width:100%;height:100%}.salv-n{cursor:zoom-in}
 .zoomdlg.z-item .zoom-art{width:min(140px,40%);overflow:visible}.zitem{position:relative;width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;line-height:0}.zitem svg{width:100%;height:100%}
@@ -3582,7 +3583,7 @@ function qtFuse(rar){const need=qtFuseN();if(!need||!QT_NEXT[rar])return;const s
   const pool=ITEMS.filter(i=>i.rar===QT_NEXT[rar]&&!i.base),fresh=pool.filter(i=>!player.owned.includes(i.id)),pk=(fresh.length?fresh:pool);
   const it=pk[Math.floor(Math.random()*pk.length)],r=receiveItem(it.id);bump("fusions");craftSound();
   pushEvent(`Fused ${need} ${crN(rar)} items into ${it.n}`);store.savePlayer(player).catch(writeFailed);render();renderQt();
-  toast(`<span class="big">Fused!</span> ${need===3?"Three":"Five"} ${crN(rar)} items became <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":" (one you already own)"}.`,"lvl");}
+  craftReveal(it,r,"Fused",`${need===3?"Three":"Five"} ${crN(rar)} items became…`);}
 function qtGuest(uid){const q=player.quarters;if(!q)return;const g=new Set(q.guests||[]);if(g.has(uid))g.delete(uid);else g.add(uid);q.guests=[...g];
   store.savePlayer(player).catch(writeFailed);partyPublish(true);renderQt();}
 /* What goes on the party card: just enough for a guest's visit. */
@@ -3766,6 +3767,46 @@ const MATS={scrap:{n:"Scrap",ic:"⚙"},ess:{n:"Essence",ic:"✨"},star:{n:"Stars
 /* A small tappable item icon for the workbench lists: hover shows its stats, tap opens the close-up */
 function benchIco(it,ctx,cls){const s=mwOf(player,it.id),own=player.owned.includes(it.id);
   return `<button type="button" class="salv-ico invcell r-${it.rar}${cls?" "+cls:""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-zitem="${it.id}"${ctx?` data-zctx="${ctx}"`:""} title="${esc(it.n+" ("+RARITY[it.rar].n+" "+SLOT_NAME[it.slot]+")\n"+itemLines(it).join("\n")+(own?"":"\nNot in your collection yet")+"\nTap to look closer")}" aria-label="${esc(it.n)}: see its stats">${tierIcon(it.id,it.rar)}${s?`<span class="mwbadge" aria-hidden="true">${"★".repeat(s)}</span>`:""}${own?"":`<span class="newdot" aria-hidden="true">new</span>`}</button>`;}
+/* The result of a craft or fusion, shown like a loot-box prize so it can't slip by */
+function craftReveal(it,r,verb,lead){
+  document.querySelectorAll(".victory").forEach(n=>n.remove());
+  const ov=document.createElement("div");ov.className="victory";ov.style.zIndex=50;const rar=it.rar;
+  const note=r==="new"?"Added to your backpack.":r==="kept"?`You already own one: this one went in your backpack as a spare (you have ${1+spareN(it.id)}).`:`You already own one, so this copy sold for ${r} gold.`;
+  ov.innerHTML=`<div class="vcard" role="status" aria-live="assertive"><div class="label vkicker">${esc(verb)} at the workbench</div>
+    <div class="reveal show" style="color:${RAR_GLOW[rar]||"#ffd23f"}"><div class="muted" style="font-size:13px">${esc(lead)}</div>
+      <div class="ico">${lootIconSVG(it.id)}</div><div class="rar rar-${rar}">${RARITY[rar].n}${r==="new"?" · new!":" · duplicate"}</div>
+      <div class="rname">${esc(it.n)}</div><ul class="tstats" style="text-align:left">${itemLines(it).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>
+      <div class="muted" style="font-size:13px">${esc(note)}</div>
+      <div class="acts">${r==="new"?`<button class="btn gold" type="button" data-cequip>Equip</button>`:""}<button class="btn" type="button" data-cclose>Nice</button></div></div></div>`;
+  document.body.appendChild(ov);try{coreSnd.reveal(rar);}catch(e){}
+  const close=()=>{ov.classList.add("out");setTimeout(()=>ov.remove(),300);document.removeEventListener("keydown",onKey);};
+  const onKey=e=>{if(e.key==="Escape")close();};document.addEventListener("keydown",onKey);
+  ov.addEventListener("click",e=>{if(e.target.closest("[data-cequip]")){equip(it.slot,it.id);toast(`Equipped ${it.n}.`);renderBench();close();return;}
+    if(e.target.closest("[data-cclose]")||!e.target.closest(".vcard"))close();});
+  const b=ov.querySelector("[data-cequip]")||ov.querySelector("[data-cclose]");if(b)b.focus();
+}
+/* One more tap before anything gets used up: fusing, crafting and salvaging from the workbench or backpack ask first */
+function confirmFuse(rar){const need=qtFuseN(),sp=qtSpares(rar);if(sp.length<need)return;
+  sp.sort((a,b)=>(b.spare?1:0)-(a.spare?1:0)||spareN(b.id)-spareN(a.id)||mwOf(player,a.id)-mwOf(player,b.id));
+  const use=sp.slice(0,need).map(x=>itemOf(x.id));
+  zoomCard({kind:"confirm",title:"Fuse these?",art:`<div class="bench-designs confirm-row">${use.map(it=>benchIco(it,"fuse")).join("")}</div>`,
+    sub:`These ${need} ${crN(rar)} items will be used up to make <b>one random ${crN(QT_NEXT[rar])} item</b>.`,
+    body:`<ul class="tstats">${use.map(it=>`<li><span class="rar-${it.rar}">${esc(it.n)}</span>${spareN(it.id)?" (a spare)":" (your only copy)"}${mwOf(player,it.id)&&!spareN(it.id)?` · loses ${"★".repeat(mwOf(player,it.id))}`:""}</li>`).join("")}</ul>`,
+    acts:[{label:"Fuse",gold:true,fn:()=>{qtFuse(rar);renderBench();}},{label:"Cancel",fn:()=>{}}]});
+  wireZoomIcons();}
+function confirmCraft(slot,rar){const R=RECIPES[rar];if(!R)return;const c=scaleCost(R.c),g=goldCost(R.g);
+  zoomCard({kind:"confirm",title:`Craft ${crN(rar)} ${SLOT_NAME[slot]}?`,art:`<div class="bench-designs confirm-row">${ITEMS.filter(i=>i.slot===slot&&i.rar===rar&&!i.base).slice(0,8).map(it=>benchIco(it,"design")).join("")}</div>`,
+    sub:`Costs <b>${matTxt(c)}${g?` + ${g}g`:""}</b>. You'll get one of these at random, favouring ones you don't own.`,
+    acts:[{label:"Craft",gold:true,fn:()=>craftItem(slot,rar)},{label:"Cancel",fn:()=>{}}]});
+  wireZoomIcons();}
+function confirmSalvage(id){const it=itemOf(id);if(!it||!canSalvage(id))return;const sp=spareN(id),s=mwOf(player,id),best=bestOwned(player,it.slot);
+  zoomCard({kind:"confirm",title:`Salvage ${it.n}?`,art:`<div class="bench-designs confirm-row">${benchIco(it,"salv")}</div>`,
+    sub:`${sp?"One spare copy":"Your only copy"} becomes <b>${matTxt(SALVAGE[it.rar])}</b>.`,
+    body:`${!sp&&s?`<div class="rv-psy" style="color:var(--gold)">⚠ It's masterworked ${"★".repeat(s)}; the stars are lost.</div>`:""}${!sp&&best&&best.id===id?`<div class="rv-psy" style="color:var(--gold)">⚠ This is giving your active bonus in its slot.</div>`:""}`,
+    acts:[{label:"Salvage",gold:true,fn:()=>salvage(id)},{label:"Cancel",fn:()=>{}}]});
+  wireZoomIcons();}
+/* Icons inside a confirm card open their own close-up (stacked on top) */
+function wireZoomIcons(){const w=$("zoomWrap");if(!w)return;w.querySelectorAll("[data-zitem]").forEach(b=>b.onclick=e=>{e.stopPropagation();zoomItem(b.dataset.zitem,"view");});}
 function craftSound(){if(!clip("crafting",.85))SFX.play("kill");}
 const matN=k=>((player&&player.mats)||{})[k]||0;
 function addMat(k,n){player.mats=Object.assign({},player.mats||{});player.mats[k]=Math.max(0,(player.mats[k]||0)+n);}
@@ -3819,7 +3860,7 @@ function craftItem(slot,rar){const R=RECIPES[rar];if(!R||!craftAccess())return;i
   const r=receiveItem(it.id);craftXp(R.xp);bump("crafted");craftSound();pushEvent(`Crafted ${RARITY[rar].n} ${it.n}`);
   if(r==="new"&&["epic","legendary"].includes(rar))partyPost("loot",`crafted a ${RARITY[rar].n} ${it.n}`);
   store.savePlayer(player).catch(writeFailed);render();renderBench();
-  toast(`<span class="big">Crafted!</span> <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":" (one you already own)"}.`,"lvl",r==="new"?()=>equip(it.slot,it.id):null,r==="new"?"Equip":null);}
+  craftReveal(it,r,"Crafted",`Fresh off the workbench: ${crN(rar)} ${SLOT_NAME[slot].toLowerCase()}`);}
 function masterwork(id){const it=itemOf(id);if(!it||!craftAccess()||!MW_SLOTS.includes(it.slot)||!player.owned.includes(id))return;
   const s=mwOf(player,id)+1;if(s>MW_MAX)return;const {c:c0,g:g0}=mwCost(it,s),c=scaleCost(c0),g=goldCost(g0);
   if(!canPay(c,g)){toast("You don't have the materials and gold for that yet.","bad");return;}
@@ -3882,11 +3923,11 @@ function renderBench(){
   $("benchClose").onclick=closeBench;
   o.querySelectorAll("[data-btab]").forEach(b=>b.onclick=()=>{B.tab=ui.benchTab=b.dataset.btab;renderBench();});
   o.querySelectorAll("[data-bslot]").forEach(b=>b.onclick=()=>{B.slot=b.dataset.bslot;renderBench();});
-  o.querySelectorAll("[data-bcraft]").forEach(b=>b.onclick=()=>craftItem(B.slot,b.dataset.bcraft));
+  o.querySelectorAll("[data-bcraft]").forEach(b=>b.onclick=()=>confirmCraft(B.slot,b.dataset.bcraft));
   o.querySelectorAll("[data-bmw]").forEach(b=>b.onclick=()=>masterwork(b.dataset.bmw));
-  o.querySelectorAll("[data-bsalv]").forEach(b=>b.onclick=()=>salvage(b.dataset.bsalv));
+  o.querySelectorAll("[data-bsalv]").forEach(b=>b.onclick=()=>confirmSalvage(b.dataset.bsalv));
   o.querySelectorAll("[data-zitem]").forEach(b=>{b.onclick=()=>zoomItem(b.dataset.zitem,b.dataset.zctx);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomItem(b.dataset.zitem,b.dataset.zctx);}};});
-  o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>{qtFuse(b.dataset.qtfuse);renderBench();});
+  o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>confirmFuse(b.dataset.qtfuse));
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.bench)closeBench();});
 /* ---------- Floor map ----------
@@ -7431,7 +7472,7 @@ function showInvTip(cell,pinned){
   tip.querySelectorAll("[data-tipequip]").forEach(b=>b.onclick=e=>{e.stopPropagation();const it=ITEMS.find(x=>x.id===b.dataset.tipequip);ui.invPin=null;equip(it.slot,it.id);toast(`Equipped ${it.n}.`);});
   tip.querySelectorAll("[data-tipunequip]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;equip(b.dataset.tipunequip,null);});
   tip.querySelectorAll("[data-tipsell]").forEach(b=>b.onclick=e=>{e.stopPropagation();sellSpare(b.dataset.tipsell);});
-  tip.querySelectorAll("[data-tipsalv]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;tip.hidden=true;salvage(b.dataset.tipsalv);});
+  tip.querySelectorAll("[data-tipsalv]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;tip.hidden=true;confirmSalvage(b.dataset.tipsalv);});
   tip.querySelectorAll("[data-tipgive]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;tip.hidden=true;openGive(b.dataset.tipgive);});
   tip.querySelectorAll("[data-tipdrink]").forEach(b=>b.onclick=e=>{e.stopPropagation();drink();});
   tip.querySelectorAll("[data-tipfocus]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;drinkFocus();});
@@ -8734,7 +8775,7 @@ function zoomItem(id,ctx){
       <div class="tline ${st.on?"":"muted"}">${esc(st.t)}</div>
       ${cur&&cur.id!==it.id?`<div class="muted" style="font-size:12px">You're wearing ${esc(cur.n)} in this slot.</div>`:""}
       ${canSalvage(it.id)?`<div class="qt-row"><div><b>Salvage${sp?" one spare":""}</b><div class="muted">→ ${matTxt(SALVAGE[it.rar])}</div></div></div>${warn?`<div class="rv-psy" style="color:var(--gold)">⚠ ${esc(warn)}</div>`:""}`:""}`,
-    acts:(()=>{const A=[];
+    acts:(()=>{const A=[];if(ctx==="view")return A;
       if(ctx==="mw"&&MW_SLOTS.includes(it.slot)&&s<MW_MAX&&craftAccess()){const {c:c0,g:g0}=mwCost(it,s+1),c=scaleCost(c0),g=goldCost(g0);if(canPay(c,g))A.push({label:`Masterwork ★ · ${matTxt(c)}${g?` + ${g}g`:""}`,gold:true,fn:()=>masterwork(it.id)});}
       if(ctx!=="mw"&&canSalvage(it.id))A.push({label:`Salvage${sp?" a spare":""}`,fn:()=>{salvage(it.id);}});
       if(!worn)A.push({label:"Equip",gold:!A.length,fn:()=>{equip(it.slot,it.id);toast(`Equipped ${it.n}.`);renderBench();}});
