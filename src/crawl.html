@@ -3575,9 +3575,11 @@ function mobIcon(x,y,s,pack,k){
   k=k||"goblin";const one=(dx,dy,sc)=>`<g transform="translate(${x+dx} ${y+dy}) scale(${(s||1)*sc*.26})">${mobCreature(k,0,20,1,0).replace(/class="mc"[^>]*/,"")}</g>`;
   return pack?one(-6,3,.75)+one(6,3,.75)+one(0,-5,.8):one(0,0,1);}
 /* Poke the mob: it snarls (its own sound), the scene flinches, then its close-up opens. */
+/* Poking a mob plays its own poke sound when it has one (sfx/poke-<kind>.mp3), else its arrival cry. */
+const MOB_POKE_SND={goblin:"poke-goblin"};
 function pokeMob(){
   const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead);
-  if(!clip("mob-"+k,.85))SFX.play("hurt");
+  if(!clip(MOB_POKE_SND[k]||"mob-"+k,.85))SFX.play("hurt");
   bump("pokes");bump("poke_"+k);store.savePlayer(player).catch(writeFailed);
   if(Math.random()<.3)setTimeout(()=>say("poke",{}),1400); // the announcer has opinions
   checkAch(); // plays once the close-up is closed
@@ -10414,12 +10416,13 @@ function wireNotifyCtl(){
 if(navigator.serviceWorker)try{navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.open)openPartyView(e.data.open);});}catch(e){}
 
 /* ---------- UI sounds, music and the announcer ---------- */
-// Soft click for any button or tab; a pop when tapping gear. Skipped when the button already made its own sound.
+// The default click (sfx/ui-click.mp3) for any button, tab, box or gear cell. Skipped when the button already
+// made its own sound (a synth effect or a recorded clip); falls back to the synth click where clips can't play.
 document.addEventListener("click",e=>{
   if(prefs.sound===false)return;
-  const t=e.target.closest&&e.target.closest("button,[role=tab],summary,a,label,.invcell,.rfcell");if(!t||t.disabled)return;
+  const t=e.target.closest&&e.target.closest("button,[role=tab],summary,a,label,.invcell,.rfcell,[role=button]");if(!t||t.disabled)return;
   const gear=t.matches(".invcell,[data-inv],[data-insp],[data-cons],[data-invslot]");
-  const before=SFX.lastAt;setTimeout(()=>{if(SFX.lastAt!==before)return;SFX.play(gear?"pop":"click");},0);
+  const before=SFX.lastAt,t0=Date.now();setTimeout(()=>{if(SFX.lastAt!==before||clipAt>=t0)return;if(!clip("ui-click",.5))SFX.play(gear?"pop":"click");},0);
 },true);
 // Music follows what's on screen: the recap loop during episode replays, the lounge loop during the talk show.
 setInterval(()=>{
@@ -10487,8 +10490,9 @@ function announce(text,force,how){
 const CROWD={};
 /* Recorded clips served with the hosted site (sfx/*.mp3). Returns false when the clip can't play here,
    so callers can fall back to a synthesized sound. */
+let clipAt=0; // when a recorded clip last played, so the default button click can stay out of its way
 function clip(name,gain){
-  if(prefs.sound===false)return true;
+  if(prefs.sound===false)return true;clipAt=Date.now();
   if(!window.CRAWL_FB||typeof Audio!=="function")return false;
   try{let a=CROWD[name];if(!a){a=CROWD[name]=new Audio(`sfx/${name}.mp3`);a.preload="auto";}
     a.volume=Math.max(0,Math.min(1,(prefs.vol==null?.6:+prefs.vol)*(gain==null?.75:gain)));a.currentTime=0;const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{});return true;}catch(e){return false;}
