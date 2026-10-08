@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=766c4f17dc"></script>
-<script>window.CRAWL_BUILD="766c4f17dc";</script>
+<script src="firebase-config.js?v=9c857ee566"></script>
+<script>window.CRAWL_BUILD="9c857ee566";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -8209,10 +8209,23 @@ const SFX=(()=>{
     g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(mus.bus);o.start(t);o.stop(t+dur+.05);}
   function mn(dur,peak,ftype,freq,t,_,q){const n=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();n.buffer=noiseBuf;f.type=ftype;f.frequency.value=freq;if(q)f.Q.value=q;
     g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+.004);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);n.connect(f);f.connect(g);g.connect(mus.bus);n.start(t);n.stop(t+dur+.05);}
+  /* Recorded loops (hosted site): decoded once, looped sample-accurately through the music bus. Synth version is the fallback. */
+  const LOOPS={recap:{file:"sfx/recap-music.mp3",gain:.4}},loopBuf={};
+  function loopLoad(name){const L=LOOPS[name];if(!L||!window.CRAWL_FB||typeof fetch!=="function")return null;
+    if(!loopBuf[name])loopBuf[name]=fetch(L.file).then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(a=>new Promise((res,rej)=>ctx.decodeAudioData(a,res,rej))).catch(()=>null);
+    return loopBuf[name];}
   function music(name){
     if(mus&&mus.name===name)return;
-    if(mus){const m=mus;mus=null;clearInterval(m.timer);try{m.bus.gain.setTargetAtTime(0.0001,ctx.currentTime,.25);setTimeout(()=>{try{m.bus.disconnect();}catch(e){}},1500);}catch(e){}}
+    if(mus){const m=mus;mus=null;clearInterval(m.timer);try{m.bus.gain.setTargetAtTime(0.0001,ctx.currentTime,.25);setTimeout(()=>{try{if(m.src)m.src.stop();m.bus.disconnect();}catch(e){}},1500);}catch(e){}}
     if(!name||!SONGS[name]||prefs.music===false||!ac())return;
+    if(LOOPS[name]&&window.CRAWL_FB){
+      const bus=ctx.createGain();bus.gain.setValueAtTime(0.0001,ctx.currentTime);bus.connect(master);
+      const me={name,bus,timer:null,src:null};mus=me;
+      loopLoad(name).then(buf=>{if(mus!==me)return;
+        if(!buf){mus=null;try{bus.disconnect();}catch(e){}LOOPS[name]=null;music(name);return;} // couldn't load: synth version
+        const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;src.connect(bus);src.start();me.src=src;
+        bus.gain.setTargetAtTime(LOOPS[name].gain,ctx.currentTime,.3);});
+      return;}
     const song=SONGS[name],sp=60/song.bpm/4,bus=ctx.createGain();bus.gain.setValueAtTime(0.0001,ctx.currentTime);bus.gain.setTargetAtTime(1,ctx.currentTime,.4);bus.connect(master);
     mus={name,bus,i:0,next:ctx.currentTime+.08,timer:null};const me=mus;
     me.timer=setInterval(()=>{if(mus!==me)return;while(me.next<ctx.currentTime+.35){try{song.step(me.i,me.next,sp);}catch(e){}me.i++;me.next+=sp;}},90);
