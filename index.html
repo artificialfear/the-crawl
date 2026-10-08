@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=4f3ffcff42"></script>
-<script>window.CRAWL_BUILD="4f3ffcff42";</script>
+<script src="firebase-config.js?v=90a7e28b3b"></script>
+<script>window.CRAWL_BUILD="90a7e28b3b";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -7168,7 +7168,7 @@ function ringIcon(it,u){
 }
 /* Headgear in avatar coordinates (head about x 116-184, crown at y 40, eyes at y 94) */
 const HIDES_HAIR=new Set(["l3","h1","l1","h3","h4","h5","h10","h11","h12","h14"]);
-const HEAD_CENTER={h1:[126,72,.6],l1:[150,56,.8],l3:[150,54,.52],l7:[150,30,.92],h2:[150,53,.8],h3:[150,56,.72],h4:[150,50,.56],h5:[150,56,.62],h6:[150,24,1.1],m8:[150,66,.85],
+const HEAD_CENTER={h1:[126,72,.6],l1:[150,56,.8],l3:[150,54,.52],l7:[150,30,.92],h2:[150,53,.8],h3:[150,56,.72],h4:[150,46,.64],h5:[150,56,.62],h6:[150,24,1.1],m8:[150,66,.85],
   h7:[150,24,.62],h9:[150,76,.6],h10:[174,52,.56],h11:[150,82,.5],h12:[150,82,.6],h13:[150,28,.52],h14:[150,54,.6],m13:[150,44,.72]};
 /* The four oldest helms, drawn at shop scale and enlarged to fit the head (same placement as before). */
 function headLegacy(id,u){
@@ -7214,9 +7214,9 @@ function headDetail(id,u){
     case "h2":return _ln("M130 54 L130 62 M150 52 L150 62 M170 54 L170 62",1,"#e0cf90")+_ln("M120 46 L124 50 L128 46 M172 46 L176 50 L180 46",1.2,"#ff8a1f")+`<ellipse cx="160" cy="58" rx="5" ry="3" fill="#e0b060" opacity=".45" stroke="none"/>`+_sh("M176 60 L186 58 L186 66 L176 68 Z","#e8f0ff",` stroke-width="1" opacity=".85"`)+SH("M172 54 L182 42 L182 70 L172 70 Z",.12);
     case "h3":return SH("M168 32 Q186 40 186 74 L174 74 Q176 46 168 32 Z",.16)+HI("M122 56 Q126 40 140 32",3,.55)+_ln("M138 31 Q136 50 137 70 M162 31 Q164 50 163 70",1.6,"#d99a00")
       +_sh("M120 58 L134 58 L134 64 L120 64 Z","#2a2733",` stroke-width="1"`)+_ln("M122 64 L125 58 M127 64 L130 58 M132 64 L134 60",1.6,"#ffd23f")+R(112,76,2.2,"#c9cdd6")+R(188,76,2.2,"#c9cdd6")+_ln("M150 30 L150 70",1.2,"#fff3b0");
-    case "h4":return _sh("M144 70 L156 70 L157 80 L143 80 Z","#ffd23f",` stroke-width="1.6"`)+_sh("M147 73 L153 73 L153.4 77 L146.6 77 Z","#3b2a8a",` stroke="none"`)
-      +_sh("M126 58 L138 56 L139 66 L127 68 Z","#5b45c0",` stroke-width="1.2"`)+`<path d="M127.5 59 L137.5 57.4 L138.4 65 L128.4 66.6 Z" fill="none" stroke="#ffd23f" stroke-width=".9" stroke-dasharray="2 1.6"/>`
-      +gl(176,58,3)+gl(158,28,2.4)+gl(132,44,2)+gl(186,72,2)+`<path d="M196 22 q4 -4 0 -8 q-4 -4 0 -8" fill="none" stroke="#c9b8ff" stroke-width="1.4"/><circle cx="200" cy="8" r="1.6" fill="#c9b8ff" stroke="none"/>`;
+    case "h4":return _sh("M144 64 L156 64 L157 74 L143 74 Z","#ffd23f",` stroke-width="1.6"`)+_sh("M147 67 L153 67 L153.4 71 L146.6 71 Z","#3b2a8a",` stroke="none"`)
+      +_sh("M124 50 L134 48 L135 57 L125 59 Z","#5b45c0",` stroke-width="1.2"`)+`<path d="M125.4 51 L133.4 49.4 L134.2 56 L126.2 57.6 Z" fill="none" stroke="#ffd23f" stroke-width=".9" stroke-dasharray="2 1.6"/>`
+      +gl(176,62,2.6)+gl(156,18,2.2)+gl(132,36,1.8)+gl(170,32,1.6)+`<path d="M204 14 q4 -4 0 -8 q-4 -4 0 -8" fill="none" stroke="#c9b8ff" stroke-width="1.4"/>`;
     case "h5":case "h15":return SH("M164 36 Q184 44 184 70 L174 70 Q176 48 164 36 Z",.16)+HI("M124 60 Q128 44 140 36",3,.5)+_ln("M150 33 L150 70",2.2)+_ln("M120 52 Q150 44 180 52",1.4,"#a86a24")
       +_sh("M116 54 L126 50 L128 60 L118 62 Z","#7a4a26",` stroke-width="1.2"`)+_sh("M184 54 L174 50 L172 60 L182 62 Z","#7a4a26",` stroke-width="1.2"`)
       +[[118,57],[182,57]].map(([x,y])=>R(x+(x<150?4:-4),y-1,1.6,"#e3e6ee")).join("")+[131,169].map(x=>R(x,75,1.8,"#e3e6ee")).join("")+R(150,90,1.6,"#e3e6ee")+R(150,100,1.6,"#e3e6ee");
@@ -7246,9 +7246,13 @@ function headArt(id,u){
   const HA=`url(#${u}a)`;let s="";
   if(id==="h2")s+=_sh("M118 70 L118 42 L130 54 L140 34 L150 52 L160 34 L170 54 L182 42 L182 70 Z","#fff3c4")+_ln("M118 62 L182 62",2)+`<circle cx="130" cy="66" r="3" fill="${RED}"/><circle cx="150" cy="66" r="3" fill="#2f78d0"/><circle cx="170" cy="66" r="3" fill="#3fae5a"/>`+_ln("M126 48 l4 6 M156 44 l3 7",1.4,"#ff8a1f");
   if(id==="h3")s+=_sh("M114 74 Q114 30 150 28 Q186 30 186 74 Z","#ffc21f")+_ov("M114 74 Q114 30 150 28 Q130 38 128 74 Z",HA)+_sh("M104 70 L196 70 Q198 80 192 82 L108 82 Q102 80 104 70 Z","#ffb000")+_ln("M150 30 L150 70",3)+_sh("M158 44 L172 44 L172 56 L158 56 Z","#fff")+_ln("M161 50 L169 50",1.6,RED);
-  if(id==="h4")s+=_sh("M108 82 C110 54 124 30 142 16 Q148 4 160 5 Q178 8 190 30 Q178 24 168 26 C184 40 190 60 192 82 Z","#4b35a8")+_ov("M108 82 C110 54 124 30 142 16 Q136 42 130 82 Z",HA)
-    +`<circle cx="190" cy="31" r="4.5" fill="#ffd23f" stroke="${INK}" stroke-width="2"/>`+_sh("M96 82 Q150 64 204 82 Q150 98 96 82 Z","#3b2a8a")+_ln("M112 76 Q150 66 188 76",3,"#ffd23f")
-    +`<path d="M148 40 l2 5 5 .6 -4 3.4 1.2 5 -4.2 -2.6 -4.2 2.6 1.2 -5 -4 -3.4 5 -.6 Z" fill="#ffd23f"/><path d="M166 52 a6 6 0 1 0 6 8 a4.5 4.5 0 1 1 -6 -8 Z" fill="#ffd23f"/>`;
+  if(id==="h4"){ // a classic wizard's hat: concave cone that still covers the crown of the head, wide thin brim, floppy tip
+    s+=_sh("M112 78 Q118 36 142 12 Q150 2 162 2 Q180 4 200 22 Q184 17 172 19 Q178 40 188 78 Z","#4b35a8")
+      +`<path d="M168 20 Q178 40 188 78 L176 78 Q172 44 160 22 Z" fill="#000" opacity=".2" stroke="none"/><path d="M120 66 Q124 40 140 20" fill="none" stroke="#fff" stroke-width="3" opacity=".22" stroke-linecap="round"/>`
+      +_sh("M84 80 Q150 62 216 80 Q150 98 84 80 Z","#3b2a8a")+`<path d="M92 80 Q150 92 208 80" fill="none" stroke="#2a1d66" stroke-width="2"/><path d="M98 77 Q150 66 202 77" fill="none" stroke="#6b55d0" stroke-width="1.6" opacity=".7"/>`
+      +_sh("M113 72 Q150 62 187 72 L188 79 Q150 69 112 79 Z","#ffd23f")
+      +`<circle cx="201" cy="23" r="4.5" fill="#ffd23f" stroke="${INK}" stroke-width="2"/>`
+      +`<path d="M146 34 l2 5 5 .6 -4 3.4 1.2 5 -4.2 -2.6 -4.2 2.6 1.2 -5 -4 -3.4 5 -.6 Z" fill="#ffd23f" stroke="${INK}" stroke-width="1"/><path d="M164 46 a6 6 0 1 0 6 8 a4.5 4.5 0 1 1 -6 -8 Z" fill="#ffd23f" stroke="${INK}" stroke-width="1"/>`;}
   if(id==="h5")s+=_sh("M122 62 Q94 54 90 18 Q104 44 124 50 Z",BONE)+_sh("M178 62 Q206 54 210 18 Q196 44 176 50 Z",BONE)+_ln("M100 36 l7 -4 M106 46 l7 -4 M200 36 l-7 -4 M194 46 l-7 -4",1.6)
     +_sh("M116 76 Q116 34 150 32 Q184 34 184 76 Z","#c98a3c")+_ov("M116 76 Q116 34 150 32 Q132 42 130 76 Z",HA)+_sh("M110 70 L190 70 L190 80 L110 80 Z","#a86a24")+_sh("M146 76 L154 76 L153 106 L147 106 Z","#c98a3c")+[124,138,162,176].map(x=>`<circle cx="${x}" cy="75" r="2" fill="${INK}" stroke="none"/>`).join("");
   if(id==="h6")s+=`<ellipse class="mf-glow" cx="150" cy="24" rx="36" ry="11" fill="none" stroke="#fff6c8" stroke-width="12" opacity=".6"/>`+`<ellipse cx="150" cy="24" rx="32" ry="9" fill="none" stroke="${INK}" stroke-width="9"/><ellipse cx="150" cy="24" rx="32" ry="9" fill="none" stroke="#ffd23f" stroke-width="4.5"/>`;
