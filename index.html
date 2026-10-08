@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=d847c84a2e"></script>
-<script>window.CRAWL_BUILD="d847c84a2e";</script>
+<script src="firebase-config.js?v=2e277bebc7"></script>
+<script>window.CRAWL_BUILD="2e277bebc7";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5930,7 +5930,7 @@ function arrivalSounds(){const rv=ui.rvSnd,mb=ui.mobSnd;ui.rvSnd=null;ui.mobSnd=
 function selectSound(){if(!clip("select-gear",.8))SFX.play("tick");}
 function equipSound(slot){if(!(EQUIP_SND[slot]&&clip("equip-"+slot,EQUIP_SND[slot])))SFX.play("equip");}
 function equip(slot,id){
-  if(id)equipSound(slot);
+  if(id)equipSound(slot);else if(wearing(player)[slot]&&!clip("unequip",.9))SFX.play("tick"); // back into the backpack
   player.equipped=Object.assign({},wearing(player),{[slot]:id||null});
   store.savePlayer(player).catch(writeFailed);render();
 }
