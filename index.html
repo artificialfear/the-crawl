@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=4aab3af60a"></script>
-<script>window.CRAWL_BUILD="4aab3af60a";</script>
+<script src="firebase-config.js?v=f2809562d7"></script>
+<script>window.CRAWL_BUILD="f2809562d7";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2542,7 +2542,13 @@ async function remoteStore(db,uid){
   // revision is a late echo of an earlier save (or a stale device); applying it would roll back newer
   // changes (loot just opened, gear just equipped) and the next save would write that rollback for good.
   let localRev=0;
+  /* Stale-device guard: a device can open on its offline copy from days ago. Until the server's copy has arrived
+     (or we're genuinely offline, or the server is unreachable for 20s), saves are held back, so an old copy can
+     never be written over newer progress from another device. */
+  let fresh=false;const t0=Date.now();
+  const canSave=()=>fresh||!navigator.onLine||Date.now()-t0>20000;
   pRef.onSnapshot(s=>{
+    if(!(s.metadata&&s.metadata.fromCache))fresh=true;
     const d=s.exists?thaw(s.data()):null,rev=d&&d._rev||0;
     if(loadedP&&rev<localRev)return;
     if(rev>localRev)localRev=rev;
@@ -2557,7 +2563,8 @@ async function remoteStore(db,uid){
     loadedT=true;afterLoad();},e=>onDbError(e));
   return {
     kind:"remote",
-    savePlayer:p=>{localRev=Math.max(localRev,p._rev||0)+1;p._rev=localRev;const body=JSON.parse(JSON.stringify(p));
+    savePlayer:p=>{if(!canSave()){setSync("local","Loading your latest save…");return Promise.resolve();}
+      localRev=Math.max(localRev,p._rev||0)+1;p._rev=localRev;const body=JSON.parse(JSON.stringify(p));
       return q("player",()=>pRef.set(body)).then(()=>{playerExists=true;});},
     saveTask:t=>{tRev[t.id]=Math.max(tRev[t.id]||0,t._rev||0)+1;t._rev=tRev[t.id];gone.delete(t.id);const {id,...body}=JSON.parse(JSON.stringify(t));return q("t:"+id,()=>tCol.doc(id).set(body));},
     deleteTask:id=>{gone.add(id);return q("t:"+id,()=>tCol.doc(id).delete());}
