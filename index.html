@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=aee8b7f2b8"></script>
-<script>window.CRAWL_BUILD="aee8b7f2b8";</script>
+<script src="firebase-config.js?v=8aa4bb43f9"></script>
+<script>window.CRAWL_BUILD="8aa4bb43f9";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1017,7 +1017,9 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .bench-tabs{margin:4px 0 0;flex-wrap:wrap;gap:6px}.bench-tabs button{padding:7px 12px;min-height:34px;font-size:12px}
 .benchdlg{min-width:0}.benchdlg .qt-row{min-width:0}.benchdlg .qt-row>div{overflow-wrap:anywhere}
 .grindbar{font-size:13px;padding:8px 10px;margin:6px 0;border:1px dashed var(--gold);border-radius:8px;color:var(--fg)}
-.salv-ico{flex:none;width:44px;height:44px;padding:0;cursor:zoom-in}.salv-ico svg{width:100%;height:100%}.salv-n{cursor:zoom-in}
+.salv-ico{flex:none;width:44px;height:44px;padding:0;cursor:zoom-in;position:relative}
+.salv-ico.mini{width:32px;height:32px}.bench-designs{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.newdot{position:absolute;right:1px;top:1px;font-size:7px;line-height:1;padding:1px 2px;border-radius:3px;background:#3fe0ff;color:#111;font-weight:800;pointer-events:none;text-transform:uppercase}.salv-ico svg{width:100%;height:100%}.salv-n{cursor:zoom-in}
 .zoomdlg.z-item .zoom-art{width:min(140px,40%);overflow:visible}.zitem{position:relative;width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;line-height:0}.zitem svg{width:100%;height:100%}
 .twinbar{font-size:12px;color:var(--gold);font-weight:700}
 .zladder{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13px}.zladder .now{color:var(--gold)}
@@ -3761,6 +3763,9 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.qt)closeQt();});
    crafting XP; levels unlock rarer recipes and trim gold costs. Clockwork Golems and Chore Druids learn 50% faster.
    player.mats = {scrap, ess, star}; player.craft = {xp}; player.mw = {itemId: stars}. Uniques stay drop-only. */
 const MATS={scrap:{n:"Scrap",ic:"⚙"},ess:{n:"Essence",ic:"✨"},star:{n:"Starshard",ic:"💠"}};
+/* A small tappable item icon for the workbench lists: hover shows its stats, tap opens the close-up */
+function benchIco(it,ctx,cls){const s=mwOf(player,it.id),own=player.owned.includes(it.id);
+  return `<button type="button" class="salv-ico invcell r-${it.rar}${cls?" "+cls:""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-zitem="${it.id}"${ctx?` data-zctx="${ctx}"`:""} title="${esc(it.n+" ("+RARITY[it.rar].n+" "+SLOT_NAME[it.slot]+")\n"+itemLines(it).join("\n")+(own?"":"\nNot in your collection yet")+"\nTap to look closer")}" aria-label="${esc(it.n)}: see its stats">${tierIcon(it.id,it.rar)}${s?`<span class="mwbadge" aria-hidden="true">${"★".repeat(s)}</span>`:""}${own?"":`<span class="newdot" aria-hidden="true">new</span>`}</button>`;}
 function craftSound(){if(!clip("crafting",.85))SFX.play("kill");}
 const matN=k=>((player&&player.mats)||{})[k]||0;
 function addMat(k,n){player.mats=Object.assign({},player.mats||{});player.mats[k]=Math.max(0,(player.mats[k]||0)+n);}
@@ -3839,26 +3844,33 @@ function renderBench(){
     const slots=SLOTS.map(([s])=>s);
     body=`<div class="qt-stats">${slots.map(s=>`<button type="button" class="chipbtn${B.slot===s?" on":""}" data-bslot="${s}">${SLOT_NAME[s]}</button>`).join("")}</div>
       ${Object.entries(RECIPES).map(([rar,R])=>{const c=scaleCost(R.c),g=goldCost(R.g),lock=L<R.lv,pool=ITEMS.filter(i=>i.slot===B.slot&&i.rar===rar&&!i.base),fresh=pool.filter(i=>!player.owned.includes(i.id)).length;
-        return `<div class="qt-row${lock?"":" own"}"><div><b class="rar-${rar}">${crN(rar)} ${SLOT_NAME[B.slot]}</b><div class="muted">${lock?`Unlocks at crafting level ${R.lv}`:`${cost(c,g)} · ${pool.length?`${fresh} of ${pool.length} you don't own yet`:"no designs for this slot"}`}</div></div>
+        return `<div class="qt-row${lock?"":" own"}"><div><b class="rar-${rar}">${crN(rar)} ${SLOT_NAME[B.slot]}</b><div class="muted">${lock?`Unlocks at crafting level ${R.lv}`:`${cost(c,g)} · ${pool.length?`${fresh} of ${pool.length} you don't own yet`:"no designs for this slot"}`}</div>
+          ${pool.length?`<div class="bench-designs">${pool.slice(0,12).map(it=>benchIco(it,"design","mini")).join("")}</div>`:""}</div>
           <button class="btn sm gold" type="button" data-bcraft="${rar}"${lock||!pool.length||!canPay(c,g)?" disabled":""}>${lock?"🔒":"Craft"}</button></div>`;}).join("")}
       <div class="muted" style="font-size:12px">You get a random ${SLOT_NAME[B.slot].toLowerCase()} item of that rarity, one you don't own yet when possible. Unique gear can't be crafted.</div>`;
   }else if(B.tab==="mw"){
     const mine=ITEMS.filter(i=>MW_SLOTS.includes(i.slot)&&player.owned.includes(i.id)&&(i.bonus>0||i.hp)).sort((a,b)=>{const ba=bestOwned(player,a.slot),bb=bestOwned(player,b.slot);return ((bb&&bb.id===b.id)?1:0)-((ba&&ba.id===a.id)?1:0)||RAR_IX[b.rar]-RAR_IX[a.rar];});
     body=mine.length?mine.map(it=>{const s=mwOf(player,it.id),act=bestOwned(player,it.slot),on=act&&act.id===it.id;
-      if(s>=MW_MAX)return `<div class="qt-row own"><div><b class="rar-${it.rar}">${esc(it.n)}</b> <span class="mwst">${"★".repeat(s)}</span><div class="muted">${SLOT_NAME[it.slot]} · fully masterworked (+60%)${on?" · active":""}</div></div><span class="qt-on">Max</span></div>`;
+      if(s>=MW_MAX)return `<div class="qt-row own">${benchIco(it,"mw")}<div><b class="rar-${it.rar} salv-n" data-zitem="${it.id}" data-zctx="mw" role="button" tabindex="0">${esc(it.n)}</b> <span class="mwst">${"★".repeat(s)}</span><div class="muted">${SLOT_NAME[it.slot]} · fully masterworked (+60%)${on?" · active":""}</div></div><span class="qt-on">Max</span></div>`;
       const {c:c0,g:g0}=mwCost(it,s+1),c=scaleCost(c0),g=goldCost(g0);
-      return `<div class="qt-row${on?" own":""}"><div><b class="rar-${it.rar}">${esc(it.n)}</b> <span class="mwst">${"★".repeat(s)}<span class="dim">${"☆".repeat(MW_MAX-s)}</span></span><div class="muted">${SLOT_NAME[it.slot]}${on?" · active":""} · next ★: ${cost(c,g)} → ${itemLines(Object.assign({},it,{bonus:it.bonus*(1+.2*(s+1)),hp:Math.round((it.hp||0)*(1+.2*(s+1)))}),{mw:{}})[0]}</div></div>
+      return `<div class="qt-row${on?" own":""}">${benchIco(it,"mw")}<div><b class="rar-${it.rar} salv-n" data-zitem="${it.id}" data-zctx="mw" role="button" tabindex="0">${esc(it.n)}</b> <span class="mwst">${"★".repeat(s)}<span class="dim">${"☆".repeat(MW_MAX-s)}</span></span><div class="muted">${SLOT_NAME[it.slot]}${on?" · active":""} · next ★: ${cost(c,g)} → ${itemLines(Object.assign({},it,{bonus:it.bonus*(1+.2*(s+1)),hp:Math.round((it.hp||0)*(1+.2*(s+1)))}),{mw:{}})[0]}</div></div>
         <button class="btn sm gold" type="button" data-bmw="${it.id}"${canPay(c,g)?"":" disabled"}>★</button></div>`;}).join("")
       :`<p class="muted">No gear to masterwork yet. Weapons, body armor, helmets, capes, gloves and boots can all be masterworked.</p>`;
     body+=`<div class="muted" style="font-size:12px">Each star adds +20% to the item's bonus. Your best item in each slot is the one that counts, so masterwork the ones you use. Rings and pet trinkets can't be masterworked.</div>`;
   }else if(B.tab==="salv"){
     const list=salvageable();
-    body=list.length?list.map(({it,spare,n})=>`<div class="qt-row"><button type="button" class="salv-ico invcell r-${it.rar}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-zitem="${it.id}" title="${esc(it.n+" ("+RARITY[it.rar].n+" "+SLOT_NAME[it.slot]+")\n"+itemLines(it).join("\n")+"\nTap to look closer")}" aria-label="${esc(it.n)}: see its stats">${tierIcon(it.id,it.rar)}${mwOf(player,it.id)?`<span class="mwbadge" aria-hidden="true">${"★".repeat(mwOf(player,it.id))}</span>`:""}</button><div><b class="rar-${it.rar} salv-n" data-zitem="${it.id}" role="button" tabindex="0">${esc(it.n)}</b>${spare?` <span class="muted">· ${n} spare${n===1?"":"s"}</span>`:` <span class="muted">· not worn</span>`}<div class="muted">→ ${matTxt(SALVAGE[it.rar])}${mwOf(player,it.id)&&!spare?" · its masterwork stars are lost":""}</div></div>
+    body=list.length?list.map(({it,spare,n})=>`<div class="qt-row">${benchIco(it,"salv")}<div><b class="rar-${it.rar} salv-n" data-zitem="${it.id}" role="button" tabindex="0">${esc(it.n)}</b>${spare?` <span class="muted">· ${n} spare${n===1?"":"s"}</span>`:` <span class="muted">· not worn</span>`}<div class="muted">→ ${matTxt(SALVAGE[it.rar])}${mwOf(player,it.id)&&!spare?" · its masterwork stars are lost":""}</div></div>
         <button class="btn sm" type="button" data-bsalv="${it.id}">Salvage</button></div>`).join("")
       :`<p class="muted">Nothing to salvage. Spares, and gear you own but aren't wearing, show up here. Equipped gear and Unique items are never salvaged.</p>`;
   }else{
     const need=qtFuseN();
-    body=`<div class="qt-stats">${QT_FUSE.map(r=>{const n=qtSpares(r).length;return `<button type="button" class="chipbtn" data-qtfuse="${r}"${n<need?" disabled":""}>${crN(r)} ×${need} → ${crN(QT_NEXT[r])} <span class="muted">(${n})</span></button>`;}).join("")}</div>
+    body=QT_FUSE.map(r=>{const sp=qtSpares(r),n=sp.length;if(!n)return "";
+        sp.sort((a,b)=>(b.spare?1:0)-(a.spare?1:0)||spareN(b.id)-spareN(a.id)||mwOf(player,a.id)-mwOf(player,b.id));
+        const next=sp.slice(0,need);
+        return `<div class="qt-row${n>=need?" own":""}"><div><b>${crN(r)} ×${need} → ${crN(QT_NEXT[r])}</b> <span class="muted">(${n} available)</span>
+          <div class="muted" style="font-size:12px">${n>=need?"Next fuse uses:":`Needs ${need-n} more. You have:`}</div><div class="bench-designs">${(n>=need?next:sp).map(x=>benchIco(itemOf(x.id),"fuse","mini")).join("")}</div></div>
+          <button class="btn sm gold" type="button" data-qtfuse="${r}"${n<need?" disabled":""}>Fuse</button></div>`;}).join("")||`<p class="muted">Nothing to fuse yet. Spares and gear you aren't wearing show up here.</p>`;
+    body+=`
       <div class="muted" style="font-size:12px">Fuse any ${need} items of one rarity you aren't wearing (spares are used first) into a random item one rarity higher. No materials needed. The gear giving your active bonus in each slot is kept safe even when it isn't worn.</div>`;
   }
   o.innerHTML=`<div class="geardlg inspdlg benchdlg" role="dialog" aria-modal="true" aria-label="Workbench"><div class="gearhead"><h2>Workbench</h2><button class="btn ghost sm" type="button" id="benchClose">Close</button></div>
@@ -3873,7 +3885,7 @@ function renderBench(){
   o.querySelectorAll("[data-bcraft]").forEach(b=>b.onclick=()=>craftItem(B.slot,b.dataset.bcraft));
   o.querySelectorAll("[data-bmw]").forEach(b=>b.onclick=()=>masterwork(b.dataset.bmw));
   o.querySelectorAll("[data-bsalv]").forEach(b=>b.onclick=()=>salvage(b.dataset.bsalv));
-  o.querySelectorAll("[data-zitem]").forEach(b=>{b.onclick=()=>zoomItem(b.dataset.zitem);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomItem(b.dataset.zitem);}};});
+  o.querySelectorAll("[data-zitem]").forEach(b=>{b.onclick=()=>zoomItem(b.dataset.zitem,b.dataset.zctx);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomItem(b.dataset.zitem,b.dataset.zctx);}};});
   o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>{qtFuse(b.dataset.qtfuse);renderBench();});
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.bench)closeBench();});
@@ -8707,8 +8719,11 @@ function zoomPet(k){
     acts:active?[]:[{label:"Make active",gold:true,fn:()=>setPet(k)}]});
 }
 /* One piece of gear, up close: from the workbench, so you can check what you're about to salvage */
-function zoomItem(id){
-  const it=itemOf(id);if(!it)return;const st=itemStatus(it),w=wearing(player),worn=w[it.slot]===it.id,sp=spareN(it.id),s=mwOf(player,it.id);
+function zoomItem(id,ctx){
+  const it=itemOf(id);if(!it)return;
+  if(!player.owned.includes(id)){ // a design you could craft but don't have
+    zoomCard({kind:"item",title:it.n,titleHTML:`<span class="rar-${it.rar}">${esc(it.n)}</span>`,art:`<div class="zitem invcell r-${it.rar}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""}>${tierIcon(it.id,it.rar)}</div>`,
+      sub:`${RARITY[it.rar].n} · ${SLOT_NAME[it.slot]} · not in your collection yet`,body:`<ul class="tstats">${itemLines(it,{mw:{}}).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>${it.mnote?`<div class="tline tmagic">${esc(it.mnote)}</div>`:""}<div class="muted" style="font-size:12px">Crafting this slot and rarity gives you a random design like this one, favouring ones you don't own.</div>`});return;}const st=itemStatus(it),w=wearing(player),worn=w[it.slot]===it.id,sp=spareN(it.id),s=mwOf(player,it.id);
   const best=bestOwned(player,it.slot),cur=w[it.slot]&&itemOf(w[it.slot]);
   const warn=best&&best.id===it.id?"This is the item giving your active bonus in its slot.":s?`It's masterworked ${"★".repeat(s)}. Salvaging your only copy loses the stars.`:it.rar==="legendary"?"Legendary gear is hard to replace.":"";
   zoomCard({kind:"item",title:it.n,titleHTML:`<span class="rar-${it.rar}">${esc(it.n)}</span>`,
@@ -8719,7 +8734,11 @@ function zoomItem(id){
       <div class="tline ${st.on?"":"muted"}">${esc(st.t)}</div>
       ${cur&&cur.id!==it.id?`<div class="muted" style="font-size:12px">You're wearing ${esc(cur.n)} in this slot.</div>`:""}
       ${canSalvage(it.id)?`<div class="qt-row"><div><b>Salvage${sp?" one spare":""}</b><div class="muted">→ ${matTxt(SALVAGE[it.rar])}</div></div></div>${warn?`<div class="rv-psy" style="color:var(--gold)">⚠ ${esc(warn)}</div>`:""}`:""}`,
-    acts:(canSalvage(it.id)?[{label:`Salvage${sp?" a spare":""}`,fn:()=>{salvage(it.id);}}]:[]).concat(worn?[]:[{label:"Equip",gold:!canSalvage(it.id),fn:()=>{equip(it.slot,it.id);toast(`Equipped ${it.n}.`);renderBench();}}])});
+    acts:(()=>{const A=[];
+      if(ctx==="mw"&&MW_SLOTS.includes(it.slot)&&s<MW_MAX&&craftAccess()){const {c:c0,g:g0}=mwCost(it,s+1),c=scaleCost(c0),g=goldCost(g0);if(canPay(c,g))A.push({label:`Masterwork ★ · ${matTxt(c)}${g?` + ${g}g`:""}`,gold:true,fn:()=>masterwork(it.id)});}
+      if(ctx!=="mw"&&canSalvage(it.id))A.push({label:`Salvage${sp?" a spare":""}`,fn:()=>{salvage(it.id);}});
+      if(!worn)A.push({label:"Equip",gold:!A.length,fn:()=>{equip(it.slot,it.id);toast(`Equipped ${it.n}.`);renderBench();}});
+      return A;})()});
 }
 /* Your floor boss */
 function zoomBoss(){
