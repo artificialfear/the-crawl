@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=3b10e7c77c"></script>
-<script>window.CRAWL_BUILD="3b10e7c77c";</script>
+<script src="firebase-config.js?v=aee8b7f2b8"></script>
+<script>window.CRAWL_BUILD="aee8b7f2b8";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3578,7 +3578,7 @@ function qtFuse(rar){const need=qtFuseN();if(!need||!QT_NEXT[rar])return;const s
   sp.sort((a,b)=>(b.spare?1:0)-(a.spare?1:0)||spareN(b.id)-spareN(a.id)||mwOf(player,a.id)-mwOf(player,b.id));
   for(const x of sp.slice(0,need)){if(x.spare)addSpare(x.id,-1);else{takeItem(x.id);if(player.mw&&player.mw[x.id]){player.mw=Object.assign({},player.mw);delete player.mw[x.id];}}}
   const pool=ITEMS.filter(i=>i.rar===QT_NEXT[rar]&&!i.base),fresh=pool.filter(i=>!player.owned.includes(i.id)),pk=(fresh.length?fresh:pool);
-  const it=pk[Math.floor(Math.random()*pk.length)],r=receiveItem(it.id);bump("fusions");SFX.play("kill");
+  const it=pk[Math.floor(Math.random()*pk.length)],r=receiveItem(it.id);bump("fusions");craftSound();
   pushEvent(`Fused ${need} ${crN(rar)} items into ${it.n}`);store.savePlayer(player).catch(writeFailed);render();renderQt();
   toast(`<span class="big">Fused!</span> ${need===3?"Three":"Five"} ${crN(rar)} items became <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":" (one you already own)"}.`,"lvl");}
 function qtGuest(uid){const q=player.quarters;if(!q)return;const g=new Set(q.guests||[]);if(g.has(uid))g.delete(uid);else g.add(uid);q.guests=[...g];
@@ -3761,6 +3761,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.qt)closeQt();});
    crafting XP; levels unlock rarer recipes and trim gold costs. Clockwork Golems and Chore Druids learn 50% faster.
    player.mats = {scrap, ess, star}; player.craft = {xp}; player.mw = {itemId: stars}. Uniques stay drop-only. */
 const MATS={scrap:{n:"Scrap",ic:"⚙"},ess:{n:"Essence",ic:"✨"},star:{n:"Starshard",ic:"💠"}};
+function craftSound(){if(!clip("crafting",.85))SFX.play("kill");}
 const matN=k=>((player&&player.mats)||{})[k]||0;
 function addMat(k,n){player.mats=Object.assign({},player.mats||{});player.mats[k]=Math.max(0,(player.mats[k]||0)+n);}
 const matTxt=c=>Object.entries(c).filter(([k,v])=>v&&MATS[k]).map(([k,v])=>`${MATS[k].ic} ${v} ${MATS[k].n}`).join(" + ");
@@ -3802,7 +3803,7 @@ function canSalvage(id){const it=itemOf(id);if(!it||!craftAccess()||it.base||it.
   if(spareN(id)>0)return true;return player.owned.includes(id)&&!Object.values(wearing(player)).includes(id);}
 function salvage(id,quiet){if(!canSalvage(id))return false;const it=itemOf(id);
   const wasSpare=spareN(id)>0;if(!takeItem(id))return false;if(!wasSpare&&player.mw&&player.mw[id]){player.mw=Object.assign({},player.mw);delete player.mw[id];}
-  const y=SALVAGE[it.rar];for(const [k,v] of Object.entries(y))addMat(k,v);craftXp(SALV_XP[it.rar]);bump("salvaged");SFX.play("coin");
+  const y=SALVAGE[it.rar];for(const [k,v] of Object.entries(y))addMat(k,v);craftXp(SALV_XP[it.rar]);bump("salvaged");craftSound();
   pushEvent(`Salvaged ${it.n} for ${matTxt(y)}`);
   if(!quiet){store.savePlayer(player).catch(writeFailed);render();renderBench();toast(`Salvaged ${esc(it.n)}: ${matTxt(y)}.`);}
   return true;}
@@ -3810,14 +3811,14 @@ function craftItem(slot,rar){const R=RECIPES[rar];if(!R||!craftAccess())return;i
   const c=scaleCost(R.c),g=goldCost(R.g);if(!canPay(c,g)){toast("You don't have the materials and gold for that yet.","bad");return;}
   const pool=ITEMS.filter(i=>i.slot===slot&&i.rar===rar&&!i.base);if(!pool.length)return;
   pay(c,g);const fresh=pool.filter(i=>!player.owned.includes(i.id)),pk=fresh.length?fresh:pool,it=pk[Math.floor(Math.random()*pk.length)];
-  const r=receiveItem(it.id);craftXp(R.xp);bump("crafted");SFX.play("kill");pushEvent(`Crafted ${RARITY[rar].n} ${it.n}`);
+  const r=receiveItem(it.id);craftXp(R.xp);bump("crafted");craftSound();pushEvent(`Crafted ${RARITY[rar].n} ${it.n}`);
   if(r==="new"&&["epic","legendary"].includes(rar))partyPost("loot",`crafted a ${RARITY[rar].n} ${it.n}`);
   store.savePlayer(player).catch(writeFailed);render();renderBench();
   toast(`<span class="big">Crafted!</span> <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":" (one you already own)"}.`,"lvl",r==="new"?()=>equip(it.slot,it.id):null,r==="new"?"Equip":null);}
 function masterwork(id){const it=itemOf(id);if(!it||!craftAccess()||!MW_SLOTS.includes(it.slot)||!player.owned.includes(id))return;
   const s=mwOf(player,id)+1;if(s>MW_MAX)return;const {c:c0,g:g0}=mwCost(it,s),c=scaleCost(c0),g=goldCost(g0);
   if(!canPay(c,g)){toast("You don't have the materials and gold for that yet.","bad");return;}
-  pay(c,g);player.mw=Object.assign({},player.mw||{},{[id]:s});craftXp(15*s*(RAR_IX[it.rar]+1));bump("masterworks");SFX.play("kill");
+  pay(c,g);player.mw=Object.assign({},player.mw||{},{[id]:s});craftXp(15*s*(RAR_IX[it.rar]+1));bump("masterworks");craftSound();
   pushEvent(`Masterworked ${it.n} to ${"★".repeat(s)}`);store.savePlayer(player).catch(writeFailed);render();renderBench();
   toast(`<span class="big">${"★".repeat(s)}</span> ${esc(it.n)} is now masterwork ${s} of ${MW_MAX}: +${s*20}% to its bonus.`,"lvl");}
 /* Material drops, called from mobs, chests, rivals, bosses and boxes. Returns a short note. */
