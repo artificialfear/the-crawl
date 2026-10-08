@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=0c29ab1c83"></script>
-<script>window.CRAWL_BUILD="0c29ab1c83";</script>
+<script src="firebase-config.js?v=2008a9dc17"></script>
+<script>window.CRAWL_BUILD="2008a9dc17";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1009,6 +1009,10 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 @media (max-width:420px){.pt-mrow{grid-template-columns:46px 1fr}.pt-mrow .pt-cbtns{grid-column:2;justify-content:flex-start}}
 .lairbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:8px 0;padding:8px 10px;border:2px solid #e8283c;border-radius:10px;background:rgba(232,40,60,.08);font-size:13px}
 .lairchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mobalert.zoomable{cursor:pointer}.mobalert.poked .mobscene{animation:mpoke .45s ease-out}
+@keyframes mpoke{0%{transform:none}20%{transform:translate(-6px,2px) scale(1.04)}40%{transform:translate(5px,-2px) scale(1.06)}60%{transform:translate(-3px,1px) scale(1.03)}100%{transform:none}}
+.zoomdlg.z-mob .zoom-art{width:100%;border-radius:8px}.mobbub{margin:8px 0;font-style:italic}
+@media (prefers-reduced-motion:reduce){.mobalert.poked .mobscene{animation:none}}
 .pt-foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--line-2)}.pt-foot .pt-head{margin-bottom:6px}
 .pt-codebar{display:flex;align-items:center;gap:10px;flex-basis:100%;flex-wrap:wrap}
 .pt-code{font-family:var(--mono,monospace);font-weight:700;letter-spacing:2px;background:var(--panel-2);border:1px dashed var(--gold);color:var(--gold);border-radius:6px;padding:3px 8px}
@@ -3233,6 +3237,11 @@ const MOB_KINDS={
           line:"Rusty knives, bad teeth, and a clipboard of grievances."},
   ooze:  {n:"Oozes",names:["Mildew Slime Cluster","Gelatinous Inbox Cluster","Mold Sprite Bloom","Sewer Ooze Cluster"],packs:["Sludge Committee","Ooze Pit"],
           line:"They don't have mouths. They have several."}};
+/* What a mob says when you poke it. */
+const MOB_TAUNTS={
+  rat:["Squeak. That means 'your snacks are ours' in rat.","We've chewed through tougher to-do lists than yours.","The King says hi. The King says bye.","There are more of us. There are always more of us.","We were here first. We were here before the walls."],
+  goblin:["Per section four of the dungeon code, you owe us lunch money.","This is a robbery. Also a survey. Rate us one to five.","We're union. Hit one of us, you hit the whole clipboard.","Your file says 'easy target'. We wrote the file.","Sir, this is a goblin shakedown. Please hold."],
+  ooze:["Blorp.","Glrrk. Translation: hello, food.","We have absorbed eleven crawlers and one very confused mop.","You smell like unfinished chores. Delicious.","Don't step back. We're already on your shoe."]};
 const MOBS=[].concat(...Object.values(MOB_KINDS).map(k=>k.names));
 const MOB_PACKS=[].concat(...Object.values(MOB_KINDS).map(k=>k.packs));
 function mobKind(mb){if(mb&&MOB_KINDS[mb.k])return mb.k;const n=String(mb&&mb.n||"").toLowerCase();
@@ -3311,7 +3320,7 @@ function mobFight(fx,t){
       const nyxB=isChosen("nyx")&&(new Date().getHours()>=21||new Date().getHours()<6)?2:1;
       const bx=Math.round(sc.xp*(mb.pack?.3:.15)*nyxB*(grinding()?GRIND_XP:1)),g=mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6);
       player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
-      bump("mobKills");if(mb.pack)bump("packKills");
+      bump("mobKills");bump("mk_"+mobKind(mb));if(mb.pack)bump("packKills");
       let box="";if(mb.pack&&Math.random()<.25){giveBox("bronze",`Mob pack: ${mb.n}`);box=" and a Bronze Box";}
       if(m&&mb.room!=null&&m.rooms[mb.room])m.rooms[mb.room].cleared=true;
       player.viewers=(player.viewers||0)+(mb.pack?900:250);
@@ -3332,6 +3341,27 @@ function mobFight(fx,t){
 function mobIcon(x,y,s,pack,k){
   k=k||"goblin";const one=(dx,dy,sc)=>`<g transform="translate(${x+dx} ${y+dy}) scale(${(s||1)*sc*.26})">${mobCreature(k,0,20,1,0).replace(/class="mc"[^>]*/,"")}</g>`;
   return pack?one(-6,3,.75)+one(6,3,.75)+one(0,-5,.8):one(0,0,1);}
+/* Poke the mob: it snarls (its own sound), the scene flinches, then its close-up opens. */
+function pokeMob(){
+  const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead);
+  if(!clip("mob-"+k,.85))SFX.play("hurt");
+  const a=document.querySelector(".mobalert");if(a){a.classList.remove("poked");void a.offsetWidth;a.classList.add("poked");}
+  setTimeout(()=>zoomMob(),calmMotion()?0:380);
+}
+function zoomMob(){
+  const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead),K=MOB_KINDS[k],floor=floorOf(),sc=mobScale();
+  const shield=petFx(player).ability==="gargoyle",nip=shield?0:(lead.pack?4+floor*2:2+floor),bite=MOB_BITE?mobBite(player,floor):0;
+  const hits=Math.max(1,Math.ceil(lead.hp/Math.max(1,sc.hit))),bx=Math.round(sc.xp*(lead.pack?.3:.15)*(grinding()?GRIND_XP:1));
+  const kills=C(player,"mk_"+k),canDrink=player.potions>0&&player.hp<maxHp(player);
+  zoomCard({kind:"mob",title:`${lead.a} ${lead.n}`,art:mobScene(lead),
+    sub:`${esc(K.n)} · ${lead.pack?"Mob pack":"Mob"} · Floor ${floor}${lead.room!=null?` · from room ${lead.room+1}`:" · wandered in"}`,
+    tiles:[["HP",`${lead.hp} / ${lead.max}`],["Quests to kill",`about ${hits}`],["Nips you",`${nip} HP / quest`],["Overnight bite",bite?`${bite} HP`:"–"],
+      ["Bounty",`~${bx} XP + ${lead.pack?"10–20":"3–8"}g`],["Your HP",`${Math.round(player.hp)} / ${maxHp(player)}`],["You've beaten",`${kills} ${esc(K.n.toLowerCase())}`],["Loot",lead.pack?"25% Bronze Box":"Scrap, maybe"]],
+    body:`<div class="bubble mobbub">“${esc(spick(Math.random,MOB_TAUNTS[k]))}”</div>${zbar(lead.hp/lead.max,"rvbar")}
+      ${ms.length>1?`<div class="label">Behind it</div><div class="muted" style="font-size:13px">${ms.slice(1).map(m=>`${esc(m.n)} (${m.hp}/${m.max})`).join(" · ")}</div>`:""}
+      <div class="muted" style="font-size:12px">${esc(K.line)} Your next quest hits it first, and mob damage never comes out of your boss fight.${shield?" Your gargoyle blocks its nips.":""}</div>`,
+    acts:canDrink?[{label:`Drink a potion (+${POTION.heal} HP)`,gold:true,fn:drink}]:[]});
+}
 /* A big, hard-to-miss encounter card above the quest board while anything is chasing you. */
 function renderMobAlert(){
   const el=$("mobAlert");if(!el)return;const ms=playerExists&&player.mobs||[];
@@ -3339,12 +3369,13 @@ function renderMobAlert(){
   const lead=ms[0],k=mobKind(lead),floor=floorOf();
   const nip=ms.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0),bite=MOB_BITE?mobBite(player,floor):0;
   const key=JSON.stringify(ms.map(m=>[m.id,m.hp]))+bite;if(el.dataset.k===key&&!el.hidden)return;el.dataset.k=key;el.hidden=false;
-  el.innerHTML=`<div class="mobalert k-${k}${lead.pack?" pack":""}" role="status" aria-live="polite">
+  el.onclick=pokeMob;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pokeMob();}};
+  el.innerHTML=`<div class="mobalert k-${k}${lead.pack?" pack":""} zoomable" role="button" tabindex="0" aria-label="${esc(lead.n)}: tap to poke it and see its stats">
     ${mobScene(lead)}
     <div class="ma-body"><div class="ma-k">⚠ ${lead.pack?"Mob pack":"Mob"} encounter</div>
       <div class="ma-n"><b>${esc(lead.a)} ${esc(lead.n)}</b> is on your heels${ms.length>1?` <span class="muted">(+${ms.length-1} more behind it)</span>`:""}</div>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(lead.hp/lead.max*100)}%"></b></div><span class="num">${lead.hp}/${lead.max} HP</span></div>
-      <div class="ma-tip">${esc(MOB_KINDS[k].line)} Your next quest hits ${ms.length>1?"them":"it"} first. Until ${ms.length>1?"they're":"it's"} dead, ${ms.length>1?"they nip":"it nips"} you for ${petFx(player).ability==="gargoyle"?0:nip} HP per quest${bite?` and bite${ms.length>1?"":"s"} for ${bite} HP overnight`:""}.</div></div></div>`;
+      <div class="ma-tip">${esc(MOB_KINDS[k].line)} Tap to poke it. Your next quest hits ${ms.length>1?"them":"it"} first. Until ${ms.length>1?"they're":"it's"} dead, ${ms.length>1?"they nip":"it nips"} you for ${petFx(player).ability==="gargoyle"?0:nip} HP per quest${bite?` and bite${ms.length>1?"":"s"} for ${bite} HP overnight`:""}.</div></div></div>`;
 }
 function mobStrip(){
   const ms=player&&player.mobs||[];if(!ms.length)return "";
@@ -5727,7 +5758,7 @@ function completeQuest(id,actual,touched){
   ui.goldHush=hush0;ui.lastGold=player.gold||0;
   const caps=ui.voCap||[];ui.voCap=null;const voice=caps.reduce((a,c)=>!a||c.pri>a.pri?c:a,null);
   const qt=ui.questToast;ui.questToast=null;
-  const mobKind=ui.mobSnd,rvNew=ui.rvSnd;ui.mobSnd=null;ui.rvSnd=null;
+  const mobSnd0=ui.mobSnd,rvNew=ui.rvSnd;ui.mobSnd=null;ui.rvSnd=null;
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
   react(fx>0);
   beatHold(850); // let the slice land
@@ -5741,7 +5772,7 @@ function completeQuest(id,actual,touched){
   let rvSoundDone=false;
   if(mapMsgs.length)beat(()=>{if(rvNew&&!rvMsgs.length){rvSoundDone=true;if(!clip("crawler-appear",.9))SFX.play("hurt");}toast(`<b>Map</b> ${mapMsgs.map(x=>esc(x)).join("<br>")}`,"quest");},rvNew&&!rvMsgs.length?1400:1000);
   if(lairLi!=null)beat(()=>{bossAppear();lairPrompt(lairLi);},700); // waits while the card is open
-  if(mobMsgs.length)beat(()=>{if(mobKind&&!clip("mob-"+mobKind,.85))SFX.play("hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobKind?1500:1000);
+  if(mobMsgs.length)beat(()=>{if(mobSnd0&&!clip("mob-"+mobSnd0,.85))SFX.play("hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobSnd0?1500:1000);
   if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;beat(()=>{if(rvNew&&!rvSoundDone){if(!clip("crawler-appear",.9))SFX.play("hurt");}else if(w)SFX.play("kill");else if(player.rival)SFX.play("hurt");
     toast(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500);}
   goals.msgs.forEach(m=>beat(()=>toast(m,"lvl"),900));
