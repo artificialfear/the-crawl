@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=643705efd0"></script>
-<script>window.CRAWL_BUILD="643705efd0";</script>
+<script src="firebase-config.js?v=9725d558cc"></script>
+<script>window.CRAWL_BUILD="9725d558cc";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -6670,7 +6670,7 @@ function bootIcon(B){
 }
 /* ---------- Expansion art: armour, headgear and capes drawn from a style table ---------- */
 const ONE_HANDED=new Set(["w1","w2","w4","w6","w7","w11","w12","w14","w15","w16","w19"]);
-const WEAPON_SCALE={w8:.6,w10:.64,w9:.72,w5:.74,w13:.62,w17:.7,w18:.62,w20:.56};
+const WEAPON_SCALE={w3:.68,w24:.68,w8:.6,w10:.64,w9:.72,w5:.74,w13:.62,w17:.7,w18:.62,w20:.56};
 const _sh=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,_ov=(d,f)=>`<path d="${d}" fill="${f}" stroke="none"/>`,_ln=(d,w,c)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"/>`;
 const _st=(x,y,r,d)=>`<path class="st" style="animation-delay:${d}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z"/>`;
 /* Body armour: torso fill, sleeve colour (null = the tee), forearm colour (null = skin), glove colour, detail style */
@@ -6834,11 +6834,11 @@ function weaponUpright(weapon,MW,u){
     w+=sh("M-7 -24 L7 -24 L6 -146 L0 -164 L-6 -146 Z","#d5d9e2")+ov("M-7 -24 L-1 -24 L-1 -160 L-6 -146 Z",HB)+ln("M1 -32 L1 -136",1.5);
     w+=sh("M-26 -15 L26 -15 L23 -25 L-23 -25 Z","#8a8f9c");
   }
-  if(weapon==="w3"){ // greatsword, two hands low on the grip
+  if(weapon==="w3"){ // greatsword, two hands low on the grip: broad, long blade with a centre ridge
     w+=`<circle cx="0" cy="20" r="8" fill="${RED}"/>`+sh("M-6 13 L6 13 L6 -44 L-6 -44 Z","#3a2412")+ln("M-6 -36 L6 -42",1.6);
-    w+=sh("M-11 -54 L11 -54 L10 -200 L0 -224 L-10 -200 Z","#d5d9e2")+ov("M-11 -54 L-2 -54 L-2 -220 L-10 -200 Z",HB);
-    w+=`<g class="rune">`+ln("M3 -80 l0 -12 M3 -114 l0 -12 M3 -148 l0 -12 M3 -182 l0 -10",3,RED)+`</g>`;
-    w+=sh("M-34 -44 L34 -44 L31 -56 L-31 -56 Z","#5b5f6e")+`<circle cx="-35" cy="-50" r="5" fill="#ffd23f"/><circle cx="35" cy="-50" r="5" fill="#ffd23f"/>`;
+    w+=sh("M-15 -56 L15 -56 L14 -232 L0 -266 L-14 -232 Z","#d5d9e2")+ov("M-15 -56 L-2 -56 L-2 -260 L-14 -232 Z",HB)+ln("M0 -62 L0 -252",1.4,"#9aa0ad");
+    w+=`<g class="rune">`+ln("M6 -84 l0 -14 M6 -124 l0 -14 M6 -164 l0 -14 M6 -204 l0 -12",3,RED)+`</g>`;
+    w+=sh("M-41 -44 L41 -44 L38 -58 L-38 -58 Z","#5b5f6e")+`<circle cx="-42" cy="-51" r="5.5" fill="#ffd23f"/><circle cx="42" cy="-51" r="5.5" fill="#ffd23f"/>`;
   }
   if(weapon==="l4"){ // traditional fire axe: yellow fibreglass haft, red head, flared blade with a bright steel edge, pick on the back
     w+=sh("M-7 20 Q-10 12 -8 2 L-6.5 -200 L6.5 -200 L8 2 Q10 12 7 20 Z","#ffd23f")+ov("M-7 20 Q-10 12 -8 2 L-6.5 -200 L-2.5 -200 L-3 2 Q-4 12 -3 20 Z",HB)+`<circle cx="0" cy="-60" r="1.4" fill="${INK}" stroke="none"/><circle cx="0" cy="-130" r="1.4" fill="${INK}" stroke="none"/>`;
@@ -6882,10 +6882,14 @@ function weaponUpright(weapon,MW,u){
     w+=`<path d="M-4 -200 Q-14 -186 -10 -170 M4 -200 Q14 -186 10 -170 M0 -200 Q-3 -184 0 -168" fill="none" stroke="${RED}" stroke-width="3"/>`;
     w+=sh("M0 -248 Q12 -228 7 -208 L-7 -208 Q-12 -228 0 -248 Z","#d5d9e2")+ov("M0 -248 Q-12 -228 -7 -208 L-1 -208 Q-4 -228 0 -248 Z",HB)+ln("M0 -244 L0 -212",1.3);
   }
-  if(weapon==="w9"){ // warhammer
-    w+=ln("M0 18 L0 -172",11)+ln("M0 18 L0 -172",5.5,"#5a3920")+ln("M0 6 L0 -6",6,INK);
-    w+=sh("M-36 -172 L36 -172 L36 -206 L-36 -206 Z","#8a8f9c")+ov("M-36 -172 L-22 -172 L-22 -206 L-36 -206 Z",HA)+sh("M-6 -206 L6 -206 L0 -226 Z","#8a8f9c");
-    w+=ln("M-36 -189 L36 -189",1.6)+`<circle cx="-27" cy="-181" r="2.2" fill="${INK}" stroke="none"/><circle cx="27" cy="-181" r="2.2" fill="${INK}" stroke="none"/><circle cx="-27" cy="-197" r="2.2" fill="${INK}" stroke="none"/><circle cx="27" cy="-197" r="2.2" fill="${INK}" stroke="none"/>`;
+  if(weapon==="w9"){ // warhammer: thick haft with steel straps, a big squared head with dark striking faces and a top spike
+    w+=ln("M0 18 L0 -170",17)+ln("M0 18 L0 -170",10,"#5a3920")+ln("M-2 12 L-2 -166",1.6,"#7a5232")+ln("M0 8 L0 -8",10,INK)+ln("M0 8 L0 -8",6,"#2a2438");
+    w+=sh("M-7 -136 L7 -136 L7 -172 L-7 -172 Z","#8a8f9c")+`<circle cx="0" cy="-144" r="2" fill="${INK}" stroke="none"/><circle cx="0" cy="-160" r="2" fill="${INK}" stroke="none"/>`;
+    w+=sh("M-12 -228 L12 -228 L0 -252 Z","#8a8f9c");
+    w+=sh("M-46 -170 L46 -170 L46 -218 L-46 -218 Z","#8a8f9c")+ov("M-46 -170 L-30 -170 L-30 -218 L-46 -218 Z",HA);
+    w+=sh("M-52 -166 L-40 -166 L-40 -222 L-52 -222 Z","#5b5f6e")+sh("M52 -166 L40 -166 L40 -222 L52 -222 Z","#5b5f6e");
+    w+=sh("M-11 -166 L11 -166 L11 -222 L-11 -222 Z","#6b7383");
+    w+=`<circle cx="-24" cy="-182" r="2.6" fill="${INK}" stroke="none"/><circle cx="24" cy="-182" r="2.6" fill="${INK}" stroke="none"/><circle cx="-24" cy="-206" r="2.6" fill="${INK}" stroke="none"/><circle cx="24" cy="-206" r="2.6" fill="${INK}" stroke="none"/>`+ln("M-36 -176 L-36 -212",1.6,"#d5d9e2");
   }
   if(weapon==="w10"){ // scythe
     w+=ln("M0 18 L-4 -214",10)+ln("M0 18 L-4 -214",5,"#2a2438")+ln("M-1 -46 L14 -54",6)+ln("M-1 -46 L14 -54",2.4,"#2a2438");
@@ -6981,7 +6985,7 @@ function weaponUpright(weapon,MW,u){
   return w;
 }
 /* Bounding box of each weapon's upright drawing: [minX,maxX,minY,maxY] */
-const WEAPON_BOX={w4:[-18,18,-125,25],w5:[-25,25,-216,20],w6:[-18,18,-95,25],w7:[-31,31,-128,24],w8:[-15,15,-250,20],w9:[-38,38,-228,20],w10:[-90,16,-238,20],w1:[-16,16,-128,24],w2:[-27,27,-168,28],w3:[-41,41,-226,29],l4:[-53,63,-312,22],l8:[-22,22,-228,28],
+const WEAPON_BOX={w4:[-18,18,-125,25],w5:[-25,25,-216,20],w6:[-18,18,-95,25],w7:[-31,31,-128,24],w8:[-15,15,-250,20],w9:[-54,54,-254,20],w10:[-90,16,-238,20],w1:[-16,16,-128,24],w2:[-27,27,-168,28],w3:[-48,48,-268,29],l4:[-53,63,-312,22],l8:[-22,22,-228,28],
   w11:[-30,30,-154,24],w12:[-20,20,-152,24],w13:[-14,22,-242,40],w14:[-10,36,-98,24],w15:[-24,22,-196,26],w16:[-32,32,-136,24],w17:[-16,20,-232,22],w18:[-54,54,-308,24],w19:[-48,10,-162,24],w20:[-34,52,-284,24]};
 /* The inventory weapon slot: the weapon stood upright and scaled to fill a tall frame. */
 function tallWeaponSVG(id,bg){
