@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=d3522ae976"></script>
-<script>window.CRAWL_BUILD="d3522ae976";</script>
+<script src="firebase-config.js?v=ef1076361d"></script>
+<script>window.CRAWL_BUILD="ef1076361d";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -6228,7 +6228,7 @@ function completeQuest(id,actual,touched){
   if(ui.kindled){ui.kindled=false;const a=activePet();if(a)beat(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),700);}
   if(after>before)beat(()=>{SFX.play("level");toast(`<span class="big">Level ${after}</span> ${esc(titleFor(after))} · HP restored · ${after-before>1?(after-before)+" loot boxes":"a loot box"} earned`,"lvl");},1400);
   if(loot)beat(()=>lootToast(loot),700); // the victory card holds everything after it until it's closed
-  if(ui.stormMsg){const m=ui.stormMsg;ui.stormMsg=null;beat(()=>{SFX.play("kill");toast(`<span class="big">⚡ Charged attack!</span> ${m}`,"lvl");},1300);}
+  if(ui.stormMsg){const m=ui.stormMsg;ui.stormMsg=null;beat(()=>{if(!clip("storm-attack",.85))SFX.play("kill");toast(`<span class="big">⚡ Charged attack!</span> ${m}`,"lvl");},1300);}
   if(ambushBeat)beat(ambushBeat,1500);
   let rvSoundDone=false;
   if(mapMsgs.length)beat(()=>{if(rvNew&&!rvMsgs.length){rvSoundDone=true;if(!clip("crawler-appear",.9))SFX.play("hurt");}toast(`<b>Map</b> ${mapMsgs.map(x=>esc(x)).join("<br>")}`,"quest");},rvNew&&!rvMsgs.length?1400:1000);
@@ -6544,7 +6544,9 @@ function buy(itemId){
 const EQUIP_SND={belt:.9,weapon:.85,armor:.9,head:.9,gloves:1,boots:.9,cape:.9,ring:.85,trinket:.85};
 /* A boss shows up: one of five recorded stings at random, never the same one twice in a row. */
 let bossSting=0;
-function bossAppear(){let n;do{n=1+Math.floor(Math.random()*5);}while(n===bossSting);bossSting=n;if(!clip("boss-appear-"+n,.85))SFX.play("hurt");}
+// Random boss-arrival sting (sfx/boss-appear-N.mp3), never the same one twice in a row. Add new numbers to the list.
+const BOSS_STINGS=[1,2,3,4,5,7,8];
+function bossAppear(){let n;do{n=BOSS_STINGS[Math.floor(Math.random()*BOSS_STINGS.length)];}while(n===bossSting&&BOSS_STINGS.length>1);bossSting=n;if(!clip("boss-appear-"+n,.85))SFX.play("hurt");}
 /* Tapping a piece of gear to look at it (not equipping it, which has its own per-slot sounds). */
 function zoomSound(){if(!clip("card-zoom",.9))SFX.play("tick");}
 /* Something shows up to fight: each mob kind has its own cry, and rival crawlers have theirs. Queued during a quest, played as the alert appears. */
