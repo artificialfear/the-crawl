@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=bf8f6b3ba2"></script>
-<script>window.CRAWL_BUILD="bf8f6b3ba2";</script>
+<script src="firebase-config.js?v=f0ceb68665"></script>
+<script>window.CRAWL_BUILD="f0ceb68665";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -8454,6 +8454,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.0.1",d:"2026-10-08",t:"One thing at a time",items:["Finishing a quest no longer fires everything at once. The slice lands first, then each result gets its own moment, with its sound and popup together: rewards, level ups, boss kills, map events, mobs, rivals, then quieter notes, and achievements last.",
+    "Map events from one quest now share a single popup, and the announcer picks the single most important line to say instead of talking over itself."]},
   {v:"3.0.0",d:"2026-10-07",t:"Boss lairs",items:["From the week of Oct 12, bosses don't line up anymore. Each floor hides 3 to 6 of them in lairs off the corridor, and nobody tells you how many. Small ones tend to lurk near the entrance, but anything can turn up anywhere.",
     "Find a lair and choose: fight now, or mark it on your map and come back later. Retreat from a fight any time. The boss keeps its wounds.",
     "While you explore, every quest's damage is stored as ⚡ Charge. Walk into a lair and it all hits at once. Spend it on the small fry, or save it for the Floor boss waiting at the stairwell.",
