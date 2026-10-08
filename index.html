@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=c0cefc39e9"></script>
-<script>window.CRAWL_BUILD="c0cefc39e9";</script>
+<script src="firebase-config.js?v=66df55a3df"></script>
+<script>window.CRAWL_BUILD="66df55a3df";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -9489,7 +9489,8 @@ function chatArrived(msgs){
   const last=msgs[msgs.length-1],onChat=ui.tab==="party"&&ui.ptView==="chat";
   const txt=String(last.text||""),short=txt.length>90?txt.slice(0,88)+"…":txt;
   if(document.visibilityState==="visible"){
-    if(!onChat){playChatSound();toast(`<b>${esc(last.name||"Crawler")}</b> ${esc(short)}${msgs.length>1?` <span class="quip">+${msgs.length-1} more</span>`:""}`,"quest",()=>openPartyView("chat"),"Open chat");}
+    playChatSound(); // the chime plays even with the chat open; the pop-up only when you're elsewhere
+    if(!onChat){toast(`<b>${esc(last.name||"Crawler")}</b> ${esc(short)}${msgs.length>1?` <span class="quip">+${msgs.length-1} more</span>`:""}`,"quest",()=>openPartyView("chat"),"Open chat");}
   }else bgNotify(`${last.name||"Crawler"} · ${party&&party.doc&&party.doc.name||"Party chat"}`,txt,"crawl-chat");
 }
 function updateTitle(){let n=0;try{n=partyUnseen();}catch(e){}const t=(n?`(${n}) `:"")+"The Crawl";if(document.title!==t)document.title=t;}
