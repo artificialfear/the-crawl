@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=e1ef3ee0ea"></script>
-<script>window.CRAWL_BUILD="e1ef3ee0ea";</script>
+<script src="firebase-config.js?v=0233f12385"></script>
+<script>window.CRAWL_BUILD="0233f12385";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1011,6 +1011,11 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .zoomdlg.z-boss .zoom-art{width:min(280px,72%);border-radius:0;overflow:visible}.zboss .vstamp.still{font-size:clamp(28px,9vw,42px)}
 .raidpanel .bossart.thumb .vstamp.still{font-size:11px;border-width:2px;padding:0 4px}
 @media (min-width:861px){body[data-tab="party"] .pt-raid{display:none}}
+.mwbadge{position:absolute;left:2px;bottom:1px;font-size:9px;line-height:1;color:#ffd23f;text-shadow:0 0 2px #000,0 0 2px #000,0 0 4px #000;letter-spacing:-1px;pointer-events:none}
+.mwst{color:#ffd23f;letter-spacing:1px}.mwst .dim{color:var(--faint)}
+.bench-top{display:grid;gap:6px}.mats{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}.mat b{font-size:14px}
+.bench-tabs{margin:4px 0 0;flex-wrap:wrap;gap:6px}.bench-tabs button{padding:7px 12px;min-height:34px;font-size:12px}
+.benchdlg{min-width:0}.benchdlg .qt-row{min-width:0}.benchdlg .qt-row>div{overflow-wrap:anywhere}
 .zladder{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13px}.zladder .now{color:var(--gold)}
 .zoom-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.zgear{font-size:13px}
 .vstamp.still{opacity:1;animation:none;transform:translate(-50%,-50%) rotate(-12deg) scale(1);z-index:2;pointer-events:none}
@@ -1532,6 +1537,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Rival crawlers</b>: crawlers from the rankings sometimes come for your loot (now and then after a quest, or from a ⚔ ambush room on the map). Each quest you finish hits them; they hit back each quest and overnight, but never knock you out on their first night. Beat one and they're knocked out for the floor (XP, gold, maybe an item they're wearing). Or bribe them, run (better boots, better odds), or walk to a shrine. If they knock you out, they steal one spare backpack item (never worn gear, never Unique) and come back for a rematch a few days later: win it to get your item back. A rare psycho won't take a bribe and only backs off for a day: that one has to be killed. Crewmates can tap Help on the Party tab to chip at your rival, but the final blow is yours.</div>
           <div><b>Personal Quarters</b>: a private room through the portal in the Safe Room, 1,500 gold (or a Deed Coupon from a Gold or Celestial box, or the weekly #1 prize). Upgrades: Bed (heal 10% max HP each morning), Kitchen (cook once a day for +5% XP until midnight), Bath (pet never sulks, +15% bond), Training Room (+10% XP on one stat, switch weekly), Crafting Studio (fuse 3 spares of one rarity into an item one rarity higher), Quest Screen (+10% viewers, rematch warnings, episode replays) and Trophy Wall. Tick crewmates onto your guest list and they can visit and cook in your kitchen. <b>Communal Hall</b>: crewmates with quarters can each tap Conjoin to share a hall. Upgrades you own work at full strength; ones only a hallmate owns work for you at half strength (a shared kitchen feeds you +2.5% XP daily with no cooking, a shared studio fuses 5 spares instead of 3). On days 2+ hallmates finish a quest, everyone in the hall gets +5% XP.</div>
           <div><b>Loot boxes</b> only open somewhere safe: the Safe Room tab, your quarters or the Communal Hall. Carrying unopened boxes doubles your odds of a rival crawler jumping you, and if one knocks you out, it grabs an unopened box first. Beat it in the rematch to take the box back.</div>
+          <div><b>Crafting</b> (needs a Crafting Studio in your quarters, or a hallmate's at half strength): salvage gear you aren't wearing into ⚙ Scrap, ✨ Essence and 💠 Starshards (mobs, chests, rivals, bosses and boxes drop them too); craft a chosen slot at Magic, Rare, Legendary or top-tier Legendary ✦; masterwork your gear up to ★★★ (+20% to its bonus per star). Crafting levels unlock Rare (level 2), Legendary (4) and Legendary ✦ (6) recipes and cut gold costs 5% a level. Clockwork Golems and Chore Druids gain crafting XP 50% faster. Unique gear can't be crafted, salvaged or fused.</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
@@ -1839,7 +1845,7 @@ function dupeShow(){
   el.innerHTML=`<div class="da-ico">${tierIcon(it.id,it.rar==="magical"?"legendary":it.rar)}</div>
     <div class="da-body"><div class="da-k rar-${it.rar}">${RARITY[it.rar].n} · duplicate</div><b>${esc(it.n)}</b>
       <div class="da-q">${esc(pick("dupeask",{gold:q.g}))}</div><div class="muted" style="font-size:12px">You already own one${have>0?` (plus ${have} spare${have===1?"":"s"})`:""}.</div>
-      <div class="da-acts"><button class="btn gold sm" type="button" id="daSell">Sell · ${q.g}g</button><button class="btn sm" type="button" id="daKeep">Keep</button></div></div>`;
+      <div class="da-acts"><button class="btn gold sm" type="button" id="daSell">Sell · ${q.g}g</button><button class="btn sm" type="button" id="daKeep">Keep</button>${craftAccess()&&SALVAGE[it.rar]?`<button class="btn sm" type="button" id="daSalv">Salvage · ${matTxt(SALVAGE[it.rar])}</button>`:""}</div></div>`;
   el.classList.add("on");
   const done=sell=>{dupeQ.shift();
     if(sell&&q.kept&&spareN(it.id)>0){addSpare(it.id,-1);player.gold+=q.g;pushEvent(`Sold the duplicate ${it.n} for ${q.g} gold`);SFX.play("coin");}
@@ -1848,6 +1854,8 @@ function dupeShow(){
     toast(sell?`Sold the spare ${it.n} for ${q.g} gold.`:`Kept the spare ${it.n}. You have ${1+spareN(it.id)} now.`);
     el.classList.remove("on");setTimeout(()=>{if(dupeQ.length)dupeShow();else el.remove();},250);};
   $("daSell").onclick=()=>done(true);$("daKeep").onclick=()=>done(false);
+  {const sv=$("daSalv");if(sv)sv.onclick=()=>{dupeQ.shift();if(!q.kept&&player.gold>=q.g){player.gold-=q.g;addSpare(it.id,1);}if(spareN(it.id)>0)salvage(it.id,true);
+    store.savePlayer(player).catch(writeFailed);render();toast(`Salvaged the spare ${esc(it.n)}: ${matTxt(SALVAGE[it.rar])}.`);el.classList.remove("on");setTimeout(()=>{if(dupeQ.length)dupeShow();else el.remove();},250);};}
 }
 function sellSpare(id){const it=itemOf(id);if(!it||spareN(id)<1)return;const g=dupeValue(it);addSpare(id,-1);player.gold+=g;ui.invPin=null;store.savePlayer(player).catch(writeFailed);render();toast(`Sold a spare ${it.n} for ${g} gold.`);}
 const BASE_HP = 100;
@@ -2034,7 +2042,7 @@ const titleFor = L => TITLES.reduce((t,[l,n])=>L>=l?n:t,"Fresh Meat");
 const statLevel = xp => Math.floor(Math.sqrt(xp/25))+1;
 const statProg = xp => {const l=statLevel(xp);const a=25*(l-1)**2,b=25*l*l;return (xp-a)/(b-a);};
 /* Bonuses come from your best gear in each slot, whatever the avatar wears, so dressing for looks never costs XP. */
-function bestOwned(p,slot){let best=null;for(const it of ITEMS){if(it.slot===slot&&p.owned.includes(it.id)&&(!best||it.bonus>best.bonus))best=it;}return best;}
+function bestOwned(p,slot){let best=null;for(const it of ITEMS){if(it.slot===slot&&p.owned.includes(it.id)&&(!best||bonusOf(it,p)>bonusOf(best,p)))best=it;}return best;}
 /* What the avatar wears: the player's choice per slot, or the best owned item when they haven't chosen. */
 function wearing(p){
   const eq=p.equipped||{};const out={};
@@ -2050,8 +2058,8 @@ function gearFx(p){
   const add=f=>{if(f)for(const k in f)z[k]=(z[k]||0)+f[k];};
   const rid=wearing(p).ring,r=rid&&ITEMS.find(i=>i.id===rid);if(r)add(r.fx);
   for(const slot of ["weapon","armor","head","cape","gloves","boots"]){const b=bestOwned(p,slot);if(b)add(b.mfx);}
-  const gl=bestOwned(p,"gloves");if(gl)z.dmg+=gl.bonus;
-  const bt=bestOwned(p,"boots");if(bt){z.hp+=bt.hp||0;z.spd=bt.bonus;}
+  const gl=bestOwned(p,"gloves");if(gl)z.dmg+=bonusOf(gl,p);
+  const bt=bestOwned(p,"boots");if(bt){z.hp+=hpOf(bt,p);z.spd=bonusOf(bt,p);}
   return z;
 }
 const baseXp = t => EFFORT[t.effort].xp + Math.round(Math.min(240,Math.max(5,+t.est||0))/3);
@@ -2060,7 +2068,7 @@ function rewardFor(p,t,actual){
   const s=streakAfter(p);
   const streakB=Math.min(s-1,5)*.05;
   const gx=gearFx(p);
-  const weaponB=XP_SLOTS.reduce((s,slot)=>{const b=bestOwned(p,slot);return s+(b?b.bonus:0);},0)+gx.xp;
+  const weaponB=XP_SLOTS.reduce((s,slot)=>{const b=bestOwned(p,slot);return s+bonusOf(b,p);},0)+gx.xp;
   // Accuracy bonus: landing within 20% under or 25% over your estimate. Padding or rushing doesn't pay.
   const fx=statFx(p),pf=petFx(p);
   const ratio=actual>0&&t.est>0?actual/t.est:null;
@@ -2630,6 +2638,7 @@ function applyDamage(dmg){
     const box=giveBox(t.box,`${t.n}: ${b.name}`);
     const at=Date.now(),totalAt=start+used;
     kills.push({tier:b.tier,name:b.name,box,at,totalAt});bump("bossKills");
+    {const md=[b.tier>=3?matDrop("ess",1+Math.floor(Math.random()*2)):"",b.tier>=5&&Math.random()<.25?matDrop("star",1):""].filter(Boolean);if(md.length){pushEvent(`${b.name} dropped ${md.join(" and ")}`);setTimeout(()=>toast(`<b>Materials</b> ${esc(b.name)} dropped ${md.join(" and ")}.`),2600);}}
     try{const md=mapDropFor(b.tier);if(Math.random()<md.chance){const mm=ensureMap();if(mm){revealMap(mm,md);bump("maps");ui.mapDrop=md;pushEvent(`Floor ${b.floor}: ${b.name} dropped a ${md.n}`);}}}catch(e){console.error("mapdrop",e);}
     if(b.tier>=TIERS.length-1){bump("cleared");if(b.week&&daysBetween(b.week,today())>=6)bump("clutch");}
     b.kills=(b.kills||[]).concat({tier:b.tier,name:b.name,at,totalAt});
@@ -3238,7 +3247,8 @@ function mobFight(fx,t){
       let box="";if(mb.pack&&Math.random()<.25){giveBox("bronze",`Mob pack: ${mb.n}`);box=" and a Bronze Box";}
       if(m&&mb.room!=null&&m.rooms[mb.room])m.rooms[mb.room].cleared=true;
       player.viewers=(player.viewers||0)+(mb.pack?900:250);
-      out.push(`${mb.pack?"Wiped out":"Squashed"} ${mb.a.toLowerCase()==="the"?"the":mb.a.toLowerCase()} ${mb.n}: +${bx} XP, +${g} gold${box}.`);
+      const md=Math.random()<(mb.pack?.4:.2)?matDrop("scrap",mb.pack?1+Math.floor(Math.random()*2):1):"";
+      out.push(`${mb.pack?"Wiped out":"Squashed"} ${mb.a.toLowerCase()==="the"?"the":mb.a.toLowerCase()} ${mb.n}: +${bx} XP, +${g} gold${box}${md?`, ${md}`:""}.`);
     }else left.push(mb);
   }
   player.mobs=left;
@@ -3352,6 +3362,7 @@ function rivalKO(){
 function rivalDown(out,t){
   const rv=player.rival;player.rival=null;const W=rvWeek(),sc=mobScale(),s=rvStr(rv.n),kill=rv.psy;
   const bx=Math.round(sc.xp*.6),g=20+Math.floor(Math.random()*21)+rv.purse;player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
+  const mats=[matDrop("ess",kill?3:1+Math.floor(Math.random()*3)),kill?matDrop("star",1):""].filter(Boolean);
   player.viewers=(player.viewers||0)+(kill?6000:2500);
   (kill?W.kill:W.ko).push(rv.n);bump(kill?"rivalKills":"rivalKOs");
   const extra=[];
@@ -3368,7 +3379,7 @@ function rivalDown(out,t){
   const names=helpers.map(u=>memberName(u));
   partyPost("rival",`${kill?"killed":"knocked out"} ${rv.n}, the ${rv.c}${names.length?` with help from ${names.join(" and ")}`:""}`);
   pushEvent(`${kill?"Killed":"Knocked out"} rival crawler ${rv.n}`);
-  out.push(`${kill?"☠ You killed":"💫 You knocked out"} ${rv.n}! +${bx} XP, +${g} gold${kill?", a Gold Box":""}${extra.length?"; "+extra.join(", "):""}.`);
+  out.push(`${kill?"☠ You killed":"💫 You knocked out"} ${rv.n}! +${bx} XP, +${g} gold, ${mats.join(", ")}${kill?", a Gold Box":""}${extra.length?"; "+extra.join(", "):""}.`);
   ui.rivalWin={n:rv.n,kill};
 }
 /* One finished quest: fight the rival on you, or maybe meet one. */
@@ -3666,7 +3677,7 @@ function renderQt(){
       <div class="label">Shared upgrades</div>
       ${QT_UP.map(u=>{const l=qtLvl(u.k),w=who(u.k);let extra="";
         if(u.k==="train"&&l===.5){const t2=(player.quarters.train||{});extra=`<div class="qt-stats">${Object.keys(STATS).map(k=>`<button type="button" class="chipbtn${t2.stat===k?" on":""}" data-qttrain="${k}">${STATS[k].n}</button>`).join("")}</div>`;}
-        if(u.k==="craft"&&l===.5)extra=`<div class="qt-stats">${QT_FUSE.map(r=>{const n=qtSpares(r).length;return `<button type="button" class="chipbtn" data-qtfuse="${r}"${n<5?" disabled":""}>${RARITY[r].n} ×5 → ${RARITY[QT_NEXT[r]].n} <span class="muted">(${n})</span></button>`;}).join("")}</div>`;
+        if(u.k==="craft"&&l===.5)extra=`<div class="qt-stats"><button type="button" class="btn sm gold" data-qtbench>Use the workbench</button></div>`;
         return `<div class="qt-row${l?" own":""}"><div><b>${u.n}</b> <span class="muted">${w.length?"· "+w.join(", "):""}</span><div class="muted">${l?fx[u.k](l):"Nobody in the hall has one yet."}</div>${extra}</div><span class="qt-on">${l===1?"Full":l?"Half":"–"}</span></div>`;}).join("")}
       ${up.includes("trophy")?`<div class="qt-troph">Hall trophies: ☠ ${tr.k} · 💫 ${tr.ko} · 🗡 ${tr.b} bosses · 👑 best rank ${tr.r?"#"+tr.r:"–"}</div>`:""}`;
   }else if(host){
@@ -3692,7 +3703,7 @@ function renderQt(){
       else act=`<span class="qt-on">Installed</span>`;
       let extra="";
       if(own&&u.k==="train"){const tr=q.train||{};extra=`<div class="qt-stats">${Object.keys(STATS).map(k=>`<button type="button" class="chipbtn${tr.stat===k?" on":""}" data-qttrain="${k}">${STATS[k].n}</button>`).join("")}</div>`;}
-      if(own&&u.k==="craft"){extra=`<div class="qt-stats">${QT_FUSE.map(r=>{const n=qtSpares(r).length;return `<button type="button" class="chipbtn" data-qtfuse="${r}"${n<3?" disabled":""}>${RARITY[r].n} ×3 → ${RARITY[QT_NEXT[r]].n} <span class="muted">(${n})</span></button>`;}).join("")}</div>${Object.keys(player.spare||{}).length?"":`<div class="muted" style="font-size:12px">You have no spares. Turn on "Keep duplicates" in your backpack to start saving them.</div>`}`;}
+      if(own&&u.k==="craft"){extra=`<div class="qt-stats"><button type="button" class="btn sm gold" data-qtbench>Open the workbench</button></div><div class="muted" style="font-size:12px">Craft · Masterwork · Salvage · Fuse. Crafting level ${craftLevel()} · ${matTxt({scrap:matN("scrap"),ess:matN("ess"),star:matN("star")})||"no materials yet"}</div>`;}
       if(own&&u.k==="screen"){const rq=(player.rvq||[]);const eps=(player.episodes||[]).slice(0,4);
         extra=`<div class="muted" style="font-size:12px">${rq.length?"Rematches coming: "+rq.map(x=>`${esc(x.n)}${x.psy?" ☠":""} (${fmtDue(x.due)})`).join(", "):"No rivals are planning a rematch."}</div>${eps.length?`<div class="qt-stats">${eps.map(e=>`<button type="button" class="chipbtn" data-qtep="${esc(e.id)}">▶ Ep. ${e.no}</button>`).join("")}</div>`:""}`;}
       return `<div class="qt-row${own?" own":""}"><div><b>${u.n}</b><div class="muted">${u.d}</div>${extra}</div>${act}</div>`;};
@@ -3717,11 +3728,129 @@ function renderQt(){
   o.querySelectorAll("[data-qtup]").forEach(b=>b.onclick=()=>qtUpgrade(b.dataset.qtup));
   o.querySelectorAll("[data-qttrain]").forEach(b=>b.onclick=()=>qtTrain(b.dataset.qttrain));
   o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>qtFuse(b.dataset.qtfuse));
+  o.querySelectorAll("[data-qtbench]").forEach(b=>b.onclick=()=>openBench());
   o.querySelectorAll("[data-qtguest]").forEach(b=>b.onclick=()=>qtGuest(b.dataset.qtguest));
   o.querySelectorAll("[data-openbox]").forEach(b=>b.onclick=()=>{openBox(b.dataset.openbox);const v=document.querySelector(".victory");if(v)v.style.zIndex=50;renderQt();});
   o.querySelectorAll("[data-qtep]").forEach(b=>b.onclick=()=>{closeQt();playEpisode(b.dataset.qtep);});
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.qt)closeQt();});
+/* ---------- Crafting ----------
+   Everything runs through the Crafting Studio in your Personal Quarters (or a hallmate's, at half strength:
+   materials cost 50% more and fusion takes 5 spares). Salvage gear you aren't wearing into materials; craft a
+   chosen slot at a chosen rarity; masterwork gear you own (up to ★★★, each +20% to its bonus). Every action earns
+   crafting XP; levels unlock rarer recipes and trim gold costs. Clockwork Golems and Chore Druids learn 50% faster.
+   player.mats = {scrap, ess, star}; player.craft = {xp}; player.mw = {itemId: stars}. Uniques stay drop-only. */
+const MATS={scrap:{n:"Scrap",ic:"⚙"},ess:{n:"Essence",ic:"✨"},star:{n:"Starshard",ic:"💠"}};
+const matN=k=>((player&&player.mats)||{})[k]||0;
+function addMat(k,n){player.mats=Object.assign({},player.mats||{});player.mats[k]=Math.max(0,(player.mats[k]||0)+n);}
+const matTxt=c=>Object.entries(c).filter(([k,v])=>v&&MATS[k]).map(([k,v])=>`${MATS[k].ic} ${v} ${MATS[k].n}`).join(" + ");
+const SALVAGE={common:{scrap:2},uncommon:{scrap:4},rare:{ess:2},epic:{ess:4},legendary:{star:1,ess:4}};
+const SALV_XP={common:5,uncommon:10,rare:20,epic:35,legendary:60};
+const RECIPES={uncommon:{c:{scrap:8},g:50,lv:1,xp:20},rare:{c:{scrap:6,ess:4},g:120,lv:2,xp:40},epic:{c:{ess:10},g:250,lv:4,xp:80},legendary:{c:{ess:12,star:2},g:500,lv:6,xp:150}};
+const MW_SLOTS=["weapon","armor","head","cape","gloves","boots"],MW_MAX=3;
+/* The game shows two tiers as "Legendary"; at the workbench the top one is marked ✦ so recipes and fusions read clearly */
+const crN=r=>r==="legendary"?"Legendary ✦":RARITY[r].n;
+const RAR_IX={common:0,uncommon:1,rare:2,epic:3,legendary:4,magical:5};
+function mwCost(it,s){const c={common:{scrap:4*s},uncommon:{scrap:6*s},rare:{ess:4*s},epic:{ess:8*s},legendary:{ess:10*s,star:s>2?2:1},magical:{ess:10*s,star:s}}[it.rar]||{scrap:4*s};
+  return {c,g:20*s*(RAR_IX[it.rar]+1)};}
+const mwOf=(p,id)=>(((p||player)||{}).mw||{})[id]||0;
+/* An item's numeric bonus, with masterwork stars applied */
+const bonusOf=(it,p)=>it?(it.bonus||0)*(1+.2*mwOf(p,it.id)):0;
+const hpOf=(it,p)=>Math.round((it.hp||0)*(1+.2*mwOf(p,it.id)));
+const craftLvXp=L=>30*L*(L-1); // total XP to reach level L: 0, 60, 180, 360, 600, 900...
+function craftLevel(p){const x=(((p||player).craft)||{}).xp||0;let L=1;while(L<10&&x>=craftLvXp(L+1))L++;return L;}
+const craftXpMul=()=>1+((player.race==="golem")?.5:0)+((player.cls==="druid")?.5:0);
+function craftXp(n){const before=craftLevel();player.craft=Object.assign({},player.craft||{});player.craft.xp=(player.craft.xp||0)+Math.round(n*craftXpMul());
+  const after=craftLevel();if(after>before){bump("craftLevels");setTimeout(()=>toast(`<span class="big">Crafting level ${after}</span> ${after===2?"Rare recipes unlocked. ":after===4?"Legendary recipes unlocked. ":after===6?"Legendary ✦ recipes unlocked. ":""}Gold costs at the workbench are now ${Math.round(craftDisc()*100)}% off.`,"lvl"),500);}}
+const craftDisc=()=>Math.min(.25,.05*(craftLevel()-1));
+/* 1 = your own studio, .5 = a hallmate's, 0 = none */
+const craftAccess=()=>{try{return qtLvl("craft");}catch(e){return 0;}};
+const craftMatMul=()=>craftAccess()===1?1:1.5;
+const scaleCost=c=>{const m=craftMatMul(),o={};for(const k of Object.keys(c))o[k]=Math.ceil(c[k]*m);return o;};
+const goldCost=g=>Math.round(g*(1-craftDisc()));
+const canPay=(c,g)=>Object.entries(c).every(([k,v])=>matN(k)>=v)&&player.gold>=(g||0);
+function pay(c,g){for(const [k,v] of Object.entries(c))addMat(k,-v);player.gold-=g||0;}
+/* What you could salvage: spares first, then gear you own but aren't wearing. Never worn, never Unique. */
+function salvageable(){const worn=new Set(Object.values(wearing(player)).filter(Boolean)),out=[];
+  for(const it of ITEMS){if(it.base||it.rar==="magical"||!SALVAGE[it.rar])continue;const sp=spareN(it.id),own=player.owned.includes(it.id);
+    if(sp>0)out.push({it,spare:true,n:sp});else if(own&&!worn.has(it.id))out.push({it,spare:false,n:1});}
+  return out.sort((a,b)=>RAR_IX[a.it.rar]-RAR_IX[b.it.rar]);}
+function canSalvage(id){const it=itemOf(id);if(!it||!craftAccess()||it.base||it.rar==="magical"||!SALVAGE[it.rar])return false;
+  if(spareN(id)>0)return true;return player.owned.includes(id)&&!Object.values(wearing(player)).includes(id);}
+function salvage(id,quiet){if(!canSalvage(id))return false;const it=itemOf(id);
+  const wasSpare=spareN(id)>0;if(!takeItem(id))return false;if(!wasSpare&&player.mw&&player.mw[id]){player.mw=Object.assign({},player.mw);delete player.mw[id];}
+  const y=SALVAGE[it.rar];for(const [k,v] of Object.entries(y))addMat(k,v);craftXp(SALV_XP[it.rar]);bump("salvaged");SFX.play("coin");
+  pushEvent(`Salvaged ${it.n} for ${matTxt(y)}`);
+  if(!quiet){store.savePlayer(player).catch(writeFailed);render();renderBench();toast(`Salvaged ${esc(it.n)}: ${matTxt(y)}.`);}
+  return true;}
+function craftItem(slot,rar){const R=RECIPES[rar];if(!R||!craftAccess())return;if(craftLevel()<R.lv){toast(`Reach crafting level ${R.lv} to craft ${crN(rar)} gear.`,"bad");return;}
+  const c=scaleCost(R.c),g=goldCost(R.g);if(!canPay(c,g)){toast("You don't have the materials and gold for that yet.","bad");return;}
+  const pool=ITEMS.filter(i=>i.slot===slot&&i.rar===rar&&!i.base);if(!pool.length)return;
+  pay(c,g);const fresh=pool.filter(i=>!player.owned.includes(i.id)),pk=fresh.length?fresh:pool,it=pk[Math.floor(Math.random()*pk.length)];
+  const r=receiveItem(it.id);craftXp(R.xp);bump("crafted");SFX.play("kill");pushEvent(`Crafted ${RARITY[rar].n} ${it.n}`);
+  if(r==="new"&&["epic","legendary"].includes(rar))partyPost("loot",`crafted a ${RARITY[rar].n} ${it.n}`);
+  store.savePlayer(player).catch(writeFailed);render();renderBench();
+  toast(`<span class="big">Crafted!</span> <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":" (one you already own)"}.`,"lvl",r==="new"?()=>equip(it.slot,it.id):null,r==="new"?"Equip":null);}
+function masterwork(id){const it=itemOf(id);if(!it||!craftAccess()||!MW_SLOTS.includes(it.slot)||!player.owned.includes(id))return;
+  const s=mwOf(player,id)+1;if(s>MW_MAX)return;const {c:c0,g:g0}=mwCost(it,s),c=scaleCost(c0),g=goldCost(g0);
+  if(!canPay(c,g)){toast("You don't have the materials and gold for that yet.","bad");return;}
+  pay(c,g);player.mw=Object.assign({},player.mw||{},{[id]:s});craftXp(15*s*(RAR_IX[it.rar]+1));bump("masterworks");SFX.play("kill");
+  pushEvent(`Masterworked ${it.n} to ${"★".repeat(s)}`);store.savePlayer(player).catch(writeFailed);render();renderBench();
+  toast(`<span class="big">${"★".repeat(s)}</span> ${esc(it.n)} is now masterwork ${s} of ${MW_MAX}: +${s*20}% to its bonus.`,"lvl");}
+/* Material drops, called from mobs, chests, rivals, bosses and boxes. Returns a short note. */
+function matDrop(k,n){if(!n)return "";addMat(k,n);bump("matsFound",n);return `${MATS[k].ic} ${n} ${MATS[k].n}`;}
+/* ---- The workbench ---- */
+function openBench(tab){ui.bench={tab:tab||ui.benchTab||"craft",slot:(ui.bench&&ui.bench.slot)||"boots"};ui.benchTab=ui.bench.tab;renderBench();}
+function closeBench(){ui.bench=null;const o=$("benchWrap");if(o)o.remove();}
+function renderBench(){
+  if(!ui.bench){const o=$("benchWrap");if(o)o.remove();return;}
+  if(!craftAccess()){closeBench();return;}
+  let o=$("benchWrap");if(!o){o=document.createElement("div");o.id="benchWrap";o.className="gearwrap";document.body.appendChild(o);o.addEventListener("click",e=>{if(e.target===o)closeBench();});}
+  const B=ui.bench,L=craftLevel(),x=(player.craft||{}).xp||0,lo=craftLvXp(L),hi=craftLvXp(L+1),half=craftAccess()<1;
+  const mats=Object.keys(MATS).map(k=>`<span class="mat"><b>${MATS[k].ic} ${matN(k)}</b> ${MATS[k].n}</span>`).join("");
+  const tabs=[["craft","Craft"],["mw","Masterwork"],["salv","Salvage"],["fuse","Fuse"]].map(([k,n])=>`<button type="button" role="tab" class="${B.tab===k?"on":""}" data-btab="${k}" aria-selected="${B.tab===k}">${n}</button>`).join("");
+  const cost=(c,g)=>`${matTxt(c)||"free"}${g?` + ${g}g`:""}`;
+  let body="";
+  if(B.tab==="craft"){
+    const slots=SLOTS.map(([s])=>s);
+    body=`<div class="qt-stats">${slots.map(s=>`<button type="button" class="chipbtn${B.slot===s?" on":""}" data-bslot="${s}">${SLOT_NAME[s]}</button>`).join("")}</div>
+      ${Object.entries(RECIPES).map(([rar,R])=>{const c=scaleCost(R.c),g=goldCost(R.g),lock=L<R.lv,pool=ITEMS.filter(i=>i.slot===B.slot&&i.rar===rar&&!i.base),fresh=pool.filter(i=>!player.owned.includes(i.id)).length;
+        return `<div class="qt-row${lock?"":" own"}"><div><b class="rar-${rar}">${crN(rar)} ${SLOT_NAME[B.slot]}</b><div class="muted">${lock?`Unlocks at crafting level ${R.lv}`:`${cost(c,g)} · ${pool.length?`${fresh} of ${pool.length} you don't own yet`:"no designs for this slot"}`}</div></div>
+          <button class="btn sm gold" type="button" data-bcraft="${rar}"${lock||!pool.length||!canPay(c,g)?" disabled":""}>${lock?"🔒":"Craft"}</button></div>`;}).join("")}
+      <div class="muted" style="font-size:12px">You get a random ${SLOT_NAME[B.slot].toLowerCase()} item of that rarity, one you don't own yet when possible. Unique gear can't be crafted.</div>`;
+  }else if(B.tab==="mw"){
+    const mine=ITEMS.filter(i=>MW_SLOTS.includes(i.slot)&&player.owned.includes(i.id)&&(i.bonus>0||i.hp)).sort((a,b)=>{const ba=bestOwned(player,a.slot),bb=bestOwned(player,b.slot);return ((bb&&bb.id===b.id)?1:0)-((ba&&ba.id===a.id)?1:0)||RAR_IX[b.rar]-RAR_IX[a.rar];});
+    body=mine.length?mine.map(it=>{const s=mwOf(player,it.id),act=bestOwned(player,it.slot),on=act&&act.id===it.id;
+      if(s>=MW_MAX)return `<div class="qt-row own"><div><b class="rar-${it.rar}">${esc(it.n)}</b> <span class="mwst">${"★".repeat(s)}</span><div class="muted">${SLOT_NAME[it.slot]} · fully masterworked (+60%)${on?" · active":""}</div></div><span class="qt-on">Max</span></div>`;
+      const {c:c0,g:g0}=mwCost(it,s+1),c=scaleCost(c0),g=goldCost(g0);
+      return `<div class="qt-row${on?" own":""}"><div><b class="rar-${it.rar}">${esc(it.n)}</b> <span class="mwst">${"★".repeat(s)}<span class="dim">${"☆".repeat(MW_MAX-s)}</span></span><div class="muted">${SLOT_NAME[it.slot]}${on?" · active":""} · next ★: ${cost(c,g)} → ${itemLines(Object.assign({},it,{bonus:it.bonus*(1+.2*(s+1)),hp:Math.round((it.hp||0)*(1+.2*(s+1)))}),{mw:{}})[0]}</div></div>
+        <button class="btn sm gold" type="button" data-bmw="${it.id}"${canPay(c,g)?"":" disabled"}>★</button></div>`;}).join("")
+      :`<p class="muted">No gear to masterwork yet. Weapons, body armor, helmets, capes, gloves and boots can all be masterworked.</p>`;
+    body+=`<div class="muted" style="font-size:12px">Each star adds +20% to the item's bonus. Your best item in each slot is the one that counts, so masterwork the ones you use. Rings and pet trinkets can't be masterworked.</div>`;
+  }else if(B.tab==="salv"){
+    const list=salvageable();
+    body=list.length?list.map(({it,spare,n})=>`<div class="qt-row"><div><b class="rar-${it.rar}">${esc(it.n)}</b>${spare?` <span class="muted">· ${n} spare${n===1?"":"s"}</span>`:` <span class="muted">· not worn</span>`}<div class="muted">→ ${matTxt(SALVAGE[it.rar])}${mwOf(player,it.id)&&!spare?" · its masterwork stars are lost":""}</div></div>
+        <button class="btn sm" type="button" data-bsalv="${it.id}">Salvage</button></div>`).join("")
+      :`<p class="muted">Nothing to salvage. Spares, and gear you own but aren't wearing, show up here. Equipped gear and Unique items are never salvaged.</p>`;
+  }else{
+    const need=qtFuseN();
+    body=`<div class="qt-stats">${QT_FUSE.map(r=>{const n=qtSpares(r).length;return `<button type="button" class="chipbtn" data-qtfuse="${r}"${n<need?" disabled":""}>${crN(r)} ×${need} → ${crN(QT_NEXT[r])} <span class="muted">(${n})</span></button>`;}).join("")}</div>
+      <div class="muted" style="font-size:12px">Fuse ${need} spares of one rarity into a random item one rarity higher. No materials needed.</div>`;
+  }
+  o.innerHTML=`<div class="geardlg inspdlg benchdlg" role="dialog" aria-modal="true" aria-label="Workbench"><div class="gearhead"><h2>Workbench</h2><button class="btn ghost sm" type="button" id="benchClose">Close</button></div>
+    <div class="bench-top"><div><b>Crafting level ${L}</b>${L<10?` <span class="muted">· ${x-lo} / ${hi-lo} XP</span>`:" · max"}${craftDisc()?` <span class="muted">· ${Math.round(craftDisc()*100)}% off gold costs</span>`:""}${craftXpMul()>1?` <span class="muted">· +${Math.round((craftXpMul()-1)*100)}% crafting XP</span>`:""}</div>${zbar(L>=10?1:(x-lo)/(hi-lo),"bond")}
+      <div class="mats">${mats}<span class="mat"><b>🪙 ${player.gold.toLocaleString()}</b> gold</span></div>
+      ${half?`<div class="muted" style="font-size:12px">Using a hallmate's studio: materials cost 50% more.</div>`:""}</div>
+    <div class="pt-seg bench-tabs" role="tablist">${tabs}</div>${body}</div>`;
+  $("benchClose").onclick=closeBench;
+  o.querySelectorAll("[data-btab]").forEach(b=>b.onclick=()=>{B.tab=ui.benchTab=b.dataset.btab;renderBench();});
+  o.querySelectorAll("[data-bslot]").forEach(b=>b.onclick=()=>{B.slot=b.dataset.bslot;renderBench();});
+  o.querySelectorAll("[data-bcraft]").forEach(b=>b.onclick=()=>craftItem(B.slot,b.dataset.bcraft));
+  o.querySelectorAll("[data-bmw]").forEach(b=>b.onclick=()=>masterwork(b.dataset.bmw));
+  o.querySelectorAll("[data-bsalv]").forEach(b=>b.onclick=()=>salvage(b.dataset.bsalv));
+  o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>{qtFuse(b.dataset.qtfuse);renderBench();});
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.bench)closeBench();});
 /* ---------- Floor map ----------
    Each floor is a winding corridor of 16 rooms on a 5×5 grid, drawn like a hand-inked dungeon map.
    Every finished quest moves you one room deeper and resolves what's in it. Two secret rooms hang off
@@ -3862,7 +3991,8 @@ function mapStep(t,dash){
   const known=(m.rev||[]).includes(m.pos+1);
   m.pos++;m.far=m.pos;const rm=m.rooms[m.pos];rm.seen=true;crackCheck(m,out);if(!(m.rev||[]).includes(m.pos))(m.rev=m.rev||[]).push(m.pos);const H=maxHp(player);
   if(rm.t==="chest"){const g=20+floor*6+Math.round(Math.random()*30);player.gold+=g;let box="";if(Math.random()<.25){giveBox("bronze","A chest on the map");box=" and a Bronze Box";}
-    out.push(mapLog(m,`Room ${m.pos+1}: a treasure chest! +${g} gold${box}.`));}
+    const md=Math.random()<.3?matDrop("scrap",1+Math.floor(Math.random()*2)):"";
+    out.push(mapLog(m,`Room ${m.pos+1}: a treasure chest! +${g} gold${box}${md?`, ${md}`:""}.`));}
   if(rm.t==="trap"){if(known)out.push(mapLog(m,`Room ${m.pos+1}: the trap your map warned you about. You step around it.`));
     else if(lvlOf(player,"DEX")>=3)out.push(mapLog(m,`Room ${m.pos+1}: a tripwire. Your Dexterity saw it coming. No damage.`));
     else{const d=Math.min(player.hp-1,6+floor*2);player.hp-=Math.max(0,d);out.push(mapLog(m,`Room ${m.pos+1}: a trap! The floor bit you for ${d} HP.`));}}
@@ -4816,6 +4946,8 @@ function openBox(bid){
   }
   player.opened=(player.opened||0)+1;
   const extras=[];
+  if(bx.tier==="celestial")extras.push(`A ${matDrop("star",1)} glitters at the bottom of the box.`);
+  if(bx.tier==="gold"&&Math.random()<.2)extras.push(`Wedged in the corner: ${matDrop("ess",1)}.`);
   if(bx.tier==="celestial"){if(res.bonus){player.gold+=res.bonus;extras.push(`The stars also left ${res.bonus} gold.`);}player.viewers=(player.viewers||0)+250000;bump("celestial");}
 
   if(petFx(player).ability==="mimic"&&Math.random()<.10){const a=activePet();giveBox("bronze",`${a.name}'s Hungry Lid`);extras.push(`${a.name} coughed up a bonus Bronze Box.`);}
@@ -4908,7 +5040,7 @@ function showBoxOpen(tier,res,item,dupe,quip){
         <div class="muted" style="font-size:13px">${esc(sub)}</div>
         <div class="quip">${esc(quip)}</div>
         <div class="acts">${item&&!dupe?`<button class="btn gold" type="button" data-equipnow>Equip</button><button class="btn" type="button" data-closebox>Nice</button>`
-          :item&&dupe?`<button class="btn gold" type="button" data-dupesell>Sell · ${dv}g</button><button class="btn" type="button" data-dupekeep>Keep</button>`:`<button class="btn" type="button" data-closebox>Nice</button>`}</div>
+          :item&&dupe?`<button class="btn gold" type="button" data-dupesell>Sell · ${dv}g</button><button class="btn" type="button" data-dupekeep>Keep</button>${craftAccess()&&SALVAGE[item.rar]?`<button class="btn" type="button" data-dupesalv>Salvage</button>`:""}`:`<button class="btn" type="button" data-closebox>Nice</button>`}</div>
       </div>
       <div class="vskip">${calm?"":"Click to skip"}</div>
     </div>`;
@@ -4926,6 +5058,8 @@ function showBoxOpen(tier,res,item,dupe,quip){
   ov.addEventListener("click",e=>{
     if(e.target.closest("[data-equipnow]")){equip(item.slot,item.id);toast(`Equipped ${item.n}.`);close();return;}
     if(e.target.closest("[data-closebox]")){close();return;}
+    if(e.target.closest("[data-dupesalv]")){if(!res.kept&&player.gold>=dv){player.gold-=dv;addSpare(item.id,1);res.kept=true;}if(spareN(item.id)>0)salvage(item.id,true);
+      store.savePlayer(player).catch(writeFailed);render();toast(`Salvaged the spare ${esc(item.n)}: ${matTxt(SALVAGE[item.rar])}.`);close();return;}
     const ds=e.target.closest("[data-dupesell]"),dk=e.target.closest("[data-dupekeep]");
     if(ds||dk){
       if(ds&&res.kept&&spareN(item.id)>0){addSpare(item.id,-1);player.gold+=dv;res.kept=false;pushEvent(`Sold the duplicate ${item.n} for ${dv} gold`);SFX.play("coin");}
@@ -5147,7 +5281,7 @@ const TICKER_FLUFF=[
 const OD_MULT=2,BOSS_LASH=false,MOB_BITE=false;
 const odEsc=od=>Math.min(2.5,1+.25*Math.max(0,od-1));
 const odHit=(t,od)=>EFFORT[t.effort].dmg*OD_MULT*odEsc(od);
-function rawCut(p){const a=bestOwned(p,"armor");return (a?a.bonus:0)+petFx(p).armor+rcFx(p,null).armor+gearFx(p).armor;}
+function rawCut(p){const a=bestOwned(p,"armor");return bonusOf(a,p)+petFx(p).armor+rcFx(p,null).armor+gearFx(p).armor;}
 function armorCut(p){const r=rawCut(p);return Math.min(.6,r<=.3?r:.3+(r-.3)*.5);}
 const bossLash=floor=>4+2*(floor||1);
 function mobBite(p,floor){if(petFx(p).ability==="gargoyle")return 0;return (p.mobs||[]).reduce((a,mb)=>a+(mb.pack?6+floor*2:3+floor),0);}
@@ -7163,12 +7297,13 @@ function invTorch(side){return `<svg class="invtorch ${side}" viewBox="0 0 40 11
 function fxLines(f){const L=[];if(!f)return L;
   if(f.xp)L.push(`+${pct(f.xp)}% XP`);if(f.gold)L.push(`+${pct(f.gold)}% gold`);if(f.dmg)L.push(`+${pct(f.dmg)}% boss damage`);
   if(f.hp)L.push(`+${f.hp} max HP`);if(f.lv)L.push(`Pet counts as +${f.lv} bond level${f.lv>1?"s":""}`);if(f.rate)L.push(`Bond grows ${f.rate>=1?"twice as fast":pct(f.rate)+"% faster"}`);if(f.armor)L.push(`Overdue damage −${pct(f.armor)}%`);if(f.win)L.push(`Accuracy window ${pct(f.win)}% wider each side`);return L;}
-function itemLines(it){
-  const L=[];
-  if(it.slot==="armor")L.push(`Overdue damage −${pct(it.bonus)}%`);
-  else if(it.slot==="gloves")L.push(`+${pct(it.bonus)}% boss damage`);
-  else if(it.slot==="boots")L.push(`${pct(it.bonus)}% faster movement speed (chance a quest moves you an extra room)`,`+${it.hp||0} max HP`);
-  else if(it.slot!=="ring"&&it.slot!=="trinket"&&it.bonus>0)L.push(`+${pct(it.bonus)}% XP`);
+function itemLines(it,p){
+  const L=[],b=bonusOf(it,p||player);
+  if(it.slot==="armor")L.push(`Overdue damage −${pct(b)}%`);
+  else if(it.slot==="gloves")L.push(`+${pct(b)}% boss damage`);
+  else if(it.slot==="boots")L.push(`${pct(b)}% faster movement speed (chance a quest moves you an extra room)`,`+${hpOf(it,p||player)} max HP`);
+  else if(it.slot!=="ring"&&it.slot!=="trinket"&&it.bonus>0)L.push(`+${pct(b)}% XP`);
+  {const s=mwOf(p||player,it.id);if(s)L.push(`Masterwork ${"★".repeat(s)}: +${s*20}% to its bonus`);}
   L.push(...fxLines(it.fx),...fxLines(it.mfx));
   return L.length?L:["Cosmetic"];
 }
@@ -7182,7 +7317,7 @@ function itemStatus(it){
   return b&&b.id===it.id?{on:true,t:"Active: your best "+SLOT_NAME[it.slot].toLowerCase()+" counts even when not worn"}:{on:false,t:`Inactive: ${b?b.n:"another item"} is better`};
 }
 function invCell(it,eq,tall){
-  return `<button type="button" class="invcell r-${it.rar}${eq?" eq":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-inv="${it.id}" aria-label="${esc(it.n)}${eq?" (equipped)":""}">${tall==="weapon"?tallWeaponSVG(it.id,RAR_BG[it.rar]):tall?tierIcon(it.id,it.rar).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '):tierIcon(it.id,it.rar)}${eq?`<span class="eqtag" aria-hidden="true">E</span>`:""}</button>`;
+  return `<button type="button" class="invcell r-${it.rar}${eq?" eq":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-inv="${it.id}" aria-label="${esc(it.n)}${eq?" (equipped)":""}">${tall==="weapon"?tallWeaponSVG(it.id,RAR_BG[it.rar]):tall?tierIcon(it.id,it.rar).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '):tierIcon(it.id,it.rar)}${eq?`<span class="eqtag" aria-hidden="true">E</span>`:""}${mwOf(player,it.id)?`<span class="mwbadge" aria-hidden="true">${"★".repeat(mwOf(player,it.id))}</span>`:""}</button>`;
 }
 const INV_CATS=[["all","All"],["weapon","Weapons"],["armor","Body"],["head","Head"],["gloves","Hands"],["boots","Feet"],["cape","Back"],["ring","Rings"],["trinket","Pet"],["cons","Bag"]];
 const INV_PAGE=25;
@@ -7193,7 +7328,7 @@ function renderInv(){
     return `<div class="dslot ds-${slot}"><span class="dlabel">${SLOT_NAME[slot]}</span>${it?invCell(it,true,slot==="weapon"?"weapon":slot==="armor"?"armor":false):`<button type="button" class="invcell invempty" data-invslot="${slot}" aria-label="Empty ${SLOT_NAME[slot]} slot"><span>${SLOT_NAME[slot]}</span></button>`}</div>`;};
   el.style.setProperty("--brick",BRICK_TILE);
   const doll=`<div class="doll">${invTorch("l")}${invTorch("r")}<svg class="sil" viewBox="0 0 100 160" aria-hidden="true"><circle cx="50" cy="22" r="15"/><path d="M28 42 Q50 34 72 42 L82 92 L72 94 L68 62 L68 100 L64 152 L53 152 L50 108 L47 152 L36 152 L32 100 L32 62 L28 94 L18 92 Z"/></svg>${["head","cape","weapon","armor"].map(slotCell).join("")}<div class="ds-side">${slotCell("ring")+slotCell("gloves")}</div>${slotCell("trinket")+slotCell("boots")}</div>`;
-  const gx=gearFx(p),xpB=XP_SLOTS.reduce((s,sl)=>{const b=bestOwned(p,sl);return s+(b?b.bonus:0);},0)+gx.xp;
+  const gx=gearFx(p),xpB=XP_SLOTS.reduce((s,sl)=>{const b=bestOwned(p,sl);return s+bonusOf(b,p);},0)+gx.xp;
   const cut=armorCut(p),rcut=rawCut(p);
   const tot=[xpB?`+${pct(xpB)}% XP`:"",gx.gold?`+${pct(gx.gold)}% gold`:"",gx.dmg?`+${pct(gx.dmg)}% boss damage`:"",cut?`overdue damage −${pct(cut)}%${rcut>cut+.005?` (soft cap; ${pct(rcut)}% raw)`:""}`:"",gx.hp?`+${gx.hp} max HP`:"",gx.win?`accuracy +${pct(gx.win)}%`:""].filter(Boolean);
   const items=ITEMS.filter(i=>p.owned.includes(i.id)).sort((a,b)=>SLOTS.findIndex(x=>x[0]===a.slot)-SLOTS.findIndex(x=>x[0]===b.slot)||RAR_ORDER.indexOf(a.rar)-RAR_ORDER.indexOf(b.rar));
@@ -7242,7 +7377,7 @@ function invTipHtml(cell,pinned){
   const hands=it.slot==="weapon"?(!ONE_HANDED.has(it.base||it.id)?" · Two-handed":" · One-handed"):"";
   const magicNote=it.mnote?`<div class="tline tmagic">${esc(it.mnote)}</div>`:it.magic?`<div class="tline tmagic">${{fire:"Wreathed in flame while you wield it.",frost:"Frost creeps along the blade while you wield it.",storm:"Lightning crackles around the head while you wield it.",radiant:"You glow. Everyone can tell. You're insufferable.",venom:"Drips. Constantly. Mind the carpet.",shadow:"Wisps of ignored notifications curl off it while you wear it.",arcane:"The gem watches. It already knows how long that task will take.",stars:"A little night sky twinkles behind you.",ember:it.slot==="trinket"?"Smoulders around your pet's neck. It's fine. It's warm.":"The gem pulses like a heartbeat."}[it.magic]||""}</div>`:"";
   const sp=spareN(it.id),canGive=party&&partyMembers().length>1;
-  const acts=pinned?`<div class="tacts">${worn?`<button class="btn sm" type="button" data-tipunequip="${it.slot}">Unequip</button>`:`<button class="btn gold sm" type="button" data-tipequip="${it.id}">Equip${cur?` (replaces ${esc(cur.n)})`:""}</button>`}${sp?`<button class="btn sm" type="button" data-tipsell="${it.id}">Sell a spare · ${dupeValue(it)}g</button>`:""}${canGive?`<button class="btn sm" type="button" data-tipgive="${it.id}">🎁 Give or trade</button>`:""}</div>`:`<div class="tline muted thint">Click to ${worn?"unequip":"equip"}</div>`;
+  const acts=pinned?`<div class="tacts">${worn?`<button class="btn sm" type="button" data-tipunequip="${it.slot}">Unequip</button>`:`<button class="btn gold sm" type="button" data-tipequip="${it.id}">Equip${cur?` (replaces ${esc(cur.n)})`:""}</button>`}${sp?`<button class="btn sm" type="button" data-tipsell="${it.id}">Sell a spare · ${dupeValue(it)}g</button>`:""}${canSalvage(it.id)?`<button class="btn sm" type="button" data-tipsalv="${it.id}">Salvage${sp?" a spare":""} · ${matTxt(SALVAGE[it.rar])}</button>`:""}${canGive?`<button class="btn sm" type="button" data-tipgive="${it.id}">🎁 Give or trade</button>`:""}</div>`:`<div class="tline muted thint">Click to ${worn?"unequip":"equip"}</div>`;
   return `<div class="thead"><span class="tico${it.rar==="magical"?" uq":""}">${tierIcon(it.id,it.rar)}</span><div><b class="rar-${it.rar}">${esc(it.n)}</b><div class="tsub">${RARITY[it.rar].n} · ${SLOT_NAME[it.slot]}${hands}${worn?" · Equipped":""}${spareN(it.id)?` · ${spareN(it.id)} spare`:""}</div></div></div>
     <ul class="tstats">${itemLines(it).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>${magicNote}
     <div class="tline ${st.on?"ton":"toff"}">${esc(st.t)}</div>${acts}`;
@@ -7258,6 +7393,7 @@ function showInvTip(cell,pinned){
   tip.querySelectorAll("[data-tipequip]").forEach(b=>b.onclick=e=>{e.stopPropagation();const it=ITEMS.find(x=>x.id===b.dataset.tipequip);ui.invPin=null;equip(it.slot,it.id);toast(`Equipped ${it.n}.`);});
   tip.querySelectorAll("[data-tipunequip]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;equip(b.dataset.tipunequip,null);});
   tip.querySelectorAll("[data-tipsell]").forEach(b=>b.onclick=e=>{e.stopPropagation();sellSpare(b.dataset.tipsell);});
+  tip.querySelectorAll("[data-tipsalv]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;tip.hidden=true;salvage(b.dataset.tipsalv);});
   tip.querySelectorAll("[data-tipgive]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;tip.hidden=true;openGive(b.dataset.tipgive);});
   tip.querySelectorAll("[data-tipdrink]").forEach(b=>b.onclick=e=>{e.stopPropagation();drink();});
   tip.querySelectorAll("[data-tipfocus]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;drinkFocus();});
@@ -8055,6 +8191,11 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"2.17.0",d:"2026-10-07",t:"Crafting",items:["The Crafting Studio is now a full workbench: Craft, Masterwork, Salvage and Fuse, opened from your Personal Quarters.",
+    "Salvage gear you aren't wearing into ⚙ Scrap, ✨ Essence and 💠 Starshards. Mobs, chests, rival crawlers, bosses and boxes drop materials too, and duplicates can now be salvaged right from the sell-or-keep question.",
+    "Craft the gear you want: pick a slot and a rarity from Magic up to top-tier Legendary ✦. Unique gear stays drop-only.",
+    "Masterwork your favourite gear up to ★★★. Each star adds +20% to its bonus, and the stars show on its icon.",
+    "Crafting levels unlock Rare, Legendary and Legendary ✦ recipes and cut gold costs. Clockwork Golems and Chore Druids learn crafting 50% faster."]},
   {v:"2.16.0",d:"2026-10-07",t:"Close-ups",items:["Tap any avatar or pet to see it up close with its stats: your hero, your crewmates on the Party tab, your pets, and any rival crawler on your heels.",
     "Your hero's close-up shows HP, XP, gold, streak, kills, every stat and your gear bonuses. Tapping your avatar now opens it; Change look is the first button inside."]},
   {v:"2.15.1",d:"2026-10-07",t:"Raid boss close-up",items:["Tap the raid boss card on the Party tab to see the monster up close, with its HP, damage dealt, time left and everyone's hits.",
@@ -9227,7 +9368,7 @@ function renderInspect(){
   const cell=it=>`<button type="button" class="invcell r-${it.rar}${wear[it.slot]===it.id?" eq":""}${ui.inspectItem===it.id?" sel":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:` style="background:${UNIQUE_BG}"`} data-insp="${it.id}" aria-label="${esc(it.n)}">${lootIconSVG(it.id).replace(/<rect width="100" height="100" fill="[^"]+"\/>/,"")}${wear[it.slot]===it.id?`<span class="eqtag">E</span>`:""}</button>`;
   const sel=ITEMS.find(i=>i.id===ui.inspectItem);
   const det=sel?`<div class="insp-det"><div class="thead"><span class="tico">${tierIcon(sel.id,sel.rar==="magical"?"legendary":sel.rar)}</span><div><b class="rar-${sel.rar}">${esc(sel.n)}</b><div class="tsub">${RARITY[sel.rar].n} · ${SLOT_NAME[sel.slot]}${wear[sel.slot]===sel.id?" · Equipped":""}</div></div></div>
-      <ul class="tstats">${itemLines(sel).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>${!me&&player.owned.includes(sel.id)?`<div class="tline muted">You own one too.</div>`:""}${!me?`<div class="tacts"><button class="btn gold sm" type="button" data-asktrade="${sel.id}">🎁 Trade for this</button></div>`:""}</div>`
+      <ul class="tstats">${itemLines(sel,{mw:{}}).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>${!me&&player.owned.includes(sel.id)?`<div class="tline muted">You own one too.</div>`:""}${!me?`<div class="tacts"><button class="btn gold sm" type="button" data-asktrade="${sel.id}">🎁 Trade for this</button></div>`:""}</div>`
     :`<div class="insp-det muted">Tap an item to see what it does.</div>`;
   const worn=SLOTS.map(([slot,label,none])=>{const it=ITEMS.find(x=>x.id===wear[slot]);
     return `<li><span class="muted">${label}:</span> ${it?`<button type="button" class="linkbtn rar-${it.rar}" data-insp="${it.id}">${esc(it.n)}</button>`:`<span class="muted">${esc(slot==="armor"?"Starter outfit":none)}</span>`}</li>`;}).join("");
