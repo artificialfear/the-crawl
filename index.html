@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=460075a1dd"></script>
-<script>window.CRAWL_BUILD="460075a1dd";</script>
+<script src="firebase-config.js?v=5e56a6b8ba"></script>
+<script>window.CRAWL_BUILD="5e56a6b8ba";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1016,6 +1016,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .bench-top{display:grid;gap:6px}.mats{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}.mat b{font-size:14px}
 .bench-tabs{margin:4px 0 0;flex-wrap:wrap;gap:6px}.bench-tabs button{padding:7px 12px;min-height:34px;font-size:12px}
 .benchdlg{min-width:0}.benchdlg .qt-row{min-width:0}.benchdlg .qt-row>div{overflow-wrap:anywhere}
+.grindbar{font-size:13px;padding:8px 10px;margin:6px 0;border:1px dashed var(--gold);border-radius:8px;color:var(--fg)}
 .zladder{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13px}.zladder .now{color:var(--gold)}
 .zoom-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.zgear{font-size:13px}
 .vstamp.still{opacity:1;animation:none;transform:translate(-50%,-50%) rotate(-12deg) scale(1);z-index:2;pointer-events:none}
@@ -1538,6 +1539,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Personal Quarters</b>: a private room through the portal in the Safe Room, 1,500 gold (or a Deed Coupon from a Gold or Celestial box, or the weekly #1 prize). Upgrades: Bed (heal 10% max HP each morning), Kitchen (cook once a day for +5% XP until midnight), Bath (pet never sulks, +15% bond), Training Room (+10% XP on one stat, switch weekly), Crafting Studio (fuse 3 spares of one rarity into an item one rarity higher), Quest Screen (+10% viewers, rematch warnings, episode replays) and Trophy Wall. Tick crewmates onto your guest list and they can visit and cook in your kitchen. <b>Communal Hall</b>: crewmates with quarters can each tap Conjoin to share a hall. Upgrades you own work at full strength; ones only a hallmate owns work for you at half strength (a shared kitchen feeds you +2.5% XP daily with no cooking, a shared studio fuses 5 spares instead of 3). On days 2+ hallmates finish a quest, everyone in the hall gets +5% XP.</div>
           <div><b>Loot boxes</b> only open somewhere safe: the Safe Room tab, your quarters or the Communal Hall. Carrying unopened boxes doubles your odds of a rival crawler jumping you, and if one knocks you out, it grabs an unopened box first. Beat it in the rematch to take the box back.</div>
           <div><b>Crafting</b> (needs a Crafting Studio in your quarters, or a hallmate's at half strength): salvage gear you aren't wearing into ⚙ Scrap, ✨ Essence and 💠 Starshards (mobs, chests, rivals, bosses and boxes drop them too); craft a chosen slot at Magic, Rare, Legendary or top-tier Legendary ✦; masterwork your gear up to ★★★ (+20% to its bonus per star). Crafting levels unlock Rare (level 2), Legendary (4) and Legendary ✦ (6) recipes and cut gold costs 5% a level. Clockwork Golems and Chore Druids gain crafting XP 50% faster. Unique gear can't be crafted, salvaged or fused.</div>
+          <div><b>Grind time</b>: once all six bosses on a floor are down, the floor stays dangerous until the stairwell opens. Mobs jump you on about 40% of quests (a third of them packs) and pay +50% XP, and rival crawlers turn up twice as often (up to 5 a floor).</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
@@ -3219,7 +3221,11 @@ function mobScene(mb){
     ${[[40,46],[288,40],[20,80],[300,86]].map(([x,y],i)=>`<g class="mc-eyes" style="animation-delay:-${i*.7}s"><circle cx="${x}" cy="${y}" r="2.2" fill="${k==="goblin"?"#ffd23f":k==="ooze"?"#e8ff3a":"#ff2e2e"}"/><circle cx="${x+7}" cy="${y}" r="2.2" fill="${k==="goblin"?"#ffd23f":k==="ooze"?"#e8ff3a":"#ff2e2e"}"/></g>`).join("")}
     ${spots.map(([x,y,s,d])=>mobCreature(k,x,y,s,d)).join("")}</svg>`;
 }
-const MOB_WANDER=.12; // doubled on hidden-lair floors, whose rooms are mostly lairs
+const MOB_WANDER=.12;
+/* After a floor is cleared: grind mode. Mobs show up on 40% of quests (a third of them packs) and pay +50% XP;
+   rival crawlers turn up twice as often, up to 5 a floor. */
+const GRIND_MOB=.40,GRIND_XP=1.5;
+const grinding=()=>!!(typeof player!=="undefined"&&player&&player.boss&&player.boss.defeated); // doubled on hidden-lair floors, whose rooms are mostly lairs
 function heroHit(xp){return Math.round(xp*(1+statFx(player).dmg+petFx(player).dmg+gearFx(player).dmg));}
 function mobScale(){const x=rewardFor(player,{effort:3,est:30,stat:"STR",title:""},null).xp;return {xp:x,hit:Math.max(8,heroHit(x))};}
 function spawnMob(kind,room){
@@ -3233,7 +3239,10 @@ function spawnMob(kind,room){
 /* One quest's hit against everything on you, in the order they showed up. Returns toast lines. */
 function mobFight(fx,t){
   const out=[];if(!player.mobs)player.mobs=[];
-  if(!player.mobs.length&&Math.random()<(player.boss&&player.boss.hunt?MOB_WANDER*2:MOB_WANDER)){const w=spawnMob("mob",null);player.mobs.push(w);bump("wanderers");out.push(`${w.a} wandering ${w.n} jumps you!`);}
+  // Grinding: once a floor's bosses are all down, the leftovers come out of the walls until the stairwell opens
+  const G=grinding(),wr=G?GRIND_MOB:(player.boss&&player.boss.hunt?MOB_WANDER*2:MOB_WANDER);
+  if(!player.mobs.length&&Math.random()<wr){const pk=G&&Math.random()<.35,w=spawnMob(pk?"pack":"mob",null);player.mobs.push(w);bump(G?"grindMobs":"wanderers");
+    out.push(pk?`A pack of leftovers crawls out of the walls: ${w.n}!`:`${w.a} wandering ${w.n} jumps you!`);}
   if(!player.mobs.length)return out;
   let hit=heroHit(fx);const sc=mobScale(),floor=floorOf(),m=player.map;
   const left=[];
@@ -3241,7 +3250,7 @@ function mobFight(fx,t){
     if(hit>0){const d=Math.min(hit,mb.hp);mb.hp-=d;hit-=d;}
     if(mb.hp<=0){
       const nyxB=isChosen("nyx")&&(new Date().getHours()>=21||new Date().getHours()<6)?2:1;
-      const bx=Math.round(sc.xp*(mb.pack?.3:.15)*nyxB),g=mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6);
+      const bx=Math.round(sc.xp*(mb.pack?.3:.15)*nyxB*(grinding()?GRIND_XP:1)),g=mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6);
       player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
       bump("mobKills");if(mb.pack)bump("packKills");
       let box="";if(mb.pack&&Math.random()<.25){giveBox("bronze",`Mob pack: ${mb.n}`);box=" and a Bronze Box";}
@@ -3398,7 +3407,7 @@ function rivalStep(fx,t){
   if(q){player.rvq=player.rvq.filter(x=>x!==q);const r=spawnRival({n:q.n,psy:q.psy,item:q.item||((q.boxes||[]).length?"__box":null),rematch:true});if(r){if(r.item==="__box")r.item=null;r.item2=q.item2||null;r.boxes=q.boxes||[];out.push(rvIntro(r));}return out;}
   const W=rvWeek();
   // unopened loot boxes draw rivals: twice the odds while you carry any
-  if(!(player.mobs||[]).length&&W.n<RV_MAX&&Math.random()<RV_RATE*((player.boxes||[]).length?2:1)){const r=spawnRival({});if(r)out.push(rvIntro(r));}
+  if(!(player.mobs||[]).length&&W.n<(grinding()?5:RV_MAX)&&Math.random()<RV_RATE*(grinding()?2:1)*((player.boxes||[]).length?2:1)){const r=spawnRival({});if(r)out.push(rvIntro(r));}
   return out;}
 /* A shrine on the map: hallowed ground. A normal rival gives up; a psycho waits a day. */
 function rivalSanctuary(m,out){const rv=player.rival;if(!rv)return;player.rival=null;
@@ -7634,7 +7643,7 @@ function renderBoss(){
     wireBossZoom(el);return;
   }
   if(!open){
-    const sub=b.defeated?`Floor ${floor} cleared · all six bosses down · Floor ${floor+1} (${esc(themeById(themeFor(floor+1)).n)}) opens ${fmtDue(addDays(b.week,7))}`
+    const sub=b.defeated?`Floor ${floor} cleared · <b>grind time</b>: mobs and rival crawlers still roam, and mobs pay +50% XP · Floor ${floor+1} (${esc(themeById(themeFor(floor+1)).n)}) opens ${fmtDue(addDays(b.week,7))}`
       :`${pips} ${b.tier+1} of 6 · drops a <b><span class="mini-ico">${boxIconSVG(T.box)}</span>${esc(box.n)}</b> · about <b class="num">${togoTxt}</b> Elite quest${!fog&&togo===1?"":"s"} to go · stairwell closes ${closes}${b.healed?` · healed <b class="num">${b.healed}</b> by overdue quests`:""}`;
     el.innerHTML=`<div class="boss-compact"><div class="bossart thumb zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="${esc(b.name)}: tap to see it up close">${bossSVG(b.name,b.defeated,{crop:true,tier:b.tier})}</div>
       <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">${b.defeated?`Floor ${floor} cleared`:`${esc(T.n)} · Floor ${floor}`}</span><div class="bname${b.defeated?" dead":""}">${esc(b.name)}</div></div>
@@ -7645,6 +7654,7 @@ function renderBoss(){
   let main;
   if(b.defeated){
     main=`<div class="label">Floor ${floor} · cleared</div><div class="bname dead">${esc(b.name)}</div>
+      <div class="grindbar">⚔ <b>Grind time.</b> The bosses are gone, but the leftovers aren't: mobs jump you on about 40% of quests (packs too) and pay <b>+50% XP</b>, and rival crawlers come looking twice as often. Keep crawling until the stairwell opens.</div>
       <div class="boss-facts"><span>All six bosses down. <b class="num">${b.total||0}</b> damage dealt on this floor.</span><span>Quests still count: your ranking and next floor's size go by your whole week.</span></div>
       ${ladder}
       <div class="muted" style="font-size:14px">Floor ${floor+1} opens ${fmtDue(addDays(b.week,7))}: <b>${esc(themeById(themeFor(floor+1)).n)}</b>. Your boxes are in your loot boxes.</div>`;
