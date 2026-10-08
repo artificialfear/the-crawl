@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=88ca6c9f92"></script>
-<script>window.CRAWL_BUILD="88ca6c9f92";</script>
+<script src="firebase-config.js?v=0a3e92fbfd"></script>
+<script>window.CRAWL_BUILD="0a3e92fbfd";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3213,6 +3213,7 @@ function spawnMob(kind,room){
   const ks=Object.keys(MOB_KINDS),k=ks[Math.floor(Math.random()*ks.length)],K=MOB_KINDS[k];
   const n=pack?K.packs[Math.floor(Math.random()*K.packs.length)]:K.names[Math.floor(Math.random()*K.names.length)];
   const hp=Math.max(5,Math.round(sc.hit*(pack?1.4+Math.random()*.6:.35+Math.random()*.6)));
+  ui.mobSnd=k;
   return {id:newId(),n,k,a:pack?"The":/^[AEIOU]/.test(n)?"An":"A",pack,hp,max:hp,room:room==null?null:room};
 }
 /* One quest's hit against everything on you, in the order they showed up. Returns toast lines. */
@@ -3310,7 +3311,7 @@ function spawnRival(opts){
   const hp=Math.max(20,Math.round(mobScale().hit*(2.5+1.5*s)*(.9+Math.random()*.2)*(psy?1.5:1)*(opts.item?1.25:1)));
   const rv={id:newId(),n,c:(RIVALS[i]||[])[1]||"Crawler",hp,max:hp,psy:!!psy,item:opts.item||null,rematch:!!opts.rematch,from:opts.from||"wander",
     at:Date.now(),day:today(),nights:0,fresh:true,ran:null,as:{},purse:Math.round(10+floorOf()*8+s*30)};
-  player.rival=rv;if(!opts.rematch)W.n++;bump("rivalsMet");
+  player.rival=rv;if(!opts.rematch)W.n++;bump("rivalsMet");ui.rvSnd=1;
   return rv;}
 function rvIntro(rv){const it=rv.item&&itemOf(rv.item);
   if(rv.rematch&&it)return `${rv.n} is back, and they're wearing your ${it.n}. Rematch!`;
@@ -5372,6 +5373,7 @@ function completeQuest(id,actual,touched){
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
   if(goblinBox)setTimeout(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>goBoxes(),"To the Safe Room"),600);
   react(fx>0);
+  try{arrivalSounds();}catch(e){}
   if(petMsg)setTimeout(()=>toast(petMsg),500);
   if(ui.kindled){ui.kindled=false;const a=activePet();if(a)setTimeout(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),300);}
   if(!loot)checkAch(evs);else ui.pendingAchAfterBoss=evs;
@@ -5679,6 +5681,11 @@ const EQUIP_SND={weapon:.85,armor:.9,head:.9,gloves:1,boots:.9,cape:.9,ring:.85,
 let bossSting=0;
 function bossAppear(){let n;do{n=1+Math.floor(Math.random()*5);}while(n===bossSting);bossSting=n;if(!clip("boss-appear-"+n,.85))SFX.play("hurt");}
 /* Tapping a piece of gear to look at it (not equipping it, which has its own per-slot sounds). */
+function zoomSound(){if(!clip("card-zoom",.9))SFX.play("tick");}
+/* Something shows up to fight: each mob kind has its own cry, and rival crawlers have theirs. Queued during a quest, played as the alert appears. */
+function arrivalSounds(){const rv=ui.rvSnd,mb=ui.mobSnd;ui.rvSnd=null;ui.mobSnd=null;
+  if(rv)setTimeout(()=>{if(!clip("crawler-appear",.9))SFX.play("hurt");},450);
+  if(mb)setTimeout(()=>{if(!clip("mob-"+mb,.85))SFX.play("hurt");},rv?1500:450);}
 function selectSound(){if(!clip("select-gear",.8))SFX.play("tick");}
 function equipSound(slot){if(!(EQUIP_SND[slot]&&clip("equip-"+slot,EQUIP_SND[slot])))SFX.play("equip");}
 function equip(slot,id){
@@ -8454,7 +8461,7 @@ function zoomCard(o){
   </div>`;
   $("zoomClose").onclick=closeZoom;
   w.querySelectorAll("[data-zact]").forEach(b=>b.onclick=()=>{const a=o.acts[+b.dataset.zact];closeZoom();a.fn();});
-  SFX.play("tick");
+  zoomSound();
 }
 function closeZoom(){const w=$("zoomWrap");if(w)w.remove();}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("zoomWrap"))closeZoom();});
@@ -8536,7 +8543,7 @@ function openRaidBoss(){
     <div class="label">Damage by crawler</div>
     ${contrib.length?`<ul class="pt-dmg">${contrib.map(([uid,v])=>{const c=cardOf(uid);return `<li><span>${esc(uid===me?"You":c&&c.name||"Crawler")}</span><i style="width:${Math.max(4,Math.round(v/maxC*100))}%"></i><b>${v.toLocaleString()}</b></li>`;}).join("")}</ul>`:`<p class="muted" style="font-size:13px">No hits yet this week.</p>`}
   </div>`;
-  $("raidClose").onclick=()=>o.remove();SFX.play("tick");
+  $("raidClose").onclick=()=>o.remove();zoomSound();
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){const o=$("raidWrap");if(o)o.remove();}});
 function partyBuffOn(p){p=p||player;return !!(p&&p.party&&p.pbuff&&p.pbuff.d===today()&&p.pbuff.on);}
