@@ -39,4 +39,5 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
   (`adopt`, waits for a clean snapshot if needed) and warns the player. Any hand-written REST repair of a player doc must
   set `b` to the current `_rev` and `_rev` to `b+1`, or it will be rejected.
 - Belt hotbar (v3.1.0): belts are gear with `slot:"belt"` and `belt:N` slots; `bestBelt`/`beltSlots` (best owned counts, 1 with none), `player.belt` = slot order, `renderHotbar`, `hbUse`, `openBelt`, `pickQuest`. New consumables must be added to `BELT_KEYS`/`consN`. Avatar belt: `avatarBelt` (under/over layers).
+- Compact layout (v3.3.0): any `main section.panel` whose first child is an `h2` folds via `initPanelFolds` (prefs.fold). Floor theme strip in `renderTheme` (prefs.bannerOpen / bannerHide per week); boss fold `bossFold` (prefs.bossMini); new-quest box gets `.tight` until used (`addCompact`); quest cards are a 2x2 grid (`.qtop`). Avoid class `.cl` (hit animation).
 - Close-ups: `zoomCard({...})`. Mobs: `MOB_KINDS`, `pokeMob`, bestiary (`renderBestiary`). Party: `renderParty`, `ptSec`. Crafting: `openBench`. Quarters/hall: `openQt`, `enterHall`.

@@ -33,6 +33,14 @@ button{cursor:pointer}
 h1,h2{font-family:var(--display);font-weight:400;margin:0;line-height:1.05;text-wrap:balance}
 h2{font-size:19px;letter-spacing:.02em;color:var(--fg)}
 h2::after{content:"";display:block;height:3px;margin-top:8px;background:linear-gradient(90deg,var(--blood),var(--mana) 55%,transparent)}
+.panel>h2{display:flow-root}
+h2.foldh{cursor:pointer;position:relative;padding-right:30px;user-select:none}
+h2.foldh::before{content:"▾";position:absolute;right:4px;top:0;font-size:14px;line-height:1.6;color:var(--muted);transition:transform .15s}
+.panel.folded>h2.foldh::before{transform:rotate(-90deg)}
+h2.foldh:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-radius:4px}
+.panel.folded{padding-top:12px;padding-bottom:12px}
+.panel.folded>:not(h2){display:none!important}
+.panel.folded>h2::after{margin-top:6px}
 .muted{color:var(--muted)}
 
 /* Masthead */
@@ -219,10 +227,12 @@ body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 .barrow{display:flex;flex-direction:column;gap:5px}
 .barrow .top{display:flex;justify-content:space-between;font-size:14px}
 .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.tile{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.tile{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px}
 .tile .v{font-size:21px;font-weight:700}
 .tile .s{font-size:13px;color:var(--muted)}
-.stats{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
+.stat .top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 6px;font-size:14px}
+.stat .fxv{font-size:12px}
 .stat .top{gap:8px}
 .fxv{font-size:12px;color:var(--leaf);text-align:right}
 .stat{display:flex;flex-direction:column;gap:4px}
@@ -230,6 +240,7 @@ body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 .stat .bar{height:6px}
 .stat .bar>b{background:var(--mana)}
 .gear{font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.gear[open]>summary{margin-bottom:4px}
 .gear b{color:var(--fg);font-weight:500}
 
 /* Shop */
@@ -263,6 +274,8 @@ input[type=text]{font-size:17px}
 .seg input:checked+span{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
 .seg input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
 .addpanel{padding-block:14px}
+.addpanel.tight{padding-block:10px}
+.addpanel.tight .autoline,.addpanel.tight .idearow,.addpanel.tight .quickrow2,.addpanel.tight #moreOpts,.addpanel.tight .err{display:none!important}
 form.add{gap:10px}
 .quickrow{display:flex;gap:8px}
 .quickrow input{flex:1;min-width:0}
@@ -274,14 +287,24 @@ form.add{gap:10px}
 .linkbtn{margin-left:auto;background:none;border:0;padding:2px 0;color:var(--muted);font-family:var(--sc);font-size:15px;text-decoration:underline;text-underline-offset:3px}
 .linkbtn:hover{color:var(--fg)}
 .more{display:flex;flex-direction:column;gap:12px;padding-top:4px;border-top:1px solid var(--line)}
-.boss-strip{display:grid;grid-template-columns:minmax(0,auto) minmax(120px,1fr) auto;gap:6px 16px;align-items:center}
+.boss-strip{display:grid;grid-template-columns:minmax(0,auto) minmax(120px,1fr) auto auto;gap:6px 16px;align-items:center}
 .boss-strip .bname{font-size:20px}
 .btag{font-size:13px;color:var(--muted);font-style:italic}
 .boss-strip .hpwrap{display:flex;align-items:center;gap:10px;min-width:0}
 .boss-strip .hpwrap .bar{flex:1}
 .boss-sub{font-size:14px;color:var(--muted);margin-top:4px}
+.bfold{all:unset;cursor:pointer;flex:none;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;border:1px solid var(--line-2);color:var(--muted);font-size:13px}
+.bfold:hover{color:var(--fg);border-color:var(--mana)}.bfold:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.bosspanel.mini{padding-top:8px;padding-bottom:8px}
+.bosspanel.mini .boss-sub,.bosspanel.mini .boss-tag,.bosspanel.mini #bossToggle{display:none}
+.bosspanel.mini .bossart.thumb{width:36px}
+.bosspanel.mini .boss-compact{gap:10px}
+.bosspanel.mini .boss-strip{grid-template-columns:minmax(0,auto) minmax(80px,1fr) auto;gap:4px 10px}
+.bosspanel.mini .boss-strip .hpwrap{grid-column:auto;grid-row:auto}
+.bosspanel.mini .boss-strip .bname{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bosspanel.mini .hpwrap .num{font-size:12px}
 .boss-sub b{color:var(--fg)}
-@media (max-width:560px){.boss-strip{grid-template-columns:minmax(0,1fr) auto}.boss-strip .hpwrap{grid-column:1 / -1;grid-row:2}}
+@media (max-width:560px){.boss-strip{grid-template-columns:minmax(0,1fr) auto auto;gap:6px 10px}.boss-strip .hpwrap{grid-column:1 / -1;grid-row:2}}
 
 .preview{font-size:15px;color:var(--muted)}
 .preview b{color:var(--gold);font-size:20px}
@@ -290,12 +313,23 @@ form.add{gap:10px}
 /* Quest board */
 .board{display:flex;flex-direction:column;gap:12px}
 .sect{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:6px}
+.sect>.muted{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qside .btn.sm{padding:5px 10px;font-size:12px}
+.qdone .qd-ic{display:none}
+.chip .ch-s{display:none}
+.mast .viewers{white-space:nowrap}
+.sect>.label{white-space:nowrap}
+@media (max-width:560px){.chip .ch-l{display:none}.chip .ch-s{display:inline}
+  .qdone{min-width:44px;padding:4px 10px!important}.qdone .qd-t{display:none}.qdone .qd-ic{display:inline;font-size:17px;line-height:1;font-weight:900}
+  .qside .menu-btn{padding:4px 8px!important}.qside{gap:5px}}
 .sect .label{color:var(--fg)}
 .boss .sect .label{color:var(--blood)}
-.quest{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.quest{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;display:flex;flex-direction:column;gap:6px}
 .quest.isboss{border-color:var(--blood-dk);box-shadow:inset 3px 0 0 var(--blood);background:#220d24}
-.qtop{display:flex;gap:10px 14px;align-items:center}
-.qmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+/* Slim card: line 1 = title and XP, line 2 = chips with Complete and ⋯ beside them */
+.qtop{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"title xp" "chips side";gap:5px 10px;align-items:center}
+.qmain{display:contents}
+.qtop .qtitle{grid-area:title}.qtop .chips{grid-area:chips;align-self:center}.qtop .qxp{grid-area:xp;justify-self:end}.qtop .qside{grid-area:side;justify-self:end}
 .qside{display:flex;align-items:center;gap:6px;flex:none;position:relative}
 .btn.sm{padding:4px 13px}
 .menu-btn{font-size:18px;line-height:1;padding:3px 10px 6px}
@@ -303,12 +337,11 @@ form.add{gap:10px}
 .qmenu button{background:none;border:0;text-align:left;padding:8px 14px;color:var(--fg)}
 .qmenu button:hover,.qmenu button:focus-visible{background:var(--panel)}
 .qmenu .danger{color:var(--blood)}
-@media (max-width:560px){.qtop{flex-wrap:wrap}.qmain{flex-basis:100%}.qxp{margin-right:auto}}
-.qtitle{font-size:18px;font-weight:700;min-width:0;overflow-wrap:anywhere}
-.qxp{flex:none;color:var(--gold);font-weight:700;font-size:17px;white-space:nowrap}
-.qxp small{font-size:13px;color:var(--muted);font-weight:500}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:13px;font-weight:500;padding:2px 8px;border-radius:var(--r);background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
+.qtitle{font-size:16px;font-weight:700;line-height:1.25;min-width:0;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.qxp{flex:none;color:var(--gold);font-weight:700;font-size:15px;white-space:nowrap}
+.qxp small{font-size:12px;color:var(--muted);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:12px;font-weight:500;line-height:1.35;padding:1px 6px;border-radius:var(--r);background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
 .chip.e5{color:var(--fg);border-color:var(--blood);background:#2a1030}
 .chip.e4{color:var(--fg);border-color:var(--epic)}
 .chip.over{color:#fff;background:var(--blood);border-color:var(--blood)}
@@ -500,7 +533,9 @@ details summary::-webkit-details-marker{display:none}
 .boxrow .what{flex:1;min-width:0}
 .boxrow .what b{display:block}
 .boxrow .what span{font-size:13px;color:var(--muted)}
-.collect{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.collect{font-size:13px;color:var(--muted)}
+.collect>summary,.gear>summary{cursor:pointer;padding:2px 0}
+.collect-grid{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px}
 .collect .mini-ico{width:22px;margin:0;border-radius:3px;overflow:hidden}
 .collect .mini-ico.no{opacity:.18;filter:grayscale(1)}
 .rar-magical{background:linear-gradient(90deg,#c9962e,#ffe9a8,#b8872a,#f3cf6a,#c9962e);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent!important;animation:mshimmer 4s linear infinite}
@@ -943,11 +978,17 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
   body:not([data-tab="quests"]) .wrap>.col.main{display:none}
   body[data-tab="quests"] .wrap>.col.side{display:none}
   .toasts{bottom:calc(110px + env(safe-area-inset-bottom,0px))}
-  .mast{margin-bottom:12px;gap:6px 10px}
-  .mast h1{font-size:30px}
+  .mast{margin-bottom:8px;gap:4px 8px;flex-wrap:nowrap}
+  .mast h1{font-size:24px;white-space:nowrap}
   .sync span{display:none}
-  .mast .onair{order:3;width:100%;margin:0;gap:6px 10px}
-  .mast .sync{margin-left:auto}
+  .mast .onair{margin:0 auto 0 4px;gap:4px 8px;font-size:12px;flex-wrap:nowrap;min-width:0}
+  .mast .onair .floorno{display:none}.mast .onair .floorno.fb-restore{display:inline}
+  .mast .gearbtn{width:32px;height:32px;font-size:16px}.mast .achinbox{width:auto}
+  body{padding-inline:10px;padding-top:10px}
+  .col{gap:12px}
+  .panel{padding:12px}
+  h2{font-size:17px}h2::after{margin-top:5px}
+  .floorbanner{margin-bottom:8px}
 }
 .soundctl{display:flex;flex-direction:column;gap:10px;margin-top:8px}
 .sndrow{display:flex;align-items:center;gap:10px;font-size:14px}
@@ -1319,20 +1360,25 @@ html[data-theme]:not([data-theme=""]) .panel{box-shadow:0 10px 30px rgba(0,0,0,.
 html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-glow)}
 .themefx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
 .themefx i{position:absolute;display:block}
-.floorbanner{max-width:1180px;margin:0 auto 16px;display:flex;gap:12px;align-items:center;position:relative;overflow:hidden;padding:12px 14px;border-radius:12px;border:2px solid var(--th-acc,#888);
-  background:linear-gradient(100deg,var(--panel-2),var(--panel) 60%);box-shadow:0 0 0 2px #000,0 0 24px var(--th-glow,transparent)}
+.floorbanner{max-width:1180px;margin:0 auto 12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:relative;overflow:hidden;padding:4px 6px 4px 10px;border-radius:12px;border:2px solid var(--th-acc,#888);
+  background:linear-gradient(100deg,var(--panel-2),var(--panel) 60%);box-shadow:0 0 0 2px #000,0 0 18px var(--th-glow,transparent)}
 .floorbanner::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.07) 45%,transparent 60%);animation:fbsheen 7s ease-in-out infinite}
 @keyframes fbsheen{0%,60%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-.fb-ic{font-size:40px;line-height:1;flex:none;filter:drop-shadow(0 0 10px var(--th-glow))}
-.fb-txt{flex:1;min-width:0}
-.fb-k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.fb-n{font-family:var(--display);font-size:clamp(20px,4.6vw,30px);line-height:1.05;color:var(--th-acc);text-shadow:2px 2px 0 #000,0 0 18px var(--th-glow)}
-.fb-f{font-size:13px;color:var(--fg);opacity:.85;margin-top:2px}
+.fb-row{all:unset;box-sizing:border-box;flex:1;min-width:0;display:flex;align-items:center;gap:8px;cursor:pointer;padding:3px 0;border-radius:8px}
+.fb-row:focus-visible,.fb-x:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.fb-ic{font-size:20px;line-height:1;flex:none;filter:drop-shadow(0 0 8px var(--th-glow))}
+.fb-n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--display);font-size:17px;line-height:1.2;color:var(--th-acc);text-shadow:2px 2px 0 #000,0 0 14px var(--th-glow)}
+.fb-mini{flex:none;font-size:12px;display:flex;gap:3px}.fb-mini .boon{color:var(--leaf)}.fb-mini .bane{color:var(--blood)}
+.fb-chev{flex:none;color:var(--muted);font-size:13px;transition:transform .15s}
+.floorbanner.open .fb-chev{transform:rotate(180deg)}
+.fb-x{all:unset;cursor:pointer;flex:none;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;color:var(--muted);font-size:13px}
+.fb-x:hover{color:var(--fg);background:rgba(255,255,255,.08)}
+.fb-more{flex-basis:100%;padding:2px 2px 6px 30px}
+.fb-f{font-size:13px;color:var(--fg);opacity:.85}
 .fb-rules .boon{color:var(--leaf)}.fb-rules .bane{color:var(--blood)}
 .fb-rules{font-weight:600;display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:5px;font-size:12px}
-.floorbanner.min{padding:6px 12px}.floorbanner.min .fb-ic{font-size:24px}.floorbanner.min .fb-n{font-size:18px}.floorbanner.min .fb-k{display:none}
-.fb-min{all:unset;cursor:pointer;align-self:flex-start;width:26px;height:26px;text-align:center;line-height:26px;border-radius:50%;border:1px solid var(--line-2);color:var(--muted)}
-.fb-min:focus-visible{outline:2px solid var(--gold)}
+.floorno.fb-restore{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+@media (max-width:860px){body:not([data-tab="quests"]) #floorBanner{display:none}}
 /* flooded */
 .tf-water{position:absolute;left:0;right:0;bottom:0;height:16vh;background:linear-gradient(transparent,rgba(13,74,106,.45) 30%,rgba(6,30,44,.8))}
 .tf-water svg{position:absolute;left:0;top:-30px;width:200%;height:60px}
@@ -1387,7 +1433,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 /* pet day */
 .tf-heart{bottom:-30px;width:16px;height:14px;opacity:.25;background:radial-gradient(circle at 30% 35%,#ff8ad0 0 28%,transparent 30%),radial-gradient(circle at 70% 35%,#ff8ad0 0 28%,transparent 30%),linear-gradient(to bottom,transparent 40%,transparent 40%);animation:tfrise linear infinite}
 .tf-heart::after{content:"";position:absolute;left:3px;top:5px;width:10px;height:10px;background:#ff8ad0;transform:rotate(45deg)}
-@media (max-width:600px){.floorbanner{padding:10px 10px;gap:8px}.fb-ic{font-size:30px}.fb-f{font-size:12px}}
+@media (max-width:600px){.fb-n{font-size:15px}.fb-f{font-size:12px}}
 @media (max-width:860px){.tf-shelf{width:60px}.tf-web{width:90px}.tf-moon{width:56px;height:56px}}
 @media (prefers-reduced-motion:reduce){.themefx *,.floorbanner::after{animation:none!important}}
 .creacts{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
@@ -2110,13 +2156,20 @@ function renderTheme(){
   }
   if(!bn)return;
   if(!th||!player.boss){bn.hidden=true;bn.innerHTML="";return;}
-  const L=THEME_LOOK[id]||THEME_LOOK.lobby,b=player.boss,min=prefs.bannerMin===b.week;
-  const key=[id,b.floor,min].join("|");if(bn.dataset.k===key&&!bn.hidden)return;bn.dataset.k=key;bn.hidden=false;
-  bn.className="floorbanner tb-"+id+(min?" min":"");
-  bn.innerHTML=`<div class="fb-ic" aria-hidden="true">${L.icon}</div><div class="fb-txt"><div class="fb-k">This week's theme</div><div class="fb-n">Floor ${b.floor}: ${esc(th.n)}</div>
-    ${min?"":`<div class="fb-f">${esc(th.flavor)}</div>`}<div class="fb-rules"><span class="boon">▲ ${esc(th.boon)}</span><span class="bane">▼ ${esc(th.bane)}</span></div></div>
-    <button type="button" class="fb-min" id="fbMin" aria-label="${min?"Show more":"Show less"}" title="${min?"Show more":"Show less"}">${min?"▾":"▴"}</button>`;
-  $("fbMin").onclick=()=>{prefs.bannerMin=min?null:b.week;savePrefs();renderTheme();};
+  /* A one-line strip: tap it for the details, ✕ hides it for the rest of this floor (tap the floor name in the header
+     to bring it back). On phones it only shows on the Quests tab (see CSS). */
+  const L=THEME_LOOK[id]||THEME_LOOK.lobby,b=player.boss,open=prefs.bannerOpen===b.week,gone=prefs.bannerHide===b.week;
+  const fl=$("floorNo");if(fl){fl.classList.toggle("fb-restore",gone);fl.title=gone?"Show this floor's theme":"";fl.onclick=gone?()=>{prefs.bannerHide=null;savePrefs();renderTheme();}:null;}
+  if(gone){bn.hidden=true;bn.dataset.k="";return;}
+  const key=[id,b.floor,open].join("|");if(bn.dataset.k===key&&!bn.hidden)return;bn.dataset.k=key;bn.hidden=false;
+  bn.className="floorbanner tb-"+id+(open?" open":"");
+  bn.innerHTML=`<button type="button" class="fb-row" id="fbToggle" aria-expanded="${open}" title="${open?"Hide the details":"This floor's theme: tap for details"}">
+      <span class="fb-ic" aria-hidden="true">${L.icon}</span><span class="fb-n">Floor ${b.floor}: ${esc(th.n)}</span>
+      ${open?"":`<span class="fb-mini" aria-hidden="true"><b class="boon">▲</b><b class="bane">▼</b></span>`}<span class="fb-chev" aria-hidden="true">▾</span></button>
+    <button type="button" class="fb-x" id="fbHide" aria-label="Hide the floor theme for this floor" title="Hide for this floor">✕</button>
+    ${open?`<div class="fb-more"><div class="fb-f">${esc(th.flavor)}</div><div class="fb-rules"><span class="boon">▲ ${esc(th.boon)}</span><span class="bane">▼ ${esc(th.bane)}</span></div></div>`:""}`;
+  $("fbToggle").onclick=()=>{prefs.bannerOpen=open?null:b.week;savePrefs();renderTheme();const t=$("fbToggle");if(t)t.focus();};
+  $("fbHide").onclick=()=>{prefs.bannerHide=b.week;prefs.bannerOpen=null;savePrefs();renderTheme();toast("Floor theme hidden for this floor. Tap the floor name at the top to bring it back.");};
 }
 function themeBar(b){
   const th=themeById(b.theme);if(!th||th.id==="lobby")return "";
@@ -8019,7 +8072,8 @@ function renderBoxes(){
   {const n=$("boxNote");if(n){const k=(player.boxes||[]).length,e=(player.eggs||[]).length,owned=ITEMS.filter(i=>player.owned.includes(i.id)).length;
     n.innerHTML=`<div class="boxes">${k||e?`<div class="boxnote"><div><b>${k?`${k} loot box${k===1?"":"es"}`:""}${k&&e?" and ":""}${e?`${e} Mystery Egg${e===1?"":"s"}`:""} waiting.</b><span class="muted">Crawlers only open loot somewhere safe: the Safe Room${hasQt()?" or your quarters":""}. Carrying unopened boxes draws rival crawlers.</span></div><button class="btn gold sm" type="button" id="toBoxes">To the Safe Room</button></div>`
       :`<div class="muted" style="font-size:14px">No loot boxes waiting. When you earn one, open it in the Safe Room.</div>`}
-      <div class="collect"><span>Collection: <b>${owned}</b> of ${ITEMS.length}</span>${ITEMS.map(i=>`<span class="mini-ico${player.owned.includes(i.id)?"":" no"}" title="${player.owned.includes(i.id)?esc(i.n):"Not found yet"}">${lootIconSVG(i.id)}</span>`).join("")}</div></div>`;
+      <details class="collect" id="collectBox"${prefs.collectOpen?" open":""}><summary>Collection: <b>${owned}</b> of ${ITEMS.length}</summary><div class="collect-grid">${ITEMS.map(i=>`<span class="mini-ico${player.owned.includes(i.id)?"":" no"}" title="${player.owned.includes(i.id)?esc(i.n):"Not found yet"}">${lootIconSVG(i.id)}</span>`).join("")}</div></details></div>`;
+    {const cb=$("collectBox");if(cb)cb.addEventListener("toggle",()=>{prefs.collectOpen=cb.open;savePrefs();});}
     const tb=$("toBoxes");if(tb)tb.onclick=goBoxes;}}
   const el=$("boxes");if(!el)return;const bx=player.boxes||[];
   {const pn=$("boxPanel");if(pn)pn.hidden=!bx.length&&!(player.eggs||[]).length;}
@@ -8092,14 +8146,15 @@ function renderSheet(){
       <div class="stat" title="${esc(STATS[k].hint)}"><div class="top"><span>${STATS[k].n} <span class="num muted">Lv ${lvlOf(p,k)}</span>${raceMod(p,k)?` <span class="rmod ${raceMod(p,k)>0?"up":"down"}">${raceMod(p,k)>0?"+":"−"}${Math.abs(raceMod(p,k))} race</span>`:""}</span><span class="fxv">${lvlOf(p,k)>1?esc(fxText(k,p)):"No bonus yet"}</span></div>
       <div class="bar"><b style="width:${(statProg(x)*100).toFixed(1)}%"></b></div></div>`;}).join("")}
     </div>
-    <div class="gear">
-      <div class="label">Wearing</div>
+    <details class="gear" id="wearBox"${prefs.wearOpen?" open":""}>
+      <summary class="label">Wearing &amp; gear bonuses</summary>
       <div class="wearlist">${SLOTS.map(([slot,label,none])=>{const it=ITEMS.find(x=>x.id===wear[slot]);
         return `<span><span class="muted">${label}:</span> ${it?`<b class="rar-${it.rar}">${esc(it.n)}</b>`:`<span class="muted">${slot==="armor"?esc(outfitDesc(p)):none}</span>`}</span>`;}).join("")}</div>
       <button class="btn sm" type="button" id="toInv" style="align-self:flex-start;margin-top:6px">Open inventory</button>
       ${(()=>{const act=["weapon","head","cape","armor"].map(s=>bestOwned(p,s)).filter(b=>b&&b.bonus);const rg=ITEMS.find(i=>i.id===wear.ring);if(rg)act.push(rg);
         return `<div class="bonus">${act.length?`Active bonuses: ${act.map(b=>`<span class="rar-${b.rar}">${esc(b.n)}</span> ${b.d.replace("Overdue","overdue")}`).join(" · ")}. Your best gear in each slot counts whatever you wear; a ring only counts while it's on.`:p.owned.length?"Your gear so far is cosmetic.":"Buy gear in the safe room shop or pull it from loot boxes."}</div>`;})()}
-    </div>`;
+    </details>`;
+  {const wb=$("wearBox");if(wb)wb.addEventListener("toggle",()=>{prefs.wearOpen=wb.open;savePrefs();});}
   const ti=$("toInv");if(ti)ti.onclick=()=>{setTab("loot");const ip=$("invPanel");if(ip&&ip.scrollIntoView)setTimeout(()=>ip.scrollIntoView({behavior:"smooth",block:"start"}),50);};
   const lb=$("lookBtn");if(lb)lb.onclick=openLook;
   const ab=$("avatarBox");if(ab){ab.onclick=zoomMe;ab.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomMe();}};}
@@ -8181,8 +8236,16 @@ function renderAccuracy(){
     <div class="acc-note">Gold means quests run long, blue means you finish early, green means you're on target. Faded rows have fewer than ${MIN_N} quests, so read them loosely.${kept?` You left the pre-filled time unchanged on ${kept} of ${ss.length} quests; if those weren't really spot-on, these numbers look better than reality.`:""}</div>
   </div>`;
 }
+/* Compact boss views can fold to a single row (portrait, name, HP); remembered per device. Fight buttons stay visible. */
+function bossFold(el){
+  const mini=!!prefs.bossMini;el.classList.toggle("mini",mini);
+  const st=el.querySelector(".boss-strip");if(!st||st.querySelector(".bfold"))return;
+  const f=document.createElement("button");f.type="button";f.className="bfold";f.setAttribute("aria-expanded",String(!mini));
+  f.setAttribute("aria-label",mini?"Show boss details":"Fold the boss down");f.title=mini?"Show more":"Fold down";f.textContent=mini?"▾":"▴";
+  f.onclick=e=>{e.stopPropagation();prefs.bossMini=!mini;savePrefs();renderBoss();const n=$("bossPanel").querySelector(".bfold");if(n)n.focus();};
+  st.appendChild(f);}
 function renderBoss(){
-  const el=$("bossPanel");
+  const el=$("bossPanel");el.classList.remove("mini");
   if(!loadedP){el.innerHTML=`<div class="label">Floor boss</div>`;return;}
   if(!playerExists){
     el.innerHTML=`<div class="boss-main"><div class="label">Floor 1 · Neighborhood boss</div><div class="bname">A boss is coming</div>
@@ -8224,7 +8287,7 @@ function renderBoss(){
       <div class="boss-sub">⚔ ${slain} slain · ${foundN} found. Bosses hide in lairs off the corridor, and the Floor boss waits at the stairwell. Quests store <b>Charge</b> until you walk into a fight. Stairwell closes ${closes}.</div>
       ${marked.length?`<div class="lairchips">${marked.map(({L,i})=>`<button class="btn ghost sm" type="button" data-lopen="${i}">⚔ ${esc(L.n)}</button>`).join("")}</div>`:""}
       ${lairFightHTML(m)}</div></div>${tbar}`;
-    wireBossZoom(el);wireLairBtns(el);return;
+    wireBossZoom(el);wireLairBtns(el);bossFold(el);return;
   }
   if(hunting(b)){
     const m=ensureMap(),li=m?m.rooms.findIndex(r=>r.boss===b.tier):-1;
@@ -8236,7 +8299,7 @@ function renderBoss(){
       <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">${esc(T.n)} · Floor ${floor}</span><div class="bname">???</div></div>
       <div class="hpwrap"><div class="bar charge" role="progressbar" aria-label="Charge stored for the ambush" aria-valuemin="0" aria-valuemax="${b.maxHp}" aria-valuenow="${Math.min(chg,b.maxHp)}"><b style="width:${Math.min(100,chg/b.maxHp*100).toFixed(1)}%"></b></div><span class="num">⚡ ${chg}</span></div></div>
       <div class="boss-sub">${pips} ${b.tier+1} of 6 · hiding somewhere on Floor ${floor}. ${where} When you walk into its lair, your <b>Charge</b> hits all at once${chg>=b.maxHp?" (enough to drop it in one blow)":""}. Stairwell closes ${closes}.</div></div></div>${tbar}`;
-    wireBossZoom(el);return;
+    wireBossZoom(el);bossFold(el);return;
   }
   if(!open){
     const sub=b.defeated?`Floor ${floor} cleared · <b>grind time</b>: mobs and rival crawlers still roam, and mobs pay +50% XP · Floor ${floor+1} (${esc(themeById(themeFor(floor+1)).n)}) opens ${fmtDue(addDays(b.week,7))}`
@@ -8245,7 +8308,7 @@ function renderBoss(){
       <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">${b.defeated?`Floor ${floor} cleared`:`${esc(T.n)} · Floor ${floor}`}</span><div class="bname${b.defeated?" dead":""}">${esc(b.name)}</div></div>
       <div class="hpwrap"><div class="bar boss${fog?" fog":""}" role="progressbar" aria-label="Boss health${fog?" hidden by fog":""}" aria-valuemin="0" aria-valuemax="${fog?100:b.maxHp}" aria-valuenow="${fog?100:hp}"><b style="width:${barW.toFixed(1)}%"></b></div><span class="num">${hpTxt}</span></div>
       ${toggle(false)}</div><div class="boss-sub">${sub}</div>${LM&&!b.defeated?lairFightHTML(ensureMap()):""}</div></div>${tbar}`;
-    wire();wireBossZoom(el);wireLairBtns(el);return;
+    wire();wireBossZoom(el);wireLairBtns(el);bossFold(el);return;
   }
   let main;
   if(b.defeated){
@@ -8342,7 +8405,7 @@ function questCard(t){
     dueChip=`<span class="chip">Next due ${fmtDue(t.due)}</span>`;
   }else if(t.due){
     const dd=daysBetween(td,t.due);
-    if(dd<0)dueChip=`<span class="chip over">${-dd}d overdue · −${Math.round(odHit(t,-dd+1)*(1-armorCut(player))*themeFx(player).overdue)} HP tomorrow</span>`;
+    if(dd<0)dueChip=`<span class="chip over">${-dd}d overdue · −${Math.round(odHit(t,-dd+1)*(1-armorCut(player))*themeFx(player).overdue)} HP<span class="ch-l"> tomorrow</span></span>`;
     else if(dd===0)dueChip=`<span class="chip soon">Due today</span>`;
     else if(dd===1)dueChip=`<span class="chip soon">Due tomorrow</span>`;
     else dueChip=`<span class="chip">Due ${fmtDue(t.due)}</span>`;
@@ -8381,7 +8444,7 @@ function questCard(t){
       ${t.rec&&!resting&&bagN("smoke")?`<button type="button" role="menuitem" data-smoke>Throw Smoke Bomb (skip this one) · ${bagN("smoke")} left</button>`:""}
       <button type="button" role="menuitem" class="danger" data-ask-del>${t.rec?"Stop repeating":"Abandon quest"}</button>
     </div>`:"";
-  const side=`${resting?`<span class="rest-note">Opens ${fmtDue(opensOn(t))}</span>`:`<button class="btn gold sm" data-done>Complete</button>`}
+  const side=`${resting?`<span class="rest-note">Opens ${fmtDue(opensOn(t))}</span>`:`<button class="btn gold sm qdone" data-done aria-label="Complete ${esc(t.title)}" title="Complete"><span class="qd-ic" aria-hidden="true">✓</span><span class="qd-t">Complete</span></button>`}
     <button class="btn ghost sm menu-btn" type="button" data-menu aria-haspopup="menu" aria-expanded="${menuOpen}" aria-label="More actions for ${esc(t.title)}">⋯</button>${menu}`;
   const repChips=t.rec?`<span class="chip rep">Repeats · ${recLabel(t.rec)}</span>${(t.chain||0)>=2?`<span class="chip chain">Chain ${t.chain}</span>`:""}`:"";
   const steps=t.steps||[];const nDone=steps.filter(s=>s.done).length;
@@ -8404,7 +8467,7 @@ function questCard(t){
   return `<article class="quest${boss?" isboss":""}${resting?" resting":""}" data-id="${t.id}">
     <div class="qtop">
       <div class="qmain"><div class="qtitle">${esc(t.title)}</div>
-        <div class="chips"><span class="chip e${t.effort}">${EFFORT[t.effort].n}</span><span class="chip">${fmtH(t.est)}</span><span class="chip">${STATS[t.stat].n}</span>${progChip}${repChips}${dueChip}</div></div>
+        <div class="chips"><span class="chip e${t.effort}">${EFFORT[t.effort].n}</span><span class="chip">${fmtH(t.est)}</span><span class="chip" title="${STATS[t.stat].n}"><span class="ch-l">${STATS[t.stat].n}</span><span class="ch-s">${t.stat}</span></span>${progChip}${repChips}${dueChip}</div></div>
       <div class="qxp num">+${left}<small>${t.stepXp?` of ${r.xp}`:""} XP</small></div>
       <div class="qside">${side}</div>
     </div>
@@ -8823,6 +8886,12 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.3.0",d:"2026-10-08",t:"Less scrolling",items:["Quest cards are about half as tall: title and XP on one line, the details and buttons on the next. On phones, Complete is a ✓ button and stats show as INT, CON and so on, so more quests fit on screen.",
+    "The floor theme is now a one-line strip. Tap it for the details, or ✕ to hide it for the rest of the floor (tap the floor name at the top to bring it back). On phones it only shows on the Quests tab.",
+    "The boss can fold down to a single row with its health bar: tap ▴ beside it.",
+    "The new-quest box shows just the text field until you tap into it, then the threat levels, idea and options open up.",
+    "Tap any panel's title to fold it away, on every tab. The app remembers what you folded on each device.",
+    "On the Hero tab, stats sit in two columns and the gear list folds away. On the Inventory tab, the collection grid folds away. Phones get a slimmer header and tighter spacing everywhere."]},
   {v:"3.2.2",d:"2026-10-08",t:"Help that sticks",items:["Fixed having to press Help over and over for a crewmate's rival. When a crewmate opened The Crawl, their device could briefly tell the party they had no rival, which cancelled your help. Devices now wait for their real save before updating the party.","Your help now lasts until that fight is actually over: the rival is taken down, your crewmate is facing a different one, or there's been no sign of it for 3 days. Each new rival still needs its own Help."]},
   {v:"3.2.1",d:"2026-10-08",t:"Party badges explained",items:["The number on the Party tab now says what it's counting: hover it to see how many are crew updates and how many are chat messages.","Crew updates (level ups, boss kills, loot from your crewmates) get their own badge on the Crew button and a NEW tag in the Party feed, and the feed opens itself when there's news. They only count as read once you've actually seen them.","Fixed a chat badge that could stay stuck when a crewmate's device clock ran fast."]},
   {v:"3.2.0",d:"2026-10-08",t:"Quest report",items:["Finishing a quest now opens one report card that fills in line by line: XP and gold, level ups, boss kills, map events, mobs, rivals and anything else that happened. It stays open until you press Continue, so nothing flies past. In a hurry? Show all fills in the rest at once.",
@@ -9249,8 +9318,15 @@ function setupForm(){
   if(prefs.stat&&STATS[prefs.stat])$("q-stat").value=prefs.stat;
   const setMore=open=>{$("moreOpts").hidden=!open;$("moreBtn").setAttribute("aria-expanded",String(open));$("moreBtn").textContent=open?"Fewer options":"More options";};
   setMore(!!prefs.moreOpen);
-  $("moreBtn").onclick=()=>{prefs.moreOpen=$("moreOpts").hidden;savePrefs();setMore(prefs.moreOpen);};
+  $("moreBtn").onclick=()=>{prefs.moreOpen=$("moreOpts").hidden;savePrefs();setMore(prefs.moreOpen);addCompact();};
   f.addEventListener("input",upd);f.addEventListener("change",upd);upd();
+  /* The new-quest box shows just the text field and Add until you tap into it or start typing; the effort buttons,
+     idea and options open then. It also stays open while there's text or "More options" is open. */
+  const ap=f.closest(".addpanel");
+  const addCompact=()=>{if(!ap)return;const busy=!!$("q-title").value.trim()||!$("moreOpts").hidden||ap.contains(document.activeElement);ap.classList.toggle("tight",!busy);};
+  f.addEventListener("input",addCompact);f.addEventListener("focusin",addCompact);
+  f.addEventListener("focusout",()=>setTimeout(addCompact,0));f.addEventListener("submit",()=>setTimeout(addCompact,0));
+  addCompact();
   f.addEventListener("submit",e=>{
     e.preventDefault();autoFill();const q=read();if(!q.title)return;
     const g=lastGuess;if(g&&g.title)q.title=g.title;
@@ -10572,6 +10648,20 @@ function renderGods(){
 }
 
 /* ---------- Boot ---------- */
+/* Tap a panel's title to fold it away; remembered per device. */
+function initPanelFolds(){
+  const fold=prefs.fold=prefs.fold||{};
+  document.querySelectorAll("main section.panel").forEach(sec=>{
+    const h=sec.firstElementChild;if(!h||h.tagName!=="H2"||h.dataset.fold)return;
+    const key=sec.id||sec.getAttribute("aria-label")||h.textContent.trim();h.dataset.fold=key;
+    h.classList.add("foldh");h.setAttribute("role","button");h.tabIndex=0;
+    const set=v=>{sec.classList.toggle("folded",v);h.setAttribute("aria-expanded",String(!v));};
+    set(!!fold[key]);
+    const flip=()=>{const v=!sec.classList.contains("folded");set(v);if(v)fold[key]=1;else delete fold[key];savePrefs();};
+    h.addEventListener("click",e=>{if(e.target.closest("a,button,input,select,label")&&e.target!==h)return;flip();});
+    h.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip();}});
+  });
+}
 async function boot(){
   $("restoreFile").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(f)readBackupFile(f);});
   // A drawing error must never stop the save from loading.
@@ -10604,7 +10694,7 @@ async function boot(){
   if(db&&uid){store=await remoteStore(db,uid);setSync("ok","Synced to your account");if(fbr)fbr.net();}
   else{store=localStore();setSync("local","Saved on this device only");}
   const r=render;render=function(){r();if(window._qlUpd)window._qlUpd();};
-  renderAccount();renderAiCtl();
+  renderAccount();renderAiCtl();try{initPanelFolds();}catch(e){console.warn("folds",e);}
 }
 boot().catch(e=>{console.error(e);setSync("","Couldn't open your save. Reload the page to try again.");});
 })();
