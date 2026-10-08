@@ -96,12 +96,37 @@ h2.foldh:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-r
 .hb-slot.used{animation:hbpop .35s ease-out}
 @keyframes hbpop{40%{transform:scale(1.14)}}
 body.has-hb{padding-bottom:150px}
+.hotbar{flex-direction:column;align-items:stretch}
+.hb-row{display:flex;gap:6px;align-items:center}
+.hb-sp{padding-bottom:6px;border-bottom:1px solid var(--line-2)}
+.hb-slot.sp{border-radius:50%;border-color:#5a7ad0;background:#141a36}
+.hb-slot.sp .hb-cost{color:#7fe8ff;font-size:11px;right:50%;transform:translateX(50%);bottom:-1px}
+.hb-mana{position:relative;flex:none;width:40px;height:40px;margin-right:4px;border-radius:50%;border:2px solid #5a7ad0;display:grid;place-items:center;
+  background:conic-gradient(var(--mana) var(--mp),#1a1530 0);box-shadow:inset 0 0 0 4px rgba(13,8,24,.9)}
+.hb-mana b{font:800 13px/1 var(--body);color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
+body.has-hb.has-sp{padding-bottom:204px}
+body.has-hb.has-sp .toasts{bottom:calc(166px + env(safe-area-inset-bottom,0px))}
+.bar.mp>b{background:repeating-linear-gradient(-45deg,var(--mana) 0 3px,#1a8fc4 3px 5px);box-shadow:0 0 10px rgba(63,224,255,.4)}
+.sb-hint{font-size:13px;margin:8px 0 6px}
+.sb-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.sb-row{display:flex;gap:10px;align-items:center;padding:8px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel-2)}
+.sb-row.on{border-color:#5a7ad0;box-shadow:inset 0 0 0 1px #5a7ad0}
+.sb-row.tome{border-style:dashed;border-color:var(--gold)}
+.sb-ico{flex:none;width:40px;height:40px;line-height:0}.sb-ico svg{width:100%;height:100%;border-radius:8px}
+.sb-row .what{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.sb-row .what span{font-size:13px;color:var(--muted)}
+.sb-btns{display:flex;gap:6px;flex:none}
+@media (max-width:520px){.sb-row{flex-wrap:wrap}.sb-btns{width:100%;justify-content:flex-end}}
+#sheet.casting,#hotbar.casting{animation:castglow 1.2s ease-out}
+@keyframes castglow{0%{box-shadow:0 0 0 0 var(--castc)}25%{box-shadow:0 0 34px 6px var(--castc)}100%{box-shadow:0 0 0 0 transparent}}
 body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 @media (max-width:860px){
   .hotbar{bottom:calc(42px + var(--tbh,64px) + env(safe-area-inset-bottom,0px));gap:5px;padding:5px 6px}
   .hb-slot{width:44px;height:44px}.hb-belt{width:36px;height:36px}
   body.has-hb{padding-bottom:calc(206px + env(safe-area-inset-bottom,0px))}
   body.has-hb .toasts{bottom:calc(172px + env(safe-area-inset-bottom,0px))}
+  .hb-mana{width:36px;height:36px}
+  body.has-hb.has-sp{padding-bottom:calc(258px + env(safe-area-inset-bottom,0px))}
+  body.has-hb.has-sp .toasts{bottom:calc(224px + env(safe-area-inset-bottom,0px))}
 }
 .hbwrap{position:fixed;inset:0;z-index:36;background:rgba(5,3,10,.78);display:grid;place-items:center;padding:16px}
 .hbdlg{width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px #000c}
@@ -1573,6 +1598,10 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
     <div class="tabpane" data-pane="hero" role="tabpanel" aria-label="Hero">
     <section class="panel booth" id="booth" aria-label="Race and class selection" hidden></section>
     <section class="panel sheet" id="sheet" aria-label="Crawler"></section>
+    <section class="panel" id="spellPanel" aria-label="Spellbook" hidden>
+      <h2>Spellbook</h2>
+      <div id="spellbook"></div>
+    </section>
     <section class="panel godpanel" aria-label="Gods" hidden>
       <h2>Gods</h2>
       <div id="gods"></div>
@@ -2930,6 +2959,7 @@ function applyDamage(dmg){
     const box=giveBox(t.box,`${t.n}: ${b.name}`);
     const at=Date.now(),totalAt=start+used;
     kills.push({tier:b.tier,name:b.name,box,at,totalAt});bump("bossKills");
+    if(Math.random()<.1+b.tier*.03){const tm=tomeDrop(b.name);if(tm){pushEvent(`${b.name} dropped ${tm}`);setTimeout(()=>toastH(`<b>Spell tome</b> ${esc(b.name)} dropped ${esc(tm)}.`),3200);}}
     {const md=[b.tier>=3?matDrop("ess",1+Math.floor(Math.random()*2)):"",b.tier>=5&&Math.random()<.25?matDrop("star",1):""].filter(Boolean);if(md.length){pushEvent(`${b.name} dropped ${md.join(" and ")}`);setTimeout(()=>toastH(`<b>Materials</b> ${esc(b.name)} dropped ${md.join(" and ")}.`),2600);}}
     try{const md=mapDropFor(b.tier);if(Math.random()<md.chance){const mm=ensureMap();if(mm){revealMap(mm,md);bump("maps");ui.mapDrop=md;pushEvent(`Floor ${b.floor}: ${b.name} dropped a ${md.n}`);}}}catch(e){console.error("mapdrop",e);}
     const clears=lairMode(b)?lairsLeft(b).length<=1:b.tier>=TIERS.length-1;
@@ -3556,13 +3586,14 @@ function spawnMob(kind,room){
   return {id:newId(),n,k,a:pack?"The":/^[AEIOU]/.test(n)?"An":"A",pack,hp,max:hp,room:room==null?null:room};
 }
 /* One quest's hit against everything on you, in the order they showed up. Returns toast lines. */
-function mobFight(fx,t){
-  const out=[];if(!player.mobs)player.mobs=[];
+function mobFight(fx,t,o){
+  o=o||{};const out=[];if(!player.mobs)player.mobs=[];
   // Grinding: once a floor's bosses are all down, the leftovers come out of the walls until the stairwell opens
   const G=grinding(),wr=G?GRIND_MOB:(player.boss&&player.boss.hunt?MOB_WANDER*2:MOB_WANDER);
   if(!player.mobs.length&&Math.random()<wr){const pk=G&&Math.random()<.35,w=spawnMob(pk?"pack":"mob",null);player.mobs.push(w);bump(G?"grindMobs":"wanderers");
     out.push(pk?`A pack of leftovers crawls out of the walls: ${w.n}!`:`${w.a} wandering ${w.n} jumps you!`);}
   if(!player.mobs.length)return out;
+  if(player.charm||o.charm){const lead=player.mobs[0];lead.hp=0;if(player.charm&&!o.charm)out.push(`Your Charm takes hold: the ${lead.n} lays down its weapons.`);player.charm=false;bump("charmed");}
   let hit=heroHit(fx);const sc=mobScale(),floor=floorOf(),m=player.map;
   const left=[];
   for(const mb of player.mobs){
@@ -3582,7 +3613,7 @@ function mobFight(fx,t){
   player.mobs=left;
   if(left.length){
     let shield=petFx(player).ability==="gargoyle";try{shield=shield||auraFx().shield;}catch(e){}
-    const nip=shield?0:Math.min(Math.max(0,player.hp-1),left.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0));
+    const nip=shield||o.charm?0:Math.min(Math.max(0,player.hp-1),left.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0));
     if(nip>0){player.hp-=nip;}
     const lead=left[0];
     out.push(`${lead.a} ${lead.n} is still on you (${lead.hp}/${lead.max} HP)${left.length>1?` with ${left.length-1} more`:""}${nip?` and nips you for ${nip} HP`:""}.`);
@@ -3734,6 +3765,7 @@ function rivalDown(out,t){
   const names=helpers.map(u=>memberName(u));
   partyPost("rival",`${kill?"killed":"knocked out"} ${rv.n}, the ${rv.c}${names.length?` with help from ${names.join(" and ")}`:""}`);
   pushEvent(`${kill?"Killed":"Knocked out"} rival crawler ${rv.n}`);
+  if(Math.random()<.2){const tm=tomeDrop(rv.n);if(tm)extra.push(tm);}
   out.push(`${kill?"☠ You killed":"💫 You knocked out"} ${rv.n}! +${bx} XP, +${g} gold, ${mats.join(", ")}${kill?", a Gold Box":""}${extra.length?"; "+extra.join(", "):""}.`);
   ui.rivalWin={n:rv.n,kill};
 }
@@ -3743,7 +3775,7 @@ function rivalStep(fx,t){
   const rv=player.rival;
   if(rv){
     if(rv.fresh){rv.fresh=false;return out;}  // the quest that brought them in doesn't hit them
-    const d=Math.min(rv.hp,heroHit(fx));rv.hp-=d;
+    const d=Math.min(rv.hp,Math.round(heroHit(fx)*(rv.hex>0?1.5:1)));rv.hp-=d;if(rv.hex>0)rv.hex--;
     if(rv.hp<=0){rivalDown(out,t);return out;}
     const h=Math.min(Math.max(0,player.hp-1),rvHit());player.hp-=h;
     out.push(`You hit ${rv.n} for ${d} (${rv.hp}/${rv.max} HP left)${h?`. They hit back for ${h} HP`:""}.`);
@@ -4470,7 +4502,8 @@ function lairCheck(m,out){
     if(ui.lairFound==null)ui.lairFound=li;}
 }
 function openSecret(m,s,out){s.found=true;bump("secrets");const roll=Math.random(),tier=roll<.03?"celestial":roll<.5?"gold":"silver";giveBox(tier,"A secret room on the map");
-  out.push(mapLog(m,`Secret room found! A hidden stash held a ${BOXES[tier].n}.`));}
+  out.push(mapLog(m,`Secret room found! A hidden stash held a ${BOXES[tier].n}.`));
+  if(Math.random()<.15){const tm=tomeDrop("a secret room");if(tm)out.push(`On a dusty lectern: ${tm}.`);}}
 /* Standing in the room a marked secret hangs off: any quest pries it open. */
 function secretDoor(m,out){const s=(m.secrets||[]).find(s=>!s.found&&s.located&&s.link===m.pos);if(s)openSecret(m,s,out);}
 /* Arriving in a room: maybe notice a cracked wall hiding a secret. */
@@ -4955,16 +4988,20 @@ function openBelt(sel){
 function renderHotbar(){
   let el=$("hotbar");const show=!!(store&&loadedP&&playerExists&&player);
   if(!el){if(!show)return;el=document.createElement("div");el.id="hotbar";el.className="hotbar";el.setAttribute("role","toolbar");el.setAttribute("aria-label","Belt hotbar");document.body.appendChild(el);
-    el.addEventListener("click",e=>{const s=e.target.closest("[data-hb]");if(s){hbUse(+s.dataset.hb);return;}if(e.target.closest("[data-hbedit]")){equipSound("belt");openBelt(-1);}});
+    el.addEventListener("click",e=>{const sp=e.target.closest("[data-sp]");if(sp){castSpell(sp.dataset.sp);return;}const s=e.target.closest("[data-hb]");if(s){hbUse(+s.dataset.hb);return;}if(e.target.closest("[data-hbedit]")){equipSound("belt");openBelt(-1);}});
     addEventListener("resize",()=>{ui.hbHtml=null;renderHotbar();});}
   el.hidden=!show;document.body.classList.toggle("has-hb",show);if(!show)return;
   const tb=$("tabbar");if(tb&&getComputedStyle(tb).position==="fixed")document.documentElement.style.setProperty("--tbh",tb.offsetHeight+"px");
   const row=beltRow(),b=bestBelt(),keys=typeof matchMedia==="function"&&matchMedia("(hover:hover)").matches;
-  const html=`<button type="button" class="hb-belt" data-hbedit aria-label="${esc(b?b.n:"Old leather belt")}: change what's on your belt" title="Change what's on your belt">${beltIconSVG(b)}</button>`
+  const spl=prepRow(),mp=player.mp||0;
+  const spRow=spl.length?`<div class="hb-row hb-sp"><span class="hb-mana" role="img" aria-label="Mana ${mp} of ${MP_MAX}" title="Mana ${mp} / ${MP_MAX}" style="--mp:${(mp/MP_MAX*100).toFixed(1)}%"><b>${mp}</b></span>`
+    +spl.map(id=>{const S=SPELLS[id],ok=mp>=S.cost;return `<button type="button" class="hb-slot sp${ok?"":" out"}" data-sp="${id}" aria-label="Cast ${esc(S.n)}, ${S.cost} mana" title="${esc(S.n)} · ${S.cost} mana · ${esc(S.d)}">${spellIcon(id)}<span class="hb-n hb-cost">${S.cost}</span></button>`;}).join("")+`</div>`:"";
+  document.body.classList.toggle("has-sp",!!spl.length);
+  const html=spRow+`<div class="hb-row"><button type="button" class="hb-belt" data-hbedit aria-label="${esc(b?b.n:"Old leather belt")}: change what's on your belt" title="Change what's on your belt">${beltIconSVG(b)}</button>`
     +row.map((k,i)=>{const key=keys?`<span class="hb-key" aria-hidden="true">${i+1}</span>`:"";
       if(!k)return `<button type="button" class="hb-slot empty" data-hb="${i}" aria-label="Empty belt slot ${i+1}" title="Empty slot: tap to fill">+${key}</button>`;
       const n=consN(k),on=k==="focus"&&player.focused;
-      return `<button type="button" class="hb-slot${n<1?" out":""}${on?" on":""}" data-hb="${i}" aria-label="${esc(consName(k))}, ${n} left, slot ${i+1}" title="${esc(consName(k))} · ${n} left${keys?` · key ${i+1}`:""}">${tierIcon(k,"cons")}<span class="hb-n">${n}</span>${key}</button>`;}).join("");
+      return `<button type="button" class="hb-slot${n<1?" out":""}${on?" on":""}" data-hb="${i}" aria-label="${esc(consName(k))}, ${n} left, slot ${i+1}" title="${esc(consName(k))} · ${n} left${keys?` · key ${i+1}`:""}">${tierIcon(k,"cons")}<span class="hb-n">${n}</span>${key}</button>`;}).join("")+`</div>`;
   if(ui.hbHtml!==html){const fi=document.activeElement&&el.contains(document.activeElement)?document.activeElement.dataset.hb:undefined;
     el.innerHTML=html;ui.hbHtml=html;if(fi!=null){const f=el.querySelector(`[data-hb="${fi}"]`);if(f)f.focus();}}}
 /* Number keys 1-6 use belt slots, unless you're typing or a dialog is open. */
@@ -4975,6 +5012,191 @@ document.addEventListener("keydown",e=>{
   const hb=$("hotbar");if(!hb||hb.hidden)return;
   if(document.querySelector(".victory,#zoomWrap,#hbDlg,#raidWrap,#repWrap,#histWrap,.signin,#lookWrap:not([hidden]),#gearWrap:not([hidden])")||ui.qt||ui.bench||ui.inspect)return;
   const i=+e.key-1;if(i>=beltRow().length)return;e.preventDefault();hbUse(i);});
+/* ---------- Spells ----------
+   Finished quests charge mana (bigger quests give more; your INT bonus adds a share; INT quests +25%). Spells are
+   learned from your class (at Floor 3), from tomes found as loot, or bought in the Safe room shop. A few are prepared
+   on the hotbar's spell row; tap to cast. Damage spells can only take a quarter of any one boss's HP. */
+const MP_MAX=100,MP_DUPE=25;
+const SPELLS={
+  firebolt:{n:"Firebolt",       school:"fire",  rar:"common",   cost:30,d:"Hits the boss for about one quest's worth of damage, more with INT"},
+  chain:   {n:"Chain Lightning",school:"storm", rar:"epic",     cost:45,d:"Hits the boss for one and a half quests' worth of damage, more with INT"},
+  charm:   {n:"Charm",          school:"mind",  rar:"common",   cost:25,d:"The mob on you (or the next one you meet) gives up without a fight. You still get its loot"},
+  hex:     {n:"Hex",            school:"shadow",rar:"uncommon", cost:30,d:"Your rival crawler takes +50% damage from your next 3 quests"},
+  mend:    {n:"Mend",           school:"life",  rar:"common",   cost:25,d:"Heal 30 HP"},
+  ward:    {n:"Ward",           school:"holy",  rar:"uncommon", cost:35,d:"Blocks the next overnight damage hit"},
+  regrowth:{n:"Regrowth",       school:"life",  rar:"rare",     cost:40,d:"+5 HP for every quest you finish today"},
+  clair:   {n:"Clairvoyance",   school:"mind",  rar:"common",   cost:20,d:"Reveals the next 3 rooms on your map"},
+  blink:   {n:"Blink",          school:"arcane",rar:"rare",     cost:35,d:"Move one room ahead on your map right now (not through a sealed door)"},
+  haste:   {n:"Haste",          school:"arcane",rar:"uncommon", cost:30,d:"Your next 3 quests each move you 2 rooms on the map"},
+  warp:    {n:"Time Warp",      school:"arcane",rar:"uncommon", cost:30,d:"Push one quest's due date back a day"},
+  chant:   {n:"War Chant",      school:"holy",  rar:"epic",     cost:50,party:true,d:"Your whole party deals +10% raid damage for the rest of the day"},
+  massmend:{n:"Mass Mend",      school:"life",  rar:"legendary",cost:50,party:true,d:"Heals you 20 HP now, and every crewmate 20 HP the next time they open the app"},
+  beacon:  {n:"Beacon",         school:"arcane",rar:"rare",     cost:30,party:true,d:"On the raid floor, jump to your nearest crewmate's room"}};
+const CLASS_SPELL={berserker:"firebolt",rogue:"charm",necro:"hex",cleric:"mend",paladin:"ward",druid:"regrowth",ranger:"clair",monk:"blink",hunter:"haste",warlock:"warp",bard:"chant"};
+const TOME_PRICE={common:150,uncommon:300};
+const SPELL_COL={fire:"#ff7a1f",storm:"#7fb4ff",mind:"#ff8ad0",shadow:"#9b6bff",life:"#5fd06a",holy:"#ffd23f",arcane:"#3fe0ff"};
+const knows=id=>((player&&player.spells)||[]).includes(id);
+const spellSlots=p=>{const L=levelInfo(((p||player)||{}).xp||0).L;return L>=20?4:L>=10?3:2;};
+const prepRow=()=>((player.prep||[]).filter(knows)).slice(0,spellSlots());
+/* Mana a finished quest gives (0 until you know a spell, so nobody banks mana before they can use it). */
+function manaFor(t){const base=[0,5,8,12,16,20][t&&t.effort]||8;let m=base*(1+(statFx(player).xp||0));if(t&&t.stat==="INT")m*=1.25;return Math.max(1,Math.round(m));}
+function gainMana(t){if(!(player.spells||[]).length)return 0;const before=player.mp||0;player.mp=Math.min(MP_MAX,before+manaFor(t));return player.mp-before;}
+function learnSpell(id,src,quiet){
+  const S=SPELLS[id];if(!S||knows(id))return false;
+  player.spells=(player.spells||[]).concat(id);
+  const pr=prepRow();if(pr.length<spellSlots())player.prep=pr.concat(id);
+  player.mp=player.mp||0;bump("spellsLearned");pushEvent(`Learned ${S.n}${src?` (${src})`:""}`);
+  if(!quiet)toast(`<span class="big">New spell</span> You learned <b>${S.n}</b>. ${esc(S.d)}.${prepRow().includes(id)?" It's on your spell row.":" Prepare it in your Spellbook."}`,"lvl");
+  return true;}
+/* A tome drop: a random spell weighted by rarity. One you already know (or already carry) turns into mana. */
+function tomeDrop(src,w){
+  w=w||{common:50,uncommon:30,rare:13,epic:6,legendary:1};
+  let roll=Math.random()*Object.values(w).reduce((a,b)=>a+b,0),rar="common";for(const [k,v] of Object.entries(w)){if((roll-=v)<=0){rar=k;break;}}
+  const pool=Object.keys(SPELLS).filter(k=>SPELLS[k].rar===rar),id=pool[Math.floor(Math.random()*pool.length)];if(!id)return "";
+  const S=SPELLS[id];
+  if(knows(id)||(player.tomes||[]).includes(id)){player.mp=Math.min(MP_MAX,(player.mp||0)+MP_DUPE);pushEvent(`Found a Tome of ${S.n} you already know: +${MP_DUPE} mana`);return `a Tome of ${S.n} you already know (+${MP_DUPE} mana)`;}
+  player.tomes=(player.tomes||[]).concat(id);bump("tomes");pushEvent(`Found a Tome of ${S.n} (${src})`);return `a ${RARITY[S.rar].n} Tome of ${S.n}! Read it in your Spellbook`;}
+function readTome(id){
+  const i=(player.tomes||[]).indexOf(id);if(i<0)return;
+  player.tomes=player.tomes.filter((_,j)=>j!==i);
+  if(!learnSpell(id,"from a tome")){player.mp=Math.min(MP_MAX,(player.mp||0)+MP_DUPE);toast(`You already know ${SPELLS[id].n}. The tome crumbles into +${MP_DUPE} mana.`);}
+  else SFX.play("reveal",SPELLS[id].rar);
+  store.savePlayer(player).catch(writeFailed);render();checkAch();}
+function buyTome(id){
+  const S=SPELLS[id],price=S&&TOME_PRICE[S.rar];if(!price||knows(id)||player.gold<priceOf(price))return;
+  player.gold-=priceOf(price);bump("tomeBought");learnSpell(id,"Safe room shop");SFX.play("coin");
+  store.savePlayer(player).catch(writeFailed);render();checkAch();}
+function prepToggle(id){
+  if(!knows(id))return;const pr=prepRow();
+  if(pr.includes(id))player.prep=pr.filter(x=>x!==id);
+  else if(pr.length<spellSlots())player.prep=pr.concat(id);
+  else{toast(`Your spell row is full (${spellSlots()} slots). Unprepare a spell first.`,"bad");return;}
+  SFX.play("pop");store.savePlayer(player).catch(writeFailed);render();}
+/* Your class spell, taught the moment you have a class (and once for crawlers who already picked one). */
+function spellTick(){
+  if(!player||!player.cls||player.spellStart)return;const id=CLASS_SPELL[player.cls];player.spellStart=true;
+  if(id&&!knows(id)){learnSpell(id,"your class",true);const C=classOf();setTimeout(()=>toast(`<span class="big">Spells unlocked</span> As a ${esc(C?C.n:"crawler")}, you know <b>${SPELLS[id].n}</b>. Finished quests now charge mana; tap the spell on your hotbar to cast it.`,"lvl"),900);}
+  store.savePlayer(player).catch(writeFailed);}
+/* Damage spells hit the boss you're fighting, or store as Charge while you're hunting. Each boss only takes
+   a quarter of its HP from spells (a hunt's Charge: about three quests' worth a day). */
+function spellBossHit(mult){
+  ensureBoss();const b=player.boss;if(!b||b.defeated)return {err:"There's no boss left standing on this floor."};
+  const base=Math.max(1,Math.round(mobScale().xp*mult*(1+(statFx(player).xp||0))));
+  const hunt=hunting(b),key=hunt?"chg"+today():`${b.week}:${b.tier}:${b.cur==null?"":b.cur}`;
+  const cap=hunt?Math.round(mobScale().xp*3):Math.max(1,Math.round((b.maxHp||bossHp(b))*.25));
+  const used=player.spDmg&&player.spDmg.k===key?player.spDmg.n:0,room=cap-used;
+  if(room<=0)return {err:hunt?"Your Charge has taken all the spell power it will today. Try again tomorrow, or find the boss.":`${b.name} has already taken all the spell damage it will (a quarter of its HP). Finish quests to bring it down.`};
+  const dmg=Math.min(base,room);player.spDmg={k:key,n:used+dmg};
+  const loot=dealDamage(dmg);return {dmg,loot,hunt};}
+function warpPick(){
+  const td=today(),list=tasks.filter(t=>!t.done&&t.due).sort((a,b)=>a.due.localeCompare(b.due));
+  if(!list.length){toast("No quests with a due date to push back.","bad");return false;}
+  const ov=hbDlg("Time Warp",`<div class="hbhead"><span class="mini-ico">${spellIcon("warp")}</span><div><b>Time Warp</b><span>Push which quest back a day?</span></div><button class="hbx" type="button" aria-label="Close" data-hbclose>✕</button></div>
+    <div class="hbpick">${list.map(t=>`<button type="button" class="hbq${t.due<td?" late":""}" data-hbq="${esc(t.id)}"><b>${esc(t.title)}</b><span>${(t.due<td?"Overdue · was due ":"Due ")+fmtDue(t.due)}</span></button>`).join("")}</div>`);
+  ov.addEventListener("click",e=>{if(e.target.closest("[data-hbclose]")){closeHbDlg();return;}const q=e.target.closest("[data-hbq]");if(!q)return;closeHbDlg();
+    const t=tasks.find(x=>x.id===q.dataset.hbq);if(!t||t.done||!t.due)return;if(!payMana("warp"))return;
+    const nt=Object.assign({},t,{due:t.due<td?addDays(td,1):addDays(t.due,1)});tasks=tasks.map(x=>x.id===t.id?nt:x);store.saveTask(nt).catch(writeFailed);
+    castDone("warp",`"${esc(t.title)}" is now due ${fmtDue(nt.due)}.`);});
+  const f=ov.querySelector("[data-hbq]");if(f)f.focus();return true;}
+function payMana(id){const S=SPELLS[id];if((player.mp||0)<S.cost){toast(`${S.n} needs ${S.cost} mana. You have ${player.mp||0}. Finish quests to charge up.`,"bad");return false;}player.mp-=S.cost;return true;}
+function castDone(id,msg,loot){
+  const S=SPELLS[id];bump("casts");bump("cast_"+id);pushEvent(`Cast ${S.n}`);
+  if(!clip("spell-cast",.8))SFX.play("cast");castFx(S.school);
+  store.savePlayer(player).catch(writeFailed);if(S.party)partyPublish(true);render();
+  toastH(`<b>${esc(S.n)}</b> ${msg}`);
+  if(loot)setTimeout(()=>lootToast(loot),900);
+  checkAch();}
+function castSpell(id){
+  const S=SPELLS[id];if(!S||!knows(id))return;
+  if((player.mp||0)<S.cost){payMana(id);return;}
+  const td=today(),H=maxHp(player);
+  const no=m=>{toast(m,"bad");return;};
+  switch(id){
+    case "firebolt":case "chain":{const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err)return no(r0.err);payMana(id);
+      castDone(id,r0.hunt?`Your spell crackles into your stored Charge: +${r0.dmg}. It lands when you find the boss.`:`${id==="chain"?"Lightning arcs":"A bolt of fire slams"} into ${esc(player.boss.name||"the boss")} for <b>${r0.dmg}</b> damage.`,r0.loot&&r0.loot.kills&&r0.loot.kills.length?r0.loot:null);return;}
+    case "charm":{
+      if((player.mobs||[]).length){const lead=player.mobs[0];payMana(id);const out=mobFight(0,null,{charm:true});castDone(id,`The ${esc(lead.n)} lays down its weapons. ${out.map(esc).join(" ")}`);return;}
+      if(player.charm)return no("Your Charm is already waiting for the next mob.");
+      payMana(id);player.charm=true;castDone(id,"The next mob you meet will lay down its weapons.");return;}
+    case "hex":{const rv=player.rival;if(!rv)return no("No rival crawler is after you right now.");if((rv.hex||0)>=3)return no(`${rv.n} is already hexed.`);
+      payMana(id);rv.hex=3;castDone(id,`${esc(rv.n)} is hexed: your next 3 quests hit them for +50% damage.`);return;}
+    case "mend":{if(player.hp>=H)return no("You're already at full HP.");payMana(id);const h=Math.min(30,H-player.hp);player.hp+=h;castDone(id,`+${h} HP.`);return;}
+    case "ward":{if(player.ward)return no("You're already warded against the next overnight hit.");payMana(id);player.ward=true;castDone(id,"A ward settles over you. The next overnight damage won't land.");return;}
+    case "regrowth":{if(player.regrow===td)return no("Regrowth is already working today.");payMana(id);player.regrow=td;castDone(id,"For the rest of today, every quest you finish heals 5 HP.");return;}
+    case "clair":{const m=ensureMap();if(!m)return no("You don't have a map yet.");const far=farOf(m),add=[];
+      for(let i=far+1;i<mapLen(m)&&add.length<3;i++)if(!(m.rev||[]).includes(i))add.push(i);
+      if(!add.length)return no("Your map already shows everything ahead.");payMana(id);m.rev=(m.rev||[]).concat(add);m.fresh={at:Date.now(),rooms:add};
+      mapLog(m,`Clairvoyance: you saw ${add.length} room${add.length===1?"":"s"} ahead.`);castDone(id,`Your map fills in ${add.length} more room${add.length===1?"":"s"} ahead.`);return;}
+    case "blink":{const m=ensureMap(),hb=player.boss;if(!m)return no("You don't have a map yet.");
+      if(hb&&hb.hunt&&hb.engaged&&!hb.defeated)return no("You can't blink out of a boss fight.");
+      if(m.pos>=mapLen(m)-1)return no("There's nowhere further to go on this floor.");
+      const nx=m.rooms[m.pos+1];if(m.tgt==null&&m.pos>=farOf(m)&&nx&&nx.t==="door"&&!nx.open)return no("A sealed door blocks the way. Blink can't pass it.");
+      payMana(id);const out=mapStep({effort:1,stat:"DEX",title:""},true);castDone(id,`You blink to room ${m.pos+1}.${out.length?" "+out.map(esc).join(" "):""}`);return;}
+    case "haste":{if((player.haste||0)>=3)return no("Haste is already on you.");payMana(id);player.haste=3;castDone(id,"Your next 3 quests each carry you 2 rooms on the map.");return;}
+    case "warp":warpPick();return;
+    case "chant":{if(!party)return no("War Chant needs a party. Start or join one on the Party tab.");if(player.chant===td)return no("Your party is already chanting today.");
+      payMana(id);player.chant=td;partyPost("spell","cast War Chant: +10% raid damage for the whole party today");castDone(id,"Your whole party deals +10% raid damage for the rest of today.");return;}
+    case "massmend":{if(!party)return no("Mass Mend needs a party. Start or join one on the Party tab.");if(player.mm&&Date.now()-player.mm.at<864e5)return no("You cast Mass Mend in the last day. Give it time.");
+      payMana(id);player.mm={id:newId(),at:Date.now()};const h=Math.min(20,H-player.hp);player.hp+=h;partyPost("spell","cast Mass Mend: 20 HP for everyone in the party");
+      castDone(id,`${h?`+${h} HP for you, and `:""}every crewmate heals 20 HP the next time they open the app.`);return;}
+    case "beacon":{let r=null;try{r=rfState();}catch(e){}if(!r)return no("Beacon works on the raid floor. Join a party first.");
+      const adj=rfMaze(r.code,r.wk).adj,near=rfCrew().map(c=>({c,d:(rfPath(adj,r.pos,c.pos)||[]).length-1})).filter(x=>x.d>0).sort((a,b)=>a.d-b.d)[0];
+      if(!near)return no("None of your crew is anywhere else on the raid floor right now.");
+      payMana(id);r.pos=near.c.pos;r.tgt=null;rfReveal(r,r.pos);castDone(id,`You flash across the raid floor to ${esc(near.c.name)}.`);return;}
+  }}
+/* Crewmates' party spells, applied on your own device (only you ever write your own save). */
+function spellCrew(){
+  if(!party||!party.cards||!playerExists)return;const me=myUid(),seen=player.mmSeen||[];let ch=false;
+  for(const [uid,c] of Object.entries(party.cards)){if(uid===me||!c||!c.mm||!c.mm.id||seen.includes(c.mm.id)||Date.now()-c.mm.at>3*864e5)continue;
+    player.mmSeen=seen.concat(c.mm.id).slice(-20);ch=true;const h=Math.min(20,maxHp(player)-player.hp);if(h>0)player.hp+=h;
+    pushEvent(`${c.name||"A crewmate"}'s Mass Mend healed you ${h} HP`);toast(`<b>${esc(c.name||"A crewmate")}</b> cast Mass Mend.${h?` +${h} HP.`:" You were already at full HP."}`);}
+  if(ch){store.savePlayer(player).catch(writeFailed);render();}}
+const chantOn=()=>partyMembers().some(u=>{const c=cardOf(u);return c&&c.ch===today();});
+/* Avatar and hotbar flash in the spell's colour. */
+function castFx(school){const c=SPELL_COL[school]||"#3fe0ff";for(const el of [$("sheet"),$("hotbar")]){if(!el)continue;el.style.setProperty("--castc",c);el.classList.remove("casting");void el.offsetWidth;el.classList.add("casting");setTimeout(()=>el.classList.remove("casting"),1300);}}
+/* Spell art: a round badge in the school colour with the spell's glyph (100 units). */
+function spellGlyph(id){
+  const K=INK,W="#fff";
+  switch(id){
+    case "firebolt":return `<path d="M50 18 Q66 38 62 54 Q72 48 70 40 Q82 58 72 74 Q62 86 50 86 Q34 86 28 72 Q22 56 36 44 Q36 54 44 56 Q38 36 50 18 Z" fill="#ffb21f" stroke="${K}" stroke-width="3.4"/><path d="M50 50 Q58 60 56 70 Q52 78 46 76 Q40 72 44 62 Q46 58 50 50 Z" fill="#fff3b0" stroke="none"/>`;
+    case "chain":return `<path d="M56 14 L30 52 L46 52 L36 86 L70 44 L54 44 L64 14 Z" fill="#e8f4ff" stroke="${K}" stroke-width="3.4" stroke-linejoin="round"/><path d="M22 34 L30 40 M78 60 L70 66 M24 70 L32 64" stroke="${W}" stroke-width="3" stroke-linecap="round"/>`;
+    case "charm":return `<path d="M50 80 Q20 60 22 40 Q24 26 38 26 Q46 26 50 36 Q54 26 62 26 Q76 26 78 40 Q80 60 50 80 Z" fill="#ff5fa8" stroke="${K}" stroke-width="3.4"/><path d="M34 36 Q36 32 40 32" stroke="${W}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="74" cy="22" r="4" fill="${W}"/><circle cx="24" cy="70" r="3" fill="${W}"/>`;
+    case "hex":return `<path d="M50 18 Q78 18 78 46 Q78 60 68 64 L68 76 L32 76 L32 64 Q22 60 22 46 Q22 18 50 18 Z" fill="#e6d6ff" stroke="${K}" stroke-width="3.4"/><circle cx="38" cy="46" r="7" fill="#5a2a9e"/><circle cx="62" cy="46" r="7" fill="#5a2a9e"/><path d="M42 66 L42 76 M50 66 L50 76 M58 66 L58 76" stroke="${K}" stroke-width="2.6"/><path d="M20 22 L28 30 M80 22 L72 30" stroke="#c9b8ff" stroke-width="3" stroke-linecap="round"/>`;
+    case "mend":return `<path d="M40 20 L60 20 L60 40 L80 40 L80 60 L60 60 L60 80 L40 80 L40 60 L20 60 L20 40 L40 40 Z" fill="#f4fff4" stroke="${K}" stroke-width="3.4" stroke-linejoin="round"/><path d="M44 26 L44 44 L26 44" stroke="#5fd06a" stroke-width="3" fill="none"/>`;
+    case "ward":return `<path d="M50 14 L80 24 L78 52 Q74 74 50 86 Q26 74 22 52 L20 24 Z" fill="#fff6c8" stroke="${K}" stroke-width="3.4" stroke-linejoin="round"/><path d="M50 26 L50 74 M34 44 L66 44" stroke="#c99a1a" stroke-width="5" stroke-linecap="round"/>`;
+    case "regrowth":return `<path d="M24 78 Q22 36 74 22 Q80 64 40 76 Z" fill="#9fe08a" stroke="${K}" stroke-width="3.4"/><path d="M28 74 Q44 50 66 32 M44 58 L40 44 M54 48 L58 38" stroke="#2f7a3a" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    case "clair":return `<path d="M12 50 Q50 14 88 50 Q50 86 12 50 Z" fill="#fff" stroke="${K}" stroke-width="3.4"/><circle cx="50" cy="50" r="16" fill="#ff5fa8" stroke="${K}" stroke-width="3"/><circle cx="50" cy="50" r="7" fill="${K}"/><circle cx="45" cy="45" r="3" fill="${W}"/>`;
+    case "blink":return `<path d="M50 50 m0 -6 a6 6 0 1 1 -6 6 a12 12 0 1 1 12 12 a18 18 0 1 1 -18 -18 a24 24 0 1 1 24 24" fill="none" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M50 50 m0 -6 a6 6 0 1 1 -6 6 a12 12 0 1 1 12 12 a18 18 0 1 1 -18 -18 a24 24 0 1 1 24 24" fill="none" stroke="#e6fbff" stroke-width="3.4" stroke-linecap="round"/>`;
+    case "haste":return `<path d="M22 24 L48 50 L22 76 L34 76 L60 50 L34 24 Z M46 24 L72 50 L46 76 L58 76 L84 50 L58 24 Z" fill="#e6fbff" stroke="${K}" stroke-width="3" stroke-linejoin="round"/>`;
+    case "warp":return `<path d="M30 16 L70 16 L70 22 Q70 42 54 50 Q70 58 70 78 L70 84 L30 84 L30 78 Q30 58 46 50 Q30 42 30 22 Z" fill="#e6fbff" stroke="${K}" stroke-width="3.4" stroke-linejoin="round"/><path d="M38 76 Q38 66 50 62 Q62 66 62 76 Z M40 28 L60 28 Q58 38 50 44 Q42 38 40 28 Z" fill="#ffd23f" stroke="none"/><path d="M26 16 L74 16 M26 84 L74 84" stroke="${K}" stroke-width="6" stroke-linecap="round"/>`;
+    case "chant":return `<path d="M24 64 L60 22 L76 34 L44 74 Q34 82 26 76 Q20 70 24 64 Z" fill="#c98a3c" stroke="${K}" stroke-width="3.4" stroke-linejoin="round"/><path d="M60 22 L76 34 L82 26 L66 14 Z" fill="#ffd23f" stroke="${K}" stroke-width="3"/><path d="M70 50 Q80 54 82 64 M76 44 Q88 50 90 62" stroke="${W}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    case "massmend":return `<circle cx="50" cy="50" r="30" fill="none" stroke="#f4fff4" stroke-width="4" stroke-dasharray="6 6"/><path d="M42 30 L58 30 L58 42 L70 42 L70 58 L58 58 L58 70 L42 70 L42 58 L30 58 L30 42 L42 42 Z" fill="#f4fff4" stroke="${K}" stroke-width="3.4" stroke-linejoin="round"/>`+[[50,14],[86,50],[50,86],[14,50]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5" fill="#5fd06a" stroke="${K}" stroke-width="2"/>`).join("");
+    case "beacon":return `<path d="M44 86 L46 46 L54 46 L56 86 Z" fill="#c9cdd6" stroke="${K}" stroke-width="3"/><path d="M50 12 L56 30 L74 32 L60 42 L64 60 L50 50 L36 60 L40 42 L26 32 L44 30 Z" fill="#fff6c8" stroke="${K}" stroke-width="3.2" stroke-linejoin="round"/><path d="M20 20 L30 28 M80 20 L70 28" stroke="${W}" stroke-width="3" stroke-linecap="round"/>`;
+  }
+  return "";}
+function spellIcon(id){
+  const S=SPELLS[id],c=SPELL_COL[S&&S.school]||"#3fe0ff",g="sp"+(++avUid);
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs><radialGradient id="${g}" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="${shadeHex(c,.45)}"/><stop offset=".6" stop-color="${c}"/><stop offset="1" stop-color="${shadeHex(c,-.45)}"/></radialGradient></defs>`
+    +`<circle cx="50" cy="50" r="46" fill="url(#${g})" stroke="${INK}" stroke-width="4"/><circle cx="50" cy="50" r="38" fill="none" stroke="#fff" stroke-width="1.6" opacity=".35"/>${spellGlyph(id)}</svg>`;}
+function tomeIcon(id){
+  const S=SPELLS[id],c=SPELL_COL[S&&S.school]||"#3fe0ff",cd=shadeHex(c,-.45);
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect width="100" height="100" fill="${RAR_BG[S.rar]||PAPER}"/>`
+    +`<path d="M24 16 L74 16 Q80 16 80 22 L80 82 Q80 88 74 88 L24 88 Z" fill="#f4ead0" stroke="${INK}" stroke-width="3.4"/><path d="M20 14 L70 14 Q76 14 76 20 L76 80 Q76 86 70 86 L20 86 Z" fill="${cd}" stroke="${INK}" stroke-width="3.4"/>`
+    +`<path d="M26 14 L26 86" stroke="${INK}" stroke-width="2.4"/><path d="M30 20 L70 20 L70 80 L30 80 Z" fill="none" stroke="#ffd23f" stroke-width="2" opacity=".85"/>`
+    +`<g transform="translate(50 50) scale(.42) translate(-50 -50)">${spellGlyph(id)}</g><circle cx="76" cy="50" r="3.4" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/></svg>`;}
+function renderSpellbook(){
+  const sec=$("spellPanel"),el=$("spellbook");if(!sec||!el)return;
+  const known=player.spells||[],tomes=player.tomes||[];sec.hidden=!known.length&&!tomes.length;if(sec.hidden)return;
+  const pr=prepRow(),n=spellSlots(),mp=player.mp||0;
+  let h=`<div class="barrow"><div class="top"><span class="label">Mana</span><span class="num">${mp} / ${MP_MAX}</span></div><div class="bar mp" role="progressbar" aria-label="Mana" aria-valuemin="0" aria-valuemax="${MP_MAX}" aria-valuenow="${mp}"><b style="width:${(mp/MP_MAX*100).toFixed(1)}%"></b></div></div>`;
+  h+=`<p class="muted sb-hint">Finished quests charge mana (bigger quests more; INT helps). <b>${pr.length} of ${n}</b> spells prepared on your hotbar${n<4?` · ${n<3?"3 slots at level 10":"4 slots at level 20"}`:""}.</p>`;
+  if(tomes.length)h+=`<div class="sb-list">${tomes.map((id,i)=>{const S=SPELLS[id];return `<div class="sb-row tome"><span class="sb-ico">${tomeIcon(id)}</span><div class="what"><b class="rar-${S.rar}">Tome of ${esc(S.n)}</b><span>${RARITY[S.rar].n} · unread</span></div><button class="btn gold sm" type="button" data-sbread="${id}">Read</button></div>`;}).join("")}</div>`;
+  h+=`<div class="sb-list">${known.map(id=>{const S=SPELLS[id],on=pr.includes(id);return `<div class="sb-row${on?" on":""}"><span class="sb-ico">${spellIcon(id)}</span><div class="what"><b class="rar-${S.rar}">${esc(S.n)}</b><span>${S.cost} mana · ${esc(S.d)}${S.party?" · party":""}</span></div>
+    <div class="sb-btns"><button class="btn sm" type="button" data-sbcast="${id}" ${mp<S.cost?"disabled":""}>Cast</button><button class="btn ghost sm" type="button" data-sbprep="${id}">${on?"Unprepare":"Prepare"}</button></div></div>`;}).join("")}</div>`;
+  if(el.dataset.h===h)return;el.dataset.h=h;el.innerHTML=h;
+  el.querySelectorAll("[data-sbread]").forEach(b=>b.onclick=()=>readTome(b.dataset.sbread));
+  el.querySelectorAll("[data-sbcast]").forEach(b=>b.onclick=()=>castSpell(b.dataset.sbcast));
+  el.querySelectorAll("[data-sbprep]").forEach(b=>b.onclick=()=>prepToggle(b.dataset.sbprep));}
 /* ---------- Consumables ---------- */
 function drinkFocus(){
   if(bagN("focus")<1||player.focused)return;
@@ -5390,7 +5612,7 @@ function rerollPicks(kind){
 function confirmPick(){
   const c=ui.confirmPick;ui.confirmPick=null;if(!c||!player.pick)return;
   if(c.kind==="race"&&!player.race&&player.pick.races.includes(c.id)){player.race=c.id;pushEvent(`Became a ${raceOf().n}`);}
-  else if(c.kind==="class"&&!player.cls&&player.pick.classes.includes(c.id)){player.cls=c.id;pushEvent(`Took the ${classOf().n} class`);}
+  else if(c.kind==="class"&&!player.cls&&player.pick.classes.includes(c.id)){player.cls=c.id;pushEvent(`Took the ${classOf().n} class`);try{spellTick();}catch(e){}}
   else{render();return;}
   player.hp=Math.min(player.hp,maxHp(player));
   if(rcDone()){
@@ -5669,6 +5891,7 @@ function openBox(bid){
   if(bx.tier==="gold"&&Math.random()<.2)extras.push(`Wedged in the corner: ${matDrop("ess",1)}.`);
   if(bx.tier==="celestial"){if(res.bonus){player.gold+=res.bonus;extras.push(`The stars also left ${res.bonus} gold.`);}player.viewers=(player.viewers||0)+250000;bump("celestial");}
 
+  {const tc={bronze:.05,silver:.08,gold:.12,legendary:.2,celestial:.3}[bx.tier]||0;if(Math.random()<tc){const tm=tomeDrop(BOXES[bx.tier].n,bx.tier==="bronze"?{common:70,uncommon:30}:bx.tier==="silver"?{common:45,uncommon:40,rare:15}:null);if(tm)extras.push(`Tucked inside: ${tm}.`);}}
   if(petFx(player).ability==="mimic"&&Math.random()<.10){const a=activePet();giveBox("bronze",`${a.name}'s Hungry Lid`);extras.push(`${a.name} coughed up a bonus Bronze Box.`);}
   if(EGG_ODDS[bx.tier]&&Math.random()<EGG_ODDS[bx.tier]){
     const pool=Object.keys(PETS).filter(k=>PETS[k].egg&&!player.pets[k]&&!player.eggs.some(e=>e.species===k));
@@ -6093,6 +6316,7 @@ function dailyTick(force){
     const a=activePet();pushEvent(`${a.name} used Shell Up and blocked ${dmg} overdue damage`);
     ui.shellNote=`${a.name} pulled you into its shell and blocked ${dmg} overdue damage. Once per floor.`;player.shellWeek=b.week;dmg=0;
   }
+  if(dmg>0&&player.ward){player.ward=false;pushEvent(`Ward blocked ${dmg} overnight damage`);ui.shellNote=`Your Ward flared overnight and blocked ${dmg} damage.`;dmg=0;}
   if(dmg>0)player.viewers=Math.max(0,(player.viewers||0)-dmg*120);
   if(heal>0){const before=b.healed;b.healed=Math.min(b.dealt,b.healed+heal);heal=b.healed-before;}
   if(dmg>0){
@@ -6173,6 +6397,7 @@ function completeQuest(id,actual,touched){
   const before=levelInfo(player.xp).L;
   const wasSulking=petSulking();
   player.xp+=fx;player.gold+=fg;player.streak=r.streak;player.lastDoneDate=td;
+  const mpGain=gainMana(t);
   let raidMsgs=[];try{raidMsgs=raidStep();const spd=gearFx(player).spd||0;if(spd&&rfState()&&Math.random()<spd){const more=raidStep();raidMsgs.push("Faster movement speed: an extra room on the raid floor.",...more);}}catch(e){console.error("raid",e);}
   let godMsgs=[];try{godMsgs=godQuest(t,fx);}catch(e){console.error("gods",e);}
   partyTrack(fx);
@@ -6206,7 +6431,8 @@ function completeQuest(id,actual,touched){
   player.rush={n:player.rush&&Date.now()-player.rush.at<18e5?Math.min(5,player.rush.n+1):1,at:Date.now()};
   const goals=progressGoals(t,{late:wasBoss,onTarget:!!r.onTarget});evs.push(...goals.evs);
   let mapMsgs=[];try{mapMsgs=mapStep(t);
-    const spd=gearFx(player).spd||0;if(spd&&Math.random()<spd){const more=mapStep(Object.assign({},t,{effort:1}),true);mapMsgs.push("Faster movement speed! Your boots carry you an extra room.",...more);bump("dashes");}}catch(e){console.error("map",e);}
+    const spd=gearFx(player).spd||0;if(spd&&Math.random()<spd){const more=mapStep(Object.assign({},t,{effort:1}),true);mapMsgs.push("Faster movement speed! Your boots carry you an extra room.",...more);bump("dashes");}
+    if((player.haste||0)>0){player.haste--;const more=mapStep(Object.assign({},t,{effort:1}),true);mapMsgs.push(`Haste carries you an extra room${player.haste?` (${player.haste} more)`:""}.`,...more);}}catch(e){console.error("map",e);}
   if(ui.ambushLoot){loot={kills:((loot&&loot.kills)||[]).concat(ui.ambushLoot.kills)};ui.ambushLoot=null;}
   let mobMsgs=[];try{mobMsgs=mobFight(fx,t);}catch(e){console.error("mobs",e);}
   let rvMsgs=[];try{rvMsgs=rivalStep(fx,t);const a=rivalAssist(fx);if(a)rvMsgs.push(a);}catch(e){console.error("rival",e);}
@@ -6218,12 +6444,13 @@ function completeQuest(id,actual,touched){
   player.stats[t.stat]=(player.stats[t.stat]||0)+fx;
   const after=levelInfo(player.xp).L;
   player.hp=after>before?maxHp(player):thq.regen?Math.min(maxHp(player),player.hp+5+rcq.hp):player.hp;
+  if(player.regrow===td)player.hp=Math.min(maxHp(player),player.hp+5);
   {let au=null;try{au=auraFx(t);}catch(e){}if(au){if(au.hp)player.hp=Math.min(maxHp(player),player.hp+au.hp);if(au.view)player.viewers=(player.viewers||0)+Math.round(fx*37*au.view);}}
   if(after>before)levelUp(before,after,true);
   ui.claiming=null;ui.addStep=null;
   const quip=say(wasBoss?"late":"complete");
   const qhtml=h=>`<b>${esc(h)}</b><br><span class="quip">${esc(quip)}</span>`;
-  const head=`${wasBoss?"Overdue quest cleared":"Quest complete"}: +${fx} XP, +${fg} gold${r.onTarget?" (on target)":""}${t.stepXp?` (${r.xp} total with steps)`:""}`;
+  const head=`${wasBoss?"Overdue quest cleared":"Quest complete"}: +${fx} XP, +${fg} gold${mpGain?`, +${mpGain} mana`:""}${r.onTarget?" (on target)":""}${t.stepXp?` (${r.xp} total with steps)`:""}`;
   if(t.rec){
     // Log this completion as its own record, then roll the quest forward to its next occurrence with fresh steps.
     const log=Object.assign({},t,{id:logId,done:true,doneAt:Date.now(),xpEarned:r.xp,actual:touched?actual:null,repeatOf:t.id,late:wasBoss});
@@ -6626,8 +6853,9 @@ function render(){
   const ae=document.activeElement;const aeId=ae&&ae.id;const sel=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null;
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   try{goldWatch();renderPurse();}catch(e){}
+  if(loadedP&&playerExists)try{spellTick();}catch(e){console.error("spellTick",e);}
   // Each panel draws independently, so a bug in one can't blank the others.
-  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker,renderHotbar]){try{fn();}catch(e){console.error(fn.name,e);}}
+  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderSpellbook,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker,renderHotbar]){try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
 }
 
@@ -8729,6 +8957,7 @@ function renderSheet(){
       <div class="top"><span class="label">Health</span><span class="num">${p.hp} / ${maxHp(player)}</span></div>
       <div class="bar hp" role="progressbar" aria-label="Health" aria-valuemin="0" aria-valuemax="${maxHp(p)}" aria-valuenow="${p.hp}"><b style="width:${Math.max(0,p.hp/maxHp(p)*100).toFixed(1)}%"></b></div>
     </div>
+    ${(p.spells||[]).length?`<div class="barrow"><div class="top"><span class="label">Mana</span><span class="num">${p.mp||0} / ${MP_MAX}</span></div><div class="bar mp" role="progressbar" aria-label="Mana" aria-valuemin="0" aria-valuemax="${MP_MAX}" aria-valuenow="${p.mp||0}"><b style="width:${((p.mp||0)/MP_MAX*100).toFixed(1)}%"></b></div></div>`:""}
     <div class="tiles">
       <div class="tile" id="goldTile"><div class="label">Gold</div><div class="v num" style="color:var(--gold)">${p.gold}</div><div class="s">${p.xp} XP all-time</div></div>
       <div class="tile"><div class="label">Streak</div><div class="v num">${streakLive} day${streakLive===1?"":"s"}</div><div class="s">${streakLive?`+${sb}% XP today`:"Finish a quest to start"}</div></div>
@@ -8976,6 +9205,9 @@ function renderShop(){
   for(const k of Object.keys(CONSUMABLES)){const c=CONSUMABLES[k];
     h+=`<div class="item"><div class="what" style="display:flex;gap:10px;align-items:center"><span class="mini-ico" style="width:30px">${lootIconSVG(k)}</span><span><b>${esc(c.n)}</b><span>${esc(c.d)} · you carry ${bagN(k)}</span></span></div>
       <button class="btn" data-buycons="${k}" ${p.gold<priceOf(c.price)?"disabled":""}>${priceTag(c.price)}</button></div>`;}
+  for(const id of Object.keys(SPELLS).filter(k=>TOME_PRICE[SPELLS[k].rar])){const S=SPELLS[id],kn=knows(id);
+    h+=`<div class="item"><div class="what" style="display:flex;gap:10px;align-items:center"><span class="mini-ico" style="width:30px;flex:none">${tomeIcon(id)}</span><span><b class="rar-${S.rar}">Tome of ${esc(S.n)}</b><span>${S.cost} mana · ${esc(S.d)}</span></span></div>
+      ${kn?`<span class="muted" style="font-size:14px">Known</span>`:`<button class="btn" data-buytome="${id}" ${p.gold<priceOf(TOME_PRICE[S.rar])?"disabled":""}>${priceTag(TOME_PRICE[S.rar])}</button>`}</div>`;}
   for(const it of SHOP){
     const own=p.owned.includes(it.id);
     h+=`<div class="item"><div class="what"><b class="rar-${it.rar}">${esc(it.n)}</b><span>${RARITY[it.rar].n} · ${it.d}</span></div>
@@ -8986,6 +9218,7 @@ function renderShop(){
   $("shop").querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buy(b.dataset.buy));
   $("shop").querySelectorAll("[data-buybox]").forEach(b=>b.onclick=()=>buyBox(b.dataset.buybox));
   $("shop").querySelectorAll("[data-buycons]").forEach(b=>b.onclick=()=>buyCons(b.dataset.buycons));
+  $("shop").querySelectorAll("[data-buytome]").forEach(b=>b.onclick=()=>buyTome(b.dataset.buytome));
 }
 
 function questCard(t){
@@ -9216,6 +9449,7 @@ const SFX=(()=>{
     tick:()=>{noise(.012,.06,"highpass",5000);},
     // UI: a soft click for buttons and tabs, a rounder pop for tapping gear, a metal clink for putting gear on
     click:()=>{noise(.018,.07,"bandpass",2400,0,null,2.5);tone(1800,.02,"sine",.025,0);},
+    cast:()=>{[64,71,76,83].forEach((n,i)=>tone(NOTE(n),.22,"sine",.12,i*.05,NOTE(n+12)));noise(.35,.05,"highpass",4500,.12,null,2);},
     pop:()=>{tone(520,.06,"sine",.18,0,880);noise(.02,.05,"bandpass",3000,0,null,3);},
     equip:()=>{tone(2093,.22,"triangle",.07,0);tone(3136,.16,"sine",.05,.012);tone(4699,.08,"sine",.025,.02);noise(.03,.12,"highpass",6000);tone(1568,.18,"triangle",.05,.07);tone(2637,.12,"sine",.03,.08);},
   };
@@ -9477,6 +9711,10 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.4.0",d:"2026-10-08",t:"Spells",items:["Spells are here. Every finished quest charges your mana (bigger quests more, Intelligence quests a bit extra, and your INT bonus helps). Tap a spell on the new spell row above your belt to cast it.",
+    "Your class teaches you a spell: Firebolt, Charm, Hex, Mend, Ward, Regrowth, Clairvoyance, Blink, Haste, Time Warp or War Chant. Crawlers who already have a class know theirs now.",
+    "More spells come from tomes: they drop from loot boxes, bosses, rivals and secret rooms, and the Safe room shop sells the common and uncommon ones. Read them in your new Spellbook on the Hero tab.",
+    "Prepare 2 spells at a time (3 at level 10, 4 at level 20). Party spells (War Chant, Mass Mend, Beacon) help your whole crew. Damage spells can only take a quarter of any one boss's HP, so quests still do the heavy lifting."]},
   {v:"3.3.3",d:"2026-10-08",t:"Old maps",items:["The floor map and the raid map are now worn old parchment: torn, scorched edges, fold creases, a coffee ring and a few suspicious stains. Each map keeps its own wear.",
     "Rooms look hand-drawn, uncharted areas are inked over, and the room icons are redrawn with more detail (an iron-banded chest, a spike pit, a candlelit altar, a torch-lit entrance and more)."]},
   {v:"3.3.2",d:"2026-10-08",t:"Gear glow-up",items:["Every ring has its own design now: brass knuckles, a mood stone that frowns (or smiles), a gumball, an hourglass, an owl with gem eyes, a signet with a gold fedora and more. The ring on your crawler's fist is bigger and shows its gem colour.",
@@ -10231,13 +10469,13 @@ function partyTrack(fx){
   if(stormOn(pt.wk)){
     let r=null;try{r=rfState();}catch(e){}
     if(r&&r.pos===RF_LAIR){
-      const n=rfLairCount(),mul=1+Math.min(STORM_CREW_MAX,STORM_CREW*n),hit=Math.round(fx*mul),chg=pt.chg||0;
+      const n=rfLairCount(),mul=(1+Math.min(STORM_CREW_MAX,STORM_CREW*n))*(chantOn()?1.1:1),hit=Math.round(fx*mul),chg=pt.chg||0;
       pt.wkDmg=(pt.wkDmg||0)+hit+chg;pt.chg=0;
       if(chg){ui.stormMsg=`Your stored Charge breaks over the raid boss: <b>${chg}</b> damage, on top of this quest's ${hit}.`;bump("stormHits");}
     }else pt.chg=(pt.chg||0)+Math.round(fx*STORM_CHARGE);
   }else{
     let lb=0;try{lb=rfLairCrew()?RF_LAIR_BONUS:0;}catch(e){}
-    pt.wkDmg=(pt.wkDmg||0)+Math.round(fx*(1+lb));
+    pt.wkDmg=(pt.wkDmg||0)+Math.round(fx*(1+lb)*(chantOn()?1.1:1));
   }
   player.pt=pt;
 }
@@ -10248,7 +10486,7 @@ function myCard(){
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
     wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy}:null,
-    rvDone:player.rvDone||null,as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
+    rvDone:player.rvDone||null,as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,ch:player.chant===today()?today():null,mm:player.mm&&Date.now()-player.mm.at<3*864e5?player.mm:null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
@@ -10462,6 +10700,7 @@ function partyBuffCalc(){
 function partyTick(){
   if(!party||!party.ready||!party.doc||!playerExists)return;
   try{rivalCrew();}catch(e){console.warn("rival crew",e);}
+  try{spellCrew();}catch(e){console.warn("spell crew",e);}
   if(ui.qt&&(ui.qt.hall||ui.qt.host))try{renderQt();}catch(e){}
   const td=today();
   if(!player.pbuff||player.pbuff.d!==td){
