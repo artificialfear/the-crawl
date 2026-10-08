@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=846556933b"></script>
-<script>window.CRAWL_BUILD="846556933b";</script>
+<script src="firebase-config.js?v=98a5285636"></script>
+<script>window.CRAWL_BUILD="98a5285636";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2686,8 +2686,10 @@ async function remoteStore(db,uid){
     // if the server copy somehow never arrives, a reload re-runs the startup guard
     resyncTimer=setTimeout(()=>{if(resync)location.reload();},10000);};
   const canSave=()=>!resync&&(fresh||!navigator.onLine||Date.now()-t0>20000);
+  // "Loading your latest save…" shows while saves are held; clear it once the server answers or saving resumes
+  let held=false;const unhold=()=>{if(!held)return;held=false;if(navigator.onLine)setSync("ok","Synced to your account");};
   pRef.onSnapshot(s=>{
-    if(!(s.metadata&&s.metadata.fromCache))fresh=true;
+    if(!(s.metadata&&s.metadata.fromCache)){fresh=true;if(!resync)unhold();}
     const d=s.exists?thaw(s.data()):null,rev=d&&d._rev||0;
     // the latest snapshot that is the server's own copy (nothing of ours pending on top of it)
     clean=s.metadata&&!s.metadata.fromCache&&!s.metadata.hasPendingWrites?{d,exists:s.exists}:null;
@@ -2705,7 +2707,8 @@ async function remoteStore(db,uid){
     loadedT=true;afterLoad();},e=>onDbError(e));
   return {
     kind:"remote",
-    savePlayer:p=>{if(!canSave()){setSync("local","Loading your latest save…");return Promise.resolve();}
+    savePlayer:p=>{if(!canSave()){held=true;setSync("local","Loading your latest save…");return Promise.resolve();}
+      unhold();
       const base=Math.max(localRev,p._rev||0);localRev=base+1;p._rev=localRev;const body=JSON.parse(JSON.stringify(p));body._base=base;
       return q("player",()=>pRef.set(body)).then(()=>{playerExists=true;});},
     saveTask:t=>{tRev[t.id]=Math.max(tRev[t.id]||0,t._rev||0)+1;t._rev=tRev[t.id];gone.delete(t.id);const {id,...body}=JSON.parse(JSON.stringify(t));return q("t:"+id,()=>tCol.doc(id).set(body));},
