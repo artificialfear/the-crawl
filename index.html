@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=bba9ce5033"></script>
-<script>window.CRAWL_BUILD="bba9ce5033";</script>
+<script src="firebase-config.js?v=49b1024dd7"></script>
+<script>window.CRAWL_BUILD="49b1024dd7";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2719,6 +2719,7 @@ async function remoteStore(db,uid){
     loadedT=true;afterLoad();},e=>onDbError(e));
   return {
     kind:"remote",
+    isFresh:()=>fresh&&!resync,
     savePlayer:p=>{if(!canSave()){held=true;setSync("local","Loading your latest save…");return Promise.resolve();}
       unhold();
       const base=Math.max(localRev,p._rev||0);localRev=base+1;p._rev=localRev;const body=JSON.parse(JSON.stringify(p));body._base=base;
@@ -3736,7 +3737,11 @@ function rivalCrew(){
     setTimeout(()=>toast(`<b>${esc(c.name||"Your crewmate")}</b> took down ${esc(c.rvDone.n)} with your help. +${x} XP, +${g} gold.`,"lvl"),400);}
   const ks=Object.keys(player.asPaid||{});if(ks.length>40)ks.sort((a,b)=>player.asPaid[a]-player.asPaid[b]).slice(0,ks.length-40).forEach(k=>delete player.asPaid[k]);
   // Help ends when the rival is gone
-  if(player.helping){const c=party.cards[player.helping.to];if(!c||!c.rvl||c.rvl.id!==player.helping.rid){player.helping=null;ch=true;}}
+  // Help ends when the crewmate is clearly past that fight: a different rival, that one taken down, or 3 days without a sign of it.
+  // A card that's briefly missing the rival (their device still loading) doesn't count.
+  if(player.helping){const h=player.helping,c=party.cards[h.to];
+    if(c&&c.rvl&&c.rvl.id===h.rid){if(h.seen!==today()){h.seen=today();ch=true;}}
+    else if((c&&c.rvl&&c.rvl.id!==h.rid)||(c&&c.rvDone&&c.rvDone.id===h.rid)||daysBetween(h.seen||today(),today())>=3){player.helping=null;ch=true;}}
   if(ch)store.savePlayer(player).catch(writeFailed);
 }
 /* Your quest, while helping a crewmate: half your hit lands on their rival. */
@@ -3747,7 +3752,7 @@ function rivalAssist(fx){
   return `Helping ${c.name||"your crewmate"}: your quest also hit ${c.rvl.n} for ${d}.`;}
 function rivalHelp(uid){const c=party&&party.cards[uid];if(!c||!c.rvl)return;
   if(player.helping&&player.helping.to===uid&&player.helping.rid===c.rvl.id)player.helping=null;
-  else{player.helping={to:uid,rid:c.rvl.id};toast(`You're helping ${esc(c.name||"your crewmate")} fight ${esc(c.rvl.n)}. Each quest you finish chips at them.`);}
+  else{player.helping={to:uid,rid:c.rvl.id,seen:today()};toast(`You're helping ${esc(c.name||"your crewmate")} fight ${esc(c.rvl.n)}. Each quest you finish chips at them.`);}
   store.savePlayer(player).catch(writeFailed);partyPublish(true);render();}
 /* The big encounter card above the quest board. */
 function renderRivalAlert(){
@@ -9599,7 +9604,10 @@ function partyPublish(now){
   if(partyPubTimer&&!now)return; // one write at most every 1.5s; the pending one sends the latest card when it fires
   clearTimeout(partyPubTimer);
   partyPubTimer=setTimeout(()=>{partyPubTimer=null;
-    if(!party)return;const c=myCard();const k=JSON.stringify(c);if(k===partyLastPub)return;partyLastPub=k;
+    if(!party)return;
+    // a device that just woke up may hold an old copy (say, no rival yet): wait for the server's copy before telling the crew
+    if(store&&store.isFresh&&!store.isFresh()){partyPubTimer=setTimeout(()=>{partyPubTimer=null;partyPublish(true);},1500);return;}
+    const c=myCard();const k=JSON.stringify(c);if(k===partyLastPub)return;partyLastPub=k;
     fb.fs.doc(`parties/${party.code}/cards/${myUid()}`).set(c).catch(e=>{partyLastPub="";console.warn("party card",e&&e.code);});
   },now?0:1500);
 }
