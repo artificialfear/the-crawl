@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=27302e3e7f"></script>
-<script>window.CRAWL_BUILD="27302e3e7f";</script>
+<script src="firebase-config.js?v=e1ef3ee0ea"></script>
+<script>window.CRAWL_BUILD="e1ef3ee0ea";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -8023,6 +8023,7 @@ function setTab(t,o){
   if(t==="party")partySeen();
   if(t==="safe"){const x=safeToday();if(x&&!x.left){x.left=true;store.savePlayer(player).catch(writeFailed);}}
   applyTab();renderTabs();
+  try{renderBoss();}catch(e){} // the boss window swaps between your floor boss and the party raid boss with the tab
   if(!(o&&o.keep)&&window.matchMedia&&matchMedia("(max-width:860px)").matches){try{window.scrollTo(0,0);}catch(e){}}
 }
 function tabBadges(){
