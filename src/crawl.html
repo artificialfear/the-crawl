@@ -6884,6 +6884,129 @@ function armorIcon(st,u,magic){
   // Magical icons go through the comic outline pass twice (once as the raw icon, once wrapped), so thin them back.
   return magic?s.replace(/stroke-width="(\d+(?:\.\d+)?)"/g,(m,w)=>`stroke-width="${(+w/1.6).toFixed(2)}"`):s;
 }
+/* Rings: every ring has its own setting on a shared, shaded band (100-unit loot icon, band centred at 50,64).
+   Strokes here are pre-comic: comicize() thickens them 1.6x afterwards. */
+const RING_LOOK={r1:"knuckle",r2:"mood",r14:"mood",r3:"coin",r4:"signet",r5:"hourglass",r6:"shield",r7:"claw",r8:"princess",r9:"gumball",r10:"twist",
+  r11:"halo",r12:"opal",r13:"owl",r15:"iron",r16:"thorn",r17:"emerald",r18:"moon",r19:"batwing",r20:"syndicate",m5:"heart",m15:"frost"};
+function shadeHex(c,k){ // k<0 darkens toward black, k>0 lightens toward white
+  const n=parseInt(c.slice(1),16),f=v=>Math.round(k<0?v*(1+k):v+(255-v)*k);
+  return "#"+[n>>16,n>>8&255,n&255].map(v=>f(v).toString(16).padStart(2,"0")).join("");}
+function ringIcon(it,u){
+  const K=INK,lk=RING_LOOK[it.id]||"plain";
+  const lum=c=>{const n=parseInt(c.slice(1),16);return ((n>>16)*.3+(n>>8&255)*.59+(n&255)*.11)/255;};
+  const raw=it.band||"#ffd23f",M=lum(raw)<.2?shadeHex(raw,.22):raw,MD=shadeHex(M,-.42),ML=shadeHex(M,.55),G=it.gem||"#fff",GD=shadeHex(G,-.45),GL=shadeHex(G,.6);
+  const E=(cx,cy,rx,ry)=>`M${cx-rx} ${cy} a${rx} ${ry} 0 1 0 ${2*rx} 0 a${rx} ${ry} 0 1 0 ${-2*rx} 0 Z`;
+  const P=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,O=(d,f,o)=>`<path d="${d}" fill="${f}" stroke="none"${o?` opacity="${o}"`:""}/>`,L=(d,w,c,x)=>`<path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w}" stroke-linecap="round"${x||""}/>`;
+  const C=(x,y,r,f,w)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${K}" stroke-width="${w==null?1.4:w}"/>`;
+  const glint=(x,y,r)=>`<path d="M${x} ${y-r} L${x+r*.3} ${y-r*.3} L${x+r} ${y} L${x+r*.3} ${y+r*.3} L${x} ${y+r} L${x-r*.3} ${y+r*.3} L${x-r} ${y} L${x-r*.3} ${y-r*.3} Z" fill="#fff" stroke="none"/>`;
+  let defs="",gid=0;
+  const rad=(a,b,c)=>{const id=`${u}rg${gid++}`;defs+=`<radialGradient id="${id}" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="${a}"/><stop offset=".55" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></radialGradient>`;return `url(#${id})`;};
+  // The band: outer face, the inner wall seen through the hole, a highlight and a shadow
+  let s=P(`${E(50,64,31,21)} ${E(50,67,19,10)}`,M,` fill-rule="evenodd" stroke-width="2"`)+P(`${E(50,62,21,13)} ${E(50,67,19,10)}`,MD,` fill-rule="evenodd" stroke-width="1.2"`)
+    +L("M23 60 Q27 48 42 44.5",2.6,ML)+L("M60 83.6 Q75 81 79.6 69",3,MD,` opacity=".7"`)+L("M36 77.5 Q50 80 64 77.5",1.2,ML,` opacity=".6"`);
+  const prong=(x,y,a)=>`<ellipse cx="${x}" cy="${y}" rx="2.4" ry="4" fill="${M}" stroke="${K}" stroke-width="1.1" transform="rotate(${a} ${x} ${y})"/>`;
+  const gallery=(w)=>P(`M${50-w} 44 L${50+w} 44 L${50+w*.6} 51 L${50-w*.6} 51 Z`,M,` stroke-width="1.4"`)+L(`M${50-w*.7} 47.5 L${50+w*.7} 47.5`,1,MD);
+  const brilliant=(cx,cy,r,c)=>{const cd=shadeHex(c,-.4),cl=shadeHex(c,.55);let f=C(cx,cy,r,c,1.6);
+    const t=r*.5,o=[];for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;o.push([cx+t*Math.cos(a),cy+t*Math.sin(a)]);}
+    f+=O(`M${cx} ${cy} L${cx+r} ${cy} A${r} ${r} 0 0 1 ${cx} ${cy+r} Z`,cd,.45)+`<path d="M${o.map(p=>p.map(v=>v.toFixed(1)).join(" ")).join(" L")} Z" fill="${cl}" opacity=".55" stroke="${cd}" stroke-width=".8"/>`;
+    for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;f+=L(`M${o[i][0].toFixed(1)} ${o[i][1].toFixed(1)} L${(cx+r*Math.cos(a)).toFixed(1)} ${(cy+r*Math.sin(a)).toFixed(1)}`,.8,cd);}
+    return f+O(`M${cx-r*.55} ${cy-r*.2} Q${cx-r*.5} ${cy-r*.62} ${cx-r*.12} ${cy-r*.7} Q${cx-r*.3} ${cy-r*.45} ${cx-r*.55} ${cy-r*.2} Z`,"#fff",.85);};
+  const cab=(cx,cy,rx,ry,a,b,c)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${rad(a,b,c)}" stroke="${K}" stroke-width="1.6"/>`+O(`M${cx-rx*.6} ${cy-ry*.15} Q${cx-rx*.55} ${cy-ry*.75} ${cx-rx*.05} ${cy-ry*.8} Q${cx-rx*.35} ${cy-ry*.5} ${cx-rx*.6} ${cy-ry*.15} Z`,"#fff",.8);
+  const milgrain=(cx,cy,rx,ry,n)=>{let f="";for(let i=0;i<n;i++){const a=i*2*Math.PI/n;f+=`<circle cx="${(cx+rx*Math.cos(a)).toFixed(1)}" cy="${(cy+ry*Math.sin(a)).toFixed(1)}" r=".9" fill="${ML}" stroke="none"/>`;}return f;};
+  switch(lk){
+    case "knuckle": // three raised brass knuckles with dark studs
+      s+=L("M28 75 Q50 89 72 75",1.2,MD);
+      for(const [x,y,r] of [[33,46,8],[50,40,9],[67,46,8]])s+=C(x,y,r,M,1.6)+L(`M${x-r*.65} ${y} Q${x-r*.55} ${y-r*.6} ${x-r*.05} ${y-r*.75}`,1.6,ML)+P(`M${x-3.4} ${y+1} L${x} ${y-7} L${x+3.4} ${y+1} Z`,"#3a3140",` stroke-width="1.1"`);
+      break;
+    case "mood": { // a domed mood stone with a face that matches its mood
+      const happy=it.id==="r14";s+=gallery(10)+`<ellipse cx="50" cy="38" rx="17" ry="13" fill="${M}" stroke="${K}" stroke-width="1.6"/>`+milgrain(50,38,15.6,11.6,18);
+      s+=cab(50,38,13,9.6,GL,G,GD)+L(happy?"M40 41 Q46 33 52 38 Q57 43 61 35":"M40 36 Q46 44 52 38 Q57 33 61 41",1.6,happy?"#7fe8d8":"#9b6bd0",` opacity=".75"`);
+      s+=`<circle cx="45.5" cy="36.5" r="1.3" fill="${happy?"#5a1840":"#e6d6ff"}" stroke="none"/><circle cx="54.5" cy="36.5" r="1.3" fill="${happy?"#5a1840":"#e6d6ff"}" stroke="none"/>`
+        +L(happy?"M45.5 40.5 Q50 44.5 54.5 40.5":"M45.5 43 Q50 39.5 54.5 43",1.3,happy?"#5a1840":"#e6d6ff");break;}
+    case "coin": // a milgrained gold coin bezel: green enamel round a stamped cent
+      s+=gallery(9)+C(50,37,14,M,1.6)+milgrain(50,37,12.4,12.4,20)+C(50,37,9.4,G,1.2)+C(50,37,5.8,ML,1.1)+L("M52.6 34.6 A3 3 0 1 0 52.6 39.4 M50.4 32.6 L50.4 41.4",1.2,MD)+glint(43,31,2.6);break;
+    case "signet": { // a thick oval signet, red enamel with an engraved check mark
+      s+=P("M28 46 Q32 38 50 37 Q68 38 72 46 L64 48 L36 48 Z",M,` stroke-width="1.4"`);
+      s+=`<ellipse cx="50" cy="38" rx="18" ry="11" fill="${MD}" stroke="${K}" stroke-width="1.6"/><ellipse cx="50" cy="35" rx="18" ry="11" fill="${M}" stroke="${K}" stroke-width="1.6"/><ellipse cx="50" cy="35" rx="13" ry="7.4" fill="${G}" stroke="${K}" stroke-width="1.2"/>`;
+      s+=L("M43.5 35 L48 39.5 L57 30.5",3.4,"#fff")+L("M36 31 Q41 27.8 47 27.5",1.4,ML);break;}
+    case "hourglass": // a little gold hourglass with cyan glass and running sand
+      s+=gallery(9)+P("M41 44 L59 44 L59 48 L41 48 Z",M,` stroke-width="1.3"`)+P("M41 20 L59 20 L59 24 L41 24 Z",M,` stroke-width="1.3"`);
+      s+=P("M43 24 L57 24 Q57 31 51.5 34 Q57 37 57 44 L43 44 Q43 37 48.5 34 Q43 31 43 24 Z",GL,` stroke-width="1.4"`)+O("M44.5 44 Q45 39.5 50 37.6 Q55 39.5 55.5 44 Z","#ffd23f")+O("M46.8 28 L53.2 28 Q52 31.4 50 32.6 Q48 31.4 46.8 28 Z","#ffd23f")+L("M50 33 L50 40",1,"#ffd23f");
+      s+=L("M42 24.5 L42 43.5 M58 24.5 L58 43.5",1.6,MD)+L("M45 26 Q45 30 47 32",1.2,"#fff",` opacity=".8"`);break;
+    case "shield": // a hammered band and a riveted heater shield with a hide-brown stone
+      for(const [x,y] of [[28,70],[36,79],[70,72],[62,80],[25,62]])s+=L(`M${x-2} ${y} Q${x} ${y-2} ${x+2} ${y}`,1.1,ML);
+      s+=gallery(10)+P("M33 26 L67 26 L66 40 Q62 50 50 54 Q38 50 34 40 Z",M,` stroke-width="1.6"`)+P("M38 30 L62 30 L61.5 40 Q58 47 50 49.6 Q42 47 38.5 40 Z",G,` stroke-width="1.2"`);
+      s+=L("M50 31 L50 48 M39 38 L61 38",1.6,shadeHex(G,-.4))+L("M41 33 Q44 31 48 31",1.2,shadeHex(G,.5));
+      for(const [x,y] of [[36,28.5],[64,28.5],[50,52]])s+=C(x,y,1.6,ML,.8);break;
+    case "claw": // four hooked gold claws grip a cut amethyst; a gold coin dangles from the band
+      s+=gallery(9);for(const [x,a] of [[38,-30],[62,30]])s+=P(`M${x} 46 Q${x+(x<50?-6:6)} 34 ${x+(x<50?2:-2)} 24`,"none",` stroke="${K}" stroke-width="5.4" stroke-linecap="round"`)+P(`M${x} 46 Q${x+(x<50?-6:6)} 34 ${x+(x<50?2:-2)} 24`,"none",` stroke="${M}" stroke-width="2.8" stroke-linecap="round"`);
+      s+=brilliant(50,35,10.5,G);for(const [x,y,a] of [[40.5,27,-40],[59.5,27,40],[41,43.5,40],[59,43.5,-40]])s+=prong(x,y,a);
+      s+=L("M66 81 Q67.5 83 67 84.5",1.4,M)+C(67,88,4.6,M,1.4)+C(67,88,2.7,ML,.9);break;
+    case "princess": { // a black band edged in gold; a square-cut topaz in sharp crown prongs
+      s+=P(`${E(50,64,31,21)}`,"none",` stroke="#ffd23f" stroke-width="1.2" transform="translate(50 64) scale(.9) translate(-50 -64)"`)+L("M28 74 Q50 84 72 74",1,"#ffd23f");
+      s+=P("M40 46 L60 46 L56 51 L44 51 Z","#ffd23f",` stroke-width="1.3"`)+P("M50 21 L65 36 L50 51 L35 36 Z",G,` stroke-width="1.6"`)+P("M50 28 L57.5 36 L50 44 L42.5 36 Z",GL,` stroke-width=".9"`)+L("M50 21 L50 28 M65 36 L57.5 36 M50 51 L50 44 M35 36 L42.5 36",.9,GD);
+      for(const [x,y,a] of [[50,19,0],[67,36,90],[33,36,-90]])s+=`<path d="M${x-2.6} ${y+3} L${x} ${y-4} L${x+2.6} ${y+3} Z" fill="#ffd23f" stroke="${K}" stroke-width="1" transform="rotate(${a} ${x} ${y})"/>`;
+      s+=O("M44 32 L49 27 L48 31 Z","#fff",.85)+C(34,48,2.2,"#2a2a33",.9)+C(66,48,2.2,"#2a2a33",.9);break;}
+    case "gumball": // a moulded plastic band with a seam, a scalloped cup and a glossy gumball
+      s+=L("M20 66 Q50 92 80 66",1,ML,` opacity=".9"`)+`<path d="M43 80 l1.6 3 3.2 .3 -2.4 2.1 .7 3.1 -3.1 -1.6 -3.1 1.6 .7 -3.1 -2.4 -2.1 3.2 -.3 Z" fill="#ffd23f" stroke="${K}" stroke-width=".8"/>`;
+      s+=P("M36 42 Q40 37 43 41 Q46.5 36 50 41 Q53.5 36 57 41 Q60 37 64 42 L60 51 L40 51 Z",M,` stroke-width="1.4"`);
+      s+=`<circle cx="50" cy="31" r="13" fill="${rad("#ffffff",G,GD)}" stroke="${K}" stroke-width="1.8"/>`+O("M41 28 Q42 21 49 19.4 Q44 23 43.4 29 Z","#fff",.9)+`<circle cx="57" cy="36" r="1.8" fill="#fff" opacity=".6"/>`;break;
+    case "twist": { // a twisted copper rope band with spots of verdigris
+      let tw="";for(let i=0;i<24;i++){const a=i*Math.PI/12,x=50+25*Math.cos(a),y=65+15.5*Math.sin(a);if(y<60&&Math.abs(x-50)<18)continue;
+        tw+=`M${(x-2.6).toFixed(1)} ${(y-3.4).toFixed(1)} L${(x+2.6).toFixed(1)} ${(y+3.4).toFixed(1)} `;}
+      s+=L(tw,1.6,MD)+`<circle cx="30" cy="74" r="2.2" fill="#4fb59a" stroke="none" opacity=".8"/><circle cx="68" cy="79" r="1.6" fill="#4fb59a" stroke="none" opacity=".8"/>`;
+      s+=P("M38 44 Q50 38 62 44 L60 50 Q50 45 40 50 Z",M,` stroke-width="1.4"`)+L("M42 44 L45 49 M48 42 L51 47 M54 42 L57 47",1.2,MD);break;}
+    case "halo": // a round sapphire ringed by little diamonds, wind swirls on the shoulders
+      s+=gallery(10)+C(50,35,15,M,1.6);
+      for(let i=0;i<12;i++){const a=i*Math.PI/6;s+=C((50+12.4*Math.cos(a)).toFixed(1),(35+12.4*Math.sin(a)).toFixed(1),2.2,"#f4f8ff",.8);}
+      s+=brilliant(50,35,8.6,G);break;
+    case "opal": // an oval opal flashing colour in a milgrain bezel, with two side diamonds
+      s+=gallery(10)+`<ellipse cx="50" cy="36" rx="16" ry="12.4" fill="${M}" stroke="${K}" stroke-width="1.6"/>`+milgrain(50,36,14.4,11,22)+cab(50,36,12,9,"#ffffff",G,"#c9b8e8");
+      for(const [x,y,c,r] of [[45,34,"#ff8ad0",2.6],[54,32,"#7fe8d8",2.2],[49,40,"#7fb4ff",2.4],[56,38.5,"#ffd23f",1.8],[43,39,"#9fffa0",1.6]])s+=`<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*.7}" fill="${c}" opacity=".8" stroke="none" transform="rotate(-25 ${x} ${y})"/>`;
+      s+=C(31,46,2.8,"#f4f8ff",1)+C(69,46,2.8,"#f4f8ff",1);break;
+    case "owl": // an owl's head on a dark band: violet eyes, ear tufts, a gold beak and feathers
+      s+=glint(30,74,2.4)+glint(70,74,2)+P("M32 30 L36 16 L43 26 Q50 23 57 26 L64 16 L68 30 Q72 44 50 52 Q28 44 32 30 Z",M,` stroke-width="1.6"`);
+      s+=L("M38 44 Q41 47 44 44 M44 47 Q47 50 50 47 M50 47 Q53 50 56 47 M56 44 Q59 47 62 44",1.1,ML);
+      for(const x of [41.5,58.5])s+=C(x,34,7,ML,1.2)+`<circle cx="${x}" cy="34" r="5.4" fill="${rad(GL,G,GD)}" stroke="${K}" stroke-width="1.2"/>`+`<circle cx="${x}" cy="34" r="2.2" fill="${K}" stroke="none"/><circle cx="${x-1.8}" cy="32" r="1.3" fill="#fff" stroke="none"/>`;
+      s+=P("M47.6 39 L52.4 39 L50 44.6 Z","#ffd23f",` stroke-width="1"`);break;
+    case "iron": // a bolted iron band: hex bolts, a raised ridge, hammer dents and rust
+      s+=L("M21 66 Q50 94 79 66",1.4,MD);
+      for(const [x,y] of [[26,72],[37,80],[50,82.6],[63,80],[74,72]])s+=`<path d="M${x-3} ${y} L${x-1.5} ${y-2.6} L${x+1.5} ${y-2.6} L${x+3} ${y} L${x+1.5} ${y+2.6} L${x-1.5} ${y+2.6} Z" fill="${ML}" stroke="${K}" stroke-width=".9"/>`;
+      s+=P("M36 44 Q50 38 64 44 L64 50 Q50 45 36 50 Z",M,` stroke-width="1.4"`)+[[42,45.6],[50,43.6],[58,45.6]].map(([x,y])=>`<path d="M${x-3} ${y} L${x-1.5} ${y-2.6} L${x+1.5} ${y-2.6} L${x+3} ${y} L${x+1.5} ${y+2.6} L${x-1.5} ${y+2.6} Z" fill="${ML}" stroke="${K}" stroke-width=".9"/>`).join("");
+      s+=`<circle cx="31" cy="78" r="1.6" fill="#a0522d" stroke="none" opacity=".8"/><circle cx="71" cy="80" r="2" fill="#a0522d" stroke="none" opacity=".7"/>`;break;
+    case "thorn": { // a pear-cut garnet held point up, a thorny vine wrapped round the band
+      let th="";for(const [x,y,a] of [[26,73,-150],[33,79.6,-120],[45,81.4,-95],[57,82.4,-80],[67,81,-60],[75,73,-30]])th+=`<path d="M${x-1.6} ${y} L${x} ${y-5} L${x+1.6} ${y} Z" fill="#2f5a2a" stroke="${K}" stroke-width=".7" transform="rotate(${a+90} ${x} ${y})"/>`;
+      s+=L("M22 66 Q28 80 40 80 Q50 79 60 82 Q72 83 78 66",2.4,"#2f5a2a")+th+gallery(8);
+      s+=P("M50 18 Q61 32 59 41 Q56 49 50 49 Q44 49 41 41 Q39 32 50 18 Z",G,` stroke-width="1.6"`)+P("M50 26 Q55 34 54.4 40 Q52.6 44 50 44 Q47.4 44 45.6 40 Q45 34 50 26 Z",GL,` stroke-width=".8" opacity=".5"`)+L("M50 18 L50 26 M41 41 L45.6 40 M59 41 L54.4 40 M50 49 L50 44",.8,GD);
+      s+=O("M45 33 Q46 27 49 23 Q48 29 47 34 Z","#fff",.85)+prong(50,17,0)+prong(41.5,46,45)+prong(58.5,46,-45);break;}
+    case "emerald": // a step-cut emerald with cut corners, double claws, ledger-line engraving and baguettes
+      s+=L("M24 70 Q50 86 76 70 M28 75 Q50 89 72 75",1,MD)+gallery(11);
+      s+=P("M36 25 L64 25 L68 29 L68 43 L64 47 L36 47 L32 43 L32 29 Z",G,` stroke-width="1.6"`)+P("M40 29 L60 29 L63 32 L63 40 L60 43 L40 43 L37 40 L37 32 Z",shadeHex(G,.25),` stroke-width=".9"`)+P("M44 32.5 L56 32.5 L58 34.5 L58 37.5 L56 39.5 L44 39.5 L42 37.5 L42 34.5 Z",GL,` stroke-width=".8"`);
+      s+=L("M36 25 L40 29 M64 25 L60 29 M68 43 L63 40 M32 43 L37 40",.8,GD)+O("M38 27 L45 27 L41 31 Z","#fff",.8);
+      for(const [x,y] of [[33.5,26.5],[66.5,26.5],[33.5,45.5],[66.5,45.5]])s+=C(x,y,2.4,M,1);
+      s+=P("M23 50 L29 48 L30 52 L24 54 Z","#e6fff0",` stroke-width=".8"`)+P("M77 50 L71 48 L70 52 L76 54 Z","#e6fff0",` stroke-width=".8"`);break;
+    case "moon": // a glowing moonstone; a crescent moon and stars engraved on the band
+      s+=`<path d="M30 70 a5 5 0 1 0 4 7 a4 4 0 1 1 -4 -7 Z" fill="#ffd23f" stroke="${K}" stroke-width=".8"/>`+glint(66,76,2.4)+glint(73,69,1.6)+glint(58,81,1.4)+gallery(9);
+      s+=C(50,35,14.4,M,1.6)+cab(50,35,11,11,"#ffffff",G,"#8fa8d8")+O("M42 38 Q50 30 59 33 Q51 33 44 41 Z","#7fb4ff",.55)+glint(55,30,2.4);break;
+    case "batwing": // a blood-red oval with dark flecks, spread bat wings and a black bezel
+      for(const d of [-1,1])s+=P(`M${50+10*d} 36 Q${50+22*d} 22 ${50+36*d} 24 Q${50+31*d} 30 ${50+33*d} 36 Q${50+27*d} 33 ${50+25*d} 40 Q${50+20*d} 36 ${50+14*d} 44 Z`,"#2a2438",` stroke-width="1.4"`)+L(`M${50+13*d} 37 L${50+33*d} 26 M${50+14*d} 40 L${50+25*d} 33`,1,"#5a4a78");
+      s+=gallery(8)+`<ellipse cx="50" cy="37" rx="12" ry="14.4" fill="${M}" stroke="${K}" stroke-width="1.6"/>`+cab(50,37,8.6,11,GL,G,GD)+`<circle cx="47" cy="41" r="1.2" fill="#1f3a26" stroke="none"/><circle cx="53" cy="35" r="1" fill="#1f3a26" stroke="none"/><circle cx="51" cy="44" r=".9" fill="#1f3a26" stroke="none"/>`;break;
+    case "syndicate": // a heavy octagonal signet: violet inlay and a gold fedora
+      s+=L("M27 52 L27 70 M73 52 L73 70",1.2,"#ffd23f")+P("M34 50 L66 50 L62 54 L38 54 Z",MD,` stroke-width="1.2"`);
+      s+=P("M38 22 L62 22 L70 30 L70 44 L62 52 L38 52 L30 44 L30 30 Z",M,` stroke-width="1.6"`)+P("M40 26 L60 26 L66 32 L66 42 L60 48 L40 48 L34 42 L34 32 Z",G,` stroke-width="1.1"`)+L("M38 22 L62 22 L70 30",1.4,ML);
+      s+=`<ellipse cx="50" cy="42" rx="12" ry="2.6" fill="#ffd23f" stroke="${K}" stroke-width="1"/>`+P("M42 41.5 Q42 30 46 30 Q50 33 54 30 Q58 30 58 41.5 Z","#ffd23f",` stroke-width="1"`)+P("M42.4 38 L57.6 38 L57.8 41 L42.2 41 Z",MD,` stroke="none"`);break;
+    case "heart": // a faceted heart in flame-shaped gold prongs
+      s+=gallery(9);for(const [x,y,a] of [[36,28,-35],[64,28,35],[50,50,180]])s+=`<path d="M${x} ${y+5} Q${x-4} ${y} ${x} ${y-6} Q${x+1} ${y-1} ${x+3} ${y-2} Q${x+4} ${y+3} ${x} ${y+5} Z" fill="#ffb21f" stroke="${K}" stroke-width="1" transform="rotate(${a} ${x} ${y})"/>`;
+      s+=P("M50 50 Q34 40 35 29 Q36 21 43 21 Q48 21 50 27 Q52 21 57 21 Q64 21 65 29 Q66 40 50 50 Z",G,` stroke-width="1.6"`)+P("M50 44 Q40 37 41 30 Q42 26 45 26 Q48 26 50 31 Q52 26 55 26 Q58 26 59 30 Q60 37 50 44 Z",GL,` stroke-width=".8" opacity=".45"`)+L("M50 27 L50 50 M35 29 L41 30 M65 29 L59 30",.8,GD)+O("M39 27 Q40 23 44 23 Q41 25 41 29 Z","#fff",.85);break;
+    case "frost": // a frosted band with ice shards round a hexagonal crystal that burns inside
+      s+=L("M27 72 L32 70 L31 75 M70 74 L67 71 L72 70",1,"#7fb4d0")+`<path d="M47 80 L53 80 M50 77 L50 83 M47.6 77.6 L52.4 82.4 M52.4 77.6 L47.6 82.4" stroke="#fff" stroke-width="1.2"/>`;
+      for(const [x,a,h] of [[36,-30,14],[64,30,14],[43,-12,10],[57,12,10]])s+=`<path d="M${x-3} 46 L${x} ${46-h} L${x+3} 46 Z" fill="#e6fbff" stroke="${K}" stroke-width="1" transform="rotate(${a} ${x} 46)"/>`;
+      s+=P("M50 20 L63 27.5 L63 42.5 L50 50 L37 42.5 L37 27.5 Z",G,` stroke-width="1.6"`)+P("M50 20 L50 35 L63 27.5 M50 35 L37 27.5 M50 35 L50 50",GD,` fill="none" stroke-width=".8"`);
+      s+=`<ellipse cx="50" cy="37" rx="5.4" ry="7" fill="#ff7a1f" stroke="none" opacity=".9"/><ellipse cx="50" cy="38.6" rx="2.6" ry="3.6" fill="#ffd23f" stroke="none"/>`+O("M41 30 L47 26.4 L45 32 Z","#fff",.85);break;
+    default:if(it.gem)s+=gallery(9)+brilliant(50,34,11,G);
+  }
+  return (defs?`<defs>${defs}</defs>`:"")+`<g transform="translate(50 54) scale(1.1) translate(-50 -54)">${s}</g>`;
+}
 /* Headgear in avatar coordinates (head about x 116-184, crown at y 40, eyes at y 94) */
 const HIDES_HAIR=new Set(["l3","h1","l1","h3","h4","h5","h10","h11","h12","h14"]);
 const HEAD_CENTER={h2:[150,53,.8],h3:[150,56,.72],h4:[150,50,.56],h5:[150,56,.62],h6:[150,24,1.1],m8:[150,66,.85],
@@ -7405,9 +7528,11 @@ function avatarSVG(eq){
   const armC=armBack;
   const fist=(x,y)=>_gI?gloveFist(x,y,_gI,u,SKIN):`<circle cx="${x}" cy="${y}" r="15" fill="${hand}"/>`+ln(`M${x-8} ${y-5} Q${x} ${y-9} ${x+8} ${y-5}`,2.2);
   let w=weaponUpright(weapon,MW,u);if(_wI&&_wI.tint)w=tintStr(w,_wI.tint);
-  const ringOn=(x,y)=>{if(!_rI)return "";const it=_rI,arc=`M${x-12} ${y+3} Q${x} ${y+11} ${x+12} ${y+3}`;
-    return (it.magic?`<circle class="mf-glow" cx="${x}" cy="${y+8}" r="11" fill="${it.gem}" filter="url(#${u}bl)"/>`:"")+ln(arc,7.5)+ln(arc,3.6,it.band||"#ffd23f")
-      +(it.gem?`<circle${it.magic?' class="mf-gem"':""} cx="${x}" cy="${y+8}" r="4.6" fill="${it.gem}" stroke="${INK}" stroke-width="1.8"/>`:"");};
+  // The ring on the right fist: a band across the knuckles and its gem (or three studs), big enough to tell rings apart.
+  const ringOn=(x,y)=>{if(!_rI)return "";const it=_rI,arc=`M${x-13} ${y+3} Q${x} ${y+12} ${x+13} ${y+3}`,b=it.band||"#ffd23f",bb=b==="#111111"?"#3a3a46":b;
+    return (it.magic?`<circle class="mf-glow" cx="${x}" cy="${y+8}" r="13" fill="${it.gem}" filter="url(#${u}bl)"/>`:"")+ln(arc,8.6)+ln(arc,4.4,bb)
+      +(it.gem?`<circle${it.magic?' class="mf-gem"':""} cx="${x}" cy="${y+8.5}" r="6" fill="${it.gem}" stroke="${INK}" stroke-width="2"/><circle cx="${x-2}" cy="${y+6.5}" r="1.8" fill="#fff" opacity=".85" stroke="none"/>`
+        :[-6,0,6].map(d=>`<circle cx="${x+d}" cy="${y+8.5-Math.abs(d)*.25}" r="2.4" fill="${bb}" stroke="${INK}" stroke-width="1.4"/>`).join(""));};
   if(POSE&&POSE.one){
     const [ax,ay]=POSE.a;
     s+=`<g transform="translate(${ax} ${ay}) rotate(${POSE.g})">${w}</g>`;
@@ -7740,12 +7865,8 @@ function lootIconSVG(id,raw){
     case "__cape":s+=capeIcon(CAPE_STYLE[id]);break;
     case "__trinket":
       s+=`<g transform="translate(50 ${it0.look==="flowers"?46:HEAD_LOOKS.has(it0.look)?62:42}) scale(${{hat:1.9,tophat:2.2,flowers:2.6,crown:2.9,propeller:2.4,horns:2.8,halo:2.6,pearls:2.4,chain:2.2}[it0.look]||2.2}) translate(-50 -40)">${HEAD_LOOKS.has(it0.look)?trinketArt(it0.look,[0,0,0,0],[50,48,1]):trinketArt(it0.look,[50,40,30,0],null)}</g>`;break;
-    case "__ring":{
-      const band=it0.band||"#ffd23f",gem=it0.gem;
-      s+=`<ellipse cx="50" cy="60" rx="27" ry="21" fill="none" stroke="${INK}" stroke-width="15"/><ellipse cx="50" cy="60" rx="27" ry="21" fill="none" stroke="${band}" stroke-width="8.5"/>`+L("M30 52 Q36 44 46 41",2.2,"rgba(255,255,255,.7)");
-      if(gem)s+=P("M38 40 L62 40 L57 47 L43 47 Z",band)+P("M39 23 L61 23 L68 32 L50 46 L32 32 Z",gem)+L("M39 23 L44 32 L50 46 M61 23 L56 32 L50 46 M32 32 L68 32",1.4)+O("M42 26 L48 26 L45 31 Z","rgba(255,255,255,.8)");
-      else s+=`<circle cx="36" cy="41" r="4" fill="${band}"/><circle cx="50" cy="38" r="4" fill="${band}"/><circle cx="64" cy="41" r="4" fill="${band}"/>`;
-      break;}
+    case "__ring":{const r=ringIcon(it0,u); // magical rings pass through the comic outline pass twice, so thin them back
+      s+=it0.magic?r.replace(/stroke-width="(\d+(?:\.\d+)?)"/g,(m,w)=>`stroke-width="${(+w/1.6).toFixed(2)}"`):r;break;}
     case "l1":s+=P("M22 66 Q20 26 50 22 Q80 26 78 66 Z",BONE)+O("M22 66 Q20 26 50 22 Q80 26 78 66 Z",HA)+P("M12 62 L88 62 Q91 70 84 73 L16 73 Q9 70 12 62 Z",INK)+`<path d="M50 24 L50 62" fill="none" stroke="${BONE}" stroke-width="1.8" stroke-dasharray="3 3"/>`;break;
     case "l2":s+=P("M34 18 Q20 50 14 88 L86 88 Q80 50 66 18 Z",INK)+L("M28 44 Q22 66 20 84 M72 44 Q78 66 80 84 M50 30 L50 86",1.6,BONE)+P("M30 18 Q50 30 70 18",INK)+`<circle cx="36" cy="22" r="4" fill="${BONE}"/><circle cx="64" cy="22" r="4" fill="${BONE}"/>`;break;
     case "l3":s+=P("M30 50 Q10 44 8 16 Q18 32 32 38 Z",BONE)+P("M70 50 Q90 44 92 16 Q82 32 68 38 Z",BONE)+P("M26 70 Q26 30 50 28 Q74 30 74 70 Z",BONE)+O("M26 70 Q26 30 50 28 Q36 38 36 70 Z",HA)+P("M23 62 L77 62 L77 72 L23 72 Z",BONE)+P("M46 70 L54 70 L53 90 L47 90 Z",BONE)+`<circle cx="31" cy="67" r="1.8" fill="${INK}" stroke="none"/><circle cx="69" cy="67" r="1.8" fill="${INK}" stroke="none"/>`;break;
