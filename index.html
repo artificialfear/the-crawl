@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=8aa4bb43f9"></script>
-<script>window.CRAWL_BUILD="8aa4bb43f9";</script>
+<script src="firebase-config.js?v=896724ea22"></script>
+<script>window.CRAWL_BUILD="896724ea22";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3725,7 +3725,7 @@ function renderQt(){
       else act=`<span class="qt-on">Installed</span>`;
       let extra="";
       if(own&&u.k==="train"){const tr=q.train||{};extra=`<div class="qt-stats">${Object.keys(STATS).map(k=>`<button type="button" class="chipbtn${tr.stat===k?" on":""}" data-qttrain="${k}">${STATS[k].n}</button>`).join("")}</div>`;}
-      if(own&&u.k==="craft"){extra=`<div class="qt-stats"><button type="button" class="btn sm gold" data-qtbench>Open the workbench</button></div><div class="muted" style="font-size:12px">Craft · Masterwork · Salvage · Fuse. Crafting level ${craftLevel()} · ${matTxt({scrap:matN("scrap"),ess:matN("ess"),star:matN("star")})||"no materials yet"}</div>`;}
+      if(own&&u.k==="craft"){extra=`<div class="qt-stats"><button type="button" class="btn sm gold" data-qtbench>Open the workbench</button></div>`;}
       if(own&&u.k==="screen"){const rq=(player.rvq||[]);const eps=(player.episodes||[]).slice(0,4);
         extra=`<div class="muted" style="font-size:12px">${rq.length?"Rematches coming: "+rq.map(x=>`${esc(x.n)}${x.psy?" ☠":""} (${fmtDue(x.due)})`).join(", "):"No rivals are planning a rematch."}</div>${eps.length?`<div class="qt-stats">${eps.map(e=>`<button type="button" class="chipbtn" data-qtep="${esc(e.id)}">▶ Ep. ${e.no}</button>`).join("")}</div>`:""}`;}
       return `<div class="qt-row${own?" own":""}"><div><b>${u.n}</b><div class="muted">${u.d}</div>${extra}</div>${act}</div>`;};
