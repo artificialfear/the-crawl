@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2e277bebc7"></script>
-<script>window.CRAWL_BUILD="2e277bebc7";</script>
+<script src="firebase-config.js?v=b9acce0b7d"></script>
+<script>window.CRAWL_BUILD="b9acce0b7d";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1007,6 +1007,8 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .pt-mav{width:46px;height:60px;border-radius:6px;overflow:hidden;background:#000;border:2px solid #000;cursor:pointer}.pt-mav svg{width:100%;height:100%;display:block}
 .pt-minfo{min-width:0}.pt-minfo>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pt-mrow .pt-cbtns{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;margin:0}
 @media (max-width:420px){.pt-mrow{grid-template-columns:46px 1fr}.pt-mrow .pt-cbtns{grid-column:2;justify-content:flex-start}}
+.lairbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:8px 0;padding:8px 10px;border:2px solid #e8283c;border-radius:10px;background:rgba(232,40,60,.08);font-size:13px}
+.lairchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .pt-foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--line-2)}.pt-foot .pt-head{margin-bottom:6px}
 .pt-codebar{display:flex;align-items:center;gap:10px;flex-basis:100%;flex-wrap:wrap}
 .pt-code{font-family:var(--mono,monospace);font-weight:700;letter-spacing:2px;background:var(--panel-2);border:1px dashed var(--gold);color:var(--gold);border-radius:6px;padding:3px 8px}
@@ -1555,7 +1557,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Accuracy bonus</b>: +15% when the time you enter lands within 20% under or 25% over your estimate. Tapping Complete claims at your estimate: quick, but no bonus and it doesn't count toward your accuracy history. For the bonus, use ⋯ → Complete with time taken and enter the real minutes.</div>
           <div><b>Streak</b>: +5% for each consecutive day you complete a quest, up to +25%.</div>
           <div><b>Damage</b>: every morning each overdue quest hits you for 2× its threat (Trash mob 4 up to Raid boss 24 HP), growing 25% for each extra day overdue (up to 2.5×). Armor and other damage cuts count fully up to 30%, then at half value, capped at 60%. Hit 0 HP and you're knocked out: you drop a fifth of your gold and lose your streak.</div>
-          <div><b>Floors</b>: each week is a new floor with a ladder of six bosses: Neighborhood, Borough, City, Province, Country and Floor. Every XP you earn hits the boss in front of you; kill it and the next one steps up, with extra damage carrying over. Drops: Bronze, Bronze, Silver, Silver, Gold, Legendary. Climb as high as you can before the stairwell closes Sunday night. Overdue quests wound you and heal the current boss. At 0 HP you're knocked out: streak lost, a fifth of your gold dropped.</div>
+          <div><b>Floors</b>: each week is a new floor, explored one room per finished quest on the Floor map. From the week of Oct 12, each floor hides 3 to 6 bosses (Neighborhood, Borough, City, Province, Country, plus the Floor boss at the stairwell) in lairs off the corridor. Small ones tend to be near the entrance, but anything can turn up anywhere, and nobody tells you how many there are. Find a lair and choose: fight now, or mark it and come back later. While you're not in a fight, each quest's damage is stored as ⚡ Charge, and walking into a lair unleashes it all at once. Once you're in a fight, every quest hits that boss until it falls or you retreat. Some floors have a boss that roams instead of keeping a lair, and it finds you. Bosses are optional: they hold the loot (Bronze, Bronze, Silver, Silver, Gold, Legendary), and leaving them costs nothing. Overdue quests wound you, and heal the boss you're fighting. At 0 HP you're knocked out: streak lost, a fifth of your gold dropped.</div>
           <div><b>Stats</b> level up from the quests you assign them. Each level above 1 adds: Strength +2% boss damage (max 30%), Intelligence +1% XP (max 15%), Constitution +5 max HP (max 75), Dexterity a 2% wider accuracy window on each side (max 20%), Charisma +2% gold and more viewers (max 30%).</div>
           <div><b>Loot boxes</b> come from achievements, level-ups (Bronze, or Silver every fifth level), bosses and the shop. Contents are random: gold, potions, or gear from Common to Legendary. Duplicates turn into gold.</div>
           <div><b>Gear</b>: weapons, helmets and capes can raise XP; gloves add boss damage; boots add max HP and faster movement speed (a chance each quest moves you an extra room on the floor map and raid floor); body armor reduces overdue damage. Your best item in each slot counts, whatever your crawler wears. Rings each have their own perk, and only the ring you wear counts. Pet trinkets boost your pet's own passive while it wears one. Unique items are very rare, glow, and carry an extra effect.</div>
@@ -1563,14 +1565,14 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Personal Quarters</b>: a private room through the portal in the Safe Room, 1,500 gold (or a Deed Coupon from a Gold or Celestial box, or the weekly #1 prize). Upgrades: Bed (heal 10% max HP each morning), Kitchen (cook once a day for +5% XP until midnight), Bath (pet never sulks, +15% bond), Training Room (+10% XP on one stat, switch weekly), Crafting Studio (a workbench to salvage, craft, masterwork and fuse gear; see Crafting below), Quest Screen (+10% viewers, rematch warnings, episode replays) and Trophy Wall. Tick crewmates onto your guest list and they can visit and cook in your kitchen. <b>Communal Hall</b>: crewmates with quarters can each tap Conjoin to share a hall. Upgrades you own work at full strength; ones only a hallmate owns work for you at half strength (a shared kitchen feeds you +2.5% XP daily with no cooking, a shared studio lets you use the workbench at +50% material cost). On days 2+ hallmates finish a quest, everyone in the hall gets +5% XP. With 2 or more Crafting Studios in the hall (twin workshops), everyone's crafting materials cost 15% less.</div>
           <div><b>Loot boxes</b> only open somewhere safe: the Safe Room tab, your quarters or the Communal Hall. Carrying unopened boxes doubles your odds of a rival crawler jumping you, and if one knocks you out, it grabs an unopened box first. Beat it in the rematch to take the box back.</div>
           <div><b>Crafting</b> (needs a Crafting Studio in your quarters, or a hallmate's at half strength): salvage gear you aren't wearing into ⚙ Scrap, ✨ Essence and 💠 Starshards (mobs, chests, rivals, bosses and boxes drop them too); craft a chosen slot at Magic, Rare, Legendary or top-tier Legendary ✦; masterwork your gear up to ★★★ (+20% to its bonus per star). Crafting levels unlock Rare (level 2), Legendary (4) and Legendary ✦ (6) recipes and cut gold costs 5% a level. Clockwork Golems and Chore Druids gain crafting XP 50% faster. Unique gear can't be crafted, salvaged or fused.</div>
-          <div><b>Grind time</b>: once all six bosses on a floor are down, the floor stays dangerous until the stairwell opens. Mobs jump you on about 40% of quests (a third of them packs) and pay +50% XP, and rival crawlers turn up twice as often (up to 5 a floor).</div>
+          <div><b>Grind time</b>: once every boss on a floor is down, the floor stays dangerous until the stairwell opens. Mobs jump you on about 40% of quests (a third of them packs) and pay +50% XP, and rival crawlers turn up twice as often (up to 5 a floor).</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
           <div><b>Pets</b>: pick one of seven starters; three more hatch from Mystery Eggs (8% of Gold Boxes, 20% of Legendary Boxes). Your active pet gives a passive bonus that grows with bond level (1–10) plus a special ability. Every quest you finish builds bond, faster with Charisma. Go three days without finishing a quest and your pet sulks: its bonuses pause until you finish one.</div>
           <div><b>Recap episodes</b>: every boss kill gets a short recap and every floor gets a full finale, whether you clear it or the stairwell closes on you. They wait for you in the banner above the boss and the Episode guide, which keeps the last 10.</div>
           <div><b>Consumables</b>: Potions of Focus (double XP on your next quest), Scrolls of Extension (push a due date back 2 days) and Smoke Bombs (skip one occurrence of a repeating quest, chain intact). They drop from boxes and the shop sells them. Scrolls and bombs are used from a quest's ⋯ menu.</div>
-          <div><b>Escaping bosses</b>: if the stairwell closes with bosses still standing, you lose 5% of your gold per boss left (up to 30%) and 10% of your viewers, and you start the next floor as a Straggler (−10% XP for its first two days). Your first floor is exempt.</div>
+          <div><b>Leaving bosses behind</b>: if the stairwell closes with bosses still out there, they just stay behind. No penalty, only loot you didn't get.</div>
           <div><b>Floor themes</b>: every floor (one week) has a theme with a boon and a bane, like half-price shopping that pays less gold, or hidden boss HP with extra damage. Themes never repeat back to back, and the finale episode teases the next one.</div>
           <div><b>Race &amp; class</b>: when Floor 3 opens you pick a race (shifts your stat levels and adds a quirk) and a class (a perk that rewards how you work). You're offered 3 of each, tilted toward your history, with one reroll per step. It's permanent.</div>
           <div><b>Safe room</b>: your first stop each day. Rest once for HP, take one bounty that must be finished today, and read your fan mail. Once per floor you can <b>shelter</b> for a day: the next morning's overdue damage (and boss healing) is blocked, but your quests earn no viewers that day.</div>
@@ -2342,8 +2344,8 @@ const ACH = [
   {id:"fl5",n:"Deep Diver",how:"Reach floor 5",gold:60,test:p=>(p.bossCount||0)>=5,line:"Floor 5. The air is worse down here."},
   {id:"fl10",n:"Floor Ten, Somehow",how:"Reach floor 10",box:"gold",test:p=>(p.bossCount||0)>=10,line:"Floor 10. Nobody expected this. Least of all you."},
   {id:"fl20",n:"Too Deep",how:"Reach floor 20",box:"legendary",test:p=>(p.bossCount||0)>=20,line:"Floor 20. Please send snacks."},
-  {id:"escape1",n:"Left Behind",how:"Get caught when the stairwell closes",gold:10,test:p=>C(p,"escapes")>=1,line:"The stairwell closed with bosses still standing. Everyone saw."},
-  {id:"escape5",n:"Professional Straggler",how:"Get caught on the stairs 5 times",gold:25,test:p=>C(p,"escapes")>=5,line:"Five times caught on the stairs. At this point, you live there."},
+  {id:"escape1",n:"Left Behind",how:"Leave a boss behind when the stairwell closes",gold:10,test:p=>C(p,"escapes")>=1,line:"The stairwell closed with bosses still standing. Everyone saw."},
+  {id:"escape5",n:"Professional Straggler",how:"Leave bosses behind on 5 floors",gold:25,test:p=>C(p,"escapes")>=5,line:"Five times caught on the stairs. At this point, you live there."},
   {id:"open10",n:"Unboxing Influencer",how:"Open 10 loot boxes",gold:20,test:p=>(p.opened||0)>=10,line:"Ten boxes opened. Like and subscribe."},
   {id:"open50",n:"Box Addict",how:"Open 50 loot boxes",gold:60,test:p=>(p.opened||0)>=50,line:"Fifty boxes. The rattle sound lives in your head now."},
   {id:"open200",n:"Gambling Problem (Simulated)",how:"Open 200 loot boxes",box:"gold",test:p=>(p.opened||0)>=200,line:"Two hundred boxes. This is a cartoon. Please be normal about real ones."},
@@ -2587,7 +2589,33 @@ const KILL_VIEWERS=[3000,6000,12000,20000,32000,60000];
    lair starts the fight and unleashes all the Charge at once. A boss you've found blocks the corridor until
    it falls. Damage is never wasted: overflow from a kill goes back into Charge for the next lair. */
 const HUNT_FROM="2026-10-12";
-const hunting=b=>!!(b&&b.hunt&&!b.engaged&&!b.defeated);           // current boss not found yet
+const hunting=b=>!!(b&&b.hunt&&!b.engaged&&!b.defeated);           // no boss fight on right now
+/* ---------- Lairs (hunt floors) ----------
+   A floor holds 3–6 bosses in side rooms off the corridor (the Floor boss waits at the stairwell), placed loosely by
+   size: small ones usually near the entrance, but anything can turn up anywhere, and the map never says how many.
+   Walking past a lair's doorway finds it; you choose to fight now or mark it for later. Some floors have a boss that
+   roams instead of keeping a lair, and it finds you. Bosses are optional: no penalty for leaving them. While you're not
+   in a fight, quest damage is stored as Charge, and walking into a lair unleashes it. b.cur is the lair you're fighting;
+   b.tier/name/maxHp/dealt/healed mirror it during the fight. */
+const lairMode=b=>!!(b&&b.lairs);
+const lairsLeft=b=>(b.lairs||[]).filter(l=>!l.dead);
+function lairOf(b,t){const T=TIERS[t];return {t,n:bossNameFor(b.floor,t),hp:Math.max(T.min,Math.round(b.budget*T.share/10)*10),d:0,h:0};}
+function makeLairs(b){
+  const r=Math.random(),n=r<.2?3:r<.55?4:r<.85?5:6;
+  const pool=[0,1,2,3,4];for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  b.lairs=pool.slice(0,n-1).sort((a,c)=>a-c).map(t=>lairOf(b,t)).concat(lairOf(b,5));
+  if(n>=4&&Math.random()<.34){const c=b.lairs.filter(l=>l.t<5);c[Math.floor(Math.random()*c.length)].roam=true;}
+  b.cur=null;b.engaged=false;
+}
+function lairSave(b){if(lairMode(b)&&b.cur!=null){const L=b.lairs[b.cur];if(L){L.d=b.dealt;L.h=b.healed;}}}
+function lairLoad(b,i){const L=b.lairs[i];b.cur=i;b.tier=L.t;b.name=L.n;b.maxHp=L.hp;b.dealt=L.d||0;b.healed=L.h||0;b.engaged=true;L.found=true;}
+/* Start the fight with lair i: stored Charge hits at once. Returns the kills, if any. */
+function engageLair(i){
+  const b=player.boss;if(!lairMode(b)||b.defeated)return null;const L=b.lairs[i];if(!L||L.dead)return null;
+  lairSave(b);lairLoad(b,i);const c=b.charge||0;b.charge=0;bump("ambushes");
+  pushEvent(`Floor ${b.floor}: ${L.roam?`${L.n} found you`:`walked into ${L.n}'s lair`}${c?` and unleashed ${c} Charge`:""}`);
+  return {charge:c,loot:c>0?applyDamage(c):null};
+}
 const bossLabel=(b,fallback)=>hunting(b)?(fallback||"an unseen boss"):b.name;
 function ladderBudget(hist,wk){
   let tot;
@@ -2606,9 +2634,10 @@ function ensureBoss(){
   const legacy=b&&b.tier==null?b:null; // a single boss from before the ladder existed
   if(legacy){b=null;changed=true;}
   if(b&&b.week!==wk){
-    if(!b.defeated){pushEvent(`The Floor ${b.floor} stairwell closed with ${b.name}, the ${TIERS[b.tier].n}, still standing.`,true);ui.pendingSay=["escaped",{boss:b.name}];}
+    if(!b.defeated){
+      if(lairMode(b)){const left=lairsLeft(b),fl=left.find(l=>l.t===5)||left[0];pushEvent(`The Floor ${b.floor} stairwell closed with ${left.length} boss${left.length===1?"":"es"} still out there. No shame in it.`);bump("escapes");ui.pendingSay=["escaped",{boss:fl?fl.n:b.name}];}
+      else{pushEvent(`The Floor ${b.floor} stairwell closed with ${b.name}, the ${TIERS[b.tier].n}, still standing.`,true);ui.pendingSay=["escaped",{boss:b.name}];}}
     player.weekHist=[b.total||0].concat(player.weekHist||[]).slice(0,4);
-    if(!b.defeated)applyEscape(b,wk);
     if(!b.defeated){if(loadedT)makeFull(b,false);else ui.pendingFinale=b;}
     b=null;changed=true;
   }
@@ -2619,7 +2648,7 @@ function ensureBoss(){
     if(wk>=HUNT_FROM){b.hunt=true;b.charge=0;b.engaged=false;}
     if(!player.created)player.created=Date.now();
     b.theme=legacy&&legacy.theme?legacy.theme:themeFor(floor);
-    spawnTier(b,0);player.boss=b;player.bossCount=floor;changed=true;
+    spawnTier(b,0);if(b.hunt)makeLairs(b);player.boss=b;player.bossCount=floor;changed=true;
     if(!b.hunt&&playerExists)setTimeout(bossAppear,1200); // a new floor's first boss steps out (hunt floors hide theirs on the map)
   }
   return changed;
@@ -2654,6 +2683,7 @@ function dealDamage(xp){
 /* Raw damage into the boss you're fighting (a quest's hit, or Charge unleashed in an ambush). */
 function applyDamage(dmg){
   const b=player.boss;if(!b||b.defeated||dmg<=0)return null;
+  if(lairMode(b)&&b.cur==null)return null;
   const start=Math.max(0,(b.total||0)-dmg);let used=0;
   const kills=[];
   while(dmg>0&&!b.defeated){
@@ -2666,10 +2696,15 @@ function applyDamage(dmg){
     kills.push({tier:b.tier,name:b.name,box,at,totalAt});bump("bossKills");
     {const md=[b.tier>=3?matDrop("ess",1+Math.floor(Math.random()*2)):"",b.tier>=5&&Math.random()<.25?matDrop("star",1):""].filter(Boolean);if(md.length){pushEvent(`${b.name} dropped ${md.join(" and ")}`);setTimeout(()=>toast(`<b>Materials</b> ${esc(b.name)} dropped ${md.join(" and ")}.`),2600);}}
     try{const md=mapDropFor(b.tier);if(Math.random()<md.chance){const mm=ensureMap();if(mm){revealMap(mm,md);bump("maps");ui.mapDrop=md;pushEvent(`Floor ${b.floor}: ${b.name} dropped a ${md.n}`);}}}catch(e){console.error("mapdrop",e);}
-    if(b.tier>=TIERS.length-1){bump("cleared");if(b.week&&daysBetween(b.week,today())>=6)bump("clutch");}
+    const clears=lairMode(b)?lairsLeft(b).length<=1:b.tier>=TIERS.length-1;
+    if(clears){bump("cleared");if(b.week&&daysBetween(b.week,today())>=6)bump("clutch");}
     b.kills=(b.kills||[]).concat({tier:b.tier,name:b.name,at,totalAt});
     player.viewers=(player.viewers||0)+KILL_VIEWERS[b.tier];
     pushEvent(`Floor ${b.floor}: defeated ${b.name}, the ${t.n}, and won a ${BOXES[t.box].n}`);
+    if(lairMode(b)){const L=b.lairs[b.cur];L.dead=true;L.d=L.hp;L.h=0;b.cur=null;b.engaged=false;b.charge=(b.charge||0)+dmg;dmg=0;
+      if(clears){b.defeated=true;b.defeatedOn=today();
+        if(Math.random()<.10){giveBox("celestial",`The stars watched you clear Floor ${b.floor}`);pushEvent(`Floor ${b.floor}: a Celestial Box fell from the ceiling`);ui.celestialNote=b.floor;}}
+      break;}
     if(b.tier>=TIERS.length-1){b.defeated=true;b.defeatedOn=today();b.engaged=false;
       if(Math.random()<.10){giveBox("celestial",`The stars watched you clear Floor ${b.floor}`);pushEvent(`Floor ${b.floor}: a Celestial Box fell from the ceiling`);ui.celestialNote=b.floor;}}
     else{spawnTier(b,b.tier+1);
@@ -2727,7 +2762,7 @@ function lootToast(l){
       <div class="vportrait bossart slain fresh-kill">${bossSVG(bossName,true,{tier:last.tier})}<div class="vstamp" aria-hidden="true">Slain</div></div>
       <div class="vname">${esc(bossName)}</div>
       ${ui.mapDrop?`<div class="vmap"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M4 6 L20 2 L38 8 L56 4 L56 34 L38 38 L20 32 L4 36 Z" fill="#ead9b0" stroke="#2a1c10" stroke-width="2" stroke-linejoin="round"/><path d="M20 2 L20 32 M38 8 L38 38" stroke="#c9b48a" stroke-width="1.4"/><path d="M10 26 Q18 14 28 20 T48 14" fill="none" stroke="#e8283c" stroke-width="2" stroke-dasharray="3 2"/><path d="M45 11 l4 4 m0 -4 l-4 4" stroke="#2a1c10" stroke-width="2"/></svg><div><b>${esc(ui.mapDrop.n)}</b><span>It ${esc(ui.mapDrop.d)}. Check the Floor map.</span></div></div>`:""}
-      <div class="vloot"><div class="vico">${boxIconSVG(last.box.tier)}</div><div class="vtxt"><span class="label">You won</span><b>${esc(boxText)}</b><span>${nb&&!nb.defeated?(hunting(nb)?`The ${esc(TIERS[nb.tier].n)} waits deeper in the floor`:`Next up: ${esc(TIERS[nb.tier].n)}`):`Floor ${floor} cleared`}</span></div></div>
+      <div class="vloot"><div class="vico">${boxIconSVG(last.box.tier)}</div><div class="vtxt"><span class="label">You won</span><b>${esc(boxText)}</b><span>${nb&&!nb.defeated?(lairMode(nb)?"More bosses may be lurking on this floor":hunting(nb)?`The ${esc(TIERS[nb.tier].n)} waits deeper in the floor`:`Next up: ${esc(TIERS[nb.tier].n)}`):`Floor ${floor} cleared`}</span></div></div>
       ${ep?`<div class="vrecap"><span class="label">Since the last kill</span><span>${ep.count} quest${ep.count===1?"":"s"}${ep.biggest?` · biggest hit <b>${esc(ep.biggest.t)}</b> (−${ep.biggest.xp})`:""}</span><span class="muted">Episode ${ep.no} is ready to watch in the banner above the boss.</span></div>`:""}
       <button type="button" class="btn gold vgo" id="vGo">Collect loot</button>
       <div class="vskip">Take your time. The loot will wait.</div>
@@ -4016,21 +4051,29 @@ function buildMap(b){
   for(let i=kinds.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[kinds[i],kinds[j]]=[kinds[j],kinds[i]];}
   if(kinds[0]==="door"){const j=kinds.indexOf("empty");[kinds[0],kinds[j]]=[kinds[j],kinds[0]];}
   const rooms=path.map(([x,y],i)=>({x,y,t:i===0?"entrance":i===LEN-1?"stairs":kinds[(i-1)%kinds.length]}));
-  if(b.hunt){
+  if(b.hunt&&!b.lairs){
     // Five lairs in ladder order, one in each fifth of the corridor (never the entrance or the stairwell); the Floor boss guards the stairs.
     const inner=LEN-3;let prev=1; // rooms 2..LEN-2: the first step out of the entrance is never a lair
     for(let k=0;k<5;k++){const lo=Math.max(prev+1,2+Math.floor(inner*k/5)),hi=Math.max(lo,Math.min(LEN-2-(4-k),1+Math.floor(inner*(k+1)/5)));
       const i=lo+Math.floor(r()*(hi-lo+1));rooms[i].t="boss";rooms[i].boss=k;prev=i;}
     rooms[LEN-1].boss=5;
   }
-  const used=new Set(path.map(([x,y])=>x+","+y)),secrets=[];
+  const used=new Set(path.map(([x,y])=>x+","+y)),secrets=[],lairCells=[];
+  if(b.lairs){ // lairs open off side rooms, loosely by size (see makeLairs)
+    const free=i=>[[1,0],[-1,0],[0,-1],[0,1]].map(([dx,dy])=>[rooms[i].x+dx,rooms[i].y+dy]).filter(([a,c])=>a>=0&&c>=0&&a<MAP_W&&c<MAP_H&&!used.has(a+","+c));
+    b.lairs.forEach((L,li)=>{if(L.t===5||L.roam)return;
+      const want=Math.max(.1,Math.min(.92,(L.t+.6)/5.6+(r()-.5)*.55)),lo=2,hi=LEN-2,tgt=Math.round(lo+(hi-lo)*want);
+      for(let d=0;d<LEN;d++){let done=false;for(const i of [tgt+d,tgt-d]){if(i<lo||i>hi||lairCells.some(c=>c.link===i))continue;const f=free(i);if(!f.length)continue;
+        const [a,c]=f[Math.floor(r()*f.length)];used.add(a+","+c);lairCells.push({x:a,y:c,link:i,li});done=true;break;}if(done)break;}});
+    b.lairs.forEach((L,li)=>{if(L.t<5&&!L.roam&&!lairCells.some(c=>c.li===li))L.roam=true;}); // no room for a lair: it roams instead
+  }
   const cand=rooms.map((rm,i)=>i).filter(i=>i>=3&&i<=LEN-3);
   for(let n=0;n<40&&secrets.length<2;n++){const i=cand[Math.floor(r()*cand.length)],rm=rooms[i];
     const nb=[[1,0],[-1,0],[0,-1],[0,1]].map(([dx,dy])=>[rm.x+dx,rm.y+dy]).filter(([a,c])=>a>=0&&c>=0&&a<MAP_W&&c<MAP_H&&!used.has(a+","+c));
     if(nb.length&&!secrets.some(s=>s.link===i)){const [a,c]=nb[Math.floor(r()*nb.length)];used.add(a+","+c);secrets.push({x:a,y:c,link:i,found:false});}}
   rooms.forEach((rm,i)=>{if(rm.t==="merchant"){const pool=ITEMS.filter(it=>["common","uncommon","rare"].includes(it.rar)&&!it.base);rm.item=pool[Math.floor(r()*pool.length)].id;}});
   rooms.forEach(rm=>{if(rm.t==="chest"&&r()<.5)rm.guard=1;});
-  return {week:b.week,floor:b.floor,rooms,secrets,pos:0,lock:0,log:[],rev:[0],drops:0,len:LEN,hunt:!!b.hunt,mobs:1};
+  return {week:b.week,floor:b.floor,rooms,secrets,lairs:lairCells,pos:0,lock:0,log:[],rev:[0],drops:0,len:LEN,hunt:!!b.hunt,mobs:1};
 }
 function ensureMap(){const b=player.boss;if(!b)return null;if(!player.map||player.map.week!==b.week||player.map.floor!==b.floor){player.map=buildMap(b);}
   const m=player.map;
@@ -4073,12 +4116,16 @@ function mapStep(t,dash){
   }
   }
   const hb=player.boss;
+  if(hb&&hb.hunt&&hb.engaged&&!hb.defeated)return out; // in a fight: you stay put until it falls or you retreat
+  if(lairMode(hb)&&!hb.defeated&&hb.cur==null&&farOf(m)>=3){const ri=hb.lairs.findIndex(l=>l.roam&&!l.dead&&!l.found);
+    if(ri>=0&&Math.random()<.1){const L=hb.lairs[ri],res=engageLair(ri);if(res){ui.ambush={name:L.n,tier:L.t,charge:res.charge,roam:true};if(res.loot)ui.ambushLoot=res.loot;
+      out.push(mapLog(m,`${L.n} doesn't keep a lair. It roams, and it just found you!`));return out;}}}
   // Walking on rooms you've already explored: back toward a target, or forward again to the frontier.
   if(m.tgt!=null&&m.tgt>farOf(m))m.tgt=null;
   if(m.tgt!=null&&m.tgt===m.pos){secretDoor(m,out);return out;}             // holding position
   if(m.tgt!=null||m.pos<farOf(m)){
     const p=mapPath(m,m.pos,m.tgt!=null?m.tgt:farOf(m))||[m.pos,m.pos+(m.tgt!=null&&m.tgt<m.pos?-1:1)];
-    const from=m.pos;m.pos=p[1];if(Math.abs(m.pos-from)>1)out.push(mapLog(m,`You duck through the shortcut from room ${from+1} to room ${m.pos+1}.`));revisit(m,out);
+    const from=m.pos;m.pos=p[1];if(Math.abs(m.pos-from)>1)out.push(mapLog(m,`You duck through the shortcut from room ${from+1} to room ${m.pos+1}.`));revisit(m,out);lairCheck(m,out);
     if(m.tgt===m.pos)out.push(mapLog(m,`You're back at room ${m.pos+1}. You'll hold here until you pick somewhere else.`));
     if(m.tgt==null&&m.pos===farOf(m))out.push(mapLog(m,`Back at the frontier: room ${m.pos+1}. Onward.`));
     return out;}
@@ -4115,8 +4162,17 @@ function mapStep(t,dash){
     if(c>0){const l=applyDamage(c);if(l)ui.ambushLoot=l;}
   }
   if(rm.t==="empty"&&Math.random()<.3)out.push(mapLog(m,`Room ${m.pos+1}: ${spick(srand("e"+m.pos+m.week),["just a corridor. A rat waves.","nothing here but a suspicious puddle.","an empty room with excellent acoustics.","a hallway lined with other crawlers' abandoned to-do lists."])}`));
+  lairCheck(m,out);
   if(rm.t==="stairs"){if(!m.drops)bump("fogwar");giveBox("gold","Explored the whole floor");player.viewers=(player.viewers||0)+15000;bump("explored");out.push(mapLog(m,`You mapped the whole floor and found the stairwell! +a Gold Box and 15K viewers.`));}
   return out;
+}
+/* Arriving in a room: any lair whose door opens off it is found (the Floor boss waits at the stairwell). */
+function lairCheck(m,out){
+  const b=player.boss;if(!lairMode(b)||b.defeated)return;
+  const hits=(m.lairs||[]).filter(c=>c.link===m.pos).map(c=>c.li);if(m.pos===mapLen(m)-1){const f=b.lairs.findIndex(l=>l.t===5);if(f>=0)hits.push(f);}
+  for(const li of hits){const L=b.lairs[li];if(!L||L.dead)continue;
+    if(!L.found){L.found=true;bump("lairsFound");out.push(mapLog(m,L.t===5?`The stairwell! ${L.n}, the Floor boss, is waiting in front of it.`:`Room ${m.pos+1}: a lair! Something big is breathing behind the door: ${L.n}, the ${TIERS[L.t].n}.`));}
+    if(ui.lairFound==null)ui.lairFound=li;}
 }
 function openSecret(m,s,out){s.found=true;bump("secrets");const roll=Math.random(),tier=roll<.03?"celestial":roll<.5?"gold":"silver";giveBox(tier,"A secret room on the map");
   out.push(mapLog(m,`Secret room found! A hidden stash held a ${BOXES[tier].n}.`));}
@@ -4173,6 +4229,7 @@ function mapSVG(m){
   (m.secrets||[]).forEach(se=>{if(!se.found)return;const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y),[x,y]=c(se.x,se.y);s+=`<path d="M${a} ${b} L${x} ${y}" stroke="${K}" stroke-width="5" stroke-dasharray="4 3"/>`;});
   // Fog over every cell nobody has charted
   const known=new Set();m.rooms.forEach((rm,i)=>{if(visible(i))known.add(rm.x+","+rm.y);});(m.secrets||[]).forEach(se=>{if(se.found||se.located)known.add(se.x+","+se.y);});
+  {const b=player.boss;if(lairMode(b)&&b.week===m.week)(m.lairs||[]).forEach(lc=>{const L=b.lairs[lc.li];if(L&&(L.found||visible(lc.link)))known.add(lc.x+","+lc.y);});}
   for(let gx=0;gx<MAP_W;gx++)for(let gy=0;gy<MAP_H;gy++){if(known.has(gx+","+gy))continue;const [x,y]=c(gx,gy);s+=`<rect x="${x-S/2+1}" y="${y-S/2+1}" width="${S-2}" height="${S-2}" rx="10" fill="#3a2f2a" opacity=".82"/><path d="M${x-14} ${y+4} q6 -8 12 -2 q6 -9 14 0" fill="none" stroke="#5a4a3a" stroke-width="2" stroke-linecap="round"/>`;}
   // The walk to a target you picked, as a dotted red route
   // Shortcut passages: drawn once both rooms are on your map; usable once you've walked both
@@ -4193,8 +4250,30 @@ function mapSVG(m){
   (m.secrets||[]).forEach(se=>{if(!se.found&&!se.located)return;const [x,y]=c(se.x,se.y);
     if(se.found)s+=`<rect x="${x-19}" y="${y-19}" width="38" height="38" rx="6" fill="#fff3c4" stroke="${K}" stroke-width="2.4" stroke-dasharray="5 3"/>${mapIcon("secret",x,y)}`;
     else{const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y);if(se.link<=far)s+=`<rect class="maproom" data-maproom="${se.link}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>Walk to its door in room ${se.link+1}</title></rect>`;s+=`<g class="${se.fresh&&Date.now()-se.fresh<6000?"mapnew":""}"><path d="M${a} ${b} L${x} ${y}" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="3 4"/><rect x="${x-17}" y="${y-17}" width="34" height="34" rx="6" fill="#e2cfa2" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x-8} ${y-8} L${x+8} ${y+8} M${x+8} ${y-8} L${x-8} ${y+8}" stroke="#e8283c" stroke-width="3.4" stroke-linecap="round"/></g>`;}});
+  {const b=player.boss,LM=lairMode(b)&&b.week===m.week;
+   (m.lairs||[]).forEach(lc=>{const L=LM?b.lairs[lc.li]:null;if(!L)return;const seen=L.found||visible(lc.link);if(!seen)return;
+    const r0=m.rooms[lc.link],[a,bb]=c(r0.x,r0.y),[x,y]=c(lc.x,lc.y),fighting=b.cur===lc.li;
+    s+=`<path d="M${a} ${bb} L${x} ${y}" stroke="${K}" stroke-width="6" stroke-linecap="round"/><path d="M${a} ${bb} L${x} ${y}" stroke="#c96a5a" stroke-width="2.6" stroke-linecap="round"/>`;
+    s+=`<rect x="${x-19}" y="${y-19}" width="38" height="38" rx="6" fill="${L.found?"#f3c6c6":"#e2cfa2"}" stroke="${fighting?"#e8283c":K}" stroke-width="${fighting?4:2.4}"${L.found?"":' stroke-dasharray="5 3"'}/>`;
+    s+=L.found?`<g opacity="${L.dead?.5:1}">${mapIcon("boss",x,y)}</g>`:`<text x="${x}" y="${y+7}" text-anchor="middle" font-size="20" font-weight="800" fill="#7a3a2a" font-family="Georgia,serif">?</text>`;
+    if(L.dead)s+=`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`;
+    if(L.found&&!L.dead)s+=`<rect class="maproom" data-lair="${lc.li}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>${esc(L.n)}: tap for the fight</title></rect>`;});
+   if(LM){const f=b.lairs.find(l=>l.t===5),st=m.rooms[mapLen(m)-1];if(f&&f.found&&visible(mapLen(m)-1)){const [x,y]=c(st.x,st.y);
+     s+=f.dead?`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`:`<g transform="translate(${x+12} ${y+12}) scale(.55)">${mapIcon("boss",0,0)}</g><rect class="maproom" data-lair="${b.lairs.indexOf(f)}" x="${x+2}" y="${y+2}" width="20" height="20" fill="transparent" stroke="none"><title>${esc(f.n)}: tap for the fight</title></rect>`;}}}
   s+=`<text x="${W-P-2}" y="${H-3}" text-anchor="end" font-size="10" font-style="italic" fill="#7a6040" font-family="Georgia,serif">Floor ${m.floor}</text>`;
   return s+`</svg>`;
+}
+/* Lair buttons under the map / in the boss window: the doorway you're standing at, or the fight you're in. */
+function lairFightHTML(m){
+  const b=player.boss;if(!lairMode(b)||b.defeated||!m)return "";
+  if(b.cur!=null)return `<div class="lairbar"><span>⚔ Fighting <b>${esc(b.name)}</b>.</span><button class="btn ghost sm" type="button" data-lretreat>Retreat</button></div>`;
+  const here=b.lairs.map((L,i)=>({L,i})).filter(({L,i})=>!L.dead&&L.found&&lairDoor(m,i)===m.pos);
+  return here.map(({L,i})=>`<div class="lairbar"><span><b>${esc(L.n)}</b>'s lair is right here.${b.charge?` ⚡ ${b.charge} Charge ready.`:""}</span><button class="btn gold sm" type="button" data-lfight="${i}">Enter the lair</button></div>`).join("");
+}
+function wireLairBtns(el){
+  el.querySelectorAll("[data-lfight]").forEach(x=>x.onclick=()=>lairPrompt(+x.dataset.lfight));
+  el.querySelectorAll("[data-lretreat]").forEach(x=>x.onclick=retreatLair);
+  el.querySelectorAll("[data-lopen]").forEach(x=>x.onclick=()=>lairPrompt(+x.dataset.lopen));
 }
 function renderMap(){
   const el=$("mapBox");if(!el||!playerExists||!player.boss)return;
@@ -4211,12 +4290,14 @@ function renderMap(){
       <button class="btn gold sm" type="button" id="buyMerch" ${own||player.gold<price?"disabled":""}>${own?"Owned":price+" gold"}</button></div>`;}
   el.innerHTML=`<div class="mapwrap">${mapSVG(m)}</div>
     <div class="mapinfo"><div><b>Room ${m.pos+1} of ${mapLen(m)}</b> · ${esc(ROOM[cur.t].n)}${far>=mapLen(m)-1?" · floor fully mapped":""}</div>${bt}
-      <div class="muted">${player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated?`${esc(player.boss.name)} blocks the way. Beat it to keep exploring.`
+      ${lairFightHTML(m)}
+      <div class="muted">${player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?`You're in ${esc(player.boss.name)}'s lair. Every quest hits it until it falls, or you retreat.`:`${esc(player.boss.name)} blocks the way. Beat it to keep exploring.`)
         :m.tgt!=null||m.pos<far?"":far>=mapLen(m)-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · one is marked with a red X: walk to the room it hangs off and finish any quest there, or finish an Elite quest anywhere":""}. Maps this floor: ${m.drops||0}.</div>
       ${(m.log||[]).length?`<ul class="maplog">${m.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>${mh}
     <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["mob","pack","ambush","chest","trap","shrine","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
   const bm=$("buyMerch");if(bm)bm.onclick=buyMerchant;
-  el.querySelectorAll("[data-maproom]").forEach(r=>r.addEventListener("click",()=>mapGo(+r.dataset.maproom)));
+  el.querySelectorAll("[data-maproom],[data-lair]").forEach(r=>r.addEventListener("click",()=>{if(r.dataset.lair!=null)lairPrompt(+r.dataset.lair);else mapGo(+r.dataset.maproom);}));
+  wireLairBtns(el);
   const mf=$("mapFwd");if(mf)mf.onclick=()=>mapGo(9999);
 }
 
@@ -4433,6 +4514,37 @@ function bagHtml(){
 function stairwellEnd(b){return new Date(addDays(b.week,7)+"T00:00:00").getTime();}
 function fmtLeft(ms){ms=Math.max(0,ms);const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);return h?`${h}h ${m}m`:`${m}m`;}
 function finalDay(b){b=b||player.boss;return !!(b&&b.tier!=null&&!b.defeated&&daysBetween(b.week,today())>=6);}
+/* Fight a lair you've found: from its doorway (or wherever, for the Floor boss at the stairs you're standing at). */
+function fightLair(i){
+  const b=player.boss;if(!lairMode(b)||b.cur!=null)return;
+  const res=engageLair(i);if(!res)return;
+  store.savePlayer(player).catch(writeFailed);bossAppear();render();
+  if(res.loot)setTimeout(()=>lootToast(res.loot),400);
+  else toast(`<span class="big">Into the lair!</span> <b>${esc(b.name)}</b>, the ${esc(TIERS[b.tier].n)}.${res.charge?` Your stored Charge hits for <b>${res.charge}</b>.`:""} Every quest hits it now. You can retreat from the boss window.`,"lvl");
+}
+function retreatLair(){
+  const b=player.boss;if(!lairMode(b)||b.cur==null)return;const n=b.name;
+  lairSave(b);b.cur=null;b.engaged=false;pushEvent(`Retreated from ${n}`);
+  store.savePlayer(player).catch(writeFailed);render();toast(`You back out of the lair. <b>${esc(n)}</b> keeps its wounds. Quests store Charge again until your next fight.`);
+}
+/* Where a lair's doorway is on your map (the stairwell for the Floor boss), or -1 for a roamer. */
+function lairDoor(m,i){const b=player.boss;if(!m||!b||!b.lairs[i])return -1;if(b.lairs[i].t===5)return mapLen(m)-1;const c=(m.lairs||[]).find(x=>x.li===i);return c?c.link:-1;}
+/* The found-a-boss card: fight now, or mark it for later. */
+function lairPrompt(i){
+  if(document.querySelector(".victory")){setTimeout(()=>lairPrompt(i),800);return;}
+  const b=player.boss;if(!lairMode(b)||b.defeated)return;const L=b.lairs[i];if(!L||L.dead)return;
+  const m=ensureMap(),door=lairDoor(m,i),here=m&&m.pos===door,T=TIERS[L.t],chg=b.charge||0,left=Math.max(0,L.hp-(L.d||0)+(L.h||0)),fog=themeFx(player).fog;
+  const busy=b.cur!=null&&b.cur!==i;
+  const acts=busy?[]:here?[{label:"Fight now",gold:true,fn:()=>fightLair(i)},{label:"Later",fn:()=>{}}]
+    :door>=0?[{label:"Walk to its door",gold:true,fn:()=>{mapGo(door);toast(`Heading back to ${esc(L.n)}'s lair: room ${door+1}.`);}}]:[];
+  zoomCard({kind:"boss",title:L.n,art:`<div class="zboss bossart">${bossSVG(L.n,false,{tier:L.t})}</div>`,
+    sub:`${esc(T.n)} · Floor ${b.floor}${L.t===5?" · guards the stairwell":door>=0?` · lair off room ${door+1}`:""}${BOSS_TAG[L.n]?` · ${esc(BOSS_TAG[L.n])}`:""}`,
+    tiles:[["HP",fog?"???":`${left} / ${L.hp}`],["Your Charge",`⚡ ${chg}`],["Drops",esc(BOXES[T.box].n)],["Bosses slain",`${b.lairs.filter(l=>l.dead).length}`]],
+    body:`${busy?`<div class="rv-help">You're already fighting ${esc(b.name)}. Finish it or retreat first.</div>`
+      :here?`<div class="muted" style="font-size:13px">${chg?`Walk in now and your <b>${chg}</b> stored Charge hits all at once${!fog&&chg>=left?", enough to drop it in one blow":""}.`:"You've got no Charge stored, so it'll be a straight fight."} Or leave it marked on your map and come back with more. While you fight, you stay in the lair and every quest hits it.</div>`
+      :`<div class="muted" style="font-size:13px">It's marked on your map. Walk back to its door to start the fight.</div>`}
+      ${BOSS_TAUNT[L.n]?`<p class="zoom-sub">“${esc(BOSS_TAUNT[L.n])}”</p>`:""}`,acts});
+}
 function updateCountdowns(){document.querySelectorAll("[data-countdown]").forEach(el=>{el.textContent=fmtLeft(+el.dataset.countdown-Date.now());});}
 setInterval(updateCountdowns,30000);
 
@@ -5287,7 +5399,8 @@ function renderTicker(){
   if(playerExists)try{lines.push(...showTicker());}catch(e){}
   if(playerExists&&player.boss){
     const b=player.boss,hp=bossHp(b);
-    lines.push(b.defeated?`Floor ${b.floor}: all six bosses down. Floor ${b.floor+1} opens ${fmtDue(addDays(b.week,7))}.`
+    lines.push(lairMode(b)&&!b.defeated?(hunting(b)?`Floor ${b.floor}: ${player.name} is exploring with ${b.charge||0} Charge saved up. ${b.lairs.filter(l=>l.dead).length} boss${b.lairs.filter(l=>l.dead).length===1?"":"es"} slain so far. How many are left? Nobody's saying.`:`Floor ${b.floor}: ${player.name} is in ${b.name}'s lair. It's at ${hp} of ${b.maxHp} HP.`)
+      :b.defeated?`Floor ${b.floor}: all ${lairMode(b)?b.lairs.length:"six"} bosses down. Floor ${b.floor+1} opens ${fmtDue(addDays(b.week,7))}.`
       :hunting(b)?`Floor ${b.floor}: the ${TIERS[b.tier].n} (${b.tier+1} of 6) is hiding somewhere on the map. ${player.name} has ${b.charge||0} Charge saved up for the ambush.`
       :`Floor ${b.floor}: ${b.name}, the ${TIERS[b.tier].n} (${b.tier+1} of 6), at ${hp} of ${b.maxHp} HP. The stairwell closes ${fmtDue(addDays(b.week,6))} at midnight.`);
   }
@@ -5420,10 +5533,10 @@ function dailyTick(force){
         const h=odHit(t,daysBetween(t.due,day))*(1-cut);any=true;
         if(covered){blocked+=h;continue;}
         dmg+=h;
-        if(b&&!b.defeated&&day>=b.week)heal+=EFFORT[t.effort].dmg*BOSS_HEAL;
+        if(b&&!b.defeated&&!hunting(b)&&day>=b.week)heal+=EFFORT[t.effort].dmg*BOSS_HEAL;
       }
     }
-    if(BOSS_LASH&&any&&b&&b.tier!=null&&!b.defeated&&day>=b.week){const l=bossLash(fl)*(1-cut);if(covered)blocked+=l;else lash+=l;}
+    if(BOSS_LASH&&any&&b&&b.tier!=null&&!b.defeated&&!hunting(b)&&day>=b.week){const l=bossLash(fl)*(1-cut);if(covered)blocked+=l;else lash+=l;}
     let shield=false;try{shield=auraFx().shield;}catch(e){}
     if(MOB_BITE&&!shield)bite+=mobBite(player,fl);
   }
@@ -5560,8 +5673,9 @@ function completeQuest(id,actual,touched){
   if(ui.ambushLoot){loot={kills:((loot&&loot.kills)||[]).concat(ui.ambushLoot.kills)};ui.ambushLoot=null;}
   let mobMsgs=[];try{mobMsgs=mobFight(fx,t);}catch(e){console.error("mobs",e);}
   let rvMsgs=[];try{rvMsgs=rivalStep(fx,t);const a=rivalAssist(fx);if(a)rvMsgs.push(a);}catch(e){console.error("rival",e);}
+  if(ui.lairFound!=null){const li=ui.lairFound;ui.lairFound=null;if(!ui.ambush)setTimeout(()=>{bossAppear();lairPrompt(li);},1100);}
   if(ui.ambush){const a=ui.ambush;ui.ambush=null;
-    setTimeout(()=>{bossAppear();toast(`<span class="big">Ambush!</span> You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?` It blocks the corridor until it falls.`:""}`,"lvl");},500);
+    setTimeout(()=>{bossAppear();toast(`<span class="big">${a.roam?"It found you!":"Ambush!"}</span> ${a.roam?`<b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}, roams this floor and just jumped you.`:`You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.`}${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?" Fight it out, or retreat from the boss window.":" It blocks the corridor until it falls."):""}`,"lvl");},500);
     mapMsgs=mapMsgs.filter(x=>!/lair!|The stairwell!/.test(x));}
   player.stats[t.stat]=(player.stats[t.stat]||0)+fx;
   const after=levelInfo(player.xp).L;
@@ -7353,7 +7467,7 @@ function renderBackup(){
 function renderHeader(){
   const v=$("viewers");if(v)v.textContent=`${fmtViewers(player.viewers)} viewers`;
   const st=standings();
-  const fl=$("floorNo");if(fl)fl.textContent=playerExists&&player.boss&&player.boss.tier!=null?`Floor ${floorOf()} · ${player.boss.defeated?"cleared":TIERS[player.boss.tier].n}${st?` · Rank #${st.rank}`:""}`:"";
+  const fl=$("floorNo");if(fl)fl.textContent=playerExists&&player.boss&&player.boss.tier!=null?`Floor ${floorOf()} · ${player.boss.defeated?"cleared":hunting(player.boss)?"exploring":TIERS[player.boss.tier].n}${st?` · Rank #${st.rank}`:""}`:"";
 }
 function wirePetZoom(el){el.querySelectorAll("[data-zpet]").forEach(b=>{b.onclick=()=>zoomPet(b.dataset.zpet);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomPet(b.dataset.zpet);}};});}
 function renderPet(){
@@ -7702,12 +7816,17 @@ function renderBoss(){
   const typical=Math.max(1,Math.round(rewardFor(player,{effort:3,est:30},null).xp*(1+statFx(player).dmg)));
   const togo=Math.ceil(hp/typical);
   const fog=themeFx(player).fog&&!b.defeated,hpTxt=fog?"??? / ???":`${hp} / ${b.maxHp}`,barW=fog?100:(hp/b.maxHp*100),togoTxt=fog?"??":togo;
-  const fd=finalDay(b),ec=escapeCost(b);
-  const tbar=(fd?`<div class="finalday" role="status"><span class="fd-k">Final day</span> The stairwell closes in <b data-countdown="${stairwellEnd(b)}">${fmtLeft(stairwellEnd(b)-Date.now())}</b>. ${hunting(b)?`The ${esc(T.n)} is still hiding`:`${esc(b.name)} is still standing${fog?"":` with <b>${hp}</b> HP`}`}. ${5-b.tier} more boss${5-b.tier===1?"":"es"} after this one.${b.firstWeek?"":` If any are left at midnight you lose <b>${Math.round(ec.goldPct*100)}% of your gold</b> and 10% of your viewers, and start the next floor as a Straggler.`}</div>`:"")
+  const fd=finalDay(b),ec=escapeCost(b),LM=lairMode(b);
+  const tbar=LM?(fd?`<div class="finalday" role="status"><span class="fd-k">Final day</span> The stairwell closes in <b data-countdown="${stairwellEnd(b)}">${fmtLeft(stairwellEnd(b)-Date.now())}</b>. Any boss you haven't fought stays behind. No penalty, just loot you didn't get.</div>`:"")
+    +(straggling()?`<div class="themebar"><span class="themechip strag">Straggler</span><span class="bane">▼ −10% XP through ${esc(fmtDue(player.straggler.until))}. You got caught on the stairs.</span></div>`:""):(fd?`<div class="finalday" role="status"><span class="fd-k">Final day</span> The stairwell closes in <b data-countdown="${stairwellEnd(b)}">${fmtLeft(stairwellEnd(b)-Date.now())}</b>. ${hunting(b)?`The ${esc(T.n)} is still hiding`:`${esc(b.name)} is still standing${fog?"":` with <b>${hp}</b> HP`}`}. ${5-b.tier} more boss${5-b.tier===1?"":"es"} after this one. Bosses left standing just stay behind. No penalty.</div>`:"")
     +(straggling()?`<div class="themebar"><span class="themechip strag">Straggler</span><span class="bane">▼ −10% XP through ${esc(fmtDue(player.straggler.until))}. You got caught on the stairs.</span></div>`:"");
   const closes=daysLeft===1?"tonight":`in ${daysLeft} days`;
-  const ladder=`<ol class="ladder6" aria-label="Boss ladder, ${b.defeated?6:b.tier} of 6 defeated">${TIERS.map((t,i)=>`<li class="${b.defeated||i<b.tier?"done":i===b.tier?"now":""}" title="${t.n}${i<(b.kills||[]).length?": "+esc(b.kills[i].name):""}">${t.n.replace(" boss","")}</li>`).join("")}</ol>`;
-  const pips=`<span class="pips" aria-hidden="true">${TIERS.map((t,i)=>`<i class="${b.defeated||i<b.tier?"done":i===b.tier?"now":""}"></i>`).join("")}</span>`;
+  const slain=LM?b.lairs.filter(l=>l.dead).length:0,foundN=LM?b.lairs.filter(l=>l.found).length:0;
+  const lairList=LM?`<div class="label">Floor ${floor} bosses</div><ul class="zladder">${b.lairs.map((L,i)=>L.dead?`<li>✔ <b>${esc(L.n)}</b> <span class="muted">${esc(TIERS[L.t].n)}</span></li>`
+      :i===b.cur?`<li class="now">⚔ <b>${esc(L.n)}</b> <span class="muted">${esc(TIERS[L.t].n)}, fighting now</span></li>`
+      :L.found?`<li><button class="linkbtn" type="button" data-lopen="${i}">${esc(L.n)}</button> <span class="muted">${esc(TIERS[L.t].n)}, ${L.t===5?"at the stairwell":"lair marked"}</span></li>`:"").join("")}${b.lairs.some(l=>!l.found&&!l.dead)?`<li class="muted">· More may be hiding. Nobody tells you how many.</li>`:""}</ul>`:"";
+  const ladder=LM?lairList:`<ol class="ladder6" aria-label="Boss ladder, ${b.defeated?6:b.tier} of 6 defeated">${TIERS.map((t,i)=>`<li class="${b.defeated||i<b.tier?"done":i===b.tier?"now":""}" title="${t.n}${i<(b.kills||[]).length?": "+esc(b.kills[i].name):""}">${t.n.replace(" boss","")}</li>`).join("")}</ol>`;
+  const pips=LM?`<span>⚔ ${slain} slain · ${foundN} found</span>`:`<span class="pips" aria-hidden="true">${TIERS.map((t,i)=>`<i class="${b.defeated||i<b.tier?"done":i===b.tier?"now":""}"></i>`).join("")}</span>`;
   const toggle=open=>`<button class="linkbtn" type="button" id="bossToggle" aria-expanded="${open}">${open?"Hide details":"Details"}</button>`;
   // A cleared floor collapses by default; opening it is remembered only for that floor.
   const open=b.defeated?prefs.defeatOpen===b.week:!!prefs.bossOpen;
@@ -7715,6 +7834,16 @@ function renderBoss(){
     if(b.defeated)prefs.defeatOpen=open?null:b.week;else prefs.bossOpen=!prefs.bossOpen;
     savePrefs();renderBoss();};};
   const box=BOXES[T.box];
+  if(LM&&hunting(b)){
+    const chg=b.charge||0,m=ensureMap(),marked=b.lairs.map((L,i)=>({L,i})).filter(({L,i})=>L.found&&!L.dead&&lairDoor(m,i)!==m.pos);
+    el.innerHTML=`<div class="boss-compact hunt"><div class="bossart thumb unknown zoomable" data-zboss role="button" tabindex="0" aria-label="No boss in sight: tap for this floor's bosses">${bossSVG("",false,{crop:true,tier:0,unknown:true})}</div>
+      <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">Floor ${floor} · exploring</span><div class="bname">Nothing in sight</div></div>
+      <div class="hpwrap"><div class="bar charge" role="progressbar" aria-label="Charge stored for your next fight" aria-valuemin="0" aria-valuemax="${Math.max(chg,1)}" aria-valuenow="${chg}"><b style="width:${Math.min(100,chg/40).toFixed(1)}%"></b></div><span class="num">⚡ ${chg}</span></div></div>
+      <div class="boss-sub">⚔ ${slain} slain · ${foundN} found. Bosses hide in lairs off the corridor, and the Floor boss waits at the stairwell. Quests store <b>Charge</b> until you walk into a fight. Stairwell closes ${closes}.</div>
+      ${marked.length?`<div class="lairchips">${marked.map(({L,i})=>`<button class="btn ghost sm" type="button" data-lopen="${i}">⚔ ${esc(L.n)}</button>`).join("")}</div>`:""}
+      ${lairFightHTML(m)}</div></div>${tbar}`;
+    wireBossZoom(el);wireLairBtns(el);return;
+  }
   if(hunting(b)){
     const m=ensureMap(),li=m?m.rooms.findIndex(r=>r.boss===b.tier):-1;
     const seen=m&&li>=0&&(m.rev||[]).includes(li),ahead=seen?li-m.pos:0;
@@ -7729,22 +7858,22 @@ function renderBoss(){
   }
   if(!open){
     const sub=b.defeated?`Floor ${floor} cleared · <b>grind time</b>: mobs and rival crawlers still roam, and mobs pay +50% XP · Floor ${floor+1} (${esc(themeById(themeFor(floor+1)).n)}) opens ${fmtDue(addDays(b.week,7))}`
-      :`${pips} ${b.tier+1} of 6 · drops a <b><span class="mini-ico">${boxIconSVG(T.box)}</span>${esc(box.n)}</b> · about <b class="num">${togoTxt}</b> Elite quest${!fog&&togo===1?"":"s"} to go · stairwell closes ${closes}${b.healed?` · healed <b class="num">${b.healed}</b> by overdue quests`:""}`;
+      :`${pips} ${LM?"":`${b.tier+1} of 6 `}· drops a <b><span class="mini-ico">${boxIconSVG(T.box)}</span>${esc(box.n)}</b> · about <b class="num">${togoTxt}</b> Elite quest${!fog&&togo===1?"":"s"} to go · stairwell closes ${closes}${b.healed?` · healed <b class="num">${b.healed}</b> by overdue quests`:""}`;
     el.innerHTML=`<div class="boss-compact"><div class="bossart thumb zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="${esc(b.name)}: tap to see it up close">${bossSVG(b.name,b.defeated,{crop:true,tier:b.tier})}</div>
       <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">${b.defeated?`Floor ${floor} cleared`:`${esc(T.n)} · Floor ${floor}`}</span><div class="bname${b.defeated?" dead":""}">${esc(b.name)}</div></div>
       <div class="hpwrap"><div class="bar boss${fog?" fog":""}" role="progressbar" aria-label="Boss health${fog?" hidden by fog":""}" aria-valuemin="0" aria-valuemax="${fog?100:b.maxHp}" aria-valuenow="${fog?100:hp}"><b style="width:${barW.toFixed(1)}%"></b></div><span class="num">${hpTxt}</span></div>
-      ${toggle(false)}</div><div class="boss-sub">${sub}</div></div></div>${tbar}`;
-    wire();wireBossZoom(el);return;
+      ${toggle(false)}</div><div class="boss-sub">${sub}</div>${LM&&!b.defeated?lairFightHTML(ensureMap()):""}</div></div>${tbar}`;
+    wire();wireBossZoom(el);wireLairBtns(el);return;
   }
   let main;
   if(b.defeated){
     main=`<div class="label">Floor ${floor} · cleared</div><div class="bname dead">${esc(b.name)}</div>
       <div class="grindbar">⚔ <b>Grind time.</b> The bosses are gone, but the leftovers aren't: mobs jump you on about 40% of quests (packs too) and pay <b>+50% XP</b>, and rival crawlers come looking twice as often. Keep crawling until the stairwell opens.</div>
-      <div class="boss-facts"><span>All six bosses down. <b class="num">${b.total||0}</b> damage dealt on this floor.</span><span>Quests still count: your ranking and next floor's size go by your whole week.</span></div>
+      <div class="boss-facts"><span>${LM?`All ${b.lairs.length} bosses down.`:"All six bosses down."} <b class="num">${b.total||0}</b> damage dealt on this floor.</span><span>Quests still count: your ranking and next floor's size go by your whole week.</span></div>
       ${ladder}
       <div class="muted" style="font-size:14px">Floor ${floor+1} opens ${fmtDue(addDays(b.week,7))}: <b>${esc(themeById(themeFor(floor+1)).n)}</b>. Your boxes are in your loot boxes.</div>`;
   }else{
-    main=`<div class="label">Floor ${floor} · ${esc(T.n)} (${b.tier+1} of 6) · stairwell closes ${closes} · ${endsOn}</div>
+    main=`<div class="label">Floor ${floor} · ${esc(T.n)}${LM?"":` (${b.tier+1} of 6)`} · stairwell closes ${closes} · ${endsOn}</div>
       <div class="bname">${esc(b.name)}</div>${tag?`<div class="btag">${esc(tag)}</div>`:""}
       <div class="barrow"><div class="top"><span class="label">Health</span><span class="num">${hpTxt}</span></div>
         <div class="bar boss${fog?" fog":""}" role="progressbar" aria-label="Boss health${fog?" hidden by fog":""}" aria-valuemin="0" aria-valuemax="${fog?100:b.maxHp}" aria-valuenow="${fog?100:hp}"><b style="width:${barW.toFixed(1)}%"></b></div></div>
@@ -7753,19 +7882,19 @@ function renderBoss(){
         ${b.healed?`<span class="heal">Overdue quests healed it <b class="num">${b.healed}</b></span>`:""}
         <span>About <b class="num">${togoTxt}</b> Elite quest${!fog&&togo===1?"":"s"} to go</span>
         <span>Floor total <b class="num">${b.total||0}</b></span>
-        ${b.hunt&&b.engaged?`<span class="block">Blocking the corridor</span>`:""}
+        ${b.hunt&&b.engaged?`<span class="block">${LM?"You're in its lair":"Blocking the corridor"}</span>`:""}
       </div>
       ${ladder}
-      <div class="muted" style="font-size:13px">${b.firstWeek?"Your first floor is set to a starter level. Later floors scale to your recent weekly damage.":`Floor sized from your recent floors: ${player.weekHist.join(", ")} damage.`} Extra damage from a killing blow carries to the next boss.</div>`;
+      <div class="muted" style="font-size:13px">${b.firstWeek?"Your first floor is set to a starter level. Later floors scale to your recent weekly damage.":`Floor sized from your recent floors: ${player.weekHist.join(", ")} damage.`} ${LM?"Extra damage from a killing blow becomes Charge for your next fight.":"Extra damage from a killing blow carries to the next boss."}</div>`;
   }
   const dropRow=b.defeated?"":`<div class="droprow"><div class="loot-ico" role="img" aria-label="${esc(box.n)}">${boxIconSVG(T.box)}</div>
-    <div><div class="label">Drops</div><b>${esc(box.n)}</b><span>${b.tier<5?`Then the ${esc(TIERS[b.tier+1].n)} steps up`:"The last boss on this floor"}</span></div></div>`;
+    <div><div class="label">Drops</div><b>${esc(box.n)}</b><span>${LM?"":b.tier<5?`Then the ${esc(TIERS[b.tier+1].n)} steps up`:"The last boss on this floor"}</span></div>${LM?`<button class="btn ghost sm" type="button" data-lretreat style="margin-left:auto">Retreat</button>`:""}</div>`;
   el.innerHTML=`<div class="boss-grid">
     <div class="boss-main">${main}${dropRow}</div>
     <figure class="bossfig">${b.defeated?"":`<div class="bubble">${esc(BOSS_TAUNT[b.name]||"You'll never finish!")}</div>`}<div class="bossart zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="Portrait of ${esc(b.name)}, the ${esc(T.n)} on Floor ${floor}: tap to see it up close">${bossSVG(b.name,b.defeated,{tier:b.tier})}</div><figcaption class="boss-tag">${esc(T.n)}</figcaption></figure>
   </div>
   ${tbar}<div style="display:flex;justify-content:flex-end;margin-top:10px">${toggle(true)}</div>`;
-  wire();wireBossZoom(el);
+  wire();wireBossZoom(el);wireLairBtns(el);
 }
 function renderRaidPanel(el){
   const td=today(),wk=weekOf(td),r=raidState(wk),me=myUid(),left=Math.max(0,r.hp-r.tot),pct=left/r.hp*100;
@@ -8815,7 +8944,13 @@ function zoomBoss(){
   const b=player.boss;if(!b||b.tier==null)return;const T=TIERS[b.tier],floor=b.floor,box=BOXES[T.box],fog=themeFx(player).fog&&!b.defeated;
   const daysLeft=6-daysBetween(b.week,today())+1,closes=b.defeated?"–":daysLeft===1?"Tonight":`${daysLeft} days`;
   const kills=(b.kills||[]).map(k=>`<li>✔ <b>${esc(k.name)}</b> <span class="muted">${esc(TIERS[k.tier].n)}</span></li>`).join("");
-  const ladder=`<div class="label">Floor ${floor} ladder</div><ul class="zladder">${kills}${b.defeated?"":`<li class="now">⚔ ${hunting(b)?"???":`<b>${esc(b.name)}</b>`} <span class="muted">${esc(T.n)}, now</span></li>`}${TIERS.slice(b.defeated?6:b.tier+1).map(t=>`<li class="muted">· ${esc(t.n)}</li>`).join("")}</ul>`;
+  const LM=lairMode(b);
+  const ladder=LM?`<div class="label">Floor ${floor} bosses</div><ul class="zladder">${b.lairs.map((L,i)=>L.dead?`<li>✔ <b>${esc(L.n)}</b> <span class="muted">${esc(TIERS[L.t].n)}</span></li>`:i===b.cur?`<li class="now">⚔ <b>${esc(L.n)}</b> <span class="muted">${esc(TIERS[L.t].n)}, now</span></li>`:L.found?`<li><b>${esc(L.n)}</b> <span class="muted">${esc(TIERS[L.t].n)}, ${L.t===5?"at the stairwell":"lair marked"}</span></li>`:"").join("")}${b.lairs.some(l=>!l.found&&!l.dead)?`<li class="muted">· More may be hiding.</li>`:""}</ul>`
+    :`<div class="label">Floor ${floor} ladder</div><ul class="zladder">${kills}${b.defeated?"":`<li class="now">⚔ ${hunting(b)?"???":`<b>${esc(b.name)}</b>`} <span class="muted">${esc(T.n)}, now</span></li>`}${TIERS.slice(b.defeated?6:b.tier+1).map(t=>`<li class="muted">· ${esc(t.n)}</li>`).join("")}</ul>`;
+  if(LM&&hunting(b)){const chg=b.charge||0;
+    zoomCard({kind:"boss",title:"Nothing in sight",art:`<div class="zboss">${bossSVG("",false,{tier:0,unknown:true})}</div>`,sub:`Floor ${floor} · bosses hide in lairs off the corridor`,
+      tiles:[["Charge stored",`⚡ ${chg}`],["Slain",b.lairs.filter(l=>l.dead).length],["Found",b.lairs.filter(l=>l.found).length],["Stairwell",closes]],
+      body:`<div class="muted" style="font-size:13px">Every quest moves you a room deeper and stores its damage as Charge. Find a lair and choose: fight now, or mark it and come back. Bosses are optional, but they hold the best loot.</div>${ladder}`});return;}
   if(hunting(b)){const chg=b.charge||0;
     zoomCard({kind:"boss",title:`The ${T.n}`,art:`<div class="zboss">${bossSVG("",false,{tier:b.tier,unknown:true})}</div>`,sub:`Floor ${floor} · ${b.tier+1} of 6 · hiding somewhere on your map`,
       tiles:[["Charge stored",`⚡ ${chg}`],["Its HP",fog?"???":b.maxHp],["Drops",esc(box.n)],["Stairwell",closes]],
@@ -8823,9 +8958,9 @@ function zoomBoss(){
   const hp=bossHp(b),typical=Math.max(1,Math.round(rewardFor(player,{effort:3,est:30},null).xp*(1+statFx(player).dmg))),togo=Math.ceil(hp/typical);
   zoomCard({kind:"boss",title:b.name,titleHTML:`<span class="${b.defeated?"zdead":""}">${esc(b.name)}</span>`,
     art:`<div class="zboss${b.defeated?" slain":""} bossart">${bossSVG(b.name,b.defeated,{tier:b.tier})}${b.defeated?`<div class="vstamp still" aria-hidden="true">Slain</div>`:""}</div>`,
-    sub:b.defeated?`Floor ${floor} cleared · all six bosses down`:`${esc(T.n)} · Floor ${floor} · ${b.tier+1} of 6${BOSS_TAG[b.name]?` · ${esc(BOSS_TAG[b.name])}`:""}`,
-    tiles:b.defeated?[["Floor damage",(b.total||0).toLocaleString()],["Bosses slain","6 of 6"],["Next floor",fmtDue(addDays(b.week,7))],["Theme",esc(themeById(themeFor(floor+1)).n)]]
-      :[["HP",fog?"??? / ???":`${hp} / ${b.maxHp}`],["You've dealt",b.dealt],["Elite quests to go",fog?"??":togo],["Healed by overdue",b.healed||0],["Floor total",b.total||0],["Drops",esc(box.n)],["Stairwell closes",closes],["Next up",b.tier<5?esc(TIERS[b.tier+1].n):"Stairwell"]],
+    sub:b.defeated?`Floor ${floor} cleared · all ${LM?b.lairs.length:"six"} bosses down`:`${esc(T.n)} · Floor ${floor}${LM?"":` · ${b.tier+1} of 6`}${BOSS_TAG[b.name]?` · ${esc(BOSS_TAG[b.name])}`:""}`,
+    tiles:b.defeated?[["Floor damage",(b.total||0).toLocaleString()],["Bosses slain",LM?`${b.lairs.length} of ${b.lairs.length}`:"6 of 6"],["Next floor",fmtDue(addDays(b.week,7))],["Theme",esc(themeById(themeFor(floor+1)).n)]]
+      :[["HP",fog?"??? / ???":`${hp} / ${b.maxHp}`],["You've dealt",b.dealt],["Elite quests to go",fog?"??":togo],["Healed by overdue",b.healed||0],["Floor total",b.total||0],["Drops",esc(box.n)],["Stairwell closes",closes],LM?["Bosses slain",b.lairs.filter(l=>l.dead).length]:["Next up",b.tier<5?esc(TIERS[b.tier+1].n):"Stairwell"]],
     body:`${!b.defeated?`<div class="hpwrap">${zbar(fog?1:hp/b.maxHp,"boss")}</div>`:""}${!b.defeated&&BOSS_TAUNT[b.name]?`<p class="zoom-sub">“${esc(BOSS_TAUNT[b.name])}”</p>`:""}${ladder}`});
 }
 /* The rival crawler hunting a crewmate (from their party card) */
