@@ -504,6 +504,9 @@ details summary::-webkit-details-marker{display:none}
 .victory.celestialopen{background:radial-gradient(circle at 20% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 20%,#fff 0 1px,transparent 2px),radial-gradient(circle at 40% 80%,#fff 0 1.2px,transparent 2px),radial-gradient(circle at 85% 70%,#fff 0 1px,transparent 2px),radial-gradient(circle at 10% 75%,#fff 0 1px,transparent 2px),radial-gradient(120% 90% at 50% 40%,rgba(74,44,158,.92),rgba(8,4,24,.96))}
 .victory.celestialopen .vcard{border-color:#b8a2ff;box-shadow:0 0 0 2px #000,0 0 40px rgba(150,120,255,.6)}
 .victory.celestialopen .vkicker{color:#d8ccff}
+/* Platinum Box: white-steel frame with a gunmetal inner ring, to match the crate */
+.victory.platinumopen .vcard{border-color:#e6ecf5;box-shadow:inset 0 0 0 4px var(--panel),inset 0 0 0 5px #5b6474,0 0 0 2px #000,0 0 36px rgba(225,235,255,.45),0 20px 60px #000c}
+.victory.platinumopen .vkicker{color:#eef2f8}
 .mappanel .mapwrap{max-width:420px;margin:6px auto 0}
 .mappanel .mapwrap svg{width:100%;height:auto;display:block;border-radius:10px;box-shadow:0 0 0 2px #2a1c10,0 8px 22px #0008}
 .mapme{animation:mpulse 1.4s ease-in-out infinite}
@@ -1580,7 +1583,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. From the week of Oct 12, raid damage only lands in the lair. Quests on the way store half their damage as ⚡ Charge, released in one hit when you arrive, and each crewmate in the lair with you adds 10% (up to +50%). The raid boss has 1,200 HP for each party member active that week.</div>
           <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
-          <div><b>Pets</b>: pick one of seven starters; three more hatch from Mystery Eggs (8% of Gold Boxes, 20% of Legendary Boxes). Your active pet gives a passive bonus that grows with bond level (1–10) plus a special ability. Every quest you finish builds bond, faster with Charisma. Go three days without finishing a quest and your pet sulks: its bonuses pause until you finish one.</div>
+          <div><b>Pets</b>: pick one of seven starters; three more hatch from Mystery Eggs (8% of Gold Boxes, 20% of Platinum Boxes). Your active pet gives a passive bonus that grows with bond level (1–10) plus a special ability. Every quest you finish builds bond, faster with Charisma. Go three days without finishing a quest and your pet sulks: its bonuses pause until you finish one.</div>
           <div><b>Recap episodes</b>: every boss kill gets a short recap and every floor gets a full finale, whether you clear it or the stairwell closes on you. They wait for you in the banner above the boss and the Episode guide, which keeps the last 10.</div>
           <div><b>Consumables</b>: Potions of Focus (double XP on your next quest), Scrolls of Extension (push a due date back 2 days) and Smoke Bombs (skip one occurrence of a repeating quest, chain intact). They drop from boxes and the shop sells them. Scrolls and bombs are used from a quest's ⋯ menu.</div>
           <div><b>Leaving bosses behind</b>: if the stairwell closes with bosses still out there, they just stay behind. No penalty, only loot you didn't get.</div>
@@ -1645,7 +1648,7 @@ const ITEMS = [
   {id:"r6",slot:"ring",n:"Ring of Thick Skin",                     rar:"rare",     bonus:.06, fx:{armor:.15},        band:"#8a8f9c",gem:"#7a4a26",d:"Overdue damage −15%"},
   {id:"r7",slot:"ring",n:"Loop of the Loot Goblin",                rar:"epic",     bonus:.07, fx:{gold:.12,xp:.03},  band:"#ffd23f",gem:"#c77dff",d:"+12% gold, +3% XP"},
   {id:"r8",slot:"ring",n:"Ring of Ruthless Priorities",            rar:"legendary",bonus:.08, fx:{xp:.06,dmg:.10},   band:"#111111",gem:"#ffd23f",d:"+6% XP, +10% boss damage"},
-  /* Magical items: very rare (Gold and Legendary boxes only). Drawn like their base item, plus an animated effect. */
+  /* Magical items: very rare (Gold and Platinum boxes only). Drawn like their base item, plus an animated effect. */
   {id:"m1",slot:"weapon",n:"Flamebrand Longsword, Still Lit",      rar:"magical",  bonus:.14, base:"w2", magic:"fire",   mfx:{dmg:.15},  d:"+14% XP · +15% boss damage"},
   {id:"m2",slot:"weapon",n:"Frostbite Greatsword of Cold Feet",    rar:"magical",  bonus:.16, base:"w3", magic:"frost",  mfx:{armor:.20},d:"+16% XP · overdue damage −20%"},
   {id:"m3",slot:"weapon",n:"Storm-Forged Fire Axe, Break Sky",     rar:"magical",  bonus:.14, base:"l4", magic:"storm",  mfx:{gold:.15}, d:"+14% XP · +15% gold"},
@@ -1796,7 +1799,7 @@ const BOXES = {
   bronze:   {n:"Bronze Box",    price:60,  odds:{gold:30,potion:15,cons:12,common:35,uncommon:15,rare:5},   gold:[25,60]},
   silver:   {n:"Silver Box",    price:180, odds:{gold:20,potion:10,cons:12,common:20,uncommon:30,rare:15,epic:5}, gold:[50,120]},
   gold:     {n:"Gold Box",                 odds:{gold:10,cons:10,uncommon:25,rare:35,epic:22,legendary:8,magical:2},          gold:[120,250]},
-  legendary:{n:"Legendary Box",            odds:{rare:30,epic:45,legendary:25,magical:9},                             gold:[300,300]},
+  legendary:{n:"Platinum Box",             odds:{rare:30,epic:45,legendary:25,magical:9},                             gold:[300,300]},
   /* Ultra-rare. Never sold. Always holds a Unique item you don't have yet (then Legendary, then a pile of gold) plus bonus gold. */
   celestial:{n:"Celestial Box",            odds:{magical:1},                                                         gold:[400,700]}};
 const BOX_ORDER = ["celestial","legendary","gold","silver","bronze"];
@@ -2189,7 +2192,7 @@ const ACH = [
   {id:"kill",   n:"Local Celebrity",              how:"Defeat your first boss",               box:null,        ev:"kill",
    line:"Your first boss kill. The neighborhood is safer. Marginally."},
   {id:"floor",  n:"Stairwell Secured",            how:"Climb the whole ladder and defeat a Floor boss", box:null, ev:"floorboss",
-   line:"Six bosses in one week, ending with the Floor boss. The Legendary Box is yours. The boss gets a closed-casket episode."},
+   line:"Six bosses in one week, ending with the Floor boss. The Platinum Box is yours. The boss gets a closed-casket episode."},
   {id:"sniper", n:"Knows Thyself",                how:"Land 5 on-target time estimates",      box:"silver",    test:p=>(p.onTargetCount||0)>=5,
    line:"Five accurate time estimates. You actually know how long things take. Terrifying."},
   {id:"planner",n:"Planning Is Not Doing",        how:"Add 10 quests in one day",             box:null,        test:p=>!!p.adds&&p.adds.d===today()&&p.adds.n>=10,
@@ -5084,7 +5087,7 @@ function chatLines(ep){
     big?`"${big}" was CINEMA`:"where are the highlights i was promised",
     ep.cleared===false?"the stairwell just CLOSED on them lmaooo":"LET'S GOOOO",
     ep.pet?`${ep.pet.name} carried tbh`:"get a pet, coward",
-    ep.boxes.includes("legendary")?"LEGENDARY BOX. i am screaming":nb?`${nb} box${nb===1?"":"es"} and not one legendary. pain`:"zero boxes is crazy work",
+    ep.boxes.includes("legendary")?"PLATINUM BOX. i am screaming":nb?`${nb} box${nb===1?"":"es"} and not one platinum. pain`:"zero boxes is crazy work",
     "first time watching, is it always this mid","W crawler","L crawler","respectfully, touch grass",
     ep.statTop?`${ep.statTop} main confirmed`:"stats? never heard of her",
     "the announcer is SO mean to them and i'm here for it","clip it. CLIP IT."];
@@ -5262,7 +5265,7 @@ function buyBox(tier){
   toast(`${B.n} added to your loot boxes.`,"",()=>goBoxes(),"To the Safe Room");
   checkAch();
 }
-const BOX_GLOW={bronze:"rgba(214,140,74,.6)",silver:"rgba(210,220,240,.55)",gold:"rgba(255,210,63,.65)",legendary:"rgba(255,46,110,.7)",celestial:"rgba(150,120,255,.9)"};
+const BOX_GLOW={bronze:"rgba(214,140,74,.6)",silver:"rgba(210,220,240,.55)",gold:"rgba(255,210,63,.65)",legendary:"rgba(230,240,255,.7)",celestial:"rgba(150,120,255,.9)"};
 const RAR_GLOW={common:"#f4f2f8",uncommon:"#6f9dff",rare:"#ffe14d",epic:"#ff9a3c",legendary:"#ff9a3c",magical:"#e8b84a"};
 /* ---------- Loot crates for the box-opening scene ----------
    A chunky sci-fi crate in the tier's colour: chamfered lid with a dark strap, a grey latch, glowing light
@@ -5271,7 +5274,7 @@ const CRATE={
   bronze:   {b:"#c47a3a",d:"#7e4a1f",l:"#e6a266",s:"#ffb35a",p:"#ffd08a",g:"rgba(255,170,80,.9)"},
   silver:   {b:"#b7bfcc",d:"#6f7889",l:"#e4e8ef",s:"#7fe8ff",p:"#d6f6ff",g:"rgba(200,240,255,.95)"},
   gold:     {b:"#f0bd28",d:"#a87808",l:"#ffe07a",s:"#fff6c8",p:"#fff0a0",g:"rgba(255,230,120,.95)"},
-  legendary:{b:"#d62a62",d:"#7e1237",l:"#ff7aa0",s:"#ffd23f",p:"#ffc2d4",g:"rgba(255,90,150,.95)"},
+  legendary:{b:"#eef2f8",d:"#3a414e",l:"#ffffff",s:"#c4ccff",p:"#d3dae6",g:"rgba(225,235,255,.95)"}, /* Platinum Box */
   celestial:{b:"#7a3ff0",d:"#41179e",l:"#a982ff",s:"#7fe8ff",p:"#3fd0e8",g:"rgba(160,140,255,.95)"}};
 /* A toothed cog centred on (cx,cy): outer radius r, n teeth, with a hub and spokes. */
 function cogSVG(cx,cy,r,n,fill,K,cls,hub){
@@ -5281,10 +5284,10 @@ function cogSVG(cx,cy,r,n,fill,K,cls,hub){
   const sp=[0,1,2].map(i=>{const a=i*Math.PI/3;return `M${(cx+Math.cos(a)*ri*.75).toFixed(1)} ${(cy+Math.sin(a)*ri*.75).toFixed(1)} L${(cx-Math.cos(a)*ri*.75).toFixed(1)} ${(cy-Math.sin(a)*ri*.75).toFixed(1)}`;}).join(" ");
   return `<g class="${cls}"><path d="${d}" fill="${fill}" stroke="${K}" stroke-width="2.4" stroke-linejoin="round"/><circle cx="${cx}" cy="${cy}" r="${(ri*.82).toFixed(1)}" fill="none" stroke="${K}" stroke-width="1.6" opacity=".6"/><path d="${sp}" stroke="${K}" stroke-width="2.2"/><circle cx="${cx}" cy="${cy}" r="${(r*.24).toFixed(1)}" fill="${hub}" stroke="${K}" stroke-width="2"/></g>`;
 }
-/* Legendary and Celestial crates are clockwork: cogs on the side panels, a combination wheel on the lock,
+/* Platinum and Celestial crates are clockwork: cogs on the side panels, a combination wheel on the lock,
    a little gear on the lid. In the opening scene they spin up before the lid blows. */
 function crateMech(tier,C,K){
-  const brass=tier==="celestial"?"#c9b8ff":"#ffd23f",steel=tier==="celestial"?"#7fe8ff":"#f4c6d6";
+  const brass=tier==="celestial"?"#c9b8ff":"#5b6474",steel=tier==="celestial"?"#7fe8ff":"#c9d2e0";
   return `<g class="cr-mech">${cogSVG(60,131,17,9,brass,K,"cr-cog cw",steel)}${cogSVG(140,131,17,9,brass,K,"cr-cog ccw",steel)}
     ${cogSVG(77,151,8,7,steel,K,"cr-cog ccw fast",brass)}${cogSVG(123,151,8,7,steel,K,"cr-cog cw fast",brass)}
     <g class="cr-dial"><circle cx="100" cy="121" r="11" fill="${steel}" stroke="${K}" stroke-width="2.4"/>${[0,1,2,3,4,5,6,7].map(i=>{const a=i*Math.PI/4;return `<path d="M${(100+Math.cos(a)*7).toFixed(1)} ${(121+Math.sin(a)*7).toFixed(1)} L${(100+Math.cos(a)*10).toFixed(1)} ${(121+Math.sin(a)*10).toFixed(1)}" stroke="${K}" stroke-width="1.6"/>`;}).join("")}<path d="M100 121 L100 112" stroke="#e8283c" stroke-width="2.6" stroke-linecap="round"/><circle cx="100" cy="121" r="2.6" fill="${K}"/></g></g>`;
@@ -5321,7 +5324,7 @@ function crateSVG(tier){
   <g class="cr-glow"><rect x="44" y="78" width="18" height="4" rx="1" fill="${C.s}"/><rect x="44" y="86" width="18" height="4" rx="1" fill="${C.s}"/><rect x="138" y="78" width="18" height="4" rx="1" fill="${C.s}"/><rect x="138" y="86" width="18" height="4" rx="1" fill="${C.s}"/></g>
   <path d="M52 64 L148 64" stroke="#fff" stroke-width="2" opacity=".35"/>
   ${tier==="celestial"?`<path d="M64 52 L136 52" stroke="${C.s}" stroke-width="3" opacity=".8"/>`:""}
-  ${mech?cogSVG(100,55,10,8,tier==="celestial"?"#c9b8ff":"#ffd23f",K,"cr-cog cw fast","#fff"):""}
+  ${mech?cogSVG(100,55,10,8,tier==="celestial"?"#c9b8ff":"#5b6474",K,"cr-cog cw fast","#fff"):""}
 </g>
 <circle class="cr-flash" cx="100" cy="98" r="90" fill="url(#${u}f)"/>
 </svg>`;
@@ -5336,7 +5339,7 @@ function showBoxOpen(tier,res,item,dupe,quip){
   // Duplicates: the announcer asks every time. Your "Keep duplicates" setting is applied up front and stands if you just close this.
   const dv=item&&dupe?(res.kept?dupeValue(item):res.gold):0;
   const sub=item?(dupe?`You already own one${spareN(item.id)-(res.kept?1:0)>0?` (plus ${spareN(item.id)-(res.kept?1:0)} spare${spareN(item.id)-(res.kept?1:0)===1?"":"s"})`:""}.`:item.d):res.kind==="gold"?"Added to your purse":res.kind==="cons"?CONSUMABLES[res.id].d+". It's in your bag.":`Restores ${POTION.heal} HP each`;
-  const ov=document.createElement("div");ov.className="victory"+(tier==="celestial"?" celestialopen":"");
+  const ov=document.createElement("div");ov.className="victory"+(tier==="celestial"?" celestialopen":tier==="legendary"?" platinumopen":"");
   ov.innerHTML=`<div class="vcard" role="status" aria-live="assertive">
       <div class="label vkicker">Opening a ${esc(BOXES[tier].n)}</div>
       <div class="cratestage${calm?" open":""}${tier==="legendary"||tier==="celestial"?" mech":""}" style="--glow:${BOX_GLOW[tier]};--beam:${(CRATE[tier]||CRATE.bronze).g}">${crateSVG(tier)}</div>
@@ -7593,7 +7596,7 @@ function renderPet(){
   const el=$("pet");const keys=Object.keys(player.pets||{});
   if(!playerExists&&!keys.length){el.innerHTML=`<div class="muted" style="font-size:14px;margin-top:8px">Your pet arrives once the show starts. Add a quest to begin.</div>`;return;}
   if(!keys.length){
-    el.innerHTML=`<div class="muted" style="font-size:14px;margin:8px 0">Choose a companion. Every quest you finish builds your bond, and higher bond means bigger bonuses. Three more pets hatch from rare eggs in Gold and Legendary boxes.</div>
+    el.innerHTML=`<div class="muted" style="font-size:14px;margin:8px 0">Choose a companion. Every quest you finish builds your bond, and higher bond means bigger bonuses. Three more pets hatch from rare eggs in Gold and Platinum boxes.</div>
       <div class="petlist">${Object.keys(PETS).filter(k=>PETS[k].starter).map(k=>`<div class="petrow"><div class="petpic sm zoomable" data-zpet="${k}" role="button" tabindex="0" aria-label="${esc(PETS[k].n)} up close">${petSVG(k)}</div>
         <div class="what"><b>${esc(PETS[k].n)}</b><span>${esc(PETS[k].line)}</span><span class="pfx">${esc(PETS[k].passive(1))} at bond 1 · <b>${esc(PETS[k].ab)}</b>: ${esc(PETS[k].abd)}</span></div>
         <button class="btn gold" type="button" data-choose="${k}">Choose</button></div>`).join("")}</div>`;
@@ -8556,6 +8559,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.0.2",d:"2026-10-08",t:"Platinum Box",items:["The Legendary Box is now the Platinum Box, with a new pearl-white and gunmetal crate and a matching white-steel frame when you open it. Everything inside is the same."]},
   {v:"3.0.1",d:"2026-10-08",t:"One thing at a time",items:["Finishing a quest no longer fires everything at once. The slice lands first, then each result gets its own moment, with its sound and popup together: rewards, level ups, boss kills, map events, mobs, rivals, then quieter notes, and achievements last.",
     "Map events from one quest now share a single popup, and the announcer picks the single most important line to say instead of talking over itself."]},
   {v:"3.0.0",d:"2026-10-07",t:"Boss lairs",items:["From the week of Oct 12, bosses don't line up anymore. Each floor hides 3 to 6 of them in lairs off the corridor, and nobody tells you how many. Small ones tend to lurk near the entrance, but anything can turn up anywhere.",
