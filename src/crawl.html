@@ -1170,8 +1170,42 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .godwrath{border:1px solid var(--blood);border-radius:8px;padding:6px 9px;margin:8px 0;font-size:13px;background:rgba(255,46,110,.08)}
 .godconfirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px}
 .toast.ach .achacts{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.toast.ach .achmore{flex:1;align-self:center;font-size:12px;color:var(--muted)}
 .achinbox{position:relative;width:auto;padding:0 8px;gap:3px;display:inline-flex;align-items:center;font-size:15px}.achinbox[hidden]{display:none}
 .achinbox .num{font-size:12px;font-weight:700;color:var(--gold)}
+.histbtn .num{color:#111;background:var(--blood);border-radius:9px;padding:0 5px;line-height:16px;font-size:11px;color:#fff}
+.undobar.held .ub-time{animation-play-state:paused}
+/* Quest report */
+.repwrap{position:fixed;inset:0;z-index:28;background:rgba(8,5,14,.62);display:grid;place-items:center;padding:16px;animation:vfade .2s ease-out}
+.repcard{position:relative;width:min(460px,100%);max-height:min(80vh,680px);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--blood);border-radius:var(--r);box-shadow:inset 0 0 0 4px var(--panel),inset 0 0 0 5px var(--blood-dk),0 20px 60px #000c;padding:16px 18px 14px}
+.repx{position:absolute;top:8px;right:8px}
+.rep-kicker{color:var(--blood);text-align:center;margin-bottom:10px}
+.rep-lines{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:2px}
+.rep-line{background:var(--panel-2);border-left:3px solid var(--line-2);border-radius:6px;padding:9px 11px;font-size:15px;line-height:1.4;overflow-wrap:anywhere;animation:repin .25s ease-out}
+.rep-line.k-head{background:none;border:0;padding:0 0 6px;text-align:center;font-size:16px}
+.rep-line.k-lvl{border-left-color:var(--gold);background:linear-gradient(90deg,rgba(255,210,63,.16),var(--panel-2) 60%)}
+.rep-line.k-bad{border-left-color:var(--blood);background:linear-gradient(90deg,rgba(232,40,60,.14),var(--panel-2) 60%)}
+.rep-line.k-quest{border-left-color:var(--mana)}
+.rep-line .btn{margin-top:8px}
+.rep-line .big,.hist-item .big{display:block;font-family:var(--display);font-size:17px;color:var(--gold)}
+.rep-line .quip,.hist-item .quip{color:var(--muted);font-size:13px;font-style:italic}
+.hist-item .line{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.hist-item .rew{display:block;font-size:13px;color:var(--leaf);font-weight:600;margin-top:4px}
+.hist-item .achlist{margin:4px 0 2px;padding-left:18px;font-size:13px}
+.hist-item .achacts{display:none}
+.rep-foot{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.rep-foot .btn.gold{min-width:150px}
+@keyframes repin{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.rep-line{animation:none}}
+.histdlg{width:min(520px,100%)}
+.hist-ic{font-size:26px;flex:none}
+.hist-list{display:flex;flex-direction:column;gap:8px}
+.hist-item{background:var(--panel-2);border:1px solid var(--line-2);border-left:3px solid var(--line-2);border-radius:6px;padding:9px 11px;font-size:14px;overflow-wrap:anywhere}
+.hist-item.k-report{display:flex;flex-direction:column;gap:6px;border-left-color:var(--blood)}
+.hist-item.k-report .rep-line{animation:none;font-size:14px;padding:6px 9px}
+.hist-item.k-lvl,.hist-item.k-ach{border-left-color:var(--gold)}.hist-item.k-bad{border-left-color:var(--blood)}.hist-item.k-quest{border-left-color:var(--mana)}
+.hist-item.new .hist-meta::after{content:" · new";color:var(--blood);font-weight:700}
+.hist-meta{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
 .achsaved{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line-2);padding:10px 0}
 .achsaved b{display:block;font-size:16px}.achsaved .line{font-size:14px;margin:2px 0 4px}
 .signin{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#2a1450 0%,var(--bg) 70%)}
@@ -1449,6 +1483,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
   <h1>The <span>Crawl</span></h1>
   <div class="onair"><span class="live">Live</span><span class="viewers num" id="viewers">0 viewers</span><span class="floorno" id="floorNo"></span></div>
   <div class="sync" id="sync"><i></i><span>Opening your save…</span></div>
+  <button class="gearbtn achinbox histbtn" type="button" id="histBtn" title="Message history" aria-label="Message history">🔔</button>
   <button class="gearbtn achinbox" type="button" id="achInbox" hidden title="Achievements saved for later"></button>
   <button class="gearbtn" type="button" id="sndBtn" aria-label="Sound">🔊</button>
   <button class="gearbtn" type="button" id="gearBtn" aria-label="Settings and help" title="Settings and help">⚙</button>
@@ -1640,6 +1675,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Recap episodes</b>: every boss kill gets a short recap and every floor gets a full finale, whether you clear it or the stairwell closes on you. They wait for you in the banner above the boss and the Episode guide, which keeps the last 10.</div>
           <div><b>Consumables</b>: Potions of Focus (double XP on your next quest), Scrolls of Extension (push a due date back 2 days) and Smoke Bombs (skip one occurrence of a repeating quest, chain intact). They drop from boxes and the shop sells them. Scrolls and bombs are used from a quest's ⋯ menu.</div>
           <div><b>Belt hotbar</b>: the bar at the bottom holds consumables for one-tap use (or keys 1–6 on a keyboard). Your best belt sets how many slots you get, from 1 with no belt to 6; it counts even when you're not wearing it. Tap the belt icon on the bar to choose what goes in each slot. Scrolls and Smoke Bombs ask which quest to use them on.</div>
+          <div><b>Quest report</b>: finishing a quest opens a report that lists everything that happened, a line at a time. It stays until you press Continue (Show all fills in the rest at once). Achievements follow, one at a time. Missed something? The 🔔 in the top bar keeps a history of every popup and report.</div>
           <div><b>Leaving bosses behind</b>: if the stairwell closes with bosses still out there, they just stay behind. No penalty, only loot you didn't get.</div>
           <div><b>Floor themes</b>: every floor (one week) has a theme with a boon and a bane, like half-price shopping that pays less gold, or hidden boss HP with extra damage. Themes never repeat back to back, and the finale episode teases the next one.</div>
           <div><b>Race &amp; class</b>: when Floor 3 opens you pick a race (shifts your stat levels and adds a quirk) and a class (a perk that rewards how you work). You're offered 3 of each, tilted toward your history, with one reroll per step. It's permanent.</div>
@@ -2803,7 +2839,7 @@ function applyDamage(dmg){
     const box=giveBox(t.box,`${t.n}: ${b.name}`);
     const at=Date.now(),totalAt=start+used;
     kills.push({tier:b.tier,name:b.name,box,at,totalAt});bump("bossKills");
-    {const md=[b.tier>=3?matDrop("ess",1+Math.floor(Math.random()*2)):"",b.tier>=5&&Math.random()<.25?matDrop("star",1):""].filter(Boolean);if(md.length){pushEvent(`${b.name} dropped ${md.join(" and ")}`);setTimeout(()=>toast(`<b>Materials</b> ${esc(b.name)} dropped ${md.join(" and ")}.`),2600);}}
+    {const md=[b.tier>=3?matDrop("ess",1+Math.floor(Math.random()*2)):"",b.tier>=5&&Math.random()<.25?matDrop("star",1):""].filter(Boolean);if(md.length){pushEvent(`${b.name} dropped ${md.join(" and ")}`);setTimeout(()=>toastH(`<b>Materials</b> ${esc(b.name)} dropped ${md.join(" and ")}.`),2600);}}
     try{const md=mapDropFor(b.tier);if(Math.random()<md.chance){const mm=ensureMap();if(mm){revealMap(mm,md);bump("maps");ui.mapDrop=md;pushEvent(`Floor ${b.floor}: ${b.name} dropped a ${md.n}`);}}}catch(e){console.error("mapdrop",e);}
     const clears=lairMode(b)?lairsLeft(b).length<=1:b.tier>=TIERS.length-1;
     if(clears){bump("cleared");if(b.week&&daysBetween(b.week,today())>=6)bump("clutch");}
@@ -4741,7 +4777,7 @@ document.addEventListener("keydown",e=>{
   if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||!/^[1-6]$/.test(e.key))return;
   const t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))return;
   const hb=$("hotbar");if(!hb||hb.hidden)return;
-  if(document.querySelector(".victory,#zoomWrap,#hbDlg,#raidWrap,.signin,#lookWrap:not([hidden]),#gearWrap:not([hidden])")||ui.qt||ui.bench||ui.inspect)return;
+  if(document.querySelector(".victory,#zoomWrap,#hbDlg,#raidWrap,#repWrap,#histWrap,.signin,#lookWrap:not([hidden]),#gearWrap:not([hidden])")||ui.qt||ui.bench||ui.inspect)return;
   const i=+e.key-1;if(i>=beltRow().length)return;e.preventDefault();hbUse(i);});
 /* ---------- Consumables ---------- */
 function drinkFocus(){
@@ -4798,7 +4834,7 @@ function fightLair(i){
 function retreatLair(){
   const b=player.boss;if(!lairMode(b)||b.cur==null)return;const n=b.name;
   lairSave(b);b.cur=null;b.engaged=false;pushEvent(`Retreated from ${n}`);
-  store.savePlayer(player).catch(writeFailed);render();toast(`You back out of the lair. <b>${esc(n)}</b> keeps its wounds. Quests store Charge again until your next fight.`);
+  store.savePlayer(player).catch(writeFailed);render();toastH(`You back out of the lair. <b>${esc(n)}</b> keeps its wounds. Quests store Charge again until your next fight.`);
 }
 /* Where a lair's doorway is on your map (the stairwell for the Floor boss), or -1 for a roamer. */
 function lairDoor(m,i){const b=player.boss;if(!m||!b||!b.lairs[i])return -1;if(b.lairs[i].t===5)return mapLen(m)-1;const c=(m.lairs||[]).find(x=>x.li===i);return c?c.link:-1;}
@@ -5602,9 +5638,9 @@ function checkAch(evs){ evs=evs||[];if(!player||!player.ach)return;const got=[];
     // A flood of unlocks becomes one toast; the System is "handing these out like candy" on purpose, but nobody wants 12 popups.
     const g=got.reduce((n,a)=>n+(a.gold||0),0),bx=got.filter(a=>a.box).length;
     const spam=["The System is handing these out like candy.","Achievement spam detected. The System does not care.","Your notification tray just filed a complaint.","Congratulations. Congratulations. Congratulations."][got.length%4];
-    beat(()=>{coreSnd.ach();achToast(`<span class="big">${got.length} achievements unlocked</span><span class="line">${esc(spam)}</span><ul class="achlist">${got.slice(0,6).map(a=>`<li>${a.sec?"🔒 ":""}${esc(a.n)}</li>`).join("")}${got.length>6?`<li class="more">+${got.length-6} more on your Hero tab</li>`:""}</ul>${g||bx?`<span class="rew">+ ${[g?g+" gold":"",bx?bx+" loot box"+(bx>1?"es":""):""].filter(Boolean).join(", ")}</span>`:""}`,got.map(a=>a.id));},1500);
+    beat(()=>{achToast(`<span class="big">${got.length} achievements unlocked</span><span class="line">${esc(spam)}</span><ul class="achlist">${got.slice(0,6).map(a=>`<li>${a.sec?"🔒 ":""}${esc(a.n)}</li>`).join("")}${got.length>6?`<li class="more">+${got.length-6} more on your Hero tab</li>`:""}</ul>${g||bx?`<span class="rew">+ ${[g?g+" gold":"",bx?bx+" loot box"+(bx>1?"es":""):""].filter(Boolean).join(", ")}</span>`:""}`,got.map(a=>a.id));},1500);
     return;}
-  got.forEach(a=>beat(()=>{coreSnd.ach();achToast(`<span class="big">${a.sec?"Secret achievement":"Achievement unlocked"}</span><b>${esc(a.n)}</b><span class="line">${esc(a.line)}</span>${rew(a)}`,[a.id]);},1400));
+  got.forEach(a=>beat(()=>{achToast(`<span class="big">${a.sec?"Secret achievement":"Achievement unlocked"}</span><b>${esc(a.n)}</b><span class="line">${esc(a.line)}</span>${rew(a)}`,[a.id]);},1400));
 }
 
 function fmtViewers(n){n=Math.max(0,Math.round(n||0));return n>=1e6?(n/1e6).toFixed(n>=1e7?0:1).replace(/\.0$/,"")+"M":n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,"")+"K":String(n);}
@@ -5871,7 +5907,7 @@ function dailyTick(force){
       const lost=Math.floor(player.gold/5);
       player.gold-=lost;player.streak=0;player.hp=50;bump("kos");
       let robbed=null;try{robbed=rivalKO();}catch(e){console.error("rival ko",e);}
-      if(robbed){const it=itemOf(robbed.item);ui.robbed=robbed;setTimeout(()=>toast(`<b>${esc(robbed.n)}</b> ${robbed.box?`made off with your unopened <b>${esc(BOXES[robbed.box].n)}</b>`:it?`stole your <b>${esc(it.n)}</b>`:`took ${robbed.gold} more gold`} while you were down. They'll be back in a few days. Win the rematch to get it back.`,"bad"),1800);}
+      if(robbed){const it=itemOf(robbed.item);ui.robbed=robbed;setTimeout(()=>toastH(`<b>${esc(robbed.n)}</b> ${robbed.box?`made off with your unopened <b>${esc(BOXES[robbed.box].n)}</b>`:it?`stole your <b>${esc(it.n)}</b>`:`took ${robbed.gold} more gold`} while you were down. They'll be back in a few days. Win the rematch to get it back.`,"bad"),1800);}
       pushEvent(`Knocked out overnight: −${dmg} HP${how}, dropped ${lost} gold, streak lost`,true);
       toast(`You were knocked out overnight${how}. You dropped ${lost} gold and lost your streak.`,"bad");
       ui.pendingSay=["knocked",{}];ui.pendingAch=(ui.pendingAch||[]).concat("ko");
@@ -5919,8 +5955,8 @@ function offerUndo(title,fn){
   clearUndo();const el=document.createElement("div");el.id="undoBar";el.className="undobar";el.setAttribute("role","status");
   el.innerHTML=`<span class="ub-txt">✔ <b>${esc(String(title).slice(0,40))}</b> completed</span><button type="button" class="btn sm" id="undoBtn">Undo</button><i class="ub-time"></i>`;
   document.body.appendChild(el);
-  $("undoBtn").onclick=()=>{clearUndo();document.querySelectorAll(".victory").forEach(v=>v.remove());fn();SFX.play("tick");toast("Quest restored. Everything from that completion was taken back.");};
-  undoTimer=setTimeout(clearUndo,10000);
+  $("undoBtn").onclick=()=>{clearUndo();closeReport();document.querySelectorAll(".victory").forEach(v=>v.remove());fn();SFX.play("tick");toast("Quest restored. Everything from that completion was taken back.");};
+  if(REP.el)el.classList.add("held");else undoTimer=setTimeout(clearUndo,10000);
 }
 function completeQuest(id,actual,touched){
   const t=tasks.find(x=>x.id===id);if(!t||t.done||isResting(t))return;
@@ -6030,7 +6066,7 @@ function completeQuest(id,actual,touched){
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
   react(fx>0);
   beatHold(850); // let the slice land
-  beat(()=>{if(fg>0)coreSnd.gold();if(qt)toast(qt,"quest");if(voice)announce(voice.line);},1000);
+  beat(()=>{if(fg>0)coreSnd.gold();openReport(qt||"<b>Quest complete</b>");if(voice)announce(voice.line);},1000);
   if(usedFocus)beat(()=>toast("Potion of Focus spent: that quest earned double XP."),700);
   if(ui.kindled){ui.kindled=false;const a=activePet();if(a)beat(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),700);}
   if(after>before)beat(()=>{SFX.play("level");toast(`<span class="big">Level ${after}</span> ${esc(titleFor(after))} · HP restored · ${after-before>1?(after-before)+" loot boxes":"a loot box"} earned`,"lvl");},1400);
@@ -6042,9 +6078,9 @@ function completeQuest(id,actual,touched){
   if(lairLi!=null)beat(()=>{bossAppear();lairPrompt(lairLi);},700); // waits while the card is open
   if(mobMsgs.length)beat(()=>{if(mobSnd0&&!clip("mob-"+mobSnd0,.85))SFX.play("hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobSnd0?1500:1000);
   if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;beat(()=>{if(rvNew&&!rvSoundDone){if(!clip("crawler-appear",.9))SFX.play("hurt");}else if(w)SFX.play("kill");else if(player.rival)SFX.play("hurt");
-    toast(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500);}
+    toastH(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500);}
   goals.msgs.forEach(m=>beat(()=>toast(m,"lvl"),900));
-  if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;godMsgs.forEach(m=>pushEvent(m));beat(()=>toast(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest"),900);}
+  if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;godMsgs.forEach(m=>pushEvent(m));beat(()=>toastH(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest"),900);}
   if(raidMsgs.length)beat(()=>toast(`<b>Raid floor</b> ${raidMsgs.map(x=>esc(x)).join("<br>")}`,"quest"),900);
   if(petMsg)beat(()=>toast(petMsg),800);
   if(goblinBox)beat(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>goBoxes(),"To the Safe Room"),800);
@@ -8762,6 +8798,11 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.2.0",d:"2026-10-08",t:"Quest report",items:["Finishing a quest now opens one report card that fills in line by line: XP and gold, level ups, boss kills, map events, mobs, rivals and anything else that happened. It stays open until you press Continue, so nothing flies past. In a hurry? Show all fills in the rest at once.",
+    "Achievements wait until you close the report, then come one at a time. Got it or Later brings up the next.",
+    "New 🔔 message history in the top bar: every popup and every quest report, newest first, so you can reread anything you missed.",
+    "Other popups now stay up longer, and you can tap one to dismiss it. Undo stays available the whole time the report is open.",
+    "Fixed messages that showed raw code symbols instead of bold text, including the one when you fight off a rival crawler and when one robs you."]},
   {v:"3.1.1",d:"2026-10-08",t:"Belt on the doll",items:["On the Inventory tab, your belt now sits across the waist of the figure as a slim strap, the way you'd actually wear it. The Body slot moved up to the chest and the Feet slot down to the feet to make room."]},
   {v:"3.1.0",d:"2026-10-08",t:"Belt hotbar",items:["A hotbar now sits at the bottom of the screen. Slot healing potions, Potions of Focus, Scrolls of Extension and Smoke Bombs, then use them with one tap (or keys 1 to 6) without digging through your inventory. Scrolls and Smoke Bombs ask which quest.",
     "Your belt decides how many slots you get: 1 with your old leather belt, up to 6 with the best. Nine new belts drop from boxes and bosses, can be crafted, and two are in the shop. Like all gear, your best one counts even when you're not wearing it.",
@@ -8969,30 +9010,119 @@ function beatHold(ms){SHOWQ.hold=Math.max(SHOWQ.hold,Date.now()+ms);}
 function beatNext(){
   if(document.querySelector(".victory")||document.getElementById("zoomWrap")){setTimeout(beatNext,400);return;}
   const w=SHOWQ.hold-Date.now();if(w>0){setTimeout(beatNext,w);return;}
-  const b=SHOWQ.q.shift();if(!b){SHOWQ.busy=false;return;}
+  const b=SHOWQ.q.shift();if(!b){SHOWQ.busy=false;SHOWQ.fast=false;repSync();return;}
   try{b.fn();}catch(e){console.error("beat",e);}
-  setTimeout(beatNext,b.gap);
+  repSync();
+  setTimeout(beatNext,SHOWQ.fast?80:b.gap);
 }
-function toast(html,kind,undo,label){
+/* toast() escapes plain-text kinds; toastH() is for messages built with markup whose dynamic parts are already escaped. */
+const toastH=(html,kind,undo,label)=>toast(html,kind,undo,label,true);
+function toast(html,kind,undo,label,raw){
+  const body=raw||["lvl","ach","quest"].includes(kind)?html:esc(html);
+  // While a quest report is open, news becomes a line in it instead of a popup that flies past.
+  if(REP.el&&kind!=="ach"){repLine(body,kind,undo,label);return null;}
+  if(kind!=="ach")histAdd(kind,body);
   const el=document.createElement("div");el.className="toast "+(kind||"");
-  el.innerHTML=`<span>${["lvl","ach","quest"].includes(kind)?html:esc(html)}</span>`;
+  el.innerHTML=`<span>${body}</span>`;
   if(undo){const b=document.createElement("button");b.className="btn ghost";b.textContent=label||"Undo";b.onclick=()=>{undo();el.remove();};el.appendChild(b);}
+  // tap anywhere on a plain popup to dismiss it
+  if(kind!=="ach")el.addEventListener("click",e=>{if(!e.target.closest("button"))el.remove();});
   const box=$("toasts");box.appendChild(el);box.scrollTop=box.scrollHeight;
-  if(kind!=="ach")setTimeout(()=>el.remove(),undo?8000:5000);
+  if(kind!=="ach")setTimeout(()=>el.remove(),undo?10000:8000);
   return el;
+}
+/* ---------- Quest report ----------
+   Finishing a quest opens one card that fills in a line at a time (each line arrives with its sound, as the
+   beats play). It stays until the crawler closes it: "Show all" fast-forwards the rest, "Continue" closes.
+   Achievements wait until it closes. The undo bar stays usable while it's open, then for 10 more seconds. */
+const REP={el:null,entry:null,ach:[]};
+function openReport(head){
+  if(REP.el){repLine(head,"head");return;} // a second quest finished while the first report is still open
+  const ov=document.createElement("div");ov.className="repwrap";ov.id="repWrap";
+  ov.innerHTML=`<div class="repcard" role="dialog" aria-modal="true" aria-labelledby="repTitle">
+    <button class="btn ghost sm repx" type="button" data-repx aria-label="Close">✕</button>
+    <div class="label rep-kicker" id="repTitle">Quest complete</div>
+    <div class="rep-lines" aria-live="polite"></div>
+    <div class="rep-foot"><button class="btn gold" type="button" id="repGo">Show all</button></div></div>`;
+  document.body.appendChild(ov);REP.el=ov;
+  REP.entry=histAdd("report","",true);REP.entry.lines=[];
+  ov.querySelector("[data-repx]").onclick=()=>closeReport();
+  $("repGo").onclick=()=>{if(SHOWQ.busy&&SHOWQ.q.length)SHOWQ.fast=true;else closeReport();};
+  // hold the undo countdown while the report is up
+  if(undoTimer){clearTimeout(undoTimer);undoTimer=null;const ub=$("undoBar");if(ub)ub.classList.add("held");}
+  repLine(head,"head");repSync();
+  setTimeout(()=>{const g=$("repGo");if(g&&REP.el)g.focus();},50);
+}
+function repLine(h,kind,undo,label){
+  if(!REP.el)return;const box=REP.el.querySelector(".rep-lines");
+  const d=document.createElement("div");d.className="rep-line k-"+(kind||"note");d.innerHTML=`<div>${h}</div>`;
+  if(undo){const b=document.createElement("button");b.className="btn sm";b.type="button";b.textContent=label||"Undo";
+    b.onclick=()=>{undo();if(label&&label!=="Undo")closeReport();else b.remove();};d.appendChild(b);}
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+  if(REP.entry){REP.entry.lines.push({k:kind||"",h});histSave();}
+}
+function repSync(){const b=$("repGo");if(!b)return;const more=SHOWQ.busy&&SHOWQ.q.length>0;
+  b.textContent=more?(SHOWQ.fast?"Showing…":"Show all"):"Continue";}
+function closeReport(){
+  const ov=REP.el;if(!ov)return;REP.el=null;REP.entry=null;ov.remove();
+  const ub=$("undoBar");if(ub){ub.classList.remove("held");const t=ub.querySelector(".ub-time");if(t){t.style.animation="none";void t.offsetWidth;t.style.animation="";}clearTimeout(undoTimer);undoTimer=setTimeout(clearUndo,10000);}
+  // achievements earned during the quest, one after another
+  const q=REP.ach;REP.ach=[];q.forEach((a,i)=>setTimeout(()=>achToast(a.html,a.ids,a.snd),250+i*50));
+}
+document.addEventListener("keydown",e=>{if(!REP.el||document.querySelector(".victory,#zoomWrap"))return;
+  if(e.key==="Escape"){e.preventDefault();closeReport();}
+  else if(e.key==="Enter"&&document.activeElement===$("repGo")){e.preventDefault();$("repGo").click();}});
+/* ---------- Message history (🔔 in the header) ----------
+   Every popup and every quest report, newest first, kept on this device. */
+const HIST_KEY="crawl.hist.v1",HIST_MAX=60;
+let HIST=(()=>{try{const v=JSON.parse(localStorage.getItem(HIST_KEY)||"null");return v&&Array.isArray(v.e)?v:{e:[],seen:0};}catch(e){return {e:[],seen:0};}})();
+function histSave(){try{localStorage.setItem(HIST_KEY,JSON.stringify(HIST));}catch(e){}renderHistBtn();}
+function histAdd(k,h,keep){const e={at:Date.now(),k:k||"",h:String(h||"").slice(0,4000)};HIST.e.push(e);if(HIST.e.length>HIST_MAX)HIST.e=HIST.e.slice(-HIST_MAX);histSave();return e;}
+function renderHistBtn(){const b=$("histBtn");if(!b)return;const n=HIST.e.filter(e=>e.at>HIST.seen).length;
+  b.innerHTML=`🔔${n?`<span class="num">${n>99?"99+":n}</span>`:""}`;b.setAttribute("aria-label",n?`Message history, ${n} new`:"Message history");}
+function relTime(at){const d=Date.now()-at,m=Math.round(d/60000);if(m<1)return "just now";if(m<60)return `${m} min ago`;
+  const t=new Date(at),sameDay=t.toDateString()===new Date().toDateString();
+  return (sameDay?"":t.toLocaleDateString(undefined,{month:"short",day:"numeric"})+", ")+t.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});}
+function openHistory(){
+  const prevSeen=HIST.seen;HIST.seen=Date.now();histSave();
+  const items=HIST.e.slice().reverse().filter(e=>e.k!=="report"||(e.lines&&e.lines.length));
+  const row=e=>{const isNew=e.at>prevSeen;
+    if(e.k==="report")return `<div class="hist-item k-report${isNew?" new":""}"><div class="hist-meta">Quest report · ${esc(relTime(e.at))}</div>${e.lines.map(l=>`<div class="rep-line k-${esc(l.k||"note")}"><div>${l.h}</div></div>`).join("")}</div>`;
+    return `<div class="hist-item k-${esc(e.k||"note")}${isNew?" new":""}"><div class="hist-meta">${esc(relTime(e.at))}</div><div>${e.h}</div></div>`;};
+  const ov=document.createElement("div");ov.className="hbwrap";ov.id="histWrap";
+  ov.innerHTML=`<div class="hbdlg histdlg" role="dialog" aria-modal="true" aria-label="Message history"><div class="hbhead"><span class="hist-ic" aria-hidden="true">🔔</span><div><b>Message history</b><span>Everything that popped up, newest first. Kept on this device.</span></div><button class="btn ghost sm" type="button" data-hx aria-label="Close">✕</button></div>
+    <div class="hist-list">${items.length?items.map(row).join(""):`<div class="muted">Nothing yet. Finish a quest.</div>`}</div>
+    ${items.length?`<div class="rep-foot"><button class="btn ghost sm" type="button" data-hclear>Clear history</button></div>`:""}</div>`;
+  document.body.appendChild(ov);
+  const close=()=>{ov.remove();document.removeEventListener("keydown",onKey);const b=$("histBtn");if(b)b.focus();};
+  const onKey=e=>{if(e.key==="Escape")close();};document.addEventListener("keydown",onKey);
+  ov.addEventListener("click",e=>{if(e.target===ov||e.target.closest("[data-hx]"))close();
+    else if(e.target.closest("[data-hclear]")){HIST={e:[],seen:Date.now()};histSave();close();toast("History cleared.");}
+    else if(e.target.closest(".achacts button,.hist-item button"))e.preventDefault();});
+  const x=ov.querySelector("[data-hx]");if(x)x.focus();
 }
 /* Achievement notices stay up until the crawler deals with them: "Got it" clears one, "Later" files it in the
    trophy inbox (🏆 in the header) to read when there's time. Only three stay on screen; older ones file themselves. */
-function achToast(html,ids){
+/* One achievement card at a time: the next waits until this one is answered (Got it, or Later to file it). */
+const ACHQ=[];
+function achToast(html,ids,snd=true){
+  if(REP.el){REP.ach.push({html,ids,snd:true});return;} // shown (with its sound) after the quest report closes
+  histAdd("ach",html);
+  if(document.querySelector(".toast.ach")){ACHQ.push({html,ids,snd});achMore();return;}
+  achShow(html,ids,snd);
+}
+function achShow(html,ids,snd){
+  if(snd)coreSnd.ach();
   const el=toast(html,"ach");el.dataset.ach=(ids||[]).join(",");
   const acts=document.createElement("div");acts.className="achacts";
-  acts.innerHTML=`<button class="btn ghost sm" type="button" data-later>Later</button><button class="btn gold sm" type="button" data-gotit>Got it</button>`;
+  acts.innerHTML=`<span class="achmore" aria-live="polite"></span><button class="btn ghost sm" type="button" data-later>Later</button><button class="btn gold sm" type="button" data-gotit>Got it</button>`;
   el.appendChild(acts);
-  acts.querySelector("[data-gotit]").onclick=()=>el.remove();
-  acts.querySelector("[data-later]").onclick=()=>{fileAch(el);el.remove();};
-  const all=[...document.querySelectorAll(".toast.ach")];
-  if(all.length>3)all.slice(0,all.length-3).forEach(o=>{fileAch(o);o.remove();});
+  const next=()=>{el.remove();const n=ACHQ.shift();if(n)setTimeout(()=>achShow(n.html,n.ids,n.snd),250);};
+  acts.querySelector("[data-gotit]").onclick=next;
+  acts.querySelector("[data-later]").onclick=()=>{fileAch(el);next();};
+  achMore();const g=acts.querySelector("[data-gotit]");if(g&&!REP.el)g.focus({preventScroll:true});
 }
+function achMore(){const m=document.querySelector(".toast.ach .achmore");if(m)m.textContent=ACHQ.length?`${ACHQ.length} more waiting`:"";}
 function fileAch(el){const ids=(el.dataset.ach||"").split(",").filter(Boolean);if(!ids.length||!player)return;
   player.achLater=[...new Set((player.achLater||[]).concat(ids))].slice(-60);store.savePlayer(player).catch(writeFailed);renderAchInbox();}
 function renderAchInbox(){const b=$("achInbox");if(!b)return;const n=(player&&player.achLater||[]).length;b.hidden=!n;b.innerHTML=`🏆<span class="num">${n}</span>`;
@@ -9687,7 +9817,7 @@ async function partyEnter(code,created){
   partyPost("join",created?"started the party":"joined the party");
   ui.partyErr=null;ui.ptCode="";ui.ptName="";
   setTimeout(()=>checkAch(["partyjoin"]),600);
-  toast(created?`<b>Party started.</b> Copy the invite link and send it to your crew.`:`<b>You joined the party.</b> Your crew can see your level, floor and how many quests you clear, never what they are.`);
+  toastH(created?`<b>Party started.</b> Copy the invite link and send it to your crew.`:`<b>You joined the party.</b> Your crew can see your level, floor and how many quests you clear, never what they are.`);
 }
 async function partyCreate(){
   if(!fb||ui.partyBusy)return;ui.partyBusy=true;ui.partyErr=null;render();
@@ -10288,7 +10418,7 @@ const favorTier=f=>FAVOR_TIERS.reduce((a,[n,t],i)=>f>=n?i:a,0);
 const godsUnlocked=()=>playerExists&&floorOf()>=GOD_UNLOCK_FLOOR;
 function godState(){return player.god&&godOf(player.god.id)?player.god:null;}
 function addFavor(n,why){const g=godState();if(!g||!n)return;const before=favorTier(g.favor);g.favor=Math.max(0,Math.min(100,(g.favor||0)+n));
-  const after=favorTier(g.favor);if(after!==before){const G=godOf(g.id);setTimeout(()=>toast(after>before?`<span class="big">${esc(FAVOR_TIERS[after][1])}</span> ${esc(G.n)} has noticed you more. ${after===3?`New power: ${esc(G.power)}.`:`+${after*5}% XP on quests ${esc(G.n)} likes.`}`:`${esc(G.n)}'s favor slipped to <b>${esc(FAVOR_TIERS[after][1])}</b>.`,after>before?"lvl":"bad"),900);
+  const after=favorTier(g.favor);if(after!==before){const G=godOf(g.id);setTimeout(()=>toastH(after>before?`<span class="big">${esc(FAVOR_TIERS[after][1])}</span> ${esc(G.n)} has noticed you more. ${after===3?`New power: ${esc(G.power)}.`:`+${after*5}% XP on quests ${esc(G.n)} likes.`}`:`${esc(G.n)}'s favor slipped to <b>${esc(FAVOR_TIERS[after][1])}</b>.`,after>before?"lvl":"bad"),900);
     if(after===3)bump("chosen");}}
 const isChosen=id=>{const g=godState();return !!g&&g.id===id&&favorTier(g.favor)>=3;};
 /* XP bonus on quests your god likes; a curse cuts XP while it lasts. */
@@ -10403,7 +10533,7 @@ async function boot(){
   try{setupForm();}catch(e){console.error(e);}
   try{renderTabs();
     $("gearBtn").onclick=openGear;try{changelogCheck();renderChangelog();}catch(e){console.warn(e);}setTimeout(checkForUpdate,5000);
-    $("achInbox").onclick=openAchInbox;
+    $("achInbox").onclick=openAchInbox;$("histBtn").onclick=openHistory;renderHistBtn();
     {const tb=$("ttsBtn");if(tb)tb.onclick=()=>{prefs.tts=prefs.tts!==true;savePrefs();renderTtsBtn();const c=$("ttsOn");if(c)c.checked=prefs.tts;
       if(prefs.tts){const r=$("tickerRun");announce(ui.news&&ui.news[0]||VO_LIVE,true);}else if(tts.ok)try{speechSynthesis.cancel();}catch(e){}};}
     $("lookWrap").addEventListener("click",e=>{if(e.target.id==="lookWrap")closeLook();});

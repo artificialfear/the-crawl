@@ -32,6 +32,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 ## Systems worth knowing (search crawl.html for these)
 - Floors/bosses: `ensureBoss`, `TIERS`; from the week of Oct 12, 2026 floors use **lairs** (`makeLairs`, `engageLair`, `lairPrompt`, `retreatLair`): 3-6 bosses in side rooms, optional, Charge stored while exploring, roaming bosses.
 - Quest completion presentation is a queue: `beat(fn,gap)` / `beatHold` / `SHOWQ`. New effects after a quest should be beats, not raw timers.
+  Since v3.2.0 the first beat opens the quest report (`openReport`); while it's open, `toast()` calls become report lines (`repLine`), achievements wait in `REP.ach` and then show one at a time (`achToast`/`ACHQ`). Every toast/report/achievement also goes to the 🔔 history (`histAdd`, localStorage `crawl.hist.v1`). `toast()` escapes text for kinds other than lvl/ach/quest; use `toastH()` for markup.
 - Saves: Firestore via `remoteStore`; `_rev` guards plus a stale-device guard (no saves until the server copy loads).
   Since v3.0.3 the player doc is compare-and-set: each save carries `b` (the `_rev` it was built on) and `firestore.rules`
   rejects it unless `b` equals the server's `_rev`. A rejected save calls `onStaleSave`, which adopts the server copy
