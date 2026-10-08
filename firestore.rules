@@ -3,8 +3,17 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Each crawler's own save: only that signed-in player can read or write it.
-    match /data/users/{uid}/{rest=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    // The player doc also has a stale-save guard: an update must name (in b) the revision it was built on,
+    // and that must still be the current revision. A device holding an old copy gets rejected instead of
+    // overwriting newer progress from another device; the app then loads the server copy.
+    function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+    match /data/users/{uid}/player {
+      allow read, create, delete: if owner(uid);
+      allow update: if owner(uid) && request.resource.data.get('b', -1) == resource.data.get('_rev', 0);
+      // Quests: one doc each, no revision guard.
+      match /tasks/{taskId} {
+        allow read, write: if owner(uid);
+      }
     }
 
     function signedIn() { return request.auth != null; }

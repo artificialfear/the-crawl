@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=939ac24c7b"></script>
-<script>window.CRAWL_BUILD="939ac24c7b";</script>
+<script src="firebase-config.js?v=5adf4d4d24"></script>
+<script>window.CRAWL_BUILD="5adf4d4d24";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -2569,10 +2569,28 @@ async function remoteStore(db,uid){
      (or we're genuinely offline, or the server is unreachable for 20s), saves are held back, so an old copy can
      never be written over newer progress from another device. */
   let fresh=false;const t0=Date.now();
-  const canSave=()=>fresh||!navigator.onLine||Date.now()-t0>20000;
+  /* Server-side guard (firestore.rules): every player save names the revision it was built on (_base), and the
+     server rejects it unless that is still the current revision. So a device that wakes up holding an old copy
+     can't write over newer progress, however it got stale. When a save is rejected we stop saving and wait for
+     the server's real copy (no pending writes, not from cache), adopt it, and carry on from there. */
+  let resync=false,resyncTimer=null,clean=null,warned=0;
+  const adopt=(d,exists)=>{resync=false;clearTimeout(resyncTimer);localRev=d&&d._rev||0;
+    player=normPlayer(d);playerExists=exists;loadedP=true;afterLoad();setSync("ok","Synced to your account");
+    if(Date.now()-warned<8000)return;warned=Date.now();
+    toast("Another device had newer progress, so this one loaded it. Your last change here didn't save. Please do it again.","bad");};
+  onStaleSave=()=>{if(resync)return;
+    // the server's copy may already be here (the rejection can arrive after it): use it straight away
+    if(clean){adopt(thaw(clean.d),clean.exists);return;}
+    resync=true;setSync("local","Loading your latest save…");
+    // if the server copy somehow never arrives, a reload re-runs the startup guard
+    resyncTimer=setTimeout(()=>{if(resync)location.reload();},10000);};
+  const canSave=()=>!resync&&(fresh||!navigator.onLine||Date.now()-t0>20000);
   pRef.onSnapshot(s=>{
     if(!(s.metadata&&s.metadata.fromCache))fresh=true;
     const d=s.exists?thaw(s.data()):null,rev=d&&d._rev||0;
+    // the latest snapshot that is the server's own copy (nothing of ours pending on top of it)
+    clean=s.metadata&&!s.metadata.fromCache&&!s.metadata.hasPendingWrites?{d,exists:s.exists}:null;
+    if(resync){if(clean)adopt(d,s.exists);return;}
     if(loadedP&&rev<localRev)return;
     if(rev>localRev)localRev=rev;
     player=normPlayer(d);playerExists=s.exists;loadedP=true;afterLoad();},e=>onDbError(e));
@@ -2587,7 +2605,7 @@ async function remoteStore(db,uid){
   return {
     kind:"remote",
     savePlayer:p=>{if(!canSave()){setSync("local","Loading your latest save…");return Promise.resolve();}
-      localRev=Math.max(localRev,p._rev||0)+1;p._rev=localRev;const body=JSON.parse(JSON.stringify(p));
+      const base=Math.max(localRev,p._rev||0);localRev=base+1;p._rev=localRev;const body=JSON.parse(JSON.stringify(p));body._base=base;
       return q("player",()=>pRef.set(body)).then(()=>{playerExists=true;});},
     saveTask:t=>{tRev[t.id]=Math.max(tRev[t.id]||0,t._rev||0)+1;t._rev=tRev[t.id];gone.delete(t.id);const {id,...body}=JSON.parse(JSON.stringify(t));return q("t:"+id,()=>tCol.doc(id).set(body));},
     deleteTask:id=>{gone.add(id);return q("t:"+id,()=>tCol.doc(id).delete());}
@@ -2607,8 +2625,10 @@ function onDbError(e){
   if(code==="revoked"){setSync("","Saving is unavailable right now");return;}
   toast("Couldn't reach your save ("+(code||"error")+"). Reload to try again.","bad");
 }
-function writeFailed(e){
+let onStaleSave=null;
+function writeFailed(e,path){
   const code=e&&e.code;
+  if(code==="permission-denied"&&path&&/\/player$/.test(path)&&onStaleSave){onStaleSave();return;}
   let msg="Couldn't save that change. Check your connection and try again.";
   if(code==="quota_exceeded")msg="Your save is full. Clear old entries from the Highlight reel.";
   if(code==="invalid_argument")msg="This copy of The Crawl is read-only for you, so changes aren't saved.";
@@ -8580,6 +8600,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.0.3",d:"2026-10-08",t:"No more overwritten saves",items:["Fixed a bug where a phone or laptop left open in the background could wake up with an old copy of your save and write it over newer progress from your other device. Lost quarters, gear and pets were the usual victims.",
+    "Now the server checks every save. If a device is behind, its save is turned away, it loads your latest progress instead, and it tells you the last thing you did there didn't stick."]},
   {v:"3.0.2",d:"2026-10-08",t:"Platinum Box",items:["The Legendary Box is now the Platinum Box, with a new pearl-white and gunmetal crate and a matching white-steel frame when you open it. Everything inside is the same."]},
   {v:"3.0.1",d:"2026-10-08",t:"One thing at a time",items:["Finishing a quest no longer fires everything at once. The slice lands first, then each result gets its own moment, with its sound and popup together: rewards, level ups, boss kills, map events, mobs, rivals, then quieter notes, and achievements last.",
     "Map events from one quest now share a single popup, and the announcer picks the single most important line to say instead of talking over itself."]},
@@ -8928,14 +8950,14 @@ function setupForm(){
    online), so a phone with no signal never blocks later saves behind one that hasn't reached the server. */
 let fb=null;
 function fbDb(fs){
-  const ser=d=>({_rev:d._rev||0,j:JSON.stringify(d),at:firebase.firestore.FieldValue.serverTimestamp()});
+  const ser=d=>Object.assign({_rev:d._rev||0},typeof d._base==="number"?{b:d._base}:{},{j:JSON.stringify(d),at:firebase.firestore.FieldValue.serverTimestamp()});
   const de=s=>{const v=s.data();if(!v)return undefined;if(typeof v.j!=="string")return v;try{return JSON.parse(v.j);}catch(e){return undefined;}};
   const wrap=s=>({id:s.id,exists:s.exists,data:()=>de(s),metadata:s.metadata});
-  const fire=p=>{p.catch(e=>writeFailed(e));return Promise.resolve();};
+  const fire=(p,path)=>{p.catch(e=>writeFailed(e,path));return Promise.resolve();};
   const docRef=path=>{const r=fs.doc(path);return {path,id:r.id,
     onSnapshot:(next,err)=>r.onSnapshot(s=>next(wrap(s)),err),
-    set:d=>fire(r.set(ser(d))),
-    delete:()=>fire(r.delete()),
+    set:d=>fire(r.set(ser(d)),path),
+    delete:()=>fire(r.delete(),path),
     collection:c=>colRef(path+"/"+c)};};
   const colRef=path=>{const r=fs.collection(path);return {path,
     doc:id=>docRef(path+"/"+id),
