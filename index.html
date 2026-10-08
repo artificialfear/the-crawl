@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=0233f12385"></script>
-<script>window.CRAWL_BUILD="0233f12385";</script>
+<script src="firebase-config.js?v=0dbd3c7f0d"></script>
+<script>window.CRAWL_BUILD="0dbd3c7f0d";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3552,15 +3552,23 @@ function qtConjoin(){const q=player.quarters;if(!q)return;q.cj=!q.cj;bump(q.cj?"
   store.savePlayer(player).catch(writeFailed);partyPublish(true);render();renderQt();
   toast(q.cj?"Your quarters are conjoined. Any crewmate who conjoins too shares the Communal Hall with you.":"Your quarters are back to private. Your upgrades are yours alone again.");}
 const QT_FUSE=["common","uncommon","rare","epic"],QT_NEXT={common:"uncommon",uncommon:"rare",rare:"epic",epic:"legendary"};
-function qtSpares(rar){const out=[];for(const id of Object.keys(player.spare||{})){const it=itemOf(id);if(it&&it.rar===rar)for(let i=0;i<spareN(id);i++)out.push(id);}return out;}
+/* Fusion fodder of one rarity: every spare copy, plus gear you own but aren't wearing. Never worn gear, never the
+   item giving your active bonus in its slot (your best one counts even when it isn't worn), never Uniques. */
+function qtSpares(rar){const out=[],worn=new Set(Object.values(wearing(player)).filter(Boolean));
+  const active=new Set(MW_SLOTS.map(sl=>{const b=bestOwned(player,sl);return b&&b.id;}).filter(Boolean));
+  for(const it of ITEMS){if(it.rar!==rar||it.base)continue;
+    for(let i=0;i<spareN(it.id);i++)out.push({id:it.id,spare:true});
+    if(player.owned.includes(it.id)&&!worn.has(it.id)&&!active.has(it.id))out.push({id:it.id,spare:false});}
+  return out;}
 const qtFuseN=()=>qtHas("craft")?3:qtLvl("craft")?5:0;
 function qtFuse(rar){const need=qtFuseN();if(!need||!QT_NEXT[rar])return;const sp=qtSpares(rar);if(sp.length<need)return;
-  // use up the copies you have most of first
-  sp.sort((a,b)=>spareN(b)-spareN(a));for(const id of sp.slice(0,need))addSpare(id,-1);
+  // spares go first (most copies first), then unworn gear; an item's last copy takes its masterwork stars with it
+  sp.sort((a,b)=>(b.spare?1:0)-(a.spare?1:0)||spareN(b.id)-spareN(a.id)||mwOf(player,a.id)-mwOf(player,b.id));
+  for(const x of sp.slice(0,need)){if(x.spare)addSpare(x.id,-1);else{takeItem(x.id);if(player.mw&&player.mw[x.id]){player.mw=Object.assign({},player.mw);delete player.mw[x.id];}}}
   const pool=ITEMS.filter(i=>i.rar===QT_NEXT[rar]&&!i.base),fresh=pool.filter(i=>!player.owned.includes(i.id)),pk=(fresh.length?fresh:pool);
   const it=pk[Math.floor(Math.random()*pk.length)],r=receiveItem(it.id);bump("fusions");SFX.play("kill");
-  pushEvent(`Fused ${need} ${RARITY[rar].n} spares into ${it.n}`);store.savePlayer(player).catch(writeFailed);render();renderQt();
-  toast(`<span class="big">Fused!</span> ${need===3?"Three":"Five"} ${RARITY[rar].n} spares became <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":" (one you already own)"}.`,"lvl");}
+  pushEvent(`Fused ${need} ${crN(rar)} items into ${it.n}`);store.savePlayer(player).catch(writeFailed);render();renderQt();
+  toast(`<span class="big">Fused!</span> ${need===3?"Three":"Five"} ${crN(rar)} items became <b class="rar-${it.rar}">${esc(it.n)}</b>${r==="new"?"":" (one you already own)"}.`,"lvl");}
 function qtGuest(uid){const q=player.quarters;if(!q)return;const g=new Set(q.guests||[]);if(g.has(uid))g.delete(uid);else g.add(uid);q.guests=[...g];
   store.savePlayer(player).catch(writeFailed);partyPublish(true);renderQt();}
 /* What goes on the party card: just enough for a guest's visit. */
@@ -3835,7 +3843,7 @@ function renderBench(){
   }else{
     const need=qtFuseN();
     body=`<div class="qt-stats">${QT_FUSE.map(r=>{const n=qtSpares(r).length;return `<button type="button" class="chipbtn" data-qtfuse="${r}"${n<need?" disabled":""}>${crN(r)} ×${need} → ${crN(QT_NEXT[r])} <span class="muted">(${n})</span></button>`;}).join("")}</div>
-      <div class="muted" style="font-size:12px">Fuse ${need} spares of one rarity into a random item one rarity higher. No materials needed.</div>`;
+      <div class="muted" style="font-size:12px">Fuse any ${need} items of one rarity you aren't wearing (spares are used first) into a random item one rarity higher. No materials needed. The gear giving your active bonus in each slot is kept safe even when it isn't worn.</div>`;
   }
   o.innerHTML=`<div class="geardlg inspdlg benchdlg" role="dialog" aria-modal="true" aria-label="Workbench"><div class="gearhead"><h2>Workbench</h2><button class="btn ghost sm" type="button" id="benchClose">Close</button></div>
     <div class="bench-top"><div><b>Crafting level ${L}</b>${L<10?` <span class="muted">· ${x-lo} / ${hi-lo} XP</span>`:" · max"}${craftDisc()?` <span class="muted">· ${Math.round(craftDisc()*100)}% off gold costs</span>`:""}${craftXpMul()>1?` <span class="muted">· +${Math.round((craftXpMul()-1)*100)}% crafting XP</span>`:""}</div>${zbar(L>=10?1:(x-lo)/(hi-lo),"bond")}
