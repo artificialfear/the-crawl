@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2008a9dc17"></script>
-<script>window.CRAWL_BUILD="2008a9dc17";</script>
+<script src="firebase-config.js?v=4aab3af60a"></script>
+<script>window.CRAWL_BUILD="4aab3af60a";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1013,6 +1013,10 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 @keyframes mpoke{0%{transform:none}20%{transform:translate(-6px,2px) scale(1.04)}40%{transform:translate(5px,-2px) scale(1.06)}60%{transform:translate(-3px,1px) scale(1.03)}100%{transform:none}}
 .zoomdlg.z-mob .zoom-art{width:100%;border-radius:8px}.mobbub{margin:8px 0;font-style:italic}
 @media (prefers-reduced-motion:reduce){.mobalert.poked .mobscene{animation:none}}
+.bstlist{display:flex;flex-direction:column;gap:8px}.bst{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;border:1px solid var(--line-2);border-radius:10px;padding:8px;background:var(--panel-2)}
+.bst-art{border-radius:6px;overflow:hidden;line-height:0;border:2px solid #000}.bst-art svg{width:100%;height:auto;display:block}.bst.unseen{opacity:.6}
+.bst-title{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#111;background:var(--gold);border-radius:999px;padding:1px 8px;margin-left:4px}
+.bst-num{font-size:13px;margin:4px 0 3px}.bst .bar{height:6px}
 .pt-foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--line-2)}.pt-foot .pt-head{margin-bottom:6px}
 .pt-codebar{display:flex;align-items:center;gap:10px;flex-basis:100%;flex-wrap:wrap}
 .pt-code{font-family:var(--mono,monospace);font-weight:700;letter-spacing:2px;background:var(--panel-2);border:1px dashed var(--gold);color:var(--gold);border-radius:6px;padding:3px 8px}
@@ -1413,6 +1417,10 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
     <section class="panel" aria-label="Race and class">
       <h2>Race &amp; class</h2>
       <div id="rc"></div>
+    </section>
+    <section class="panel" aria-label="Bestiary">
+      <h2>Bestiary</h2>
+      <div id="bestiary"></div>
     </section>
     </div>
     <div class="tabpane" data-pane="loot" role="tabpanel" aria-label="Inventory">
@@ -2366,6 +2374,9 @@ const ACH = [
   {id:"scroll10",n:"Professional Procrastinator",how:"Use 10 Scrolls of Extension",gold:20,test:p=>C(p,"scrolls")>=10,line:"Ten extensions. You've turned 'later' into an art form."},
   {id:"smoke1",n:"Ninja Vanish",how:"Throw a Smoke Bomb",gold:10,test:p=>C(p,"smokes")>=1,line:"Poof. The chore didn't see you leave. It'll be back."},
   {id:"smoke5",n:"Escape Artist",how:"Throw 5 Smoke Bombs",gold:20,test:p=>C(p,"smokes")>=5,line:"Five smoke bombs. Your chores have filed a missing person report."},
+  {id:"poke1",n:"Poke",how:"Poke a mob instead of fighting it",gold:5,test:p=>C(p,"pokes")>=1,line:"You poked it. It did not like that. Nobody likes that."},
+  {id:"poke50",n:"Professional Annoyer",how:"Poke mobs 50 times",gold:30,test:p=>C(p,"pokes")>=50,line:"Fifty pokes. The mobs have filed a formal complaint."},
+  {id:"pokeooze",n:"Don't Touch It",how:"Poke an ooze 10 times",gold:25,sec:1,test:p=>C(p,"poke_ooze")>=10,line:"Ten pokes. Your finger is now 40% ooze. It's fine. Probably."},
   {id:"potion1",n:"Chug",how:"Drink a healing potion",gold:10,test:p=>C(p,"potions")>=1,line:"Glug glug. Tastes like cherry cough syrup and regret."},
   {id:"potion10",n:"Potion Seller's Favorite",how:"Drink 10 healing potions",gold:25,test:p=>C(p,"potions")>=10,line:"Ten potions. The potion seller named a kid after you."},
   {id:"bond10",n:"Best Friends Forever",how:"Reach bond level 10 with a pet",box:"gold",test:p=>Object.values(p.pets||{}).some(x=>bondLevel(x.bond)>=10),line:"Bond 10. Your pet would take a bullet for you. Or at least a mild inconvenience."},
@@ -2461,6 +2472,7 @@ const QUIPS = {
     "Welcome back, crawler. Chat is already typing. Brace yourself.",
     "Welcome back, crawler. Let's make this one count. Or at least make it entertaining."],
   idle:["It's {time} and you've finished nothing today. Bold strategy. Let's see if it pays off."],
+  poke:["Our crawler is poking the mob. Not attacking it. Poking it.","Breaking news: crawler pokes monster. Monster unimpressed.","The mob would like everyone to know it did not consent to the poke.","Poking a monster. Bold strategy. Medically inadvisable.","Fun fact: the mob is now angrier. Thanks for that.","Our analysts confirm: that was a poke. A weak one."],
   reward:["{name} cashes in for a real-world prize. Treat yourself. Allegedly, you earned it."]};
 const SPONSORS = ["This floor is brought to you by Cold Coffee. It was hot when you started that task.",
   "Sponsored by The Couch. It's not going anywhere, and neither are you.",
@@ -3237,6 +3249,25 @@ const MOB_KINDS={
           line:"Rusty knives, bad teeth, and a clipboard of grievances."},
   ooze:  {n:"Oozes",names:["Mildew Slime Cluster","Gelatinous Inbox Cluster","Mold Sprite Bloom","Sewer Ooze Cluster"],packs:["Sludge Committee","Ooze Pit"],
           line:"They don't have mouths. They have several."}};
+/* Bestiary titles: kills of one family earn a title at each milestone. */
+const BEST_MS=[10,25,50,100];
+const BEST_TITLES={rat:["Rat Catcher","Exterminator","Pied Piper","Rat King's Nightmare"],
+  goblin:["Goblin Bouncer","Union Buster","Debt Collector","Goblin Tax Auditor"],
+  ooze:["Mop Wielder","Sludge Scrubber","Ooze Whisperer","The Sponge"]};
+const bestTitle=(k,n)=>{let t=null;BEST_MS.forEach((m,i)=>{if(n>=m)t=BEST_TITLES[k][i];});return t;};
+function renderBestiary(){
+  const el=$("bestiary");if(!el||!playerExists)return;
+  const key=Object.keys(MOB_KINDS).map(k=>[C(player,"mk_"+k),C(player,"ms_"+k),C(player,"poke_"+k)].join(".")).join("|")+(player.mobs||[]).map(m=>m.k).join("");if(el.dataset.k===key)return;el.dataset.k=key;
+  const rows=Object.keys(MOB_KINDS).map(k=>{const K=MOB_KINDS[k],n=C(player,"mk_"+k),seen=n>0||C(player,"ms_"+k)>0||C(player,"mobKills")>Object.keys(MOB_KINDS).reduce((t,x)=>t+C(player,"mk_"+x),0)||(player.mobs||[]).some(m=>mobKind(m)===k);
+    if(!seen)return `<div class="bst unseen"><div class="bst-art"><svg viewBox="40 40 240 84" aria-hidden="true"><rect width="320" height="124" fill="#111"/><text x="160" y="96" text-anchor="middle" font-size="48" fill="#444" font-family="Georgia,serif">?</text></svg></div><div><b>???</b><div class="muted" style="font-size:12px">Not met yet. Keep crawling.</div></div></div>`;
+    const t=bestTitle(k,n),nx=BEST_MS.find(m=>n<m),pk=C(player,"poke_"+k);
+    return `<div class="bst"><div class="bst-art">${mobScene({k,pack:false,n:K.names[0]})}</div><div class="bst-txt"><b>${esc(K.n)}</b>${t?` <span class="bst-title">${esc(t)}</span>`:""}
+      <div class="muted" style="font-size:12px">${esc(K.line)}</div>
+      <div class="bst-num"><b class="num">${n}</b> beaten${pk?` · poked ${pk}×`:""}</div>
+      ${nx?`<div class="bar"><b style="width:${Math.round(n/nx*100)}%"></b></div><div class="muted" style="font-size:11px">${nx-n} more for <b>${esc(BEST_TITLES[k][BEST_MS.indexOf(nx)])}</b></div>`:`<div class="muted" style="font-size:11px">Every title earned. They tell stories about you down here.</div>`}</div></div>`;}).join("");
+  const h=`<p class="muted" style="font-size:13px;margin:0 0 8px">Every mob family you've met, how many you've beaten, and the titles you've earned off their backs.</p><div class="bstlist">${rows}</div>`;
+  el.innerHTML=h;
+}
 /* What a mob says when you poke it. */
 const MOB_TAUNTS={
   rat:["Squeak. That means 'your snacks are ours' in rat.","We've chewed through tougher to-do lists than yours.","The King says hi. The King says bye.","There are more of us. There are always more of us.","We were here first. We were here before the walls."],
@@ -3301,7 +3332,7 @@ function spawnMob(kind,room){
   const ks=Object.keys(MOB_KINDS),k=ks[Math.floor(Math.random()*ks.length)],K=MOB_KINDS[k];
   const n=pack?K.packs[Math.floor(Math.random()*K.packs.length)]:K.names[Math.floor(Math.random()*K.names.length)];
   const hp=Math.max(5,Math.round(sc.hit*(pack?1.4+Math.random()*.6:.35+Math.random()*.6)));
-  ui.mobSnd=k;
+  ui.mobSnd=k;bump("ms_"+k);
   return {id:newId(),n,k,a:pack?"The":/^[AEIOU]/.test(n)?"An":"A",pack,hp,max:hp,room:room==null?null:room};
 }
 /* One quest's hit against everything on you, in the order they showed up. Returns toast lines. */
@@ -3320,12 +3351,12 @@ function mobFight(fx,t){
       const nyxB=isChosen("nyx")&&(new Date().getHours()>=21||new Date().getHours()<6)?2:1;
       const bx=Math.round(sc.xp*(mb.pack?.3:.15)*nyxB*(grinding()?GRIND_XP:1)),g=mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6);
       player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
-      bump("mobKills");bump("mk_"+mobKind(mb));if(mb.pack)bump("packKills");
+      bump("mobKills");{const mk=mobKind(mb);bump("mk_"+mk);const n=C(player,"mk_"+mk),i=BEST_MS.indexOf(n);if(i>=0){player.viewers=(player.viewers||0)+1000*(i+1);mb.best=`Bestiary: ${n} ${MOB_KINDS[mk].n.toLowerCase()} beaten. New title: ${BEST_TITLES[mk][i]}!`;}}if(mb.pack)bump("packKills");
       let box="";if(mb.pack&&Math.random()<.25){giveBox("bronze",`Mob pack: ${mb.n}`);box=" and a Bronze Box";}
       if(m&&mb.room!=null&&m.rooms[mb.room])m.rooms[mb.room].cleared=true;
       player.viewers=(player.viewers||0)+(mb.pack?900:250);
       const md=Math.random()<(mb.pack?.4:.2)?matDrop("scrap",mb.pack?1+Math.floor(Math.random()*2):1):"";
-      out.push(`${mb.pack?"Wiped out":"Squashed"} ${mb.a.toLowerCase()==="the"?"the":mb.a.toLowerCase()} ${mb.n}: +${bx} XP, +${g} gold${box}${md?`, ${md}`:""}.`);
+      out.push(`${mb.pack?"Wiped out":"Squashed"} ${mb.a.toLowerCase()==="the"?"the":mb.a.toLowerCase()} ${mb.n}: +${bx} XP, +${g} gold${box}${md?`, ${md}`:""}.`);if(mb.best)out.push(mb.best);
     }else left.push(mb);
   }
   player.mobs=left;
@@ -3345,6 +3376,9 @@ function mobIcon(x,y,s,pack,k){
 function pokeMob(){
   const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead);
   if(!clip("mob-"+k,.85))SFX.play("hurt");
+  bump("pokes");bump("poke_"+k);store.savePlayer(player).catch(writeFailed);
+  if(Math.random()<.3)setTimeout(()=>say("poke",{}),1400); // the announcer has opinions
+  checkAch(); // plays once the close-up is closed
   const a=document.querySelector(".mobalert");if(a){a.classList.remove("poked");void a.offsetWidth;a.classList.add("poked");}
   setTimeout(()=>zoomMob(),calmMotion()?0:380);
 }
@@ -6125,7 +6159,7 @@ function render(){
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   try{goldWatch();renderPurse();}catch(e){}
   // Each panel draws independently, so a bug in one can't blank the others.
-  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
+  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker]){try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
 }
 
@@ -9889,7 +9923,7 @@ if(tts.ok)try{speechSynthesis.onvoiceschanged=()=>{tts.voice=null;};}catch(e){}
    from a spoken version in VO_ALT that leaves the changing part out; the ticker still shows the real text.
    Clips live at vo/<voice>-<id>.mp3 and vo/index.json lists them. Anything without a clip falls back to the browser voice. */
 const VO_ALT={"{name} finishes a quest. The crowd briefly looks up from their phones.": "Our crawler finishes a quest. The crowd briefly looks up from their phones.","{name} did the thing. Somebody check whether they're feeling okay.": "The crawler did the thing. Somebody check whether they're feeling okay.","One more off the board. Only {open} left between you and the sweet release of an empty list.": "One more off the board. Just the rest of them left between you and the sweet release of an empty list.","{name} finally finishes an overdue quest. Late, sweaty and technically a win.": "Our crawler finally finishes an overdue quest. Late, sweaty, and technically a win.","{name} gives up on a quest. The audience respects honesty. They're still booing.": "The crawler gives up on a quest. The audience respects honesty. They're still booing.","Level {L}! The audience is shocked. Frankly, so are we.": "Level up! The audience is shocked. Frankly, so are we.","{name} hits Level {L}. Somebody get this crawler a participation trophy.": "Our crawler levels up. Somebody get this crawler a participation trophy.","{boss} is down! The crowd goes wild. Some of them had money on the other guy.": "The boss is down! The crowd goes wild. Some of them had money on the other guy.","{boss} has been defeated. Producers are pretending they always believed in you.": "The boss has been defeated. Producers are pretending they always believed in you.","The stairwell closed and {boss} walks away untouched. {name} was nowhere near the stairs.": "The stairwell closed, and the boss walks away untouched. Our crawler was nowhere near the stairs.","Welcome to Floor {floor}: {theme}. Management apologizes for nothing.": "Welcome to the new floor. Check this week's theme. Management apologizes for nothing.","Floor {floor} is {theme} this week. The producers insist it's for your growth.": "There's a new theme on this floor this week. The producers insist it's for your growth.","{theme}, Floor {floor}. Please keep your hands, feet and dignity inside the dungeon.": "New floor, new theme. Please keep your hands, feet, and dignity inside the dungeon.","{name} is sheltering in the safe room today. No cameras allowed. The producers are furious.": "Our crawler is sheltering in the safe room today. No cameras allowed. The producers are furious.","No cameras in the safe room, and {name} knows it. Ratings are in free fall.": "No cameras in the safe room, and our crawler knows it. Ratings are in free fall.","{name} has gone into hiding. Chat is speculating wildly.": "The crawler has gone into hiding. Chat is speculating wildly.","Ladies and gentlemen, {name} is now a {race} {cls}. The betting markets are in chaos.": "Ladies and gentlemen, our crawler has picked a race and a class. The betting markets are in chaos.","{name} has chosen: {race}, {cls}. Somewhere, a focus group is screaming.": "The crawler has chosen. Somewhere, a focus group is screaming.","A {race} {cls}. Bold. Questionable. Extremely watchable.": "That race. That class. Bold. Questionable. Extremely watchable.","{name} rerolls. Nobody liked those options anyway.": "A reroll. Nobody liked those options anyway.","{name} climbs to #{rank}. {rival} just felt a chill and doesn't know why.": "Our crawler climbs the rankings. Somebody just above them felt a chill and doesn't know why.","New rank for {name}: #{rank}. The producers pretend they saw it coming.": "A new rank for our crawler. The producers pretend they saw it coming.","#{rank}! {name} is moving up. {rival} has asked to speak to a manager.": "Moving up the board! The crawler they just passed has asked to speak to a manager.","{name} signs with {brand}. Integrity: sold. Price: one box.": "Our crawler signs a sponsor deal. Integrity: sold. Price: one box.","{brand} welcomes {name} to the family. The family has a very strict contract.": "Our newest sponsor welcomes the crawler to the family. The family has a very strict contract.","Brought to you by {brand}, as of about four seconds ago.": "This crawler is now brought to you by a sponsor, as of about four seconds ago.","{name} turns down {brand}. Bold. Broke, but bold.": "Our crawler turns down a sponsor. Bold. Broke, but bold.","{brand} has been rejected. They're taking it about as well as you'd expect.": "The sponsor has been rejected. They're taking it about as well as you'd expect.","No deal for {brand}. {name} remains independent and slightly poorer.": "No deal. The crawler remains independent, and slightly poorer.","{pet} joins the show. The audience immediately likes it more than you.": "A new pet joins the show. The audience immediately likes it more than you.","Say hello to {pet}. Ratings just went up, and it wasn't because of you.": "Say hello to the new pet. Ratings just went up, and it wasn't because of you.","{pet} has hatched! Chat is already arguing about its name. You've been overruled.": "The egg has hatched! Chat is already arguing about its name. You've been overruled.","It's alive! {pet} enters the dungeon and immediately bites a producer.": "It's alive! The new pet enters the dungeon and immediately bites a producer.","Next up: {boss}, the {tier}. They've heard about you.": "Next up: a new boss. They've heard about you.","{boss} steps out of the shadows. {tier}. The crowd leans in.": "The next boss steps out of the shadows. The crowd leans in.","Here comes {boss}, the {tier}. Try not to embarrass us.": "Here comes the next boss. Try not to embarrass us.","{name} has been knocked out by their own to-do list. A first for the show. Well, not a first.": "Our crawler has been knocked out by their own to-do list. A first for the show. Well, not a first.","{name} drinks a Potion of Focus. Eyes wide. Jaw clenched. Next quest is getting destroyed.": "The crawler drinks a Potion of Focus. Eyes wide. Jaw clenched. The next quest is getting destroyed.","{name} reads a Scroll of Extension. Procrastination, but make it magic.": "A Scroll of Extension. Procrastination, but make it magic.","Smoke bomb! {name} vanishes. The chore will be back. Chores always come back.": "Smoke bomb! The crawler vanishes. The chore will be back. Chores always come back.","{name} throws a smoke bomb and skips a chore. The crowd boos. The crowd also respects it.": "Our crawler throws a smoke bomb and skips a chore. The crowd boos. The crowd also respects it.","{name} has pledged themselves to {god}. The sponsor's stock is up two percent.": "Our crawler has pledged themselves to a god. The sponsor's stock is up two percent.","{god} has a new worshipper: {name}. Terms and conditions were not read.": "A god has a new worshipper. Terms and conditions were not read.","Breaking: {name} kneels before {god}. Somewhere, a marketing team high-fives.": "Breaking: our crawler kneels before a god. Somewhere, a marketing team high-fives.","Final day on Floor {floor}. The stairwell closes at midnight. {boss} is still standing.": "Final day on this floor. The stairwell closes at midnight, and the boss is still standing.","Tick tock. The Floor {floor} stairwell shuts tonight and {boss} knows it.": "Tick tock. The stairwell shuts tonight, and the boss knows it.","It's {time} and you've finished nothing today. Bold strategy. Let's see if it pays off.": "It's getting late, and you've finished nothing today. Bold strategy. Let's see if it pays off.","{name} cashes in for a real-world prize. Treat yourself. Allegedly, you earned it.": "Our crawler cashes in for a real-world prize. Treat yourself. Allegedly, you earned it.","\"{title}\". Gripping. Truly the stuff of legend.": "That quest name. Gripping. Truly the stuff of legend.","\"{title}\" has been added. The bards are already struggling to rhyme it.": "Your new quest has been added. The bards are already struggling to rhyme it.","\"{title}\"? The dungeon has seen worse. Not much worse, but worse.": "That quest? The dungeon has seen worse. Not much worse, but worse.","\"{title}\". Our writers couldn't have come up with that. They tried.": "That quest. Our writers couldn't have come up with it. They tried.","Breaking: {name} vows to \"{title}\". Experts are cautiously unimpressed.": "Breaking: our crawler has made a vow. Experts are cautiously unimpressed.","\"{title}\" is on the board. It's staring at you. Stare back. Then do it.": "It's on the board now. It's staring at you. Stare back. Then do it.","{open} open quests. At this point the board is a lifestyle.": "That many open quests? At this point, the board is a lifestyle.","Quest number {open}. The board is applying for its own zip code.": "Another quest. The board is applying for its own zip code.","That's {adds} quests added today. Adding them is not the same as doing them. We checked.": "That's a lot of quests added today. Adding them is not the same as doing them. We checked.","Folks, you know them, you tolerate them, it's {name}!": "Folks, you know them, you tolerate them, it's our next crawler!","Please welcome a crawler who is, legally, still alive: {name}!": "Please welcome a crawler who is, legally, still alive!","Our next guest has done several things. Some on purpose. {name}!": "Our next guest has done several things. Some on purpose. Welcome, crawler!","So here's my challenge, and I say this with love and a contract: {goal} by {due}. On live TV. Yes?": "So here's my challenge, and I say this with love and a contract. The goal's on your screen, and so is the deadline. On live TV. Yes?","Good morning! Today's tea is piping hot and it is {name}!": "Good morning! Today's tea is piping hot, and it is our crawler!","Dex, look who finally said yes to us! {name}, everybody!": "Dex, look who finally said yes to us! Our crawler, everybody!","Grab your coffee, we've got {name} on the couch!": "Grab your coffee, we've got a crawler on the couch!","Okay, okay, before we let you go: {goal} by {due}. Pinky promise, on air. Deal?": "Okay, okay, before we let you go. That goal, by that date. Pinky promise, on air. Deal?","Welcome to Crawl Center. I've got the tape, I've got the numbers, and I've got {name}.": "Welcome to Crawl Center. I've got the tape, I've got the numbers, and I've got a crawler.","Let's break down the film with the crawler herself or himself or themselves: {name}!": "Let's break down the film with the crawler herself, or himself, or themselves!","Here's a crawler with stats. Some of them good. {name}, welcome.": "Here's a crawler with stats. Some of them good. Welcome.","Here's what I want to see this week: {goal} by {due}. I'll be watching the tape. Commit?": "Here's what I want to see this week. That goal, by that date. I'll be watching the tape. Commit?"};
-const VO_KINDS=["complete","late","abandon","level","boss","escaped","theme","shelter","chosen","reroll","rankup","signed","declined","pet","hatch","next","knocked","focus","scroll","smoke","god","stairwell","welcome","idle","reward"];
+const VO_KINDS=["poke","complete","late","abandon","level","boss","escaped","theme","shelter","chosen","reroll","rankup","signed","declined","pet","hatch","next","knocked","focus","scroll","smoke","god","stairwell","welcome","idle","reward"];
 const VO_LIVE="The announcer is live. Try not to embarrass yourself.";
 var voSrc=new Map();
 function voNote(text,key){if(!voSrc||!text||text===key)return;voSrc.set(text,key);if(voSrc.size>80)voSrc.delete(voSrc.keys().next().value);}

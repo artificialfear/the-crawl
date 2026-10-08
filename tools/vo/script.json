@@ -1,0 +1,1652 @@
+[
+ {
+  "voice": "sys",
+  "key": "Our crawler is poking the mob. Not attacking it. Poking it.",
+  "text": "Our crawler is poking the mob. Not attacking it. Poking it.",
+  "id": "sys-1k4cj5f"
+ },
+ {
+  "voice": "sys",
+  "key": "Breaking news: crawler pokes monster. Monster unimpressed.",
+  "text": "Breaking news: crawler pokes monster. Monster unimpressed.",
+  "id": "sys-g1vzhe"
+ },
+ {
+  "voice": "sys",
+  "key": "The mob would like everyone to know it did not consent to the poke.",
+  "text": "The mob would like everyone to know it did not consent to the poke.",
+  "id": "sys-12i31cl"
+ },
+ {
+  "voice": "sys",
+  "key": "Poking a monster. Bold strategy. Medically inadvisable.",
+  "text": "Poking a monster. Bold strategy. Medically inadvisable.",
+  "id": "sys-1kvgkr4"
+ },
+ {
+  "voice": "sys",
+  "key": "Fun fact: the mob is now angrier. Thanks for that.",
+  "text": "Fun fact: the mob is now angrier. Thanks for that.",
+  "id": "sys-djxe12"
+ },
+ {
+  "voice": "sys",
+  "key": "Our analysts confirm: that was a poke. A weak one.",
+  "text": "Our analysts confirm: that was a poke. A weak one.",
+  "id": "sys-1oc9k7x"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} finishes a quest. The crowd briefly looks up from their phones.",
+  "text": "Our crawler finishes a quest. The crowd briefly looks up from their phones.",
+  "id": "sys-1rzximf"
+ },
+ {
+  "voice": "sys",
+  "key": "Another one down. Don't let it go to your head. There isn't much room up there.",
+  "text": "Another one down. Don't let it go to your head. There isn't much room up there.",
+  "id": "sys-y5sl2k"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest complete. Our sponsors have been notified and are mildly surprised.",
+  "text": "Quest complete. Our sponsors have been notified and are mildly surprised.",
+  "id": "sys-mc2pd4"
+ },
+ {
+  "voice": "sys",
+  "key": "Look at that: productivity. In this economy.",
+  "text": "Look at that: productivity. In this economy.",
+  "id": "sys-1d6npfx"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} did the thing. Somebody check whether they're feeling okay.",
+  "text": "The crawler did the thing. Somebody check whether they're feeling okay.",
+  "id": "sys-8i0p6l"
+ },
+ {
+  "voice": "sys",
+  "key": "One more off the board. Only {open} left between you and the sweet release of an empty list.",
+  "text": "One more off the board. Just the rest of them left between you and the sweet release of an empty list.",
+  "id": "sys-3jp8y0"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} finally finishes an overdue quest. Late, sweaty and technically a win.",
+  "text": "Our crawler finally finishes an overdue quest. Late, sweaty, and technically a win.",
+  "id": "sys-a2fhj8"
+ },
+ {
+  "voice": "sys",
+  "key": "Overdue, but done. The audience gives it a slow clap. A very slow clap.",
+  "text": "Overdue, but done. The audience gives it a slow clap. A very slow clap.",
+  "id": "sys-zouhjo"
+ },
+ {
+  "voice": "sys",
+  "key": "Bold. Cowardly, but bold.",
+  "text": "Bold. Cowardly, but bold.",
+  "id": "sys-1anmr9t"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} gives up on a quest. The audience respects honesty. They're still booing.",
+  "text": "The crawler gives up on a quest. The audience respects honesty. They're still booing.",
+  "id": "sys-1vet22n"
+ },
+ {
+  "voice": "sys",
+  "key": "Level {L}! The audience is shocked. Frankly, so are we.",
+  "text": "Level up! The audience is shocked. Frankly, so are we.",
+  "id": "sys-ptulyj"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} hits Level {L}. Somebody get this crawler a participation trophy.",
+  "text": "Our crawler levels up. Somebody get this crawler a participation trophy.",
+  "id": "sys-py7rsu"
+ },
+ {
+  "voice": "sys",
+  "key": "{boss} is down! The crowd goes wild. Some of them had money on the other guy.",
+  "text": "The boss is down! The crowd goes wild. Some of them had money on the other guy.",
+  "id": "sys-174j8ow"
+ },
+ {
+  "voice": "sys",
+  "key": "{boss} has been defeated. Producers are pretending they always believed in you.",
+  "text": "The boss has been defeated. Producers are pretending they always believed in you.",
+  "id": "sys-1e6bc7e"
+ },
+ {
+  "voice": "sys",
+  "key": "The stairwell closed and {boss} walks away untouched. {name} was nowhere near the stairs.",
+  "text": "The stairwell closed, and the boss walks away untouched. Our crawler was nowhere near the stairs.",
+  "id": "sys-12scn0x"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome to Floor {floor}: {theme}. Management apologizes for nothing.",
+  "text": "Welcome to the new floor. Check this week's theme. Management apologizes for nothing.",
+  "id": "sys-1q99ryt"
+ },
+ {
+  "voice": "sys",
+  "key": "Floor {floor} is {theme} this week. The producers insist it's for your growth.",
+  "text": "There's a new theme on this floor this week. The producers insist it's for your growth.",
+  "id": "sys-hl8pww"
+ },
+ {
+  "voice": "sys",
+  "key": "{theme}, Floor {floor}. Please keep your hands, feet and dignity inside the dungeon.",
+  "text": "New floor, new theme. Please keep your hands, feet, and dignity inside the dungeon.",
+  "id": "sys-p3deh4"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} is sheltering in the safe room today. No cameras allowed. The producers are furious.",
+  "text": "Our crawler is sheltering in the safe room today. No cameras allowed. The producers are furious.",
+  "id": "sys-16bd9tc"
+ },
+ {
+  "voice": "sys",
+  "key": "No cameras in the safe room, and {name} knows it. Ratings are in free fall.",
+  "text": "No cameras in the safe room, and our crawler knows it. Ratings are in free fall.",
+  "id": "sys-fiwjnj"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} has gone into hiding. Chat is speculating wildly.",
+  "text": "The crawler has gone into hiding. Chat is speculating wildly.",
+  "id": "sys-1bh5ekw"
+ },
+ {
+  "voice": "sys",
+  "key": "Ladies and gentlemen, {name} is now a {race} {cls}. The betting markets are in chaos.",
+  "text": "Ladies and gentlemen, our crawler has picked a race and a class. The betting markets are in chaos.",
+  "id": "sys-bufll8"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} has chosen: {race}, {cls}. Somewhere, a focus group is screaming.",
+  "text": "The crawler has chosen. Somewhere, a focus group is screaming.",
+  "id": "sys-xiwdzz"
+ },
+ {
+  "voice": "sys",
+  "key": "A {race} {cls}. Bold. Questionable. Extremely watchable.",
+  "text": "That race. That class. Bold. Questionable. Extremely watchable.",
+  "id": "sys-y9qb42"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} rerolls. Nobody liked those options anyway.",
+  "text": "A reroll. Nobody liked those options anyway.",
+  "id": "sys-1ra3egx"
+ },
+ {
+  "voice": "sys",
+  "key": "A reroll! The producers love indecision. It's cheap content.",
+  "text": "A reroll! The producers love indecision. It's cheap content.",
+  "id": "sys-i3purj"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} climbs to #{rank}. {rival} just felt a chill and doesn't know why.",
+  "text": "Our crawler climbs the rankings. Somebody just above them felt a chill and doesn't know why.",
+  "id": "sys-q24vcw"
+ },
+ {
+  "voice": "sys",
+  "key": "New rank for {name}: #{rank}. The producers pretend they saw it coming.",
+  "text": "A new rank for our crawler. The producers pretend they saw it coming.",
+  "id": "sys-ibywxh"
+ },
+ {
+  "voice": "sys",
+  "key": "#{rank}! {name} is moving up. {rival} has asked to speak to a manager.",
+  "text": "Moving up the board! The crawler they just passed has asked to speak to a manager.",
+  "id": "sys-1rqaokh"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} signs with {brand}. Integrity: sold. Price: one box.",
+  "text": "Our crawler signs a sponsor deal. Integrity: sold. Price: one box.",
+  "id": "sys-1lk5v00"
+ },
+ {
+  "voice": "sys",
+  "key": "{brand} welcomes {name} to the family. The family has a very strict contract.",
+  "text": "Our newest sponsor welcomes the crawler to the family. The family has a very strict contract.",
+  "id": "sys-at4mx7"
+ },
+ {
+  "voice": "sys",
+  "key": "Brought to you by {brand}, as of about four seconds ago.",
+  "text": "This crawler is now brought to you by a sponsor, as of about four seconds ago.",
+  "id": "sys-tfsv3m"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} turns down {brand}. Bold. Broke, but bold.",
+  "text": "Our crawler turns down a sponsor. Bold. Broke, but bold.",
+  "id": "sys-9wxrip"
+ },
+ {
+  "voice": "sys",
+  "key": "{brand} has been rejected. They're taking it about as well as you'd expect.",
+  "text": "The sponsor has been rejected. They're taking it about as well as you'd expect.",
+  "id": "sys-6by5tn"
+ },
+ {
+  "voice": "sys",
+  "key": "No deal for {brand}. {name} remains independent and slightly poorer.",
+  "text": "No deal. The crawler remains independent, and slightly poorer.",
+  "id": "sys-df7hy"
+ },
+ {
+  "voice": "sys",
+  "key": "{pet} joins the show. The audience immediately likes it more than you.",
+  "text": "A new pet joins the show. The audience immediately likes it more than you.",
+  "id": "sys-m0vtd6"
+ },
+ {
+  "voice": "sys",
+  "key": "Say hello to {pet}. Ratings just went up, and it wasn't because of you.",
+  "text": "Say hello to the new pet. Ratings just went up, and it wasn't because of you.",
+  "id": "sys-1cm9g4r"
+ },
+ {
+  "voice": "sys",
+  "key": "{pet} has hatched! Chat is already arguing about its name. You've been overruled.",
+  "text": "The egg has hatched! Chat is already arguing about its name. You've been overruled.",
+  "id": "sys-v6tmf0"
+ },
+ {
+  "voice": "sys",
+  "key": "It's alive! {pet} enters the dungeon and immediately bites a producer.",
+  "text": "It's alive! The new pet enters the dungeon and immediately bites a producer.",
+  "id": "sys-1djd62w"
+ },
+ {
+  "voice": "sys",
+  "key": "Next up: {boss}, the {tier}. They've heard about you.",
+  "text": "Next up: a new boss. They've heard about you.",
+  "id": "sys-1x6k0h1"
+ },
+ {
+  "voice": "sys",
+  "key": "{boss} steps out of the shadows. {tier}. The crowd leans in.",
+  "text": "The next boss steps out of the shadows. The crowd leans in.",
+  "id": "sys-ogda58"
+ },
+ {
+  "voice": "sys",
+  "key": "Here comes {boss}, the {tier}. Try not to embarrass us.",
+  "text": "Here comes the next boss. Try not to embarrass us.",
+  "id": "sys-1toxda1"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} has been knocked out by their own to-do list. A first for the show. Well, not a first.",
+  "text": "Our crawler has been knocked out by their own to-do list. A first for the show. Well, not a first.",
+  "id": "sys-r4574n"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} drinks a Potion of Focus. Eyes wide. Jaw clenched. Next quest is getting destroyed.",
+  "text": "The crawler drinks a Potion of Focus. Eyes wide. Jaw clenched. The next quest is getting destroyed.",
+  "id": "sys-pdlyr"
+ },
+ {
+  "voice": "sys",
+  "key": "Focus potion down. The next quest has no idea what's coming.",
+  "text": "Focus potion down. The next quest has no idea what's coming.",
+  "id": "sys-1ps5bqr"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} reads a Scroll of Extension. Procrastination, but make it magic.",
+  "text": "A Scroll of Extension. Procrastination, but make it magic.",
+  "id": "sys-fbhv8o"
+ },
+ {
+  "voice": "sys",
+  "key": "A Scroll of Extension. The deadline blinks and quietly moves back.",
+  "text": "A Scroll of Extension. The deadline blinks and quietly moves back.",
+  "id": "sys-swrpmo"
+ },
+ {
+  "voice": "sys",
+  "key": "Smoke bomb! {name} vanishes. The chore will be back. Chores always come back.",
+  "text": "Smoke bomb! The crawler vanishes. The chore will be back. Chores always come back.",
+  "id": "sys-9p3tj1"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} throws a smoke bomb and skips a chore. The crowd boos. The crowd also respects it.",
+  "text": "Our crawler throws a smoke bomb and skips a chore. The crowd boos. The crowd also respects it.",
+  "id": "sys-ti8ow2"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} has pledged themselves to {god}. The sponsor's stock is up two percent.",
+  "text": "Our crawler has pledged themselves to a god. The sponsor's stock is up two percent.",
+  "id": "sys-uwed4r"
+ },
+ {
+  "voice": "sys",
+  "key": "{god} has a new worshipper: {name}. Terms and conditions were not read.",
+  "text": "A god has a new worshipper. Terms and conditions were not read.",
+  "id": "sys-1anqo24"
+ },
+ {
+  "voice": "sys",
+  "key": "Breaking: {name} kneels before {god}. Somewhere, a marketing team high-fives.",
+  "text": "Breaking: our crawler kneels before a god. Somewhere, a marketing team high-fives.",
+  "id": "sys-1qk3uc9"
+ },
+ {
+  "voice": "sys",
+  "key": "Final day on Floor {floor}. The stairwell closes at midnight. {boss} is still standing.",
+  "text": "Final day on this floor. The stairwell closes at midnight, and the boss is still standing.",
+  "id": "sys-kozkb5"
+ },
+ {
+  "voice": "sys",
+  "key": "Tick tock. The Floor {floor} stairwell shuts tonight and {boss} knows it.",
+  "text": "Tick tock. The stairwell shuts tonight, and the boss knows it.",
+  "id": "sys-wmyiim"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. The quests didn't do themselves. We checked.",
+  "text": "Welcome back, crawler. The quests didn't do themselves. We checked.",
+  "id": "sys-gxb592"
+ },
+ {
+  "voice": "sys",
+  "key": "Oh, you're back, crawler. The audience had started a betting pool.",
+  "text": "Oh, you're back, crawler. The audience had started a betting pool.",
+  "id": "sys-1n82s5r"
+ },
+ {
+  "voice": "sys",
+  "key": "And we're live! Welcome back, crawler. Try to look busy.",
+  "text": "And we're live! Welcome back, crawler. Try to look busy.",
+  "id": "sys-swv5i0"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Your quests missed you. Not in a nice way.",
+  "text": "Welcome back, crawler. Your quests missed you. Not in a nice way.",
+  "id": "sys-y0jdmt"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Please keep your hands, feet and excuses inside the dungeon at all times.",
+  "text": "Welcome back, crawler. Please keep your hands, feet and excuses inside the dungeon at all times.",
+  "id": "sys-1ikiqiq"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. The dungeon has been rearranged in your absence. Not really. We just like watching you check.",
+  "text": "Welcome back, crawler. The dungeon has been rearranged in your absence. Not really. We just like watching you check.",
+  "id": "sys-uyheya"
+ },
+ {
+  "voice": "sys",
+  "key": "Look who crawled back. Welcome, crawler. The cameras never stopped rolling.",
+  "text": "Look who crawled back. Welcome, crawler. The cameras never stopped rolling.",
+  "id": "sys-1noza66"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. The mobs have been practicing. You should too.",
+  "text": "Welcome back, crawler. The mobs have been practicing. You should too.",
+  "id": "sys-11lyt80"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Your rivals were hoping you'd stay gone.",
+  "text": "Welcome back, crawler. Your rivals were hoping you'd stay gone.",
+  "id": "sys-kpzok0"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Hydrate, stretch, and try not to die on camera. Dying off camera is worse for ratings.",
+  "text": "Welcome back, crawler. Hydrate, stretch, and try not to die on camera. Dying off camera is worse for ratings.",
+  "id": "sys-ohqcz8"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Your loot is exactly where you left it. Probably. Somebody did ask about it.",
+  "text": "Welcome back, crawler. Your loot is exactly where you left it. Probably. Somebody did ask about it.",
+  "id": "sys-cjeqbo"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. The stairwell clock didn't stop while you were gone. It never does.",
+  "text": "Welcome back, crawler. The stairwell clock didn't stop while you were gone. It never does.",
+  "id": "sys-1alfxx4"
+ },
+ {
+  "voice": "sys",
+  "key": "There you are, crawler. The audience was about to switch to the cooking channel.",
+  "text": "There you are, crawler. The audience was about to switch to the cooking channel.",
+  "id": "sys-1t40wh3"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. We saved your seat. It's a rock. It's a nice rock.",
+  "text": "Welcome back, crawler. We saved your seat. It's a rock. It's a nice rock.",
+  "id": "sys-197y0uc"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Remember: every quest you finish is one the dungeon can't use against you.",
+  "text": "Welcome back, crawler. Remember: every quest you finish is one the dungeon can't use against you.",
+  "id": "sys-fqgjgz"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. The sponsors are watching. Smile. No, not like that.",
+  "text": "Welcome back, crawler. The sponsors are watching. Smile. No, not like that.",
+  "id": "sys-b8a8sp"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Your pet has been staring at the door the whole time. It's fine. It's totally fine.",
+  "text": "Welcome back, crawler. Your pet has been staring at the door the whole time. It's fine. It's totally fine.",
+  "id": "sys-jzr37c"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Today's forecast: quests, with a chance of glory and a strong chance of paperwork.",
+  "text": "Welcome back, crawler. Today's forecast: quests, with a chance of glory and a strong chance of paperwork.",
+  "id": "sys-175jygl"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Chat is already typing. Brace yourself.",
+  "text": "Welcome back, crawler. Chat is already typing. Brace yourself.",
+  "id": "sys-bfmeln"
+ },
+ {
+  "voice": "sys",
+  "key": "Welcome back, crawler. Let's make this one count. Or at least make it entertaining.",
+  "text": "Welcome back, crawler. Let's make this one count. Or at least make it entertaining.",
+  "id": "sys-qerkg"
+ },
+ {
+  "voice": "sys",
+  "key": "It's {time} and you've finished nothing today. Bold strategy. Let's see if it pays off.",
+  "text": "It's getting late, and you've finished nothing today. Bold strategy. Let's see if it pays off.",
+  "id": "sys-1j8zx79"
+ },
+ {
+  "voice": "sys",
+  "key": "{name} cashes in for a real-world prize. Treat yourself. Allegedly, you earned it.",
+  "text": "Our crawler cashes in for a real-world prize. Treat yourself. Allegedly, you earned it.",
+  "id": "sys-1ncazw8"
+ },
+ {
+  "voice": "sys",
+  "key": "A Trash mob quest. Even the rats think this one's easy.",
+  "text": "A Trash mob quest. Even the rats think this one's easy.",
+  "id": "sys-r7ho4p"
+ },
+ {
+  "voice": "sys",
+  "key": "Tiny quest added. Do it now and pretend it was hard.",
+  "text": "Tiny quest added. Do it now and pretend it was hard.",
+  "id": "sys-mj7vlt"
+ },
+ {
+  "voice": "sys",
+  "key": "This one barely counts. We're counting it anyway.",
+  "text": "This one barely counts. We're counting it anyway.",
+  "id": "sys-uyrzrp"
+ },
+ {
+  "voice": "sys",
+  "key": "A Grunt quest. Honest work. Mild glory.",
+  "text": "A Grunt quest. Honest work. Mild glory.",
+  "id": "sys-ia3x5f"
+ },
+ {
+  "voice": "sys",
+  "key": "A small-to-medium quest. The kind that sneaks up and eats your afternoon.",
+  "text": "A small-to-medium quest. The kind that sneaks up and eats your afternoon.",
+  "id": "sys-117z3qg"
+ },
+ {
+  "voice": "sys",
+  "key": "An Elite quest. Now we're talking. Well, you're talking. We're watching.",
+  "text": "An Elite quest. Now we're talking. Well, you're talking. We're watching.",
+  "id": "sys-nl6j3j"
+ },
+ {
+  "voice": "sys",
+  "key": "Elite quest logged. Stretch first. Hydrate. Pretend you're ready.",
+  "text": "Elite quest logged. Stretch first. Hydrate. Pretend you're ready.",
+  "id": "sys-1dbxx0g"
+ },
+ {
+  "voice": "sys",
+  "key": "A Mini-boss! The orchestra has been told to warm up.",
+  "text": "A Mini-boss! The orchestra has been told to warm up.",
+  "id": "sys-m484lq"
+ },
+ {
+  "voice": "sys",
+  "key": "Mini-boss quest added. Bring snacks. Bring backup. Bring a will.",
+  "text": "Mini-boss quest added. Bring snacks. Bring backup. Bring a will.",
+  "id": "sys-d1iilo"
+ },
+ {
+  "voice": "sys",
+  "key": "A Raid boss quest. The audience gasps. One fainted. We're fine.",
+  "text": "A Raid boss quest. The audience gasps. One fainted. We're fine.",
+  "id": "sys-1amzr19"
+ },
+ {
+  "voice": "sys",
+  "key": "Raid boss logged. Sponsors are drafting a victory ad and a memorial ad, just in case.",
+  "text": "Raid boss logged. Sponsors are drafting a victory ad and a memorial ad, just in case.",
+  "id": "sys-szrt8q"
+ },
+ {
+  "voice": "sys",
+  "key": "New quest logged. The System has added it to the list of things you'll think about in the shower.",
+  "text": "New quest logged. The System has added it to the list of things you'll think about in the shower.",
+  "id": "sys-zr1ep7"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest accepted. Your future self has been notified and is already annoyed.",
+  "text": "Quest accepted. Your future self has been notified and is already annoyed.",
+  "id": "sys-50nalb"
+ },
+ {
+  "voice": "sys",
+  "key": "Another one for the board. The board is starting to look like a crime scene.",
+  "text": "Another one for the board. The board is starting to look like a crime scene.",
+  "id": "sys-11f92kt"
+ },
+ {
+  "voice": "sys",
+  "key": "Noted. Filed. Mildly judged.",
+  "text": "Noted. Filed. Mildly judged.",
+  "id": "sys-yveh6z"
+ },
+ {
+  "voice": "sys",
+  "key": "A new quest! The audience leans forward. The audience leans back. The audience checks its phone.",
+  "text": "A new quest! The audience leans forward. The audience leans back. The audience checks its phone.",
+  "id": "sys-1j5uhr3"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest added. Statistically, you will do this. Eventually. Probably.",
+  "text": "Quest added. Statistically, you will do this. Eventually. Probably.",
+  "id": "sys-1p9sddj"
+ },
+ {
+  "voice": "sys",
+  "key": "Congratulations on writing a sentence. The hard part is the rest of it.",
+  "text": "Congratulations on writing a sentence. The hard part is the rest of it.",
+  "id": "sys-1f47qs7"
+ },
+ {
+  "voice": "sys",
+  "key": "The dungeon has received your quest and is laughing in a supportive way.",
+  "text": "The dungeon has received your quest and is laughing in a supportive way.",
+  "id": "sys-qquslu"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest registered. Our lawyers remind you that adding is not doing.",
+  "text": "Quest registered. Our lawyers remind you that adding is not doing.",
+  "id": "sys-32uzcg"
+ },
+ {
+  "voice": "sys",
+  "key": "Fresh quest, still warm. Do it before it goes stale like the others.",
+  "text": "Fresh quest, still warm. Do it before it goes stale like the others.",
+  "id": "sys-l6taxs"
+ },
+ {
+  "voice": "sys",
+  "key": "You've added a quest. Sponsors are cautiously reallocating their ad budget.",
+  "text": "You've added a quest. Sponsors are cautiously reallocating their ad budget.",
+  "id": "sys-euk3xl"
+ },
+ {
+  "voice": "sys",
+  "key": "Ah, ambition. We've seen this episode. Let's see how it ends.",
+  "text": "Ah, ambition. We've seen this episode. Let's see how it ends.",
+  "id": "sys-1qkva3c"
+ },
+ {
+  "voice": "sys",
+  "key": "New objective acquired. Motivation sold separately.",
+  "text": "New objective acquired. Motivation sold separately.",
+  "id": "sys-pp5h2y"
+ },
+ {
+  "voice": "sys",
+  "key": "The quest board groans under the weight of your intentions.",
+  "text": "The quest board groans under the weight of your intentions.",
+  "id": "sys-1e4mr8y"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest added. Somewhere, a goblin just made a bet against you.",
+  "text": "Quest added. Somewhere, a goblin just made a bet against you.",
+  "id": "sys-xxtwx5"
+ },
+ {
+  "voice": "sys",
+  "key": "Bold move, writing it down where everyone can see.",
+  "text": "Bold move, writing it down where everyone can see.",
+  "id": "sys-tvapyz"
+ },
+ {
+  "voice": "sys",
+  "key": "Logged. The System has rated this quest's difficulty as: you.",
+  "text": "Logged. The System has rated this quest's difficulty as: you.",
+  "id": "sys-15mibkv"
+ },
+ {
+  "voice": "sys",
+  "key": "Your to-do list grows stronger. It feeds on hesitation.",
+  "text": "Your to-do list grows stronger. It feeds on hesitation.",
+  "id": "sys-lhgkx2"
+ },
+ {
+  "voice": "sys",
+  "key": "One more quest. The crowd chants your name. Mispronounced, but still.",
+  "text": "One more quest. The crowd chants your name. Mispronounced, but still.",
+  "id": "sys-kp52gm"
+ },
+ {
+  "voice": "sys",
+  "key": "Added. The producers have started a countdown. Nobody told them to stop.",
+  "text": "Added. The producers have started a countdown. Nobody told them to stop.",
+  "id": "sys-1vbrxbn"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest accepted. Please keep your hands and your procrastination inside the dungeon at all times.",
+  "text": "Quest accepted. Please keep your hands and your procrastination inside the dungeon at all times.",
+  "id": "sys-109b0g1"
+ },
+ {
+  "voice": "sys",
+  "key": "Excellent planning. Execution is a premium feature.",
+  "text": "Excellent planning. Execution is a premium feature.",
+  "id": "sys-2ht5bc"
+ },
+ {
+  "voice": "sys",
+  "key": "Filed just above the quest you've been ignoring since Tuesday.",
+  "text": "Filed just above the quest you've been ignoring since Tuesday.",
+  "id": "sys-pse2fa"
+ },
+ {
+  "voice": "sys",
+  "key": "New quest! The viewers at home are already clipping your inevitable struggle.",
+  "text": "New quest! The viewers at home are already clipping your inevitable struggle.",
+  "id": "sys-p1y1xx"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest received. Processing. Judging. Done.",
+  "text": "Quest received. Processing. Judging. Done.",
+  "id": "sys-1nos533"
+ },
+ {
+  "voice": "sys",
+  "key": "That's going on the board. The board says hi. The board says finally.",
+  "text": "That's going on the board. The board says hi. The board says finally.",
+  "id": "sys-164likq"
+ },
+ {
+  "voice": "sys",
+  "key": "The loot goblins have opened a betting pool on when you'll finish this.",
+  "text": "The loot goblins have opened a betting pool on when you'll finish this.",
+  "id": "sys-1lem0lv"
+ },
+ {
+  "voice": "sys",
+  "key": "A quest has entered the arena. It looks nervous. So do you.",
+  "text": "A quest has entered the arena. It looks nervous. So do you.",
+  "id": "sys-1yjsfw0"
+ },
+ {
+  "voice": "sys",
+  "key": "Written down, which means it's real now. Sorry.",
+  "text": "Written down, which means it's real now. Sorry.",
+  "id": "sys-1ogovod"
+ },
+ {
+  "voice": "sys",
+  "key": "The System appreciates your optimism. The System has seen your history.",
+  "text": "The System appreciates your optimism. The System has seen your history.",
+  "id": "sys-1qz5uzh"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest added. Our analysts give it a fighting chance. Our analysts are paid to be nice.",
+  "text": "Quest added. Our analysts give it a fighting chance. Our analysts are paid to be nice.",
+  "id": "sys-1uerno3"
+ },
+ {
+  "voice": "sys",
+  "key": "Another task for the pile. The pile thanks you for your continued support.",
+  "text": "Another task for the pile. The pile thanks you for your continued support.",
+  "id": "sys-sj2oia"
+ },
+ {
+  "voice": "sys",
+  "key": "\"{title}\". Gripping. Truly the stuff of legend.",
+  "text": "That quest name. Gripping. Truly the stuff of legend.",
+  "id": "sys-1flwa1a"
+ },
+ {
+  "voice": "sys",
+  "key": "\"{title}\" has been added. The bards are already struggling to rhyme it.",
+  "text": "Your new quest has been added. The bards are already struggling to rhyme it.",
+  "id": "sys-22mdln"
+ },
+ {
+  "voice": "sys",
+  "key": "\"{title}\"? The dungeon has seen worse. Not much worse, but worse.",
+  "text": "That quest? The dungeon has seen worse. Not much worse, but worse.",
+  "id": "sys-10kpwk3"
+ },
+ {
+  "voice": "sys",
+  "key": "\"{title}\". Our writers couldn't have come up with that. They tried.",
+  "text": "That quest. Our writers couldn't have come up with it. They tried.",
+  "id": "sys-6zwwwp"
+ },
+ {
+  "voice": "sys",
+  "key": "Breaking: {name} vows to \"{title}\". Experts are cautiously unimpressed.",
+  "text": "Breaking: our crawler has made a vow. Experts are cautiously unimpressed.",
+  "id": "sys-1tpj901"
+ },
+ {
+  "voice": "sys",
+  "key": "\"{title}\" is on the board. It's staring at you. Stare back. Then do it.",
+  "text": "It's on the board now. It's staring at you. Stare back. Then do it.",
+  "id": "sys-13h6t85"
+ },
+ {
+  "voice": "sys",
+  "key": "Due today? Oh, we love a deadline. Nothing sells like panic.",
+  "text": "Due today? Oh, we love a deadline. Nothing sells like panic.",
+  "id": "sys-6v3blb"
+ },
+ {
+  "voice": "sys",
+  "key": "Due today. The clock just started ticking louder. That's not us. That's you.",
+  "text": "Due today. The clock just started ticking louder. That's not us. That's you.",
+  "id": "sys-6vk3jo"
+ },
+ {
+  "voice": "sys",
+  "key": "A repeating quest. Congratulations, you've invented a chore.",
+  "text": "A repeating quest. Congratulations, you've invented a chore.",
+  "id": "sys-1eqg1x2"
+ },
+ {
+  "voice": "sys",
+  "key": "This one comes back. Like a sequel nobody asked for.",
+  "text": "This one comes back. Like a sequel nobody asked for.",
+  "id": "sys-1mocli6"
+ },
+ {
+  "voice": "sys",
+  "key": "Recurring quest added. See you again soon. And again. And again.",
+  "text": "Recurring quest added. See you again soon. And again. And again.",
+  "id": "sys-1f3n6yn"
+ },
+ {
+  "voice": "sys",
+  "key": "Adding quests at this hour? The night shift salutes you.",
+  "text": "Adding quests at this hour? The night shift salutes you.",
+  "id": "sys-yij8km"
+ },
+ {
+  "voice": "sys",
+  "key": "Planning at midnight. A bold strategy. It rarely works. We love it.",
+  "text": "Planning at midnight. A bold strategy. It rarely works. We love it.",
+  "id": "sys-1tufq6b"
+ },
+ {
+  "voice": "sys",
+  "key": "{open} open quests. At this point the board is a lifestyle.",
+  "text": "That many open quests? At this point, the board is a lifestyle.",
+  "id": "sys-h7gqag"
+ },
+ {
+  "voice": "sys",
+  "key": "Quest number {open}. The board is applying for its own zip code.",
+  "text": "Another quest. The board is applying for its own zip code.",
+  "id": "sys-7fk3tw"
+ },
+ {
+  "voice": "sys",
+  "key": "That's {adds} quests added today. Adding them is not the same as doing them. We checked.",
+  "text": "That's a lot of quests added today. Adding them is not the same as doing them. We checked.",
+  "id": "sys-1o26s5x"
+ },
+ {
+  "voice": "sys",
+  "key": "The announcer is live. Try not to embarrass yourself.",
+  "text": "The announcer is live. Try not to embarrass yourself.",
+  "id": "sys-1lgzvw3"
+ },
+ {
+  "voice": "chet",
+  "key": "Folks, you know them, you tolerate them, it's {name}!",
+  "text": "Folks, you know them, you tolerate them, it's our next crawler!",
+  "id": "chet-1ovcksq"
+ },
+ {
+  "voice": "chet",
+  "key": "Please welcome a crawler who is, legally, still alive: {name}!",
+  "text": "Please welcome a crawler who is, legally, still alive!",
+  "id": "chet-1nebsp"
+ },
+ {
+  "voice": "chet",
+  "key": "Our next guest has done several things. Some on purpose. {name}!",
+  "text": "Our next guest has done several things. Some on purpose. Welcome, crawler!",
+  "id": "chet-pd9s4y"
+ },
+ {
+  "voice": "chet",
+  "key": "So here's my challenge, and I say this with love and a contract: {goal} by {due}. On live TV. Yes?",
+  "text": "So here's my challenge, and I say this with love and a contract. The goal's on your screen, and so is the deadline. On live TV. Yes?",
+  "id": "chet-1ctg3ba"
+ },
+ {
+  "voice": "chet",
+  "key": "Ha! Love it. The audience loves it. Mostly the audience.",
+  "text": "Ha! Love it. The audience loves it. Mostly the audience.",
+  "id": "chet-1i1elv0"
+ },
+ {
+  "voice": "chet",
+  "key": "That's going straight into the promo reel.",
+  "text": "That's going straight into the promo reel.",
+  "id": "chet-1enceh6"
+ },
+ {
+  "voice": "chet",
+  "key": "Smooth. Suspiciously smooth.",
+  "text": "Smooth. Suspiciously smooth.",
+  "id": "chet-1k89krl"
+ },
+ {
+  "voice": "chet",
+  "key": "Oof. We'll cut that. We won't, but we'll say we will.",
+  "text": "Oof. We'll cut that. We won't, but we'll say we will.",
+  "id": "chet-kj4if"
+ },
+ {
+  "voice": "chet",
+  "key": "The silence you're hearing is the audience reconsidering.",
+  "text": "The silence you're hearing is the audience reconsidering.",
+  "id": "chet-h22crd"
+ },
+ {
+  "voice": "chet",
+  "key": "Let's go to commercial. Emotionally.",
+  "text": "Let's go to commercial. Emotionally.",
+  "id": "chet-q24n5a"
+ },
+ {
+  "voice": "chet",
+  "key": "That one quest has been overdue for a while now. Walk us through that.",
+  "text": "That one quest has been overdue for a while now. Walk us through that.",
+  "id": "chet-9h5j12"
+ },
+ {
+  "voice": "chet",
+  "key": "So many overdue quests on your board. Is that a strategy, or a cry for help?",
+  "text": "So many overdue quests on your board. Is that a strategy, or a cry for help?",
+  "id": "chet-7djclp"
+ },
+ {
+  "voice": "chet",
+  "key": "Look at that streak! How do you stay so consistent?",
+  "text": "Look at that streak! How do you stay so consistent?",
+  "id": "chet-lpjo47"
+ },
+ {
+  "voice": "chet",
+  "key": "Be honest. Is your pet the real star of your show?",
+  "text": "Be honest. Is your pet the real star of your show?",
+  "id": "chet-1rry6v8"
+ },
+ {
+  "voice": "chet",
+  "key": "You and your pet are getting close. Are you two... exclusive?",
+  "text": "You and your pet are getting close. Are you two... exclusive?",
+  "id": "chet-nqytpj"
+ },
+ {
+  "voice": "chet",
+  "key": "Let's talk fashion. That weapon: statement piece, or cry for help?",
+  "text": "Let's talk fashion. That weapon: statement piece, or cry for help?",
+  "id": "chet-pg3t8y"
+ },
+ {
+  "voice": "chet",
+  "key": "Who dressed you? That armor is getting a lot of chatter.",
+  "text": "Who dressed you? That armor is getting a lot of chatter.",
+  "id": "chet-1gsuh9z"
+ },
+ {
+  "voice": "chet",
+  "key": "Still in the jeans and the stained T-shirt. Is that a look?",
+  "text": "Still in the jeans and the stained T-shirt. Is that a look?",
+  "id": "chet-o3xubt"
+ },
+ {
+  "voice": "chet",
+  "key": "That many quests in a single day? Walk me through that game plan.",
+  "text": "That many quests in a single day? Walk me through that game plan.",
+  "id": "chet-e7u9sv"
+ },
+ {
+  "voice": "chet",
+  "key": "Look at your rank this floor. What's the gap between you and number one?",
+  "text": "Look at your rank this floor. What's the gap between you and number one?",
+  "id": "chet-12wriuz"
+ },
+ {
+  "voice": "chet",
+  "key": "Your biggest hit this week. Was that the plan all along?",
+  "text": "Your biggest hit this week. Was that the plan all along?",
+  "id": "chet-r2q43r"
+ },
+ {
+  "voice": "chet",
+  "key": "Quiet week on the board. Are you saving yourself for the big moments?",
+  "text": "Quiet week on the board. Are you saving yourself for the big moments?",
+  "id": "chet-wb3p6x"
+ },
+ {
+  "voice": "chet",
+  "key": "Your best stat is way ahead of your worst one. Is that a weakness?",
+  "text": "Your best stat is way ahead of your worst one. Is that a weakness?",
+  "id": "chet-8jdgmt"
+ },
+ {
+  "voice": "chet",
+  "key": "Another level, and still going. What keeps you crawling?",
+  "text": "Another level, and still going. What keeps you crawling?",
+  "id": "chet-1cvclro"
+ },
+ {
+  "voice": "chet",
+  "key": "There's a boss waiting for you right now. Any message for them?",
+  "text": "There's a boss waiting for you right now. Any message for them?",
+  "id": "chet-15c0ptz"
+ },
+ {
+  "voice": "chet",
+  "key": "You've been knocked out before. Do you think about it?",
+  "text": "You've been knocked out before. Do you think about it?",
+  "id": "chet-t8y7zp"
+ },
+ {
+  "voice": "chet",
+  "key": "You've abandoned a few quests. Commitment issues?",
+  "text": "You've abandoned a few quests. Commitment issues?",
+  "id": "chet-1ce06ua"
+ },
+ {
+  "voice": "chet",
+  "key": "Look at all those finished quests! What's the secret?",
+  "text": "Look at all those finished quests! What's the secret?",
+  "id": "chet-1m0l0ir"
+ },
+ {
+  "voice": "chet",
+  "key": "That race and class combo! The fans have opinions. Any regrets?",
+  "text": "That race and class combo! The fans have opinions. Any regrets?",
+  "id": "chet-klcn32"
+ },
+ {
+  "voice": "chet",
+  "key": "All those achievements. Do you even look at them anymore?",
+  "text": "All those achievements. Do you even look at them anymore?",
+  "id": "chet-yikybb"
+ },
+ {
+  "voice": "chet",
+  "key": "You're sitting on a pile of gold. Any big purchases planned?",
+  "text": "You're sitting on a pile of gold. Any big purchases planned?",
+  "id": "chet-ev0rz2"
+ },
+ {
+  "voice": "chet",
+  "key": "Look at all those quests on the board right now! How do you decide what to do first?",
+  "text": "Look at all those quests on the board right now! How do you decide what to do first?",
+  "id": "chet-ed91f0"
+ },
+ {
+  "voice": "chet",
+  "key": "All those viewers tuned in. Does the pressure get to you?",
+  "text": "All those viewers tuned in. Does the pressure get to you?",
+  "id": "chet-v0h695"
+ },
+ {
+  "voice": "chet",
+  "key": "Look how deep you've crawled. Where do you see yourself in five floors?",
+  "text": "Look how deep you've crawled. Where do you see yourself in five floors?",
+  "id": "chet-b7bhc5"
+ },
+ {
+  "voice": "marla",
+  "key": "Good morning! Today's tea is piping hot and it is {name}!",
+  "text": "Good morning! Today's tea is piping hot, and it is our crawler!",
+  "id": "marla-o3tpew"
+ },
+ {
+  "voice": "dex",
+  "key": "Good morning! Today's tea is piping hot and it is {name}!",
+  "text": "Good morning! Today's tea is piping hot, and it is our crawler!",
+  "id": "dex-o3tpew"
+ },
+ {
+  "voice": "marla",
+  "key": "Dex, look who finally said yes to us! {name}, everybody!",
+  "text": "Dex, look who finally said yes to us! Our crawler, everybody!",
+  "id": "marla-188tc81"
+ },
+ {
+  "voice": "marla",
+  "key": "Grab your coffee, we've got {name} on the couch!",
+  "text": "Grab your coffee, we've got a crawler on the couch!",
+  "id": "marla-vtlfyq"
+ },
+ {
+  "voice": "dex",
+  "key": "Grab your coffee, we've got {name} on the couch!",
+  "text": "Grab your coffee, we've got a crawler on the couch!",
+  "id": "dex-vtlfyq"
+ },
+ {
+  "voice": "marla",
+  "key": "Okay, okay, before we let you go: {goal} by {due}. Pinky promise, on air. Deal?",
+  "text": "Okay, okay, before we let you go. That goal, by that date. Pinky promise, on air. Deal?",
+  "id": "marla-5ge6ks"
+ },
+ {
+  "voice": "dex",
+  "key": "Okay, okay, before we let you go: {goal} by {due}. Pinky promise, on air. Deal?",
+  "text": "Okay, okay, before we let you go. That goal, by that date. Pinky promise, on air. Deal?",
+  "id": "dex-5ge6ks"
+ },
+ {
+  "voice": "marla",
+  "key": "Dex is literally clapping. Dex never claps.",
+  "text": "Dex is literally clapping. Dex never claps.",
+  "id": "marla-12nkcww"
+ },
+ {
+  "voice": "marla",
+  "key": "Oh, that's going in the group chat.",
+  "text": "Oh, that's going in the group chat.",
+  "id": "marla-t1elwa"
+ },
+ {
+  "voice": "dex",
+  "key": "Oh, that's going in the group chat.",
+  "text": "Oh, that's going in the group chat.",
+  "id": "dex-t1elwa"
+ },
+ {
+  "voice": "marla",
+  "key": "We stan an honest crawler. Or a liar with confidence.",
+  "text": "We stan an honest crawler. Or a liar with confidence.",
+  "id": "marla-ts2hk7"
+ },
+ {
+  "voice": "dex",
+  "key": "We stan an honest crawler. Or a liar with confidence.",
+  "text": "We stan an honest crawler. Or a liar with confidence.",
+  "id": "dex-ts2hk7"
+ },
+ {
+  "voice": "dex",
+  "key": "...Marla, I don't think they meant that as a joke.",
+  "text": "...Marla, I don't think they meant that as a joke.",
+  "id": "dex-5iswxp"
+ },
+ {
+  "voice": "marla",
+  "key": "We'll be discussing that one tomorrow. And the day after.",
+  "text": "We'll be discussing that one tomorrow. And the day after.",
+  "id": "marla-1braied"
+ },
+ {
+  "voice": "dex",
+  "key": "We'll be discussing that one tomorrow. And the day after.",
+  "text": "We'll be discussing that one tomorrow. And the day after.",
+  "id": "dex-1braied"
+ },
+ {
+  "voice": "marla",
+  "key": "Yikes. Respectfully. Yikes.",
+  "text": "Yikes. Respectfully. Yikes.",
+  "id": "marla-oqp2ah"
+ },
+ {
+  "voice": "dex",
+  "key": "Yikes. Respectfully. Yikes.",
+  "text": "Yikes. Respectfully. Yikes.",
+  "id": "dex-oqp2ah"
+ },
+ {
+  "voice": "marla",
+  "key": "That one quest has been overdue for a while now. Walk us through that.",
+  "text": "That one quest has been overdue for a while now. Walk us through that.",
+  "id": "marla-9h5j12"
+ },
+ {
+  "voice": "dex",
+  "key": "That one quest has been overdue for a while now. Walk us through that.",
+  "text": "That one quest has been overdue for a while now. Walk us through that.",
+  "id": "dex-9h5j12"
+ },
+ {
+  "voice": "marla",
+  "key": "So many overdue quests on your board. Is that a strategy, or a cry for help?",
+  "text": "So many overdue quests on your board. Is that a strategy, or a cry for help?",
+  "id": "marla-7djclp"
+ },
+ {
+  "voice": "dex",
+  "key": "So many overdue quests on your board. Is that a strategy, or a cry for help?",
+  "text": "So many overdue quests on your board. Is that a strategy, or a cry for help?",
+  "id": "dex-7djclp"
+ },
+ {
+  "voice": "marla",
+  "key": "Look at that streak! How do you stay so consistent?",
+  "text": "Look at that streak! How do you stay so consistent?",
+  "id": "marla-lpjo47"
+ },
+ {
+  "voice": "dex",
+  "key": "Look at that streak! How do you stay so consistent?",
+  "text": "Look at that streak! How do you stay so consistent?",
+  "id": "dex-lpjo47"
+ },
+ {
+  "voice": "marla",
+  "key": "Be honest. Is your pet the real star of your show?",
+  "text": "Be honest. Is your pet the real star of your show?",
+  "id": "marla-1rry6v8"
+ },
+ {
+  "voice": "dex",
+  "key": "Be honest. Is your pet the real star of your show?",
+  "text": "Be honest. Is your pet the real star of your show?",
+  "id": "dex-1rry6v8"
+ },
+ {
+  "voice": "marla",
+  "key": "You and your pet are getting close. Are you two... exclusive?",
+  "text": "You and your pet are getting close. Are you two... exclusive?",
+  "id": "marla-nqytpj"
+ },
+ {
+  "voice": "dex",
+  "key": "You and your pet are getting close. Are you two... exclusive?",
+  "text": "You and your pet are getting close. Are you two... exclusive?",
+  "id": "dex-nqytpj"
+ },
+ {
+  "voice": "marla",
+  "key": "Let's talk fashion. That weapon: statement piece, or cry for help?",
+  "text": "Let's talk fashion. That weapon: statement piece, or cry for help?",
+  "id": "marla-pg3t8y"
+ },
+ {
+  "voice": "dex",
+  "key": "Let's talk fashion. That weapon: statement piece, or cry for help?",
+  "text": "Let's talk fashion. That weapon: statement piece, or cry for help?",
+  "id": "dex-pg3t8y"
+ },
+ {
+  "voice": "marla",
+  "key": "Who dressed you? That armor is getting a lot of chatter.",
+  "text": "Who dressed you? That armor is getting a lot of chatter.",
+  "id": "marla-1gsuh9z"
+ },
+ {
+  "voice": "dex",
+  "key": "Who dressed you? That armor is getting a lot of chatter.",
+  "text": "Who dressed you? That armor is getting a lot of chatter.",
+  "id": "dex-1gsuh9z"
+ },
+ {
+  "voice": "marla",
+  "key": "Still in the jeans and the stained T-shirt. Is that a look?",
+  "text": "Still in the jeans and the stained T-shirt. Is that a look?",
+  "id": "marla-o3xubt"
+ },
+ {
+  "voice": "dex",
+  "key": "Still in the jeans and the stained T-shirt. Is that a look?",
+  "text": "Still in the jeans and the stained T-shirt. Is that a look?",
+  "id": "dex-o3xubt"
+ },
+ {
+  "voice": "marla",
+  "key": "That many quests in a single day? Walk me through that game plan.",
+  "text": "That many quests in a single day? Walk me through that game plan.",
+  "id": "marla-e7u9sv"
+ },
+ {
+  "voice": "dex",
+  "key": "That many quests in a single day? Walk me through that game plan.",
+  "text": "That many quests in a single day? Walk me through that game plan.",
+  "id": "dex-e7u9sv"
+ },
+ {
+  "voice": "marla",
+  "key": "Look at your rank this floor. What's the gap between you and number one?",
+  "text": "Look at your rank this floor. What's the gap between you and number one?",
+  "id": "marla-12wriuz"
+ },
+ {
+  "voice": "dex",
+  "key": "Look at your rank this floor. What's the gap between you and number one?",
+  "text": "Look at your rank this floor. What's the gap between you and number one?",
+  "id": "dex-12wriuz"
+ },
+ {
+  "voice": "marla",
+  "key": "Your biggest hit this week. Was that the plan all along?",
+  "text": "Your biggest hit this week. Was that the plan all along?",
+  "id": "marla-r2q43r"
+ },
+ {
+  "voice": "dex",
+  "key": "Your biggest hit this week. Was that the plan all along?",
+  "text": "Your biggest hit this week. Was that the plan all along?",
+  "id": "dex-r2q43r"
+ },
+ {
+  "voice": "marla",
+  "key": "Quiet week on the board. Are you saving yourself for the big moments?",
+  "text": "Quiet week on the board. Are you saving yourself for the big moments?",
+  "id": "marla-wb3p6x"
+ },
+ {
+  "voice": "dex",
+  "key": "Quiet week on the board. Are you saving yourself for the big moments?",
+  "text": "Quiet week on the board. Are you saving yourself for the big moments?",
+  "id": "dex-wb3p6x"
+ },
+ {
+  "voice": "marla",
+  "key": "Your best stat is way ahead of your worst one. Is that a weakness?",
+  "text": "Your best stat is way ahead of your worst one. Is that a weakness?",
+  "id": "marla-8jdgmt"
+ },
+ {
+  "voice": "dex",
+  "key": "Your best stat is way ahead of your worst one. Is that a weakness?",
+  "text": "Your best stat is way ahead of your worst one. Is that a weakness?",
+  "id": "dex-8jdgmt"
+ },
+ {
+  "voice": "marla",
+  "key": "Another level, and still going. What keeps you crawling?",
+  "text": "Another level, and still going. What keeps you crawling?",
+  "id": "marla-1cvclro"
+ },
+ {
+  "voice": "dex",
+  "key": "Another level, and still going. What keeps you crawling?",
+  "text": "Another level, and still going. What keeps you crawling?",
+  "id": "dex-1cvclro"
+ },
+ {
+  "voice": "marla",
+  "key": "There's a boss waiting for you right now. Any message for them?",
+  "text": "There's a boss waiting for you right now. Any message for them?",
+  "id": "marla-15c0ptz"
+ },
+ {
+  "voice": "dex",
+  "key": "There's a boss waiting for you right now. Any message for them?",
+  "text": "There's a boss waiting for you right now. Any message for them?",
+  "id": "dex-15c0ptz"
+ },
+ {
+  "voice": "marla",
+  "key": "You've been knocked out before. Do you think about it?",
+  "text": "You've been knocked out before. Do you think about it?",
+  "id": "marla-t8y7zp"
+ },
+ {
+  "voice": "dex",
+  "key": "You've been knocked out before. Do you think about it?",
+  "text": "You've been knocked out before. Do you think about it?",
+  "id": "dex-t8y7zp"
+ },
+ {
+  "voice": "marla",
+  "key": "You've abandoned a few quests. Commitment issues?",
+  "text": "You've abandoned a few quests. Commitment issues?",
+  "id": "marla-1ce06ua"
+ },
+ {
+  "voice": "dex",
+  "key": "You've abandoned a few quests. Commitment issues?",
+  "text": "You've abandoned a few quests. Commitment issues?",
+  "id": "dex-1ce06ua"
+ },
+ {
+  "voice": "marla",
+  "key": "Look at all those finished quests! What's the secret?",
+  "text": "Look at all those finished quests! What's the secret?",
+  "id": "marla-1m0l0ir"
+ },
+ {
+  "voice": "dex",
+  "key": "Look at all those finished quests! What's the secret?",
+  "text": "Look at all those finished quests! What's the secret?",
+  "id": "dex-1m0l0ir"
+ },
+ {
+  "voice": "marla",
+  "key": "That race and class combo! The fans have opinions. Any regrets?",
+  "text": "That race and class combo! The fans have opinions. Any regrets?",
+  "id": "marla-klcn32"
+ },
+ {
+  "voice": "dex",
+  "key": "That race and class combo! The fans have opinions. Any regrets?",
+  "text": "That race and class combo! The fans have opinions. Any regrets?",
+  "id": "dex-klcn32"
+ },
+ {
+  "voice": "marla",
+  "key": "All those achievements. Do you even look at them anymore?",
+  "text": "All those achievements. Do you even look at them anymore?",
+  "id": "marla-yikybb"
+ },
+ {
+  "voice": "dex",
+  "key": "All those achievements. Do you even look at them anymore?",
+  "text": "All those achievements. Do you even look at them anymore?",
+  "id": "dex-yikybb"
+ },
+ {
+  "voice": "marla",
+  "key": "You're sitting on a pile of gold. Any big purchases planned?",
+  "text": "You're sitting on a pile of gold. Any big purchases planned?",
+  "id": "marla-ev0rz2"
+ },
+ {
+  "voice": "dex",
+  "key": "You're sitting on a pile of gold. Any big purchases planned?",
+  "text": "You're sitting on a pile of gold. Any big purchases planned?",
+  "id": "dex-ev0rz2"
+ },
+ {
+  "voice": "marla",
+  "key": "Look at all those quests on the board right now! How do you decide what to do first?",
+  "text": "Look at all those quests on the board right now! How do you decide what to do first?",
+  "id": "marla-ed91f0"
+ },
+ {
+  "voice": "dex",
+  "key": "Look at all those quests on the board right now! How do you decide what to do first?",
+  "text": "Look at all those quests on the board right now! How do you decide what to do first?",
+  "id": "dex-ed91f0"
+ },
+ {
+  "voice": "marla",
+  "key": "All those viewers tuned in. Does the pressure get to you?",
+  "text": "All those viewers tuned in. Does the pressure get to you?",
+  "id": "marla-v0h695"
+ },
+ {
+  "voice": "dex",
+  "key": "All those viewers tuned in. Does the pressure get to you?",
+  "text": "All those viewers tuned in. Does the pressure get to you?",
+  "id": "dex-v0h695"
+ },
+ {
+  "voice": "marla",
+  "key": "Look how deep you've crawled. Where do you see yourself in five floors?",
+  "text": "Look how deep you've crawled. Where do you see yourself in five floors?",
+  "id": "marla-b7bhc5"
+ },
+ {
+  "voice": "dex",
+  "key": "Look how deep you've crawled. Where do you see yourself in five floors?",
+  "text": "Look how deep you've crawled. Where do you see yourself in five floors?",
+  "id": "dex-b7bhc5"
+ },
+ {
+  "voice": "coach",
+  "key": "Welcome to Crawl Center. I've got the tape, I've got the numbers, and I've got {name}.",
+  "text": "Welcome to Crawl Center. I've got the tape, I've got the numbers, and I've got a crawler.",
+  "id": "coach-97n4ct"
+ },
+ {
+  "voice": "coach",
+  "key": "Let's break down the film with the crawler herself or himself or themselves: {name}!",
+  "text": "Let's break down the film with the crawler herself, or himself, or themselves!",
+  "id": "coach-1d8srhq"
+ },
+ {
+  "voice": "coach",
+  "key": "Here's a crawler with stats. Some of them good. {name}, welcome.",
+  "text": "Here's a crawler with stats. Some of them good. Welcome.",
+  "id": "coach-hz0zqy"
+ },
+ {
+  "voice": "coach",
+  "key": "Here's what I want to see this week: {goal} by {due}. I'll be watching the tape. Commit?",
+  "text": "Here's what I want to see this week. That goal, by that date. I'll be watching the tape. Commit?",
+  "id": "coach-p2rs79"
+ },
+ {
+  "voice": "coach",
+  "key": "That's a winner's answer. I'm writing it on the whiteboard.",
+  "text": "That's a winner's answer. I'm writing it on the whiteboard.",
+  "id": "coach-17jrker"
+ },
+ {
+  "voice": "coach",
+  "key": "Now THAT is some fundamentals talk.",
+  "text": "Now THAT is some fundamentals talk.",
+  "id": "coach-pxnr34"
+ },
+ {
+  "voice": "coach",
+  "key": "Good. Put that in the playbook.",
+  "text": "Good. Put that in the playbook.",
+  "id": "coach-1m3wma7"
+ },
+ {
+  "voice": "coach",
+  "key": "That's a turnover. Right there. Turnover.",
+  "text": "That's a turnover. Right there. Turnover.",
+  "id": "coach-k51dz"
+ },
+ {
+  "voice": "coach",
+  "key": "I'd bench you for that answer if I could.",
+  "text": "I'd bench you for that answer if I could.",
+  "id": "coach-m6scjt"
+ },
+ {
+  "voice": "coach",
+  "key": "Back to the film room with you.",
+  "text": "Back to the film room with you.",
+  "id": "coach-o7hl9u"
+ },
+ {
+  "voice": "coach",
+  "key": "That one quest has been overdue for a while now. Walk us through that.",
+  "text": "That one quest has been overdue for a while now. Walk us through that.",
+  "id": "coach-9h5j12"
+ },
+ {
+  "voice": "coach",
+  "key": "So many overdue quests on your board. Is that a strategy, or a cry for help?",
+  "text": "So many overdue quests on your board. Is that a strategy, or a cry for help?",
+  "id": "coach-7djclp"
+ },
+ {
+  "voice": "coach",
+  "key": "Look at that streak! How do you stay so consistent?",
+  "text": "Look at that streak! How do you stay so consistent?",
+  "id": "coach-lpjo47"
+ },
+ {
+  "voice": "coach",
+  "key": "Be honest. Is your pet the real star of your show?",
+  "text": "Be honest. Is your pet the real star of your show?",
+  "id": "coach-1rry6v8"
+ },
+ {
+  "voice": "coach",
+  "key": "You and your pet are getting close. Are you two... exclusive?",
+  "text": "You and your pet are getting close. Are you two... exclusive?",
+  "id": "coach-nqytpj"
+ },
+ {
+  "voice": "coach",
+  "key": "Let's talk fashion. That weapon: statement piece, or cry for help?",
+  "text": "Let's talk fashion. That weapon: statement piece, or cry for help?",
+  "id": "coach-pg3t8y"
+ },
+ {
+  "voice": "coach",
+  "key": "Who dressed you? That armor is getting a lot of chatter.",
+  "text": "Who dressed you? That armor is getting a lot of chatter.",
+  "id": "coach-1gsuh9z"
+ },
+ {
+  "voice": "coach",
+  "key": "Still in the jeans and the stained T-shirt. Is that a look?",
+  "text": "Still in the jeans and the stained T-shirt. Is that a look?",
+  "id": "coach-o3xubt"
+ },
+ {
+  "voice": "coach",
+  "key": "That many quests in a single day? Walk me through that game plan.",
+  "text": "That many quests in a single day? Walk me through that game plan.",
+  "id": "coach-e7u9sv"
+ },
+ {
+  "voice": "coach",
+  "key": "Look at your rank this floor. What's the gap between you and number one?",
+  "text": "Look at your rank this floor. What's the gap between you and number one?",
+  "id": "coach-12wriuz"
+ },
+ {
+  "voice": "coach",
+  "key": "Your biggest hit this week. Was that the plan all along?",
+  "text": "Your biggest hit this week. Was that the plan all along?",
+  "id": "coach-r2q43r"
+ },
+ {
+  "voice": "coach",
+  "key": "Quiet week on the board. Are you saving yourself for the big moments?",
+  "text": "Quiet week on the board. Are you saving yourself for the big moments?",
+  "id": "coach-wb3p6x"
+ },
+ {
+  "voice": "coach",
+  "key": "Your best stat is way ahead of your worst one. Is that a weakness?",
+  "text": "Your best stat is way ahead of your worst one. Is that a weakness?",
+  "id": "coach-8jdgmt"
+ },
+ {
+  "voice": "coach",
+  "key": "Another level, and still going. What keeps you crawling?",
+  "text": "Another level, and still going. What keeps you crawling?",
+  "id": "coach-1cvclro"
+ },
+ {
+  "voice": "coach",
+  "key": "There's a boss waiting for you right now. Any message for them?",
+  "text": "There's a boss waiting for you right now. Any message for them?",
+  "id": "coach-15c0ptz"
+ },
+ {
+  "voice": "coach",
+  "key": "You've been knocked out before. Do you think about it?",
+  "text": "You've been knocked out before. Do you think about it?",
+  "id": "coach-t8y7zp"
+ },
+ {
+  "voice": "coach",
+  "key": "You've abandoned a few quests. Commitment issues?",
+  "text": "You've abandoned a few quests. Commitment issues?",
+  "id": "coach-1ce06ua"
+ },
+ {
+  "voice": "coach",
+  "key": "Look at all those finished quests! What's the secret?",
+  "text": "Look at all those finished quests! What's the secret?",
+  "id": "coach-1m0l0ir"
+ },
+ {
+  "voice": "coach",
+  "key": "That race and class combo! The fans have opinions. Any regrets?",
+  "text": "That race and class combo! The fans have opinions. Any regrets?",
+  "id": "coach-klcn32"
+ },
+ {
+  "voice": "coach",
+  "key": "All those achievements. Do you even look at them anymore?",
+  "text": "All those achievements. Do you even look at them anymore?",
+  "id": "coach-yikybb"
+ },
+ {
+  "voice": "coach",
+  "key": "You're sitting on a pile of gold. Any big purchases planned?",
+  "text": "You're sitting on a pile of gold. Any big purchases planned?",
+  "id": "coach-ev0rz2"
+ },
+ {
+  "voice": "coach",
+  "key": "Look at all those quests on the board right now! How do you decide what to do first?",
+  "text": "Look at all those quests on the board right now! How do you decide what to do first?",
+  "id": "coach-ed91f0"
+ },
+ {
+  "voice": "coach",
+  "key": "All those viewers tuned in. Does the pressure get to you?",
+  "text": "All those viewers tuned in. Does the pressure get to you?",
+  "id": "coach-v0h695"
+ },
+ {
+  "voice": "coach",
+  "key": "Look how deep you've crawled. Where do you see yourself in five floors?",
+  "text": "Look how deep you've crawled. Where do you see yourself in five floors?",
+  "id": "coach-b7bhc5"
+ }
+]
