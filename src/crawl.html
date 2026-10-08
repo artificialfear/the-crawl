@@ -1039,6 +1039,9 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .pt-mlist{display:flex;flex-direction:column;gap:6px}
 .pt-mrow{display:grid;grid-template-columns:46px minmax(0,1fr);gap:4px 10px;align-items:center;padding:6px 8px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel);font-size:13px}
 .pt-mrow.me{border-color:var(--gold)}
+.pt-ev.new{background:rgba(255,210,63,.08);border-radius:6px}
+.pt-new{display:inline-block;font:700 10px/1.4 var(--body);color:#111;background:var(--gold);border-radius:4px;padding:0 5px;text-transform:uppercase;letter-spacing:.04em;vertical-align:1px}
+.pt-newsum{color:var(--gold)}
 .pt-mav{width:46px;height:60px;border-radius:6px;overflow:hidden;background:#000;border:2px solid #000;cursor:pointer}.pt-mav svg{width:100%;height:100%;display:block}
 .pt-minfo{min-width:0}.pt-minfo>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pt-mrow .pt-cbtns{grid-column:2;display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-start;margin:0}
 /* the buttons sit on their own line under the name, so the name gets the full width of the card */
@@ -8774,6 +8777,7 @@ function applyTab(){
 }
 function setTab(t,o){
   if(!TABS.some(x=>x[0]===t))return;
+  if(ui.tab==="party"&&t!=="party")ui.feedPrev=null;
   ui.tab=t;if(t!=="quests"){prefs.sideTab=t;savePrefs();}
   if(t==="party")partySeen();
   if(t==="safe"){const x=safeToday();if(x&&!x.left){x.left=true;store.savePlayer(player).catch(writeFailed);}}
@@ -8790,7 +8794,8 @@ function tabBadges(){
   const nb=(player.boxes||[]).length+(player.eggs||[]).length;
   const ne=(player.episodes||[]).filter(e=>!e.watched).length;if(ne)B.show=String(ne);else if(player.show&&player.show.invite)B.show="!";
   const x=safeToday(),no=(player.offers||[]).length;if(no+nb)B.safe=String(no+nb);else if(x&&!x.left)B.safe="•";
-  try{const pu=partyUnseen();if(pu)B.party=String(pu);}catch(e){}
+  try{const pu=partyUnseen();if(pu)B.party=String(pu);
+    const f=feedUnseen(),c=chatUnseen();B.partyTip=[f?`${f} new crew update${f===1?"":"s"} (Crew)`:"",c?`${c} new chat message${c===1?"":"s"}`:""].filter(Boolean).join(", ");}catch(e){}
   try{if(huntedMates().some(([u,c])=>!(player.helping&&player.helping.to===u&&player.helping.rid===c.rvl.id)))B.party="!";}catch(e){}
   return B;
 }
@@ -8803,7 +8808,9 @@ function renderTabs(){
   }
   el.querySelectorAll("[data-tab]").forEach(b=>{const v=B[b.dataset.tab]||"",tb=b.querySelector(".tb");
     tb.textContent=v;tb.className="tb"+(v?" show":"")+(b.dataset.tab==="quests"||b.dataset.tab==="party"&&v==="!"?" bad":"");
-    b.setAttribute("aria-label",b.querySelector(".tn").textContent+(v?` (${v==="•"||v==="!"?"needs attention":v})`:""));});
+    const tip=b.dataset.tab==="party"?(v==="!"?"A crewmate is being hunted by a rival crawler"+(B.partyTip?"; "+B.partyTip:""):B.partyTip||""):"";
+    if(tip)b.title=tip;else b.removeAttribute("title");
+    b.setAttribute("aria-label",b.querySelector(".tn").textContent+(tip?` (${tip})`:v?` (${v==="•"||v==="!"?"needs attention":v})`:""));});
   applyTab();
 }
 /* ---------- Changelog ----------
@@ -9604,7 +9611,7 @@ function partyListen(code){
           if(r&&m)toast(`<b>${esc((cardOf(u)||{}).name||"A crewmate")}</b> reacted ${r[1]} to “${esc(String(m.text).slice(0,60))}”`,"quest",()=>openPartyView("chat"),"Open chat");}}
       mine.reactSeen=now;}
     if(prefs.chatSeen==null){prefs.chatSeen=Date.now();savePrefs();}
-    if(ui.tab==="party"&&ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}
+    if(ui.tab==="party"&&ui.ptView==="chat")markChatSeen();
     render();},e=>console.warn("chat",e&&e.code)));
   mine.unsub.push(base.collection("gifts").orderBy("at","desc").limit(40).onSnapshot(s=>{if(party!==mine)return;
     mine.gifts=s.docs.map(x=>Object.assign({id:x.id},x.data()));try{giftsTick();}catch(e){console.warn(e);}render();},e=>console.warn("gifts",e&&e.code)));
@@ -9820,8 +9827,15 @@ function partyNews(){
     n.slice(-2).forEach((f,i)=>setTimeout(()=>toast(`<b>${esc(f.name)} nudged you.</b> <span class="quip">${esc(f.text.replace(/^nudged [^:]*: /,""))}</span>`,"quest"),600+i*900));}
   if(ui.tab==="party")partySeen(true);
 }
-function partyUnseen(){if(!party)return 0;const me=myUid(),s=prefs.partySeen||0;return party.feed.filter(f=>f.uid!==me&&f.at>s).length+chatUnseen();}
-function partySeen(quiet){prefs.partySeen=Date.now();if(ui.ptView==="chat")prefs.chatSeen=Date.now();savePrefs();if(!quiet)setTimeout(render,0);}
+/* Party badges: crew activity (the feed) and chat are counted separately, so the Party tab can say which is which.
+   "Seen" uses the later of now and the newest item, so a crewmate whose clock runs fast can't leave a badge stuck.
+   Feed items only count as seen once the Crew view is showing; the ones that were new keep a "New" tag for this visit. */
+const latestAt=a=>(a||[]).reduce((m,x)=>Math.max(m,+x.at||0),0);
+function feedUnseen(){if(!party)return 0;const me=myUid(),s=prefs.partySeen||0;return party.feed.filter(f=>f.uid!==me&&f.at>s).length;}
+function partyUnseen(){if(!party)return 0;return feedUnseen()+chatUnseen();}
+function markChatSeen(){prefs.chatSeen=Math.max(Date.now(),latestAt(party&&party.chat));savePrefs();}
+function markFeedSeen(){if(feedUnseen())ui.feedPrev=prefs.partySeen||0;prefs.partySeen=Math.max(Date.now(),latestAt(party&&party.feed));savePrefs();}
+function partySeen(quiet){if(ui.ptView==="chat")markChatSeen();else markFeedSeen();if(!quiet)setTimeout(render,0);}
 
 /* ---------- Actions ---------- */
 function partyCode(){let c="";const a=new Uint32Array(8);crypto.getRandomValues(a);for(let i=0;i<8;i++){c+=PCODE[a[i]%PCODE.length];if(i===3)c+="-";}return c;}
@@ -9982,15 +9996,16 @@ function renderParty(){
         <div class="pt-meta">Lv ${c.lvl||1}${cls?` ${esc(cls.n)}`:""} · Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}`:""}</div>
         <div class="pt-today${n?" yes":""}">${n?`✔ ${n} quest${n===1?"":"s"} today`:mia&&uid!==me?"Missing in action":"No quests yet today"}</div></div>
       <div class="pt-cbtns"><button class="btn ghost sm" type="button" data-inspect="${esc(uid)}">${uid===me?"My gear":"Gear"}</button>${uid!==me?`<button class="btn ghost sm" type="button" data-trade="${esc(uid)}" aria-label="Trade">🎁</button>`:""}${uid!==me&&!n?`<button class="btn ghost sm" type="button" data-nudge="${esc(uid)}"${nudged?" disabled":""}>${nudged?"Nudged":"Nudge"}</button>`:""}</div></div>`;}).join("");
+  const fp=ui.feedPrev,isNew=f=>fp!=null&&f.uid!==me&&f.at>fp,nNew=party.feed.slice(0,25).filter(isNew).length;
   const feed=party.feed.slice(0,25).map(f=>{const ch=Object.keys(f.cheers||{}).length,mine=(f.cheers||{})[me];
-    return `<li class="pt-ev k-${esc(f.kind||"")}"><div><b>${esc(f.uid===me?"You":f.name||"Crawler")}</b> ${esc(f.uid===me?String(f.text||"").replace(/^hit /,"hit "):f.text||"")}<span class="pt-ago">${ago(f.at||0)}</span></div>
+    return `<li class="pt-ev k-${esc(f.kind||"")}${isNew(f)?" new":""}"><div>${isNew(f)?`<span class="pt-new">New</span> `:""}<b>${esc(f.uid===me?"You":f.name||"Crawler")}</b> ${esc(f.uid===me?String(f.text||"").replace(/^hit /,"hit "):f.text||"")}<span class="pt-ago">${ago(f.at||0)}</span></div>
       ${f.uid!==me&&f.kind!=="leave"?`<button type="button" class="pt-cheer${mine?" on":""}" data-cheer="${esc(f.id)}" aria-pressed="${mine?"true":"false"}" aria-label="Cheer">🔥${ch?` ${ch}`:""}</button>`:ch?`<span class="pt-cheer static">🔥 ${ch}</span>`:""}</li>`;}).join("")||`<li class="muted">Nothing yet. Clear a quest and get the show started.</li>`;
-  const cu=chatUnseen(),view=ui.ptView||"crew";
-  const seg=`<div class="pt-seg" role="tablist"><button type="button" role="tab" data-ptview="crew" class="${view==="crew"?"on":""}" aria-selected="${view==="crew"}">Crew</button><button type="button" role="tab" data-ptview="chat" class="${view==="chat"?"on":""}" aria-selected="${view==="chat"}">Chat${cu?` <span class="pt-badge">${cu}</span>`:""}</button></div>`;
+  const cu=chatUnseen(),view=ui.ptView||"crew",fu=view==="chat"?feedUnseen():0;
+  const seg=`<div class="pt-seg" role="tablist"><button type="button" role="tab" data-ptview="crew" class="${view==="crew"?"on":""}" aria-selected="${view==="crew"}"${fu?` aria-label="Crew, ${fu} new update${fu===1?"":"s"}"`:""}>Crew${fu?` <span class="pt-badge">${fu}</span>`:""}</button><button type="button" role="tab" data-ptview="chat" class="${view==="chat"?"on":""}" aria-selected="${view==="chat"}">Chat${cu?` <span class="pt-badge">${cu}</span>`:""}</button></div>`;
   if(view==="chat"){
     const box0=$("chatBox"),atBottom=!box0||box0.scrollHeight-box0.scrollTop-box0.clientHeight<40,keepTop=box0?box0.scrollTop:0;
     el.innerHTML=`${seg}${chatHTML()}`;
-    el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
+    el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat")markChatSeen();else markFeedSeen();render();});
     // Re-rendering rebuilds the chat box: stick to the newest message if you were there, otherwise stay exactly where you were
     const box=$("chatBox");if(box)box.scrollTop=atBottom?box.scrollHeight:keepTop;
     $("ptChatIn").oninput=e=>{ui.chatDraft=e.target.value;};
@@ -9999,7 +10014,7 @@ function renderParty(){
     el.querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>partyChatReact(b.dataset.react,b.dataset.rk));
     el.querySelectorAll("[data-reactopen]").forEach(b=>b.onclick=()=>{ui.reactOpen=ui.reactOpen===b.dataset.reactopen?null:b.dataset.reactopen;render();});
     wireNotifyCtl();updateTitle();
-    if(cu&&ui.tab==="party"){prefs.chatSeen=Date.now();savePrefs();}
+    if(cu&&ui.tab==="party")markChatSeen();
     return;
   }
   const chargeHTML=stormOn(wk)&&!r.dead?(()=>{const ch=mem.map(uid=>({uid,c:cardOf(uid)})).filter(x=>x.c&&x.c.wk===wk&&(x.c.chg||0)>0);
@@ -10029,7 +10044,8 @@ function renderParty(){
     ${standBody?ptSec("stand","This week's standings",standSum,standBody,true):""}
     ${ptSec("crew","Crew",`${cards.length} crawler${cards.length===1?"":"s"}${hunts?" · ⚔ one's being hunted":""}`,`<div class="pt-mlist">${roster}</div><div class="muted" style="font-size:12px;margin-top:6px">Tap a face for the full card.</div>`,true)}
     ${(()=>{const at=party.feed[0]&&party.feed[0].at||0,fresh=Date.now()-at<864e5;
-      return ptSec("feed"+(fresh?"":"-quiet"),"Party feed",at?`latest ${ago(at)}`:"quiet",`<ul class="pt-feed">${feed}</ul>`,fresh);})()}
+      // new updates open the feed and say so (its own remembered open/closed key, so a collapsed feed still shows news)
+      return ptSec("feed"+(nNew?"-new":fresh?"":"-quiet"),"Party feed",nNew?`<b class="pt-newsum">${nNew} new</b>${at?` · latest ${ago(at)}`:""}`:at?`latest ${ago(at)}`:"quiet",`<ul class="pt-feed">${feed}</ul>`,fresh||!!nNew);})()}
     <div class="pt-foot">
       <div class="pt-head">${ui.partyRenaming?`<form id="ptRenameForm" class="pt-row"><input type="text" id="ptRename" maxlength="40" value="${esc(ui.ptRename||party.doc.name||"")}"><button class="btn sm" type="submit">Save</button></form>`
         :`<span class="label">Invite your crew</span><button class="linkbtn" type="button" id="ptRenameBtn">Rename party</button>`}
@@ -10048,7 +10064,7 @@ function renderParty(){
   el.querySelectorAll("[data-zhunt]").forEach(b=>{b.onclick=()=>zoomCrewRival(b.dataset.zhunt);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomCrewRival(b.dataset.zhunt);}};});
   el.querySelectorAll("[data-zcrew]").forEach(b=>{b.onclick=()=>zoomCrew(b.dataset.zcrew);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomCrew(b.dataset.zcrew);}};});
   {const ra=$("ptRaidArt");if(ra){ra.onclick=openRaidBoss;ra.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openRaidBoss();}};}}
-  el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
+  el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat")markChatSeen();else markFeedSeen();render();});
   el.querySelectorAll("[data-inspect]").forEach(b=>b.onclick=()=>openInspect(b.dataset.inspect));
   el.querySelectorAll("[data-trade]").forEach(b=>b.onclick=()=>openTradeWith(b.dataset.trade,null));
   wireRaidFloor(el);
@@ -10264,7 +10280,7 @@ function bgNotify(title,body,tag){
     const n=new Notification(title,opts);n.onclick=()=>{try{window.focus();}catch(e){}openPartyView(opts.data.open);n.close();};
   }catch(e){}
 }
-function openPartyView(v){setTab("party");ui.ptView=v==="chat"?"chat":"crew";if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();}
+function openPartyView(v){setTab("party");ui.ptView=v==="chat"?"chat":"crew";if(ui.ptView==="chat")markChatSeen();else markFeedSeen();render();}
 function chatArrived(msgs){
   const last=msgs[msgs.length-1],onChat=ui.tab==="party"&&ui.ptView==="chat";
   const txt=String(last.text||""),short=txt.length>90?txt.slice(0,88)+"…":txt;
