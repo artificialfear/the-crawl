@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=f0ceb68665"></script>
-<script>window.CRAWL_BUILD="f0ceb68665";</script>
+<script src="firebase-config.js?v=0c29ab1c83"></script>
+<script>window.CRAWL_BUILD="0c29ab1c83";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3613,6 +3613,7 @@ function qtUpgrade(k){const u=QT_UP.find(x=>x.k===k);if(!u||!hasQt()||qtHas(k))r
 function qtCook(hostUid){if(ateToday())return;
   if(hostUid){const c=party&&party.cards[hostUid];if(!c||!c.qt||!(c.qt.up||[]).includes("kitchen")||!(c.qt.g||[]).includes(myUid()))return;}
   else if(!qtHas("kitchen"))return;
+  if(!clip("cooking",.75))SFX.play("coin");
   player.meal=today();bump("meals");const host=hostUid?memberName(hostUid):null;
   pushEvent(host?`Cooked dinner in ${host}'s kitchen`:"Cooked a meal at home");store.savePlayer(player).catch(writeFailed);render();renderQt();
   toast(`${spick(Math.random,["Dungeon stew","Suspiciously good mushroom risotto","Mimic-shaped pancakes","Grilled cave fish","Mystery casserole"])}${host?` at ${esc(host)}'s place`:""}. +5% XP until midnight.`,"quest");}
