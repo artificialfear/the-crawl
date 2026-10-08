@@ -1398,6 +1398,15 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .cpick button.on{background:rgba(255,210,63,.2)}
 .vtag{font:600 12px var(--body);color:var(--muted);letter-spacing:.04em;margin-left:6px;vertical-align:middle}
 .gearbtn.hasnew{position:relative}.gearbtn.hasnew::after{content:"";position:absolute;top:1px;right:1px;width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--bg)}
+.clogwrap>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:6px 10px;flex-wrap:wrap}
+.clogwrap>summary::-webkit-details-marker{display:none}
+.clogwrap>summary h2{margin:0}
+.clog-latest{flex:1;min-width:0;font-size:13px;color:var(--muted)}
+.clogwrap[open] .clog-latest{visibility:hidden}
+.clog-chev{font-size:14px;color:var(--muted);transition:transform .15s;transform:rotate(-90deg)}
+.clogwrap[open] .clog-chev{transform:none}
+.clogwrap>summary:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-radius:4px}
+.clogwrap #changelog{margin-top:10px}
 .clog{border-top:1px solid var(--line);padding:8px 0}.clog:first-child{border-top:0}
 .clog summary{cursor:pointer;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:14px}
 .cl-v{font:700 12px var(--body);color:#111;background:var(--mana);border-radius:999px;padding:1px 8px}
@@ -1644,7 +1653,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 </main>
 <div class="gearwrap" id="lookWrap" hidden><div class="geardlg lookdlg" id="lookDlg" role="dialog" aria-modal="true" aria-label="Create your crawler"></div></div>
 <div class="gearwrap" id="gearWrap" hidden><div class="geardlg" role="dialog" aria-modal="true" aria-label="Settings and help"><div class="gearhead"><h2>Settings &amp; help <span class="vtag" id="verTag"></span></h2><button class="btn ghost sm" type="button" id="gearClose">Close</button></div>
-<section class="panel" aria-label="What's new"><h2>What's new</h2><div id="changelog"></div></section>
+<section class="panel" aria-label="What's new"><details class="clogwrap" id="clogWrap"><summary><h2>What's new</h2><span class="clog-latest" id="clogLatest"></span><span class="clog-chev" aria-hidden="true">▾</span></summary><div id="changelog"></div></details></section>
 <section class="panel" aria-label="Account" hidden><h2>Account</h2><div id="account"></div></section>
 <section class="panel" aria-label="Backup">
       <h2>Backup</h2>
@@ -8939,7 +8948,13 @@ function renderChangelog(){
   const fmtD=d=>new Date(d+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"});
   el.innerHTML=CHANGELOG.map((c,i)=>`<details class="clog"${i===0?" open":""}><summary><span class="cl-v">v${c.v}</span> <b>${esc(c.t)}</b> <span class="cl-d">${fmtD(c.d)}</span>${seen&&verNum(c.v)>verNum(seen)?` <span class="cl-new">New</span>`:""}</summary>
     <ul>${c.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`).join("");
-  const g=$("gearBtn");if(g)g.classList.toggle("hasnew",!!seen&&verNum(APP_VERSION)>verNum(seen));
+  const hasNew=!!seen&&verNum(APP_VERSION)>verNum(seen);
+  const g=$("gearBtn");if(g)g.classList.toggle("hasnew",hasNew);
+  // The whole list folds up so Settings isn't a long scroll; the choice is remembered, and it opens itself when there's news.
+  const w=$("clogWrap"),lt=$("clogLatest");
+  if(lt)lt.textContent=`v${CHANGELOG[0].v} · ${CHANGELOG[0].t}`;
+  if(w){w.open=hasNew||!prefs.clogShut;
+    if(!w.dataset.wired){w.dataset.wired="1";w.addEventListener("toggle",()=>{prefs.clogShut=!w.open;savePrefs();});}}
 }
 /* ---------- Update check ----------
    Every deploy writes version.json with a build id. While the app is open we check it now and then
