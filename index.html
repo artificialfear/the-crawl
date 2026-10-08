@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=3f72829c76"></script>
-<script>window.CRAWL_BUILD="3f72829c76";</script>
+<script src="firebase-config.js?v=846556933b"></script>
+<script>window.CRAWL_BUILD="846556933b";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1058,11 +1058,12 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 @media (min-width:861px){body[data-tab="party"] .pt-chargeout{display:block;margin-top:10px}}
 .pt-buff{padding:8px 12px;font-size:13.5px;margin-bottom:0}
 .pt-mlist{display:flex;flex-direction:column;gap:6px}
-.pt-mrow{display:grid;grid-template-columns:46px 1fr auto;gap:4px 10px;align-items:center;padding:6px 8px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel);font-size:13px}
+.pt-mrow{display:grid;grid-template-columns:46px minmax(0,1fr);gap:4px 10px;align-items:center;padding:6px 8px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel);font-size:13px}
 .pt-mrow.me{border-color:var(--gold)}
 .pt-mav{width:46px;height:60px;border-radius:6px;overflow:hidden;background:#000;border:2px solid #000;cursor:pointer}.pt-mav svg{width:100%;height:100%;display:block}
-.pt-minfo{min-width:0}.pt-minfo>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pt-mrow .pt-cbtns{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;margin:0}
-@media (max-width:420px){.pt-mrow{grid-template-columns:46px 1fr}.pt-mrow .pt-cbtns{grid-column:2;justify-content:flex-start}}
+.pt-minfo{min-width:0}.pt-minfo>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pt-mrow .pt-cbtns{grid-column:2;display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-start;margin:0}
+/* the buttons sit on their own line under the name, so the name gets the full width of the card */
+.pt-mrow .pt-mav{grid-row:1 / span 2;align-self:start}
 .lairbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:8px 0;padding:8px 10px;border:2px solid #e8283c;border-radius:10px;background:rgba(232,40,60,.08);font-size:13px}
 .lairchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .mobalert.zoomable{cursor:pointer}.mobalert.poked .mobscene{animation:mpoke .45s ease-out}
@@ -9899,7 +9900,7 @@ function partyNudge(uid){
   const nd=player.nudged&&player.nudged.d===td?player.nudged:{d:td,u:[]};if(nd.u.includes(uid))return;
   player.nudged={d:td,u:nd.u.concat(uid)};const c=party.cards[uid];
   partyPost("nudge",`nudged ${c?c.name:"a crewmate"}: ${NUDGE_LINES[Math.floor(Math.random()*NUDGE_LINES.length)]}`,null,{to:uid});
-  store.savePlayer(player).catch(writeFailed);toast(`Nudge sent to ${esc(c?c.name:"your crewmate")}.`);render();
+  store.savePlayer(player).catch(writeFailed);toast(`Nudge sent to ${c?c.name:"your crewmate"}.`);render();
 }
 function partyInvite(){
   if(!party)return;const link=location.origin+location.pathname+"?join="+party.code;
