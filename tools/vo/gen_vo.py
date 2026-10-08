@@ -5,7 +5,8 @@
 import json,os,sys,hashlib,subprocess,tempfile
 import numpy as np,soundfile as sf
 from kokoro_onnx import Kokoro
-HERE=os.path.dirname(os.path.abspath(__file__));OUT=os.path.join(HERE,"..","site-build","vo");os.makedirs(OUT,exist_ok=True)
+HERE=os.path.dirname(os.path.abspath(__file__));OUT=os.environ.get("VO_OUT") or os.path.join(HERE,"..","..","vo");os.makedirs(OUT,exist_ok=True)
+KOK=os.environ.get("KOKORO_DIR") or os.path.join(HERE,"kokoro")  # kokoro-v1.0.onnx + voices-v1.0.bin from github.com/thewh1teagle/kokoro-onnx releases (model-files-v1.0)
 PA_HEAVY="highpass=f=320,lowpass=f=4800,acompressor=threshold=-24dB:ratio=6:attack=3:release=60:makeup=4,asoftclip=type=tanh:threshold=0.6,equalizer=f=1800:t=q:w=1.2:g=5,aecho=0.85:0.55:60|140:0.28|0.14"
 TV="highpass=f=90,lowpass=f=9500,acompressor=threshold=-20dB:ratio=3:attack=5:release=80:makeup=2,aecho=0.8:0.4:25:0.08"
 VOICES={ # kokoro voice (or "a:0.7,b:0.3" blend), speed, lang, filter
@@ -15,7 +16,7 @@ VOICES={ # kokoro voice (or "a:0.7,b:0.3" blend), speed, lang, filter
   "dex":  dict(v="am_puck",speed=1.05,lang="en-us",fx=TV),
   "coach":dict(v="am_onyx",speed=1.1,lang="en-us",fx=TV),
 }
-k=Kokoro(os.path.join(HERE,"..","kokoro","kokoro-v1.0.onnx"),os.path.join(HERE,"..","kokoro","voices-v1.0.bin"))
+k=Kokoro(os.path.join(KOK,"kokoro-v1.0.onnx"),os.path.join(KOK,"voices-v1.0.bin"))
 def style(v):
     if ":" not in v:return v
     return sum(k.get_voice_style(n)*float(w) for n,w in (p.split(":") for p in v.split(",")))
