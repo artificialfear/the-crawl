@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9a75c134d7"></script>
-<script>window.CRAWL_BUILD="9a75c134d7";</script>
+<script src="firebase-config.js?v=db2525335d"></script>
+<script>window.CRAWL_BUILD="db2525335d";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -88,7 +88,7 @@ h2::after{content:"";display:block;height:3px;margin-top:8px;background:linear-g
 .invtorch .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flicker 1.3s ease-in-out infinite}
 .tiers{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:11px;color:#e8e2f6}
 .tiers i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid #111}
-.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor side" "trinket boots belt";gap:10px 0;padding:14px 0 12px;margin:0 -12px}
+.doll{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;grid-template-areas:". head cape" "weapon armor side" "trinket boots .";gap:10px 0;padding:14px 0 24px;margin:0 -12px}
 /* No side padding or column gap: each side slot centres between the panel edge and the body slot, so the spacing is even */
 .doll .sil{position:absolute;left:50%;top:8px;height:calc(100% - 16px);transform:translateX(-50%);fill:#241c3f;stroke:#a493e6;stroke-width:1.3;stroke-linejoin:round;opacity:.95;pointer-events:none;filter:drop-shadow(0 0 6px rgba(164,147,230,.55)) drop-shadow(0 0 18px rgba(63,224,255,.25))}
 .dslot{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:1}
@@ -138,17 +138,23 @@ body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 .hbq{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:var(--r);padding:10px 12px;color:var(--fg);cursor:pointer;display:flex;flex-direction:column;gap:2px;font:inherit}
 .hbq:hover,.hbq:focus-visible{border-color:var(--mana)}
 .hbq span{color:var(--muted);font-size:13px}.hbq.late span{color:var(--blood)}
-.ds-belt{grid-area:belt}.ds-belt .invcell{width:50px;height:50px}
+/* The belt sits on the silhouette's waist: positioned against the figure (same top/height as .sil), not the grid.
+   Its cell is a thin strip, centred on the waist line; the label sits just below it, clear of the body slot. */
+.ds-belt{position:absolute;left:50%;top:calc(8px + (100% - 16px) * .6);transform:translate(-50%,-14px);flex-direction:column-reverse;gap:2px}
+.ds-belt .invcell{width:88px;height:28px;border-radius:6px}
+.ds-belt .invcell .eqtag{font-size:8px;padding:1px 3px}
+.ds-belt .invcell.invempty span{font-size:9px}
+.ds-belt .dlabel{font-size:9px}
 .ds-trinket{grid-area:trinket}.ds-trinket .invcell{width:50px;height:50px}
 .ds-side{grid-area:side;align-self:start;display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px}
-.ds-side .dslot{margin-top:0}.ds-boots{grid-area:boots}.ds-boots .invcell{width:58px;height:58px}.ds-gloves .invcell{width:58px;height:58px}
-.ds-head{grid-area:head}.ds-cape{grid-area:cape}.ds-weapon{grid-area:weapon}.ds-armor{grid-area:armor}
+.ds-side .dslot{margin-top:0}.ds-boots{grid-area:boots;transform:translateY(12px)}.ds-boots .invcell{width:58px;height:58px}.ds-gloves .invcell{width:58px;height:58px}
+.ds-head{grid-area:head}.ds-cape{grid-area:cape}.ds-weapon{grid-area:weapon}.ds-armor{grid-area:armor;transform:translateY(-34px)}
 .ds-ring,.ds-weapon,.ds-armor{margin-top:2px}
 .dlabel{display:block;width:100%;text-align:center;padding-left:.12em;box-sizing:border-box;line-height:1.2;white-space:nowrap;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#f1ebff;text-shadow:0 1px 2px #000,0 0 6px #000}
 /* Slot sizes follow the gear: tall body, tall-ish weapon, square head and back, tiny ring */
 .dslot .invcell{aspect-ratio:auto}
 .ds-weapon .invcell{width:76px;height:124px}
-.ds-armor .invcell{width:62px;height:106px}
+.ds-armor .invcell{width:62px;height:96px}
 .ds-head{transform:translateY(-10px)}
 .ds-cape{transform:translateY(16px)}
 .ds-head .invcell{width:60px;height:60px}
@@ -7871,7 +7877,7 @@ function itemStatus(it){
   return b&&b.id===it.id?{on:true,t:"Active: your best "+SLOT_NAME[it.slot].toLowerCase()+" counts even when not worn"}:{on:false,t:`Inactive: ${b?b.n:"another item"} is better`};
 }
 function invCell(it,eq,tall){
-  return `<button type="button" class="invcell r-${it.rar}${eq?" eq":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-inv="${it.id}" aria-label="${esc(it.n)}${eq?" (equipped)":""}">${tall==="weapon"?tallWeaponSVG(it.id,RAR_BG[it.rar]):tall?tierIcon(it.id,it.rar).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '):tierIcon(it.id,it.rar)}${eq?`<span class="eqtag" aria-hidden="true">E</span>`:""}${mwOf(player,it.id)?`<span class="mwbadge" aria-hidden="true">${"★".repeat(mwOf(player,it.id))}</span>`:""}</button>`;
+  return `<button type="button" class="invcell r-${it.rar}${eq?" eq":""}"${it.rar!=="magical"?` style="background:${RAR_BG[it.rar]}"`:""} data-inv="${it.id}" aria-label="${esc(it.n)}${eq?" (equipped)":""}">${tall==="weapon"?tallWeaponSVG(it.id,RAR_BG[it.rar]):tall==="belt"?tierIcon(it.id,it.rar).replace('viewBox="0 0 100 100"','viewBox="0 29 100 38" preserveAspectRatio="xMidYMid slice"'):tall?tierIcon(it.id,it.rar).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '):tierIcon(it.id,it.rar)}${eq?`<span class="eqtag" aria-hidden="true">E</span>`:""}${mwOf(player,it.id)?`<span class="mwbadge" aria-hidden="true">${"★".repeat(mwOf(player,it.id))}</span>`:""}</button>`;
 }
 const INV_CATS=[["all","All"],["weapon","Weapons"],["armor","Body"],["head","Head"],["gloves","Hands"],["boots","Feet"],["cape","Back"],["ring","Rings"],["trinket","Pet"],["belt","Belts"],["cons","Bag"]];
 const INV_PAGE=25;
@@ -7879,7 +7885,7 @@ function renderInv(){
   const el=$("inv");if(!el||!playerExists)return;
   const p=player,w=wearing(p);
   const slotCell=slot=>{const it=ITEMS.find(x=>x.id===w[slot]);
-    return `<div class="dslot ds-${slot}"><span class="dlabel">${SLOT_NAME[slot]}</span>${it?invCell(it,true,slot==="weapon"?"weapon":slot==="armor"?"armor":false):`<button type="button" class="invcell invempty" data-invslot="${slot}" aria-label="Empty ${SLOT_NAME[slot]} slot"><span>${SLOT_NAME[slot]}</span></button>`}</div>`;};
+    return `<div class="dslot ds-${slot}"><span class="dlabel">${SLOT_NAME[slot]}</span>${it?invCell(it,true,slot==="weapon"?"weapon":slot==="armor"?"armor":slot==="belt"?"belt":false):`<button type="button" class="invcell invempty" data-invslot="${slot}" aria-label="Empty ${SLOT_NAME[slot]} slot"><span>${SLOT_NAME[slot]}</span></button>`}</div>`;};
   el.style.setProperty("--brick",BRICK_TILE);
   const doll=`<div class="doll">${invTorch("l")}${invTorch("r")}<svg class="sil" viewBox="0 0 100 160" aria-hidden="true"><circle cx="50" cy="22" r="15"/><path d="M28 42 Q50 34 72 42 L82 92 L72 94 L68 62 L68 100 L64 152 L53 152 L50 108 L47 152 L36 152 L32 100 L32 62 L28 94 L18 92 Z"/></svg>${["head","cape","weapon","armor"].map(slotCell).join("")}<div class="ds-side">${slotCell("ring")+slotCell("gloves")}</div>${slotCell("trinket")+slotCell("boots")+slotCell("belt")}</div>`;
   const gx=gearFx(p),xpB=XP_SLOTS.reduce((s,sl)=>{const b=bestOwned(p,sl);return s+bonusOf(b,p);},0)+gx.xp;
