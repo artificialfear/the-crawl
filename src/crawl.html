@@ -6666,67 +6666,223 @@ const ONE_HANDED=new Set(["w1","w2","w4","w6","w7","w11","w12","w14","w15","w16"
 const WEAPON_SCALE={w3:.68,w24:.68,w8:.6,w10:.64,w9:.72,w5:.74,w13:.62,w17:.7,w18:.62,w20:.56};
 const _sh=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,_ov=(d,f)=>`<path d="${d}" fill="${f}" stroke="none"/>`,_ln=(d,w,c)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"/>`;
 const _st=(x,y,r,d)=>`<path class="st" style="animation-delay:${d}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z"/>`;
-/* Body armour: torso fill, sleeve colour (null = the tee), forearm colour (null = skin), glove colour, detail style */
+/* Body armour: torso fill, sleeve colour (null = the tee), forearm colour (null = skin), glove colour, detail style.
+   tee:true = an open garment worn over the crawler's own tee. Colours "TEE" = the tee colour, "MAIL" = the chain-mail pattern.
+   Every armour (avatar and loot icon) is drawn by armorBase + armorDetail, more ornate the rarer it is. */
 const ARMOR_STYLE={
+  a1:{fill:"#8b5a2b",tee:true,draw:"vest"},
+  a2:{fill:"MAIL",sleeve:"MAIL",arm:null,hand:"#c3c9d4",draw:"mail"},
+  l5:{fill:RED,tee:true,sleeve:RED,arm:RED,draw:"stage"},
+  a3:{fill:"#d5d9e2",sleeve:"#d5d9e2",arm:"#d5d9e2",hand:"#d5d9e2",draw:"plate"},
   a4:{fill:"#7d8597",sleeve:"#7d8597",arm:"#7d8597",draw:"hoodie"},
   a5:{fill:"#c9b48a",sleeve:"#c9b48a",arm:"#c9b48a",draw:"quilt"},
-  a6:{fill:"#c98a3c",sleeve:null,arm:null,draw:"breast"},
-  a7:{fill:"#2f8f5a",sleeve:"#2f8f5a",arm:null,draw:"scale"},
+  a6:{fill:"#c98a3c",sleeve:null,arm:null,draw:"breast",rim:"#f0c070",dk:"#7a4a1a"},
+  a7:{fill:"#2f8f5a",sleeve:"#2f8f5a",arm:null,draw:"scale",lt:"#46b277",acc:"#164a2e"},
   a8:{fill:"#2a2438",sleeve:"#2a2438",arm:"#2a2438",hand:"#3a3150",draw:"obsidian"},
   m7:{fill:"#1a1426",sleeve:"#1a1426",arm:"#1a1426",hand:"#3b2a5a",draw:"shadow"},
   a9:{fill:"#cfe83a",sleeve:null,arm:null,draw:"hivis"},
-  a10:{fill:"TEE",sleeve:null,arm:null,draw:"apron"},
+  a10:{fill:"TEE",tee:true,sleeve:null,arm:null,draw:"apron"},
   a11:{fill:"#1d1a2e",sleeve:"#1d1a2e",arm:"#1d1a2e",draw:"tux"},
   a12:{fill:"#3b2a8a",sleeve:"#3b2a8a",arm:"#3b2a8a",draw:"robe"},
   a13:{fill:"#5b6b3a",sleeve:null,arm:null,draw:"tactical"},
   a14:{fill:"#2a2438",sleeve:"#2a2438",arm:null,draw:"ribs"},
-  a15:{fill:"#a32a2a",sleeve:"#a32a2a",arm:null,draw:"scale",acc:"#5a1010"},
+  a15:{fill:"#a32a2a",sleeve:"#a32a2a",arm:null,draw:"scale",lt:"#c94040",acc:"#5a1010",gold:true},
   a16:{fill:"#9fe6ff",sleeve:"#9fe6ff",arm:"#9fe6ff",hand:"#cff4ff",draw:"crystal"},
-  a17:{fill:"#b9bec9",sleeve:null,arm:null,draw:"breast"},
+  a17:{fill:"#b9bec9",sleeve:null,arm:null,draw:"breast",rim:"#eef0f4",dk:"#5e6472",flute:true},
   m12:{fill:"#2e2222",sleeve:"#2e2222",arm:"#2e2222",hand:"#4a2a22",draw:"molten"}};
-const NEW_ARMOR_DRAW=new Set(["hivis","apron","tux","robe","tactical","ribs","crystal","molten"]);
-function armorDetail(st,u){ // avatar coordinates (torso about x 100-200, y 140-262)
-  let s="";
-  if(st.draw==="hivis")s+=_sh("M118 150 L126 150 L126 200 L118 200 Z","#e8ecf2")+_sh("M174 150 L182 150 L182 200 L174 200 Z","#e8ecf2")+_sh("M105 200 L195 200 L193 211 L107 211 Z","#e8ecf2")+_sh("M110 230 L190 230 L188 241 L112 241 Z","#e8ecf2")+_ln("M150 152 L150 258",2.4);
-  if(st.draw==="apron")s+=_sh("M122 176 L178 176 L182 258 L118 258 Z","#f2efe6")+_ln("M126 176 Q132 152 140 146 M174 176 Q168 152 160 146",3)+_sh("M136 214 L164 214 L164 236 L136 236 Z","#f2efe6")
-    +`<ellipse cx="160" cy="194" rx="8" ry="6" fill="#c0392b" opacity=".75" stroke="none"/><ellipse cx="128" cy="246" rx="5" ry="4" fill="#8a5a2b" opacity=".7" stroke="none"/>`+_ln("M120 206 L104 220 M180 206 L196 220",2.4);
-  if(st.draw==="tux")s+=_sh("M132 148 L168 148 L150 214 Z","#f4f2f8")+_sh("M132 148 L150 214 L138 214 L122 158 Z","#2f2b40")+_sh("M168 148 L150 214 L162 214 L178 158 Z","#2f2b40")
-    +_sh("M150 160 L138 153 L138 167 Z M150 160 L162 153 L162 167 Z",RED)+`<circle cx="150" cy="160" r="3" fill="${RED}"/>`+`<circle cx="150" cy="228" r="3" fill="#f4f2f8"/><circle cx="150" cy="244" r="3" fill="#f4f2f8"/>`+_sh("M170 184 L184 181 L182 190 Z","#ffd23f");
-  if(st.draw==="robe")s+=_sh("M144 148 L156 148 L158 262 L142 262 Z","#ffd23f")+`<path d="M122 184 l2.6 6 6.4 .6 -4.8 4.2 1.4 6.2 -5.6 -3.2 -5.6 3.2 1.4 -6.2 -4.8 -4.2 6.4 -.6 Z" fill="#ffd23f" stroke="none"/><path d="M176 222 l2 4.6 5 .5 -3.8 3.2 1.1 4.8 -4.3 -2.5 -4.3 2.5 1.1 -4.8 -3.8 -3.2 5 -.5 Z" fill="#ffd23f" stroke="none"/>`
-    +`<path d="M178 178 a9 9 0 1 0 8 13 a7 7 0 1 1 -8 -13 Z" fill="#fff6c8" stroke="none"/>`+_ln("M108 232 Q150 246 192 232",5,"#c9a23a")+_ln("M170 239 L172 258 M176 238 L180 256",3,"#c9a23a");
-  if(st.draw==="tactical"){s+=_ln("M108 184 L192 184 M110 194 L190 194",2,"#3f4a28")+_sh("M122 164 L152 164 L152 174 L122 174 Z","#c9b48a")+_sh("M166 154 L182 154 L182 178 L166 178 Z","#2a2733")+_ln("M178 154 L180 136",2.4);
-    for(const x of [112,136,160])s+=_sh(`M${x} 206 L${x+24} 206 L${x+24} 232 L${x} 232 Z`,"#4a5830")+_ln(`M${x} 214 L${x+24} 214`,2,"#2f3a1c");}
-  if(st.draw==="ribs"){s+=_sh("M146 152 L154 152 L154 238 L146 238 Z",BONE);
-    for(let i=0;i<6;i++){const y=166+i*13,k=1-i*.06;s+=_sh(`M146 ${y} Q${150-34*k} ${y-5} ${150-42*k} ${y+8} Q${150-28*k} ${y+3} 146 ${y+7} Z`,BONE)+_sh(`M154 ${y} Q${150+34*k} ${y-5} ${150+42*k} ${y+8} Q${150+28*k} ${y+3} 154 ${y+7} Z`,BONE);}
-    s+=_ln("M112 154 Q130 148 146 156 M188 154 Q170 148 154 156",3.6,BONE);}
-  if(st.draw==="crystal")s+=_ov("M130 190 L150 152 L170 190 L150 210 Z","#e6fbff")+_ov("M100 150 L130 190 L112 232 Z","#c6f0ff")+_ln("M100 150 L130 190 L150 152 L170 190 L200 150 M130 190 L112 232 L150 210 L188 232 L170 190 M130 190 L150 210 L170 190 M112 232 L118 262 M150 210 L150 262 M188 232 L182 262",2,"#3a9ac8")
-    +_sh("M94 156 L100 128 L110 152 Z","#bff0ff")+_sh("M206 156 L200 128 L190 152 Z","#bff0ff")+`<path d="M162 170 l1.4 4.4 4.4 1.4 -4.4 1.4 -1.4 4.4 -1.4 -4.4 -4.4 -1.4 4.4 -1.4 Z" fill="#fff" stroke="none"/>`;
-  if(st.draw==="molten"){const cr="M110 160 L126 186 L118 214 L134 240 M190 162 L172 190 L182 220 L166 246 M140 150 L150 176 L160 152 M126 186 L150 200 L172 190 M150 200 L150 256";
-    s+=`<ellipse cx="100" cy="160" rx="26" ry="18" fill="#2e2222"/><ellipse cx="200" cy="160" rx="26" ry="18" fill="#2e2222"/>`;
-    if(u)s+=`<path class="mf-glow" d="${cr}" fill="none" stroke="#ff7a1f" stroke-width="9" opacity=".75" filter="url(#${u}bl)"/>`;
-    s+=_ln(cr,4,"#ff7a1f")+_ln(cr,1.6,"#ffd23f")+_ln("M84 162 L96 168 L92 176 M216 162 L204 168 L208 176",2.4,"#ff7a1f");}
-
-  if(st.draw==="hoodie")s+=_sh("M116 148 Q150 120 184 148 Q150 166 116 148 Z","#656c7d")+_sh("M124 220 L176 220 L182 252 L118 252 Z","#656c7d")+_ln("M141 154 L139 186 M159 154 L161 186",2.6,"#eeeae0");
-  if(st.draw==="quilt")s+=_ln("M108 172 L190 232 M106 202 L170 250 M122 150 L196 204 M110 232 L140 256 M192 172 L110 232 M194 202 L130 250 M178 150 L104 204 M190 232 L160 256",1.8,"#8a7650")+_ln("M150 150 L150 258",2.4,"#8a7650");
-  if(st.draw==="breast")s+=_ln("M150 152 L150 258",3)+_ln("M114 206 Q150 220 186 206 M116 236 Q150 248 184 236",3)+`<ellipse cx="132" cy="176" rx="12" ry="18" fill="#fff" opacity=".28" stroke="none"/>`+[[118,160],[182,160],[116,250],[184,250]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="#ffd23f"/>`).join("");
-  if(st.draw==="scale"){for(let r=0,y=160;y<256;r++,y+=13)for(let x=r%2?108:116;x<196;x+=16)s+=_ln(`M${x-8} ${y} Q${x} ${y+11} ${x+8} ${y}`,1.7,st.acc||"#164a2e");s+=_ln("M150 150 L150 258",2.4,"#ffd23f");}
-  if(st.draw==="obsidian")s+=`<ellipse cx="100" cy="160" rx="26" ry="18" fill="#2a2438"/><ellipse cx="200" cy="160" rx="26" ry="18" fill="#2a2438"/>`+_ln("M80 166 Q100 154 120 166 M180 166 Q200 154 220 166",2.4,"#9b6bff")+_ln("M150 152 L150 258 M112 206 Q150 220 188 206 M114 236 Q150 248 186 236",3,"#9b6bff")+_ln("M118 180 L132 196 M182 180 L168 196",2,"#9b6bff");
-  if(st.draw==="shadow"){
-    s+=_ln("M150 152 L150 258 M112 206 Q150 220 188 206",2.6,"#9b6bff")+`<path class="mf-glow" d="M150 152 L150 258 M112 206 Q150 220 188 206" fill="none" stroke="#b48cff" stroke-width="6" opacity=".5"/>`;
-    const wisp=(x,y,d)=>`<path style="animation-delay:-${d}s" d="M${x} ${y} Q${x-10} ${y-12} ${x-2} ${y-22} Q${x+6} ${y-30} ${x-4} ${y-40}" fill="none" stroke="#6b4aa8" stroke-width="5" stroke-linecap="round"/>`;
-    s+=`<g class="mf-smoke">${wisp(104,170,0)+wisp(198,172,1)+wisp(118,258,.5)+wisp(184,256,1.6)+wisp(150,150,2.2)}</g>`;}
+const A_TORSO="M100 150 Q150 136 200 150 L194 212 Q188 240 186 262 L114 262 Q112 240 106 212 Z";
+const A_MAILPAT=u=>`<pattern id="${u}m" width="8" height="7" patternUnits="userSpaceOnUse"><rect width="8" height="7" fill="#c3c9d4" stroke="none"/><path d="M0 3.5 Q4 -1 8 3.5 M-4 7 Q0 2.5 4 7 M4 7 Q8 2.5 12 7" fill="none" stroke="${INK}" stroke-width="1.2"/></pattern>`;
+/* The torso shell with soft side shading (open garments draw their own panels in armorDetail). */
+function armorBase(st,u,tee){
+  if(st.tee)return "";
+  const f=st.fill==="TEE"?tee:st.fill==="MAIL"?`url(#${u}m)`:st.fill;
+  return _sh(A_TORSO,f)+`<path d="M166 146 Q186 145 200 150 L194 212 Q188 240 186 262 L168 262 Q178 204 166 146 Z" fill="#000" opacity=".2" stroke="none"/>`
+    +`<path d="M101 151 Q110 146 122 146 Q112 200 120 262 L114 262 Q112 240 106 212 Z" fill="#fff" opacity=".13" stroke="none"/>`;
+}
+function armorDetail(st,u,magic){ // avatar coordinates (torso about x 100-200, y 140-262; the belt covers y 244-256)
+  u=u||"ad";
+  const R=(x,y,r,c)=>{r=r||3;return `<circle cx="${x}" cy="${y}" r="${r}" fill="${c||"#ffd23f"}" stroke="${INK}" stroke-width="1.5"/><circle cx="${(x-r*.35).toFixed(1)}" cy="${(y-r*.35).toFixed(1)}" r="${(r*.36).toFixed(1)}" fill="#fff" opacity=".75" stroke="none"/>`;};
+  const ST=(d,c,w)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w||1.4}" stroke-dasharray="3.5 3" stroke-linecap="round"/>`;
+  const GL=(d,o)=>`<path d="${d}" fill="#fff" opacity="${o||.22}" stroke="none"/>`;
+  const DK=(d,o)=>`<path d="${d}" fill="#000" opacity="${o||.2}" stroke="none"/>`;
+  const CL=x=>`<g clip-path="url(#${u}tq)">${x}</g>`;
+  const glow=(d,c,w)=>`<path class="mf-glow" d="${d}" fill="none" stroke="${c}" stroke-width="${w||8}" opacity=".7" filter="url(#${u}bl)"/>`;
+  const pauldron=(dir,c,lame,spike)=>{ // layered shoulder plates; dir -1 = left shoulder
+    const x=150+50*dir;let p=`<ellipse cx="${x}" cy="160" rx="28" ry="19" fill="${c}"/>`+GL(`M${x-24*dir} 158 Q${x-14*dir} 144 ${x+4*dir} 143 Q${x-8*dir} 150 ${x-12*dir} 160 Z`,.35);
+    if(spike)p=_sh(`M${x+2*dir} 146 L${x+16*dir} 118 L${x+16*dir} 150 Z`,spike)+_sh(`M${x-10*dir} 146 L${x-4*dir} 124 L${x+6*dir} 146 Z`,spike)+p;
+    p+=_sh(`M${x-26*dir} 166 Q${x} 156 ${x+26*dir} 166 Q${x+24*dir} 180 ${x} 182 Q${x-24*dir} 180 ${x-26*dir} 166 Z`,c)+_sh(`M${x-22*dir} 178 Q${x} 170 ${x+22*dir} 178 Q${x+18*dir} 190 ${x} 191 Q${x-18*dir} 190 ${x-22*dir} 178 Z`,c);
+    p+=_ln(`M${x-26*dir} 166 Q${x} 156 ${x+26*dir} 166 M${x-22*dir} 178 Q${x} 170 ${x+22*dir} 178`,2,lame)+DK(`M${x+4*dir} 182 Q${x+24*dir} 180 ${x+26*dir} 166 Q${x+20*dir} 176 ${x+4*dir} 182 Z`,.25);
+    return p+R(x-14*dir,170,2.4,"#eef0f4")+R(x+14*dir,170,2.4,"#eef0f4");};
+  let s=`<defs><clipPath id="${u}tq"><path d="${A_TORSO}"/></clipPath></defs>`;
+  const d=st.draw;
+  if(d==="vest"){ // open leather vest over the tee: stitched panels, laced front, pockets, a patch
+    const L="M100 150 Q120 144 136 148 L134 262 L114 262 Q112 240 106 212 Z",Rp="M200 150 Q180 144 164 148 L166 262 L186 262 Q188 240 194 212 Z";
+    s+=_sh(L,"#8b5a2b")+_sh(Rp,"#8b5a2b")+GL("M102 151 Q112 147 120 147 Q112 200 118 260 L114 262 Q112 240 106 212 Z",.16)+DK("M178 147 Q190 147 200 150 L194 212 Q188 240 186 262 L178 262 Q186 204 178 147 Z",.22);
+    s+=_sh("M118 147 L136 148 L128 182 Z","#6e4520")+_sh("M182 147 L164 148 L172 182 Z","#6e4520");
+    s+=ST("M131 180 L130 240 M106 160 Q112 200 116 240",`#d9b98a`)+ST("M169 180 L170 240 M194 160 Q188 200 184 240",`#d9b98a`);
+    let lace="";for(let y=186;y<=230;y+=14){lace+=`M136 ${y} L164 ${y+10} M164 ${y} L136 ${y+10} `;}
+    s+=_ln(lace,2.2,"#e6cf9e");for(let y=186;y<=240;y+=14)s+=`<circle cx="134" cy="${y}" r="2.2" fill="#c9cdd6" stroke="${INK}" stroke-width="1"/><circle cx="166" cy="${y}" r="2.2" fill="#c9cdd6" stroke="${INK}" stroke-width="1"/>`;
+    s+=_sh("M110 206 L128 204 L128 214 L111 216 Z","#7a4c22")+R(119,210,1.8,"#c9cdd6")+_sh("M172 204 L190 206 L189 216 L172 214 Z","#7a4c22")+R(181,210,1.8,"#c9cdd6");
+    s+=_sh("M174 222 L188 222 L187 236 L175 236 Z","#a8743c")+ST("M176 224 L186 224 L185 234 L177 234 Z","#5a3412",1.1)+`<ellipse cx="116" cy="232" rx="5" ry="3" fill="#fff" opacity=".12" stroke="none"/>`;}
+  if(d==="mail"){ // riveted mail with a leather collar, baldric and a dagged brass-ringed hem
+    s+=_sh("M124 146 Q150 160 176 146 L178 156 Q150 172 122 156 Z","#6b4a2a")+ST("M126 151 Q150 164 174 151","#c9a46a",1.1)+R(130,154,2,"#ffd23f")+R(170,154,2,"#ffd23f")+R(150,162,2,"#ffd23f");
+    s+=_sh("M104 166 L112 158 L196 236 L188 244 Z","#6b4a2a")+ST("M108 164 L192 240","#c9a46a",1.1)+_sh("M140 196 L154 196 L154 210 L140 210 Z","#ffd23f")+_ln("M143 199 L151 199 L151 207 L143 207 Z",1.6);
+    let hem="M114 262";for(let x=114;x<186;x+=8)hem+=` L${x+4} 270 L${x+8} 262`;s+=_sh(hem+" Z","url(#"+u+"m)")+_ln("M112 258 L188 258",2.6,"#c9a046");}
+  if(d==="stage"){ // studded biker jacket over the tee: wide lapels, epaulettes, an asymmetric zip, a chain and a patch
+    const L="M100 150 Q120 144 138 148 L134 262 L114 262 Q112 240 106 212 Z",Rp="M200 150 Q180 144 162 148 L166 262 L186 262 Q188 240 194 212 Z";
+    s+=_sh(L,RED)+_sh(Rp,RED)+GL("M102 151 Q112 147 120 147 Q112 200 118 260 L114 262 Q112 240 106 212 Z",.18)+DK("M178 147 Q190 147 200 150 L194 212 Q188 240 186 262 L178 262 Q186 204 178 147 Z",.25);
+    s+=_sh("M138 148 L124 190 L116 150 Z",RED)+_sh("M162 148 L176 190 L184 150 Z",RED)+DK("M138 148 L124 190 L130 160 Z",.18)+DK("M162 148 L176 190 L170 160 Z",.18);
+    s+=_sh("M100 150 L124 146 L124 156 L102 162 Z",INK)+_sh("M200 150 L176 146 L176 156 L198 162 Z",INK)+R(112,153,1.8,"#eef0f4")+R(188,153,1.8,"#eef0f4");
+    for(const [x,y] of [[121,160],[124,172],[127,183],[179,160],[176,172],[173,183]])s+=`<path d="M${x} ${y-3} L${x+3} ${y} L${x} ${y+3} L${x-3} ${y} Z" fill="#eef0f4" stroke="${INK}" stroke-width="1"/>`;
+    for(let y=200;y<=236;y+=12)s+=`<circle cx="124" cy="${y}" r="2.6" fill="${BONE}" stroke="${INK}" stroke-width="1"/><circle cx="176" cy="${y}" r="2.6" fill="${BONE}" stroke="${INK}" stroke-width="1"/>`;
+    s+=_ln("M180 196 L170 240",2.6,"#c9cdd6")+_ln("M180 196 L170 240",1.2,INK).replace("/>",' stroke-dasharray="1.5 2"/>')+_sh("M178 192 L184 194 L182 202 L177 200 Z","#c9cdd6");
+    s+=_ln("M134 226 Q148 246 166 232",2.4,"#c9cdd6")+[[138,232],[144,237],[151,239],[158,237],[163,234]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="2.6" ry="1.8" fill="none" stroke="#eef0f4" stroke-width="1.4"/>`).join("");
+    s+=_sh("M106 206 L120 204 L121 220 L107 222 Z","#2a2733")+_sh("M115 207 L109 214 L113 214 L110 220 L118 211 L114 211 Z","#ffd23f",` stroke="none"`)+_ln("M188 214 L194 226",2,"#c9cdd6")+`<circle cx="194" cy="228" r="2.4" fill="none" stroke="#c9cdd6" stroke-width="1.6"/>`;}
+  if(d==="plate"){ // knightly plate: gorget, ridged breastplate, abdominal lames, tassets, layered pauldrons
+    const C="#d5d9e2",LM="#8a90a0";
+    s+=CL(GL("M120 156 Q132 150 140 156 Q134 186 126 206 Q118 190 120 156 Z",.45)+_ln("M108 206 Q150 220 192 206 M110 222 Q150 236 190 222 M112 238 Q150 252 188 238",2.6)+DK("M108 208 Q150 222 192 208 L192 214 Q150 228 108 214 Z",.12)+DK("M110 224 Q150 238 190 224 L190 230 Q150 244 110 230 Z",.12));
+    s+=_ln("M150 156 L150 204",3)+_ln("M147 158 L147 202",1.4,"#fff").replace("/>",' opacity=".6"/>');
+    s+=_sh("M124 144 Q150 160 176 144 L180 152 Q150 172 120 152 Z",C)+_ln("M122 148 Q150 166 178 148",1.6,LM)+R(126,151,2,"#eef0f4")+R(174,151,2,"#eef0f4");
+    s+=_sh("M114 258 L146 260 L144 286 L116 282 Z",C)+_sh("M186 258 L154 260 L156 286 L184 282 Z",C)+_ln("M115 270 L145 272 M185 270 L155 272",1.8,LM)+R(120,264,1.8,"#eef0f4")+R(180,264,1.8,"#eef0f4");
+    for(const [x,y] of [[112,212],[188,212],[114,228],[186,228]])s+=R(x,y,2,"#eef0f4");
+    s+=pauldron(-1,C,LM)+pauldron(1,C,LM);
+    if(magic==="radiant"){ // gilded filigree and a sunburst
+      s+=_ln("M150 152 L150 204 M108 206 Q150 220 192 206 M110 222 Q150 236 190 222",2.4,"#ffd23f")+_ln("M76 166 Q100 154 124 166 M176 166 Q200 154 224 166",2.4,"#ffd23f");
+      s+=_ln("M118 172 Q126 164 134 172 Q126 180 118 172 M182 172 Q174 164 166 172 Q174 180 182 172",1.6,"#ffd23f");
+      s+=`<circle class="mf-glow" cx="150" cy="182" r="18" fill="#fff6c8" filter="url(#${u}bl)"/>`;
+      let rays="";for(let i=0;i<12;i++){const a=i*Math.PI/6,r1=i%2?11:12,r2=i%2?16:20;rays+=`M${(150+r1*Math.cos(a)).toFixed(1)} ${(182+r1*Math.sin(a)).toFixed(1)} L${(150+r2*Math.cos(a)).toFixed(1)} ${(182+r2*Math.sin(a)).toFixed(1)} `;}
+      s+=_ln(rays,2.4,"#ffd23f")+`<circle cx="150" cy="182" r="9" fill="#ffd23f" stroke="${INK}" stroke-width="2.4"/><circle cx="147" cy="179" r="3" fill="#fff" opacity=".8" stroke="none"/>`;}}
+  if(d==="hivis"){ // mesh, silver-edged reflective bands, zip, pen pocket and an ID badge
+    s+=`<defs><pattern id="${u}hv" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r=".9" fill="#7f9418"/></pattern></defs>`+CL(`<rect x="96" y="136" width="108" height="130" fill="url(#${u}hv)" opacity=".3" stroke="none"/>`);
+    const band=(d0,d1)=>_sh(d0,"#e8ecf2")+_ln(d1,1.2,"#9aa3b2");
+    s+=band("M116 149 L127 148 L127 200 L116 200 Z","M121.5 151 L121.5 198")+band("M173 148 L184 149 L184 200 L173 200 Z","M178.5 151 L178.5 198");
+    s+=band("M105 200 L195 200 L193 212 L107 212 Z","M107 206 L193 206")+band("M110 230 L190 230 L188 242 L112 242 Z","M112 236 L188 236");
+    s+=_ln("M150 150 L150 258",2.6)+_ln("M150 152 L150 256",1.4,"#c9cdd6").replace("/>",' stroke-dasharray="1.6 1.6"/>')+_sh("M147 214 L153 214 L152 222 L148 222 Z","#c9cdd6");
+    s+=_sh("M130 166 L146 166 L146 186 L130 186 Z","#b8cf2a")+_ln("M130 171 L146 171",1.4,"#7f9418")+_ln("M135 158 L135 172",3.4,"#2c3f7a")+_sh("M133.5 156 L136.5 156 L136.5 160 L133.5 160 Z","#c9cdd6");
+    s+=_ln("M162 150 L160 166",1.4,"#2c3f7a")+_sh("M155 166 L169 166 L169 184 L155 184 Z","#f4f2f8")+_sh("M158 170 L164 170 L164 176 L158 176 Z","#9aa1b2")+_ln("M158 180 L166 180",1.2,"#9aa1b2");}
+  if(d==="apron"){ // a bib apron over the tee, tools in the pocket, a towel and some honest stains
+    s+=_ln("M128 178 Q130 152 140 146 M172 178 Q170 152 160 146",3.4)+_ln("M128 178 Q130 152 140 146 M172 178 Q170 152 160 146",1.6,"#f2efe6");
+    s+=_sh("M122 176 L178 176 L182 258 L118 258 Z","#f2efe6")+GL("M124 178 L132 178 L128 256 L120 256 Z",.4)+DK("M170 178 L178 176 L182 258 L174 258 Z",.1);
+    s+=ST("M125 180 L175 180 M120 254 L180 254","#b9b2a0",1.2)+_sh("M134 212 L166 212 L166 236 L134 236 Z","#f2efe6")+ST("M136 214 L164 214","#b9b2a0",1.1)+_ln("M150 212 L150 236",1.4,"#b9b2a0");
+    s+=_ln("M156 214 L161 194 M160 214 L165 195",2.2,"#c9cdd6")+_ln("M142 214 L139 194",3.2,"#6b4a2a");
+    s+=`<ellipse cx="160" cy="194" rx="8" ry="6" fill="#c0392b" opacity=".75" stroke="none"/><path d="M160 199 Q161 206 159 210" stroke="#c0392b" stroke-width="2.4" opacity=".75" fill="none"/>`
+      +`<ellipse cx="130" cy="246" rx="5" ry="4" fill="#8a5a2b" opacity=".7" stroke="none"/><ellipse cx="140" cy="190" rx="4" ry="3" fill="#e0b020" opacity=".7" stroke="none"/>`;
+    s+=_ln("M120 206 L104 220 M180 206 L196 220",2.4)+_sh("M172 236 L184 234 L186 258 L176 260 Z","#d0dcef")+_ln("M174 242 L184 240 M175 250 L185 248",1.4,"#2c3f7a");}
+  if(d==="tux"){ // satin lapels, pleated shirt with studs, bow tie, boutonniere, pocket square, pleated cummerbund
+    s+=_sh("M132 148 L168 148 L150 214 Z","#f4f2f8")+_ln("M144 158 L147 204 M156 158 L153 204",1.2,"#c9c6d6")+R(150,184,1.8,INK)+R(150,198,1.8,INK);
+    s+=_sh("M132 148 L150 214 L138 214 L122 158 Z","#2f2b40")+_sh("M168 148 L150 214 L162 214 L178 158 Z","#2f2b40")+GL("M132 150 L146 204 L141 204 L126 160 Z",.18)+GL("M168 150 L154 204 L159 204 L174 160 Z",.1);
+    s+=_sh("M150 160 L136 152 L136 168 Z M150 160 L164 152 L164 168 Z",RED)+_ln("M140 156 L140 164 M160 156 L160 164",1.2,"#9a1422")+`<circle cx="150" cy="160" r="3.4" fill="${RED}"/>`;
+    s+=`<circle cx="130" cy="176" r="4" fill="${RED}"/><circle cx="127" cy="172" r="2.6" fill="#ff6b7a" stroke="none"/>`+_sh("M128 180 L122 188 L130 184 Z","#3d8a52");
+    s+=_sh("M168 186 L184 183 L182 192 Z","#ffd23f")+_sh("M171 182 L176 176 L180 183 Z","#ffd23f")+_ln("M166 192 L186 188",2.4);
+    s+=_sh("M110 226 Q150 236 190 226 L189 244 Q150 252 111 244 Z","#2f2b40")+_ln("M112 232 Q150 242 188 232 M112 238 Q150 248 188 238",1.2,"#4a4560");}
+  if(d==="robe"){ // starry robe: gold-edged front, pointed collar, constellations, a rune hem and a pocket watch
+    s+=_sh("M142 148 L158 148 L160 262 L140 262 Z","#ffd23f")+_ln("M146 150 L146 260 M154 150 L154 260",1.2,"#c9a23a");
+    for(let y=160;y<=236;y+=13)s+=`<path d="M150 ${y-4} L153 ${y} L150 ${y+4} L147 ${y} Z" fill="#3b2a8a" stroke="none"/>`;
+    s+=_sh("M128 146 L112 128 L142 150 Z","#3b2a8a")+_sh("M172 146 L188 128 L158 150 Z","#3b2a8a")+_ln("M128 146 L112 128 L142 150 M172 146 L188 128 L158 150",1.6,"#ffd23f");
+    s+=`<path d="M122 184 l2.6 6 6.4 .6 -4.8 4.2 1.4 6.2 -5.6 -3.2 -5.6 3.2 1.4 -6.2 -4.8 -4.2 6.4 -.6 Z" fill="#ffd23f" stroke="${INK}" stroke-width="1.2"/>`
+      +`<path d="M178 178 a9 9 0 1 0 8 13 a7 7 0 1 1 -8 -13 Z" fill="#fff6c8" stroke="${INK}" stroke-width="1.2"/>`;
+    s+=`<path d="M112 166 L120 160 L132 166 M168 214 L182 206 L190 216" fill="none" stroke="#b9a8ff" stroke-width="1" stroke-dasharray="2 2"/>`+[[112,166],[120,160],[132,166],[168,214],[182,206],[190,216],[116,220],[128,236],[178,166]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i%3?1.6:2.2}" fill="#fff6c8" stroke="none"/>`).join("");
+    s+=_ln("M108 232 Q150 246 192 232",5,"#c9a23a")+_ln("M108 232 Q150 246 192 232",1.4,"#ffe58a")+_ln("M170 239 L172 258 M176 238 L180 256",3,"#c9a23a")+`<circle cx="172" cy="259" r="2.6" fill="#ffd23f"/><circle cx="180" cy="257" r="2.6" fill="#ffd23f"/>`;
+    s+=_ln("M116 254 L120 258 L124 254 M128 255 L128 260 M132 256 L136 256 M164 256 L168 260 L168 255 M182 254 L184 260",1.4,"#ffd23f");
+    s+=_ln("M160 210 Q170 220 182 212",1.6,"#ffd23f")+`<circle cx="186" cy="210" r="6" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/><circle cx="186" cy="210" r="3.8" fill="#fff6c8" stroke="none"/>`+_ln("M186 210 L186 207.4 M186 210 L188 211",1,INK);}
+  if(d==="tactical"){ // MOLLE webbing, name tape, radio with a coiled cable, mag pouches, shoulder straps and a morale patch
+    for(const y of [182,192])s+=_sh(`M106 ${y} L194 ${y} L194 ${y+6} L106 ${y+6} Z`,"#4a5830")+_ln(Array.from({length:9},(_,i)=>`M${112+i*10} ${y} L${112+i*10} ${y+6}`).join(" "),1.4,"#2f3a1c");
+    s+=_sh("M114 146 L126 146 L124 182 L112 182 Z","#4a5830")+_sh("M186 146 L174 146 L176 182 L188 182 Z","#4a5830")+_sh("M113 160 L125 160 L125 166 L113 166 Z","#2a2733")+_sh("M175 160 L187 160 L187 166 L175 166 Z","#2a2733");
+    s+=_sh("M128 164 L154 164 L154 174 L128 174 Z","#c9b48a")+ST("M130 166 L152 166 L152 172 L130 172 Z","#6b5a3a",1)+_ln("M133 169 L149 169",1.6,"#4a3a20");
+    s+=_sh("M160 152 L174 152 L174 178 L160 178 Z","#2a2733")+_ln("M170 152 L172 132",2.4)+`<circle cx="164" cy="158" r="2" fill="#6dff6a" stroke="none"/>`+_ln("M162 172 L166 172 M162 175 L166 175",1,"#555")+_ln("M160 166 Q152 160 156 154 Q160 148 154 144 Q150 140 156 136",1.6);
+    for(const x of [112,136,160]){s+=_sh(`M${x+3} 202 L${x+9} 202 L${x+9} 208 L${x+3} 208 Z M${x+13} 202 L${x+19} 202 L${x+19} 208 L${x+13} 208 Z`,"#b08a4a")+_sh(`M${x} 206 L${x+24} 206 L${x+24} 236 L${x} 236 Z`,"#4a5830")+_sh(`M${x} 206 L${x+24} 206 L${x+24} 216 L${x} 216 Z`,"#55663a")+_sh(`M${x+9} 214 L${x+15} 214 L${x+15} 220 L${x+9} 220 Z`,"#2a2733");}
+    s+=`<circle cx="186" cy="226" r="6" fill="#ffd23f" stroke="${INK}" stroke-width="1.4"/><path d="M183 228 Q186 231 189 228" fill="none" stroke="${INK}" stroke-width="1.2"/><circle cx="184" cy="224" r=".9" fill="${INK}" stroke="none"/><circle cx="188" cy="224" r=".9" fill="${INK}" stroke="none"/>`;}
+  if(d==="quilt"){ // padded gambeson: quilted diamonds with tufts, a stand collar and wooden toggles
+    let q="",dots="";
+    for(let a=-260;a<=160;a+=16)q+=`M96 ${96+a} L204 ${204+a} `;
+    for(let b=240;b<=480;b+=16)q+=`M96 ${b-96} L204 ${b-204} `;
+    for(let a=-260;a<=160;a+=16)for(let b=240;b<=480;b+=16){const x=(b-a)/2,y=(a+b)/2;if(x>100&&x<200&&y>146&&y<262)dots+=`<circle cx="${x}" cy="${y}" r="1.7" fill="#6b5a3a" stroke="none"/>`;}
+    s+=CL(_ln(q,1.8,"#8a7650")+dots);
+    s+=_sh("M126 148 Q150 158 174 148 L172 138 Q150 148 128 138 Z","#b9a47a")+ST("M129 143 Q150 152 171 143","#6b5a3a",1.1);
+    s+=_ln("M150 152 L150 262",2.4,"#8a7650");for(const y of [172,198,224])s+=_ln(`M140 ${y} L160 ${y}`,1.6,"#4a3a20")+_sh(`M143 ${y-2.6} L157 ${y-2.6} L157 ${y+2.6} L143 ${y+2.6} Z`,"#7a4c22");
+    s+=ST("M108 236 Q150 246 192 236","#6b5a3a",1.2);}
+  if(d==="hoodie"){ // hood, raglan seams, drawstrings with aglets, kangaroo pocket and a small logo
+    s+=_ln("M122 152 L106 200 M178 152 L194 200",1.6,"#5a6070");
+    s+=_sh("M112 150 Q150 116 188 150 Q170 162 150 163 Q130 162 112 150 Z","#656c7d")+_sh("M128 148 Q150 134 172 148 Q150 157 128 148 Z","#474d5c")+ST("M116 152 Q150 168 184 152","#9aa1b2",1.2);
+    s+=_ln("M141 160 Q137 176 140 194 M159 160 Q163 176 160 194",2.6,"#eeeae0")+`<circle cx="141" cy="160" r="2.4" fill="#c9cdd6" stroke="${INK}" stroke-width="1"/><circle cx="159" cy="160" r="2.4" fill="#c9cdd6" stroke="${INK}" stroke-width="1"/>`
+      +_sh("M138 193 L142 193 L142 201 L138 201 Z","#c9cdd6",` stroke-width="1.2"`)+_sh("M158 193 L162 193 L162 201 L158 201 Z","#c9cdd6",` stroke-width="1.2"`);
+    s+=_sh("M122 214 L178 214 L188 244 L112 244 Z","#717889")+_ln("M124 216 Q116 230 114 242 M176 216 Q184 230 186 242",2.2)+ST("M126 218 L174 218","#9aa1b2",1.2)+DK("M124 216 Q118 230 116 242 L122 242 Q122 228 128 218 Z",.25);
+    s+=`<circle cx="172" cy="184" r="6" fill="${RED}" stroke="${INK}" stroke-width="1.4"/><path d="M172 180 L175 187 L169 187 Z" fill="#fff" stroke="none"/>`;}
+  if(d==="breast"){ // a shaped cuirass: rolled rims, shoulder straps, rivets; bronze is muscled, steel is fluted
+    const rim=st.rim,dk=st.dk;
+    s+=CL(GL("M118 160 Q132 154 142 162 Q136 186 126 200 Q116 186 118 160 Z",.4)+DK("M166 214 Q186 200 194 176 L194 262 L160 262 Z",.12));
+    if(st.flute)s+=_ln("M150 240 L126 156 M150 240 L174 156 M150 240 L112 186 M150 240 L188 186",1.8,dk)+_ln("M152 238 L129 156 M152 238 L177 158",1.2,"#fff").replace("/>",' opacity=".55"/>')+_ln("M150 152 L150 240",2.6)
+      +`<path d="M150 170 L156 180 L150 190 L144 180 Z" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/>`;
+    else s+=_ln("M116 178 Q132 198 148 186 M152 186 Q168 198 184 178",2.4,dk)+_ln("M150 152 L150 240",2.2,dk)+_ln("M136 208 Q143 213 148 209 M152 209 Q157 213 164 208 M137 224 Q143 229 148 225 M152 225 Q157 229 163 224",1.8,dk)+`<circle cx="134" cy="182" r="2" fill="${dk}" stroke="none"/><circle cx="166" cy="182" r="2" fill="${dk}" stroke="none"/>`;
+    s+=_ln("M126 147 Q150 162 174 147",6)+_ln("M126 147 Q150 162 174 147",3.2,rim)+_ln("M115 259 L185 259",6)+_ln("M115 259 L185 259",3.2,rim);
+    s+=_sh("M110 145 L128 145 L126 162 L108 162 Z","#6b4a2a")+_sh("M190 145 L172 145 L174 162 L192 162 Z","#6b4a2a")+R(117,154,2.6)+R(183,154,2.6);
+    for(const [x,y] of [[108,176],[192,176],[110,200],[190,200],[112,224],[188,224]])s+=R(x,y,2.2);
+    if(st.flute)s+=_sh("M114 262 L146 262 L144 286 L116 282 Z",st.fill)+_sh("M186 262 L154 262 L156 286 L184 282 Z",st.fill)+_ln("M115 273 L145 274 M185 273 L155 274",1.8,dk)+R(121,267,1.8)+R(179,267,1.8);
+    else for(let x=116;x<184;x+=11)s+=_sh(`M${x} 262 L${x+10} 262 L${x+10} 284 L${x} 284 Z`,"#6b4a2a")+R(x+5,280,1.8);}
+  if(d==="scale"){ // overlapping filled scales, a gold centre and clasps; the legendary one adds horns, gilding and a gem
+    const lt=st.lt,acc=st.acc;let sc="";
+    for(let r=9;r>=0;r--){const y=146+r*11;for(let x=r%2?101:108;x<204;x+=14)sc+=`<path d="M${x-7} ${y} Q${x-7} ${y+11} ${x} ${y+14} Q${x+7} ${y+11} ${x+7} ${y} Z" fill="${(r+x)%3?st.fill:lt}" stroke="${acc}" stroke-width="1.3"/><path d="M${x-4} ${y+3} Q${x-4} ${y+8} ${x-1} ${y+10}" fill="none" stroke="#fff" stroke-width="1.2" opacity=".4"/>`;}
+    s+=CL(sc+`<path d="M166 146 Q186 145 200 150 L194 212 Q188 240 186 262 L168 262 Q178 204 166 146 Z" fill="#000" opacity=".2" stroke="none"/>`);
+    s+=_ln("M150 150 L150 258",2.8,"#ffd23f")+[176,204,230].map(y=>_sh(`M144 ${y-4} L156 ${y-4} L156 ${y+4} L144 ${y+4} Z`,"#ffd23f",` stroke-width="1.6"`)+_ln(`M147 ${y} L153 ${y}`,1.2)).join("");
+    s+=_sh("M124 146 Q150 160 176 146 L178 154 Q150 170 122 154 Z",acc)+_ln("M126 150 Q150 164 174 150",1.2,lt);
+    if(st.gold){
+      s+=_ln("M100 150 Q150 136 200 150",3.4,"#ffd23f")+_ln("M108 160 Q120 170 112 196 M192 160 Q180 170 188 196",1.6,"#ffd23f");
+      s+=_sh("M98 150 L84 120 L110 146 Z","#f2e6c8")+_sh("M106 148 L100 128 L116 146 Z","#f2e6c8")+_sh("M202 150 L216 120 L190 146 Z","#f2e6c8")+_sh("M194 148 L200 128 L184 146 Z","#f2e6c8")+_ln("M90 132 L96 136 M210 132 L204 136",1.2,"#b9a880");
+      s+=`<circle cx="150" cy="190" r="10" fill="#ffd23f" stroke="${INK}" stroke-width="2"/><path d="M150 182 L157 190 L150 198 L143 190 Z" fill="#ff8a1f" stroke="${INK}" stroke-width="1.4"/><path d="M148 186 L151 189" stroke="#fff" stroke-width="1.6" opacity=".8"/>`;}}
+  if(d==="obsidian"){ // faceted volcanic glass, spiked layered pauldrons, a gorget and a glowing rune
+    const O1="#3a3150",O2="#1f1a2c",V="#9b6bff";
+    s+=CL(_sh("M150 148 L126 172 L150 196 Z",O1)+_sh("M150 148 L174 172 L150 196 Z",O2)+_sh("M108 168 L126 172 L120 206 Z",O1)+_sh("M192 168 L174 172 L180 206 Z",O2)+_sh("M120 206 L150 196 L180 206 L150 220 Z","#2f2844")
+      +GL("M130 170 L150 152 L144 170 Z",.2)+GL("M110 172 L122 176 L118 196 Z",.14));
+    const seam="M150 152 L150 258 M112 206 Q150 220 188 206 M114 236 Q150 248 186 236 M126 172 L150 196 L174 172";
+    if(u!=="ad")s+=glow(seam,V,7);
+    s+=_ln(seam,3,V)+_ln("M150 152 L150 258",1.2,"#d8c4ff");
+    s+=`<circle cx="150" cy="176" r="8" fill="${O2}" stroke="${V}" stroke-width="2"/><path d="M150 170 L155 180 L145 180 Z" fill="none" stroke="#d8c4ff" stroke-width="1.6"/>`;
+    s+=_sh("M124 144 Q150 160 176 144 L180 152 Q150 170 120 152 Z",O1)+_ln("M122 148 Q150 166 178 148",1.6,V);
+    s+=_sh("M114 258 L146 260 L144 286 L116 282 Z",O1)+_sh("M186 258 L154 260 L156 286 L184 282 Z",O2)+_ln("M115 271 L145 272 M185 271 L155 272",1.8,V);
+    s+=pauldron(-1,"#2a2438",V,O1)+pauldron(1,"#2a2438",V,O1);}
+  if(d==="shadow"){ // dark weave, a deep cowl, glowing seams, an envelope sigil with an unread dot, and smoke
+    s+=`<defs><pattern id="${u}sw" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 L0 6 M3 0 L3 6" stroke="#3b2a5a" stroke-width="1"/></pattern></defs>`+CL(`<rect x="96" y="136" width="108" height="130" fill="url(#${u}sw)" opacity=".7" stroke="none"/>`);
+    s+=_sh("M116 148 Q150 182 184 148 Q172 138 150 146 Q128 138 116 148 Z","#241a36")+_ln("M126 152 Q150 172 174 152 M134 156 Q150 166 166 156",1.4,"#3b2a5a");
+    s+=_ln("M150 166 L150 258 M112 206 Q150 220 188 206",2.6,"#9b6bff")+`<path class="mf-glow" d="M150 166 L150 258 M112 206 Q150 220 188 206" fill="none" stroke="#b48cff" stroke-width="6" opacity=".5"/>`;
+    s+=`<g class="mf-glow"><rect x="136" y="180" width="28" height="19" rx="2" fill="#1a1426" stroke="#b48cff" stroke-width="2"/><path d="M136 181 L150 192 L164 181" fill="none" stroke="#b48cff" stroke-width="2"/></g><circle cx="164" cy="180" r="4.4" fill="${RED}" stroke="${INK}" stroke-width="1.4"/>`;
+    const wisp=(x,y,dl)=>`<path style="animation-delay:-${dl}s" d="M${x} ${y} Q${x-10} ${y-12} ${x-2} ${y-22} Q${x+6} ${y-30} ${x-4} ${y-40}" fill="none" stroke="#6b4aa8" stroke-width="5" stroke-linecap="round"/>`;
+    s+=`<g class="mf-smoke">${wisp(104,170,0)+wisp(198,172,1)+wisp(118,258,.5)+wisp(184,256,1.6)}</g>`;}
+  if(d==="ribs"){ // a bone cage: sternum, shaded ribs, collarbones, scapula pauldrons and a strap of finger bones
+    const BN="#f2ead8",BS="#c9bfa6";
+    s+=_sh("M100 160 Q100 140 122 146 Q112 156 110 178 Q100 174 100 160 Z",BN)+_sh("M200 160 Q200 140 178 146 Q188 156 190 178 Q200 174 200 160 Z",BN)+_ln("M104 158 Q108 150 116 149 M196 158 Q192 150 184 149",1.2,BS);
+    for(let i=0;i<6;i++){const y=166+i*13,k=1-i*.06;
+      s+=_sh(`M146 ${y} Q${150-34*k} ${y-5} ${150-42*k} ${y+8} Q${150-28*k} ${y+3} 146 ${y+7} Z`,BN)+_sh(`M154 ${y} Q${150+34*k} ${y-5} ${150+42*k} ${y+8} Q${150+28*k} ${y+3} 154 ${y+7} Z`,BN)
+        +_ln(`M146 ${y+5} Q${150-28*k} ${y+1} ${150-40*k} ${y+7} M154 ${y+5} Q${150+28*k} ${y+1} ${150+40*k} ${y+7}`,1.2,BS);}
+    s+=_sh("M144 150 L156 150 L158 168 L155 240 L150 246 L145 240 L142 168 Z",BN)+_ln("M146 176 L154 176 M146 196 L154 196 M146 216 L154 216",1.2,BS);
+    s+=_ln("M112 154 Q130 148 146 156 M188 154 Q170 148 154 156",5.4)+_ln("M112 154 Q130 148 146 156 M188 154 Q170 148 154 156",3,BN);
+    s+=_sh("M104 214 L112 206 L196 248 L188 256 Z","#5a3920")+[0,1,2,3,4].map(i=>{const x=118+i*15,y=216+i*7.5;return `<rect x="${x-3}" y="${y-5}" width="6" height="10" rx="3" fill="${BN}" stroke="${INK}" stroke-width="1.2" transform="rotate(-62 ${x} ${y})"/>`;}).join("")
+      +`<g transform="translate(150 231)"><path d="M-8 -1 Q-8 -11 0 -11 Q8 -11 8 -1 Q8 3 4 4 L4 7 L-4 7 L-4 4 Q-8 3 -8 -1 Z" fill="${BN}" stroke="${INK}" stroke-width="1.6"/><circle cx="-3.2" cy="-3" r="2.2" fill="${INK}" stroke="none"/><circle cx="3.2" cy="-3" r="2.2" fill="${INK}" stroke="none"/></g>`;}
+  if(d==="crystal"){ // cut facets in several blues, bright edges, shard clusters on the shoulders, an inner light and sparkles
+    s+=CL(_ov("M130 190 L150 152 L170 190 L150 210 Z","#e6fbff")+_ov("M100 150 L130 190 L112 232 Z","#c6f0ff")+_ov("M200 150 L170 190 L188 232 Z","#7fd0ef")+_ov("M112 232 L150 210 L150 262 L118 262 Z","#b3e9fb")+_ov("M188 232 L150 210 L150 262 L182 262 Z","#8fd8f2")+_ov("M100 150 L150 152 L130 190 Z","#d6f6ff")+_ov("M200 150 L150 152 L170 190 Z","#a9e4f7"));
+    if(u!=="ad")s+=`<circle class="mf-glow" cx="150" cy="186" r="16" fill="#fff" opacity=".7" filter="url(#${u}bl)"/>`;
+    s+=_ln("M100 150 L130 190 L150 152 L170 190 L200 150 M130 190 L112 232 L150 210 L188 232 L170 190 M130 190 L150 210 L170 190 M112 232 L118 262 M150 210 L150 262 M188 232 L182 262",2,"#3a9ac8")+_ln("M131 188 L150 155 L169 188",1.2,"#fff").replace("/>",' opacity=".9"/>');
+    for(const dir of [-1,1]){const x=150+52*dir;s+=_sh(`M${x-6*dir} 158 L${x+2*dir} 120 L${x+12*dir} 154 Z`,"#bff0ff")+_sh(`M${x+6*dir} 160 L${x+20*dir} 132 L${x+20*dir} 162 Z`,"#9fe6ff")+_sh(`M${x-16*dir} 156 L${x-12*dir} 136 L${x-2*dir} 156 Z`,"#e6fbff")+_ln(`M${x+1*dir} 124 L${x+4*dir} 154`,1.2,"#fff");}
+    s+=[[162,170,4.4,0],[122,214,3.4,.7],[178,226,3.6,1.3],[140,244,2.8,1.9]].map(([x,y,r,dl])=>`<path class="st" style="animation-delay:${dl}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z" fill="#fff" stroke="none"/>`).join("");}
+  if(d==="molten"){ // rock plates split by glowing cracks, a magma core, cracked pauldrons and drifting embers
+    const cr="M110 160 L126 186 L118 214 L134 240 M190 162 L172 190 L182 220 L166 246 M140 150 L150 176 L160 152 M126 186 L150 200 L172 190 M150 200 L150 256";
+    s+=CL(_ov("M110 160 L140 150 L150 176 L126 186 Z","#3a2c2a")+_ov("M190 162 L160 152 L150 176 L172 190 Z","#271d1d")+_ov("M126 186 L150 200 L150 256 L134 240 L118 214 Z","#352828")+_ov("M172 190 L150 200 L150 256 L166 246 L182 220 Z","#241a1a"));
+    for(const dir of [-1,1]){const x=150+50*dir;s+=`<ellipse cx="${x}" cy="160" rx="27" ry="18" fill="#2e2222"/>`+GL(`M${x-22*dir} 156 Q${x-10*dir} 146 ${x+6*dir} 145 Q${x-6*dir} 152 ${x-10*dir} 160 Z`,.12);}
+    if(u!=="ad")s+=`<path class="mf-glow" d="${cr}" fill="none" stroke="#ff7a1f" stroke-width="9" opacity=".75" filter="url(#${u}bl)"/><circle class="mf-glow" cx="150" cy="200" r="14" fill="#ff7a1f" filter="url(#${u}bl)"/>`;
+    s+=_ln(cr,4,"#ff7a1f")+_ln(cr,1.6,"#ffd23f")+_ln("M84 162 L96 168 L92 176 M216 162 L204 168 L208 176",2.4,"#ff7a1f")+_ln("M84 162 L96 168 L92 176 M216 162 L204 168 L208 176",1,"#ffd23f");
+    s+=`<circle cx="150" cy="200" r="7" fill="#ffd23f" stroke="#ff7a1f" stroke-width="3"/><circle cx="148" cy="198" r="2.4" fill="#fff" stroke="none"/>`;
+    s+=`<g class="mf-fire" stroke="none">${[[118,150,0],[186,148,.4],[104,200,.8],[196,214,1.2]].map(([x,y,dl])=>`<circle style="animation-delay:-${dl}s" cx="${x}" cy="${y}" r="1.8" fill="#ffb21f"/>`).join("")}</g>`;}
   return s;
 }
-function armorIcon(st){ // 100-unit loot icon
-  let s=_sh("M30 18 L70 18 Q80 56 68 90 L32 90 Q20 56 30 18 Z",st.fill==="TEE"?"#eeeae0":st.fill);
-  if(NEW_ARMOR_DRAW.has(st.draw))return s+`<g transform="translate(50 18) scale(.5 .62) translate(-150 -148)" stroke-width="4">${armorDetail(st,null)}</g>`;
-  if(st.draw==="hoodie")s+=_sh("M30 18 Q50 4 70 18 Q50 30 30 18 Z","#656c7d")+_sh("M36 64 L64 64 L67 82 L33 82 Z","#656c7d")+_ln("M45 24 L44 44 M55 24 L56 44",2,"#eeeae0");
-  if(st.draw==="quilt")s+=_ln("M30 34 L70 66 M28 54 L58 86 M44 18 L74 44 M70 34 L30 66 M72 54 L42 86 M56 18 L26 44",1.5,"#8a7650");
-  if(st.draw==="breast")s+=_ln("M50 20 L50 88 M30 54 Q50 62 70 54 M31 72 Q50 80 69 72",2.4)+`<ellipse cx="40" cy="36" rx="6" ry="10" fill="#fff" opacity=".3" stroke="none"/>`;
-  if(st.draw==="scale"){for(let r=0,y=26;y<88;r++,y+=10)for(let x=r%2?32:38;x<70;x+=12)s+=_ln(`M${x-6} ${y} Q${x} ${y+8} ${x+6} ${y}`,1.4,st.acc||"#164a2e");}
-  if(st.draw==="obsidian")s+=`<ellipse cx="26" cy="26" rx="14" ry="9" fill="#2a2438"/><ellipse cx="74" cy="26" rx="14" ry="9" fill="#2a2438"/>`+_ln("M50 22 L50 88 M30 54 Q50 62 70 54",2.2,"#9b6bff");
-  if(st.draw==="shadow")s+=_ln("M50 22 L50 88 M30 54 Q50 62 70 54",2.2,"#b48cff")+`<g class="mf-smoke">${[[30,30,0],[70,34,1],[50,20,2]].map(([x,y,d])=>`<path style="animation-delay:-${d}s" d="M${x} ${y} Q${x-5} ${y-6} ${x-1} ${y-11} Q${x+3} ${y-15} ${x-2} ${y-20}" fill="none" stroke="#9b6bff" stroke-width="3" stroke-linecap="round"/>`).join("")}</g>`;
-  return s;
+/* 100-unit loot icon: the same armour as worn, on a stand-in torso (white tee under open garments) */
+function armorIcon(st,u,magic){
+  u=u||"ai"+(++avUid);
+  const sl=st.sleeve==="MAIL"?`url(#${u}m)`:st.sleeve||"#eeeae0",stub=(d)=>`<path d="${d}" fill="none" stroke="${INK}" stroke-width="36" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${sl}" stroke-width="28" stroke-linecap="round"/>`;
+  let s=`<defs>${A_MAILPAT(u)}<filter id="${u}bl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5"/></filter></defs><g transform="translate(50 49) scale(.56) translate(-150 -207)" stroke-width="2.8">`;
+  s+=stub("M108 160 L98 186")+stub("M192 160 L202 186");
+  if(st.tee)s+=_sh(A_TORSO,"#eeeae0")+_sh("M132 146 Q150 166 168 146","#eeeae0")+_ln("M130 146 Q150 170 170 146",4);
+  s+=armorBase(st,u,"#eeeae0")+armorDetail(st,u,magic)+`</g>`;
+  // Magical icons go through the comic outline pass twice (once as the raw icon, once wrapped), so thin them back.
+  return magic?s.replace(/stroke-width="(\d+(?:\.\d+)?)"/g,(m,w)=>`stroke-width="${(+w/1.6).toFixed(2)}"`):s;
 }
 /* Headgear in avatar coordinates (head about x 116-184, crown at y 40, eyes at y 94) */
 const HIDES_HAIR=new Set(["l3","h1","l1","h3","h4","h5","h10","h11","h12","h14"]);
@@ -7104,8 +7260,9 @@ function avatarSVG(eq){
   const TORSO="M100 150 Q150 136 200 150 L194 212 Q188 240 186 262 L114 262 Q112 240 106 212 Z";
   const TORSOS="M100 150 Q118 144 130 146 Q122 200 128 262 L114 262 Q112 240 106 212 Z";
   const AS=ARMOR_STYLE[armor]||null;
-  const sleeve=AS?(AS.sleeve||TEEC):armor==="a2"?MAIL:armor==="l5"?RED:armor==="a3"?"#d5d9e2":TEEC;
-  const armBack=AS?(AS.arm||SKIN):armor==="a3"||armor==="l5"?sleeve:SKIN;
+  const acol=c=>c==="TEE"?TEEC:c==="MAIL"?MAIL:c;
+  const sleeve=AS&&AS.sleeve?acol(AS.sleeve):TEEC;
+  const armBack=AS&&AS.arm?acol(AS.arm):SKIN;
   // Weapon pose (battle-ready, weapon held out in front, tip up and away from the body):
   //  one-handed (table leg, longsword): right hand low at the hip, left arm free;
   //  two-handed swords: both hands low on the grip near the pommel; axe: hands spread along the long haft.
@@ -7128,7 +7285,7 @@ function avatarSVG(eq){
   }
   if(armor==="l5"&&ARMS){for(const [x,y] of [[98,186],[92,206],[90,226],[210,186],[214,206]])s+=`<circle cx="${x}" cy="${y}" r="2.6" fill="${BONE}" stroke="none"/>`;}
   // Shirt or armor
-  if(!armor||armor==="a1"){
+  if(!armor||(AS&&AS.tee)){
     const TEEL=darker(TEEC,.55),hem=LK.print==="ratty";
     s+=sh(hem?TORSO.replace("L186 262 L114 262","L186 262 L178 258 L170 266 L162 259 L150 267 L140 259 L130 266 L122 258 L114 262"):TORSO,TEEC)+ov(TORSOS,HB);
     s+=sh("M132 146 Q150 166 168 146",TEEC)+ln("M130 146 Q150 170 170 146",4);
@@ -7145,26 +7302,7 @@ function avatarSVG(eq){
     if(LK.print==="heart")s+=sh("M150 238 Q120 216 126 198 Q132 184 150 198 Q168 184 174 198 Q180 216 150 238 Z",LK.tee==="red"||LK.tee==="pink"?BONE:RED,` stroke="${INK}" stroke-width="2.4"`);
     if(LK.print==="stripes"){s+=`<defs><clipPath id="${u}tc"><path d="${TORSO}"/></clipPath></defs><g clip-path="url(#${u}tc)">`;for(let y=176;y<=254;y+=16)s+=`<rect x="96" y="${y}" width="108" height="7" fill="${LK.tee==="white"?"#2c3f7a":TEEL}" stroke="none"/>`;s+=`</g>`;}
   }
-  if(armor==="a1"){
-    s+=sh("M100 150 Q120 144 136 148 L134 262 L114 262 Q112 240 106 212 Z","#8b5a2b")+ov("M100 150 Q110 146 118 146 L116 262 L114 262 Q112 240 106 212 Z",HA);
-    s+=sh("M200 150 Q180 144 164 148 L166 262 L186 262 Q188 240 194 212 Z","#8b5a2b");
-    s+=ln("M136 170 L164 180 M164 170 L136 180 M136 200 L164 210 M164 200 L136 210",2.6,"#3a2412");
-  }
-  if(armor==="a2"){s+=sh(TORSO,MAIL)+ov(TORSOS,HA)+ln("M104 152 Q150 140 196 152",5);}
-  if(armor==="a3"){
-    s+=sh(TORSO,"#d5d9e2")+ov(TORSOS,HA)+ln("M150 152 L150 258",3)+ln("M112 206 Q150 220 188 206 M114 236 Q150 248 186 236",3);
-    s+=`<ellipse cx="100" cy="160" rx="26" ry="18" fill="#d5d9e2"/><ellipse cx="200" cy="160" rx="26" ry="18" fill="#d5d9e2"/>`+ov("M76 162 Q84 146 100 142 Q90 156 92 176 Q80 172 76 162 Z",HA)+ln("M80 166 Q100 154 120 166 M180 166 Q200 154 220 166",2);
-  }
-  if(armor==="l5"){
-    s+=sh(TORSO,TEEC)+sh("M100 150 Q120 144 138 148 L134 262 L114 262 Q112 240 106 212 Z",RED)+sh("M200 150 Q180 144 162 148 L166 262 L186 262 Q188 240 194 212 Z",RED);
-    s+=ov("M100 150 Q110 146 118 146 L116 262 L114 262 Q112 240 106 212 Z",HA)+sh("M138 148 L126 180 L118 150 Z",RED)+sh("M162 148 L174 180 L182 150 Z",RED);
-    for(let y=168;y<=248;y+=16)s+=`<circle cx="124" cy="${y}" r="2.8" fill="${BONE}" stroke="none"/><circle cx="176" cy="${y}" r="2.8" fill="${BONE}" stroke="none"/>`;
-  }
-  if(MA==="radiant"){
-    s+=ln("M150 152 L150 258 M112 206 Q150 220 188 206 M114 236 Q150 248 186 236",3.4,"#ffd23f")+ln("M80 166 Q100 154 120 166 M180 166 Q200 154 220 166",3,"#ffd23f");
-    s+=`<circle class="mf-glow" cx="150" cy="184" r="16" fill="#fff6c8" filter="url(#${u}bl)"/><circle cx="150" cy="184" r="8" fill="#ffd23f" stroke="${INK}" stroke-width="2.4"/>`+ln("M150 168 L150 172 M150 196 L150 200 M134 184 L138 184 M162 184 L166 184",2.4,"#ffd23f");
-  }
-  if(AS)s+=sh(TORSO,AS.fill==="TEE"?TEEC:AS.fill)+ov(TORSOS,HA)+armorDetail(AS,u);
+  if(AS)s+=armorBase(AS,u,TEEC)+armorDetail(AS,u,MA);
   s+=avatarBelt(eq.belt,sh,ln,"over");
   if(cape==="royal")s+=sh("M98 140 Q150 160 202 140 L206 154 Q150 176 94 154 Z",BONE)+ov("M114 150 l2 6 l-4 0 Z",INK)+ov("M138 158 l2 6 l-4 0 Z",INK)+ov("M162 158 l2 6 l-4 0 Z",INK)+ov("M186 150 l2 6 l-4 0 Z",INK);
   if(cape==="crimson"||cape==="midnight"||CAPE_STYLE[eq.cape])s+=`<circle cx="114" cy="150" r="6" fill="#ffd23f"/><circle cx="186" cy="150" r="6" fill="#ffd23f"/>`;
@@ -7263,7 +7401,7 @@ function avatarSVG(eq){
   // Weapon, forearms and fists. Each weapon is drawn upright around its grip (origin, blade toward -y),
   // then rotated into the pose so the hands land on the grip.
   s+=narrow;
-  const hand=AS?(AS.hand||SKIN):armor==="a2"?"#c3c9d4":armor==="a3"?"#d5d9e2":SKIN;
+  const hand=AS&&AS.hand||SKIN;
   const armC=armBack;
   const fist=(x,y)=>_gI?gloveFist(x,y,_gI,u,SKIN):`<circle cx="${x}" cy="${y}" r="15" fill="${hand}"/>`+ln(`M${x-8} ${y-5} Q${x} ${y-9} ${x+8} ${y-5}`,2.2);
   let w=weaponUpright(weapon,MW,u);if(_wI&&_wI.tint)w=tintStr(w,_wI.tint);
@@ -7578,7 +7716,7 @@ function lootIconSVG(id,raw){
   if(it0&&it0.magic&&!raw){
     // Magical: the base item's icon on a dark, glowing backdrop with twinkling sparkles.
     const col={fire:"#ff7a1f",frost:"#7fd8ff",storm:"#9fb4ff",radiant:"#ffd23f",ember:"#ff4d2e",venom:"#6dff6a",shadow:"#9b6bff",arcane:"#3fe0ff",stars:"#9fb4ff"}[it0.magic]||"#b388ff",g="mg"+(++avUid);
-    let b=it0.base?lootIconSVG(it0.base):lootIconSVG(id,true);
+    let b=it0.base&&it0.slot!=="armor"?lootIconSVG(it0.base):lootIconSVG(id,true);
     const st=(x,y,r,d)=>`<path class="st" style="animation-delay:${d}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z"/>`;
     b=b.replace(`<rect width="100" height="100" fill="${PAPER}"/>`,`<rect width="100" height="100" fill="#21183a"/><defs><radialGradient id="${g}"><stop offset="0" stop-color="${col}" stop-opacity=".95"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient></defs><circle class="mf-glow" cx="50" cy="50" r="46" fill="url(#${g})"/>`);
     return b.replace(/<\/g><rect x="0" y="0" width="100" height="100" fill="none"([^>]*)\/><\/svg>$/,`</g><g class="mf-frost" fill="#fff" stroke="none">${st(16,18,6,0)+st(84,24,5,.6)+st(82,84,6,1.1)+st(18,80,4,1.5)}</g><rect x="0" y="0" width="100" height="100" fill="none"$1/></svg>`);
@@ -7586,18 +7724,18 @@ function lootIconSVG(id,raw){
   const u="li"+(++avUid),HA=`url(#${u}a)`,HB=`url(#${u}b)`;
   const P=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,O=(d,f)=>`<path d="${d}" fill="${f}" stroke="none"/>`,L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"/>`;
   let s=`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${woodDefs(u)}<rect width="100" height="100" fill="${PAPER}"/><g stroke="${INK}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">`;
-  const OLD_ART=new Set(["w1","w2","w3","l8","a1","a2","a3","l5","h1","l1","l3","l7","c1","l2","l6"]);
+  const OLD_ART=new Set(["w1","w2","w3","l8","h1","l1","l3","l7","c1","l2","l6"]);
   // Recoloured variants draw their base item's colour art (old-style bases too), then swap the colours.
   const tinted=!!(it0&&it0.tint&&it0.base),aid=tinted?it0.base:id;
   const newArt=it0&&(tinted||(!OLD_ART.has(id)&&!it0.base));
   const t0=s.length;
-  switch(it0&&it0.slot==="belt"?"__belt":it0&&it0.slot==="ring"?"__ring":it0&&it0.slot==="trinket"?"__trinket":it0&&it0.slot==="gloves"?"__glove":it0&&it0.slot==="boots"?"__boot":newArt&&it0.slot==="weapon"?"__wpn":newArt&&it0.slot==="armor"?"__arm":newArt&&it0.slot==="head"?"__head":newArt&&it0.slot==="cape"?"__cape":id){
+  switch(it0&&it0.slot==="belt"?"__belt":it0&&it0.slot==="ring"?"__ring":it0&&it0.slot==="trinket"?"__trinket":it0&&it0.slot==="gloves"?"__glove":it0&&it0.slot==="boots"?"__boot":newArt&&it0.slot==="weapon"?"__wpn":it0&&it0.slot==="armor"?"__arm":newArt&&it0.slot==="head"?"__head":newArt&&it0.slot==="cape"?"__cape":id){
     case "__belt":s+=beltArt(BELT_STYLE[aid],it0.belt);break;
     case "__glove":s+=gloveIcon(it0);break;
     case "__boot":s+=bootIcon(it0);break;
     case "__wpn":{const [x0,x1,y0,y1]=WEAPON_BOX[aid],k=Math.min(98/(y1-y0),1.2),cx=(x0+x1)/2,cy=(y0+y1)/2;
       s+=`<g transform="translate(50 50) rotate(42) scale(${k.toFixed(3)}) translate(${-cx} ${-cy})" stroke-width="${(1.7/k).toFixed(2)}">${weaponUpright(aid,null,u).replace(/stroke-width="(\d+(?:\.\d+)?)"/g,(m,v)=>`stroke-width="${(+v*.65).toFixed(2)}"`)}</g>`;break;}
-    case "__arm":s+=armorIcon(ARMOR_STYLE[aid]);break;
+    case "__arm":s+=armorIcon(ARMOR_STYLE[it0.base||aid],u,it0.magic);break;
     case "__head":{const [hx,hy,hk]=HEAD_CENTER[aid];s+=`<g transform="translate(50 54) scale(${hk}) translate(${-hx} ${-hy})" stroke-width="${(2.6/hk).toFixed(2)}">${headArt(aid,u)}</g>`;break;}
     case "__cape":s+=capeIcon(CAPE_STYLE[id]);break;
     case "__trinket":
@@ -7612,7 +7750,6 @@ function lootIconSVG(id,raw){
     case "l2":s+=P("M34 18 Q20 50 14 88 L86 88 Q80 50 66 18 Z",INK)+L("M28 44 Q22 66 20 84 M72 44 Q78 66 80 84 M50 30 L50 86",1.6,BONE)+P("M30 18 Q50 30 70 18",INK)+`<circle cx="36" cy="22" r="4" fill="${BONE}"/><circle cx="64" cy="22" r="4" fill="${BONE}"/>`;break;
     case "l3":s+=P("M30 50 Q10 44 8 16 Q18 32 32 38 Z",BONE)+P("M70 50 Q90 44 92 16 Q82 32 68 38 Z",BONE)+P("M26 70 Q26 30 50 28 Q74 30 74 70 Z",BONE)+O("M26 70 Q26 30 50 28 Q36 38 36 70 Z",HA)+P("M23 62 L77 62 L77 72 L23 72 Z",BONE)+P("M46 70 L54 70 L53 90 L47 90 Z",BONE)+`<circle cx="31" cy="67" r="1.8" fill="${INK}" stroke="none"/><circle cx="69" cy="67" r="1.8" fill="${INK}" stroke="none"/>`;break;
     case "l4":s+=`<g transform="translate(-121,6) scale(.7)">`+L("M206 132 L238 8",8)+L("M206 132 L238 8",3,BONE)+P("M232 18 Q272 10 284 62 Q262 50 238 58 Z",BONE)+O("M238 58 Q256 50 272 52 Q266 38 246 34 Z",HA)+P("M234 32 L212 24 L230 46 Z",INK)+`</g>`;break;
-    case "l5":s+=P("M30 18 L70 18 Q80 56 68 90 L32 90 Q20 56 30 18 Z",RED)+O("M30 18 L42 18 Q36 56 40 90 L32 90 Q20 56 30 18 Z",HA)+P("M40 18 Q50 32 60 18",BONE);for(let y=34;y<=80;y+=12)for(let x=38;x<=62;x+=12)s+=`<circle cx="${x}" cy="${y}" r="2.4" fill="${BONE}" stroke="none"/>`;break;
     case "l6":s+=P("M34 18 Q20 50 14 88 L86 88 Q80 50 66 18 Z",RED)+O("M34 18 Q20 50 14 88 L30 88 Q32 50 42 20 Z",HA)+P("M13 78 L87 78 L88 90 L12 90 Z",BONE)+P("M28 16 Q50 30 72 16 L74 24 Q50 40 26 24 Z",BONE);for(let x=20;x<=80;x+=12)s+=O(`M${x} 81 l2 6 l-4 0 Z`,INK);s+=O("M38 22 l2 5 l-4 0 Z",INK)+O("M62 22 l2 5 l-4 0 Z",INK);break;
     case "l7":s+=P("M16 72 L16 34 L31 52 L41 22 L50 46 L59 22 L69 52 L84 34 L84 72 Z",BONE)+O("M16 72 L16 34 L31 52 L35 40 L32 72 Z",HB)+L("M16 62 L84 62",2.2)+`<circle cx="32" cy="67" r="4" fill="${RED}"/><circle cx="50" cy="67" r="4" fill="${RED}"/><circle cx="68" cy="67" r="4" fill="${RED}"/>`;break;
     case "l8":s+=`<g transform="translate(-130,4) scale(.82)">`+P("M211 92 L223 96 L232 72 L239 74 L240 52 L247 52 L246 28 L251 8 L238 22 L234 44 L228 44 L224 66 L217 66 Z",BONE)+L("M218 88 L243 18",3,RED)+L("M197 84 L237 102",6)+P("M197 84 L189 76 L196 92 Z",INK)+P("M237 102 L247 98 L240 110 Z",INK)+L("M214 106 L208 120",4)+`</g>`;break;
@@ -7621,9 +7758,6 @@ function lootIconSVG(id,raw){
     case "w3":s+=`<g transform="translate(-106,3) scale(.7)">`+P("M208 92 L226 98 L250 6 L240 2 Z",BONE)+O("M208 92 L214 94 L242 3 L240 2 Z",HB)+L("M222 74 l3 -9 M227 54 l3 -9 M232 34 l3 -9",3,RED)+L("M194 86 L240 103",6)+L("M214 106 L208 122",4)+`<circle cx="207" cy="126" r="5.5" fill="${RED}"/></g>`;break;
     case "h1":s+=`<g transform="translate(-62,-12) scale(.85)">`+P("M150 60 Q128 26 92 38 Q120 46 138 68 Z",RED)+P("M128 92 Q128 60 150 58 Q172 60 172 92 L168 120 L132 120 Z",BONE)+O("M128 92 Q128 60 150 58 Q138 66 138 92 L138 120 L132 120 Z",HA)+L("M132 92 L168 92",5)+L("M150 62 L150 88 M150 98 L150 118",2)+`</g>`;break;
     case "c1":s+=P("M34 18 Q20 50 14 88 L86 88 Q80 50 66 18 Z",RED)+O("M34 18 Q20 50 14 88 L30 88 Q32 50 42 20 Z",HA)+P("M30 18 Q50 30 70 18",RED)+`<circle cx="36" cy="22" r="4" fill="${BONE}"/><circle cx="64" cy="22" r="4" fill="${BONE}"/>`;break;
-    case "a1":s+=P("M30 18 L70 18 Q80 56 68 90 L32 90 Q20 56 30 18 Z",BONE)+O("M30 18 L70 18 Q80 56 68 90 L32 90 Q20 56 30 18 Z",HB)+O("M30 18 L42 18 Q36 56 40 90 L32 90 Q20 56 30 18 Z",HA);for(let y=30;y<=76;y+=12)s+=L(`M44 ${y} L56 ${y+8} M56 ${y} L44 ${y+8}`,2.4,BONE);break;
-    case "a2":s+=`<defs><pattern id="${u}m" width="8" height="7" patternUnits="userSpaceOnUse"><rect width="8" height="7" fill="${BONE}"/><path d="M0 3.5 Q4 -1 8 3.5 M-4 7 Q0 2.5 4 7 M4 7 Q8 2.5 12 7" fill="none" stroke="${INK}" stroke-width="1.1"/></pattern></defs>`+P("M30 18 L70 18 Q80 56 68 90 L32 90 Q20 56 30 18 Z",`url(#${u}m)`)+O("M30 18 L42 18 Q36 56 40 90 L32 90 Q20 56 30 18 Z",HA)+L("M30 19 L70 19",4);break;
-    case "a3":s+=`<ellipse cx="26" cy="26" rx="14" ry="9" fill="${BONE}"/><ellipse cx="74" cy="26" rx="14" ry="9" fill="${BONE}"/>`+P("M30 20 L70 20 Q80 56 68 90 L32 90 Q20 56 30 20 Z",BONE)+O("M30 20 L42 20 Q36 56 40 90 L32 90 Q20 56 30 20 Z",HA)+L("M50 24 L50 86",2)+L("M58 34 Q64 50 60 70",1.5);break;
     case "focus":s+=`<rect x="44" y="12" width="12" height="9" rx="2" fill="${BONE}"/>`+P("M45 21 L55 21 L55 30 Q80 38 80 62 Q80 88 50 88 Q20 88 20 62 Q20 38 45 30 Z",BONE)+P("M23 58 Q50 50 77 58 Q78 86 50 86 Q22 86 23 58 Z",RAYC)+P("M50 56 L54 66 L64 67 L56 73 L59 83 L50 77 L41 83 L44 73 L36 67 L46 66 Z",BONE)+`<ellipse cx="34" cy="48" rx="4" ry="7" fill="${BONE}" stroke="none" opacity=".7"/>`;break;
     case "scroll":s+=P("M24 26 L76 26 L76 74 L24 74 Z",BONE)+O("M24 26 L34 26 L34 74 L24 74 Z",HA)+`<ellipse cx="24" cy="50" rx="8" ry="26" fill="${BONE}"/><ellipse cx="76" cy="50" rx="8" ry="26" fill="${BONE}"/>`+L("M40 38 L68 38 M40 46 L66 46 M40 54 L62 54",2)+`<circle cx="58" cy="66" r="8" fill="${RED}"/>`+L("M54 66 L62 66 M58 62 L58 70",1.6,BONE);break;
     case "smoke":s+=`<circle cx="46" cy="60" r="26" fill="${INK}"/>`+O("M30 52 Q34 40 46 38",HB)+`<rect x="40" y="28" width="14" height="10" rx="2" fill="${BONE}"/>`+L("M52 30 Q62 18 72 22",2.4)+P("M72 14 L75 21 L82 22 L76 26 L78 33 L72 29 L66 33 L68 26 L62 22 L69 21 Z",RED)+`<ellipse cx="36" cy="54" rx="5" ry="8" fill="${BONE}" stroke="none" opacity=".5"/>`+P("M70 74 Q78 66 86 72 Q94 70 92 80 Q90 88 80 86 Q72 90 70 84 Q62 82 70 74 Z",BONE);break;
@@ -8920,6 +9054,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.3.1",d:"2026-10-08",t:"Armor glow-up",items:["All 21 body armors are redrawn with far more detail: stitching, buckles, rivets, layered plates, trim and shading. The rarer the armor, the more ornate it gets, from a hoodie with drawstrings up to horned dragonscale with a set gem.",
+    "Armor loot icons now match exactly what your crawler wears, including the five oldest pieces whose icons never quite fit."]},
   {v:"3.3.0",d:"2026-10-08",t:"Less scrolling",items:["Quest cards are about half as tall: title and XP on one line, the details and buttons on the next. On phones, Complete is a ✓ button and stats show as INT, CON and so on, so more quests fit on screen.",
     "The floor theme is now a one-line strip. Tap it for the details, or ✕ to hide it for the rest of the floor (tap the floor name at the top to bring it back). On phones it only shows on the Quests tab.",
     "The boss can fold down to a single row with its health bar: tap ▴ beside it.",
