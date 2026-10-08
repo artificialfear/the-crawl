@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=532d5206e3"></script>
-<script>window.CRAWL_BUILD="532d5206e3";</script>
+<script src="firebase-config.js?v=ddbd8cb5ac"></script>
+<script>window.CRAWL_BUILD="ddbd8cb5ac";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -6600,38 +6600,73 @@ function gloveFist(x,y,G,u,sk){
   if(G.look==="studded")s+=[-9,-3,3,9].map(dx=>`<circle cx="${x+dx}" cy="${y-6}" r="2.2" fill="#e3e6ee" stroke-width="1.2"/>`).join("");
   if(G.look==="plate"||G.look==="spiked"||G.look==="claw")s+=`<path d="M${x-14} ${y+2} Q${x} ${y+8} ${x+14} ${y+2} M${x-12} ${y+9} Q${x} ${y+14} ${x+12} ${y+9}" fill="none" stroke="${dk}" stroke-width="2"/><ellipse cx="${x-6}" cy="${y-8}" rx="5" ry="2.6" fill="#fff" opacity=".45" stroke="none"/>`;
   if(G.look!=="mitt"&&G.look!=="boxing")s+=`<path d="M${x-8} ${y-5} Q${x} ${y-9} ${x+8} ${y-5}" fill="none" stroke="${INK}" stroke-width="2.2"/>`;
+  // Depth and each glove's signature detail
+  s+=`<path d="M${x-3} ${y+r-2} A${r-1} ${r-1} 0 0 0 ${x+r-2} ${y-3}" fill="none" stroke="#000" stroke-width="3.4" opacity=".18"/><path d="M${x-r+4} ${y-2} A${r-4} ${r-4} 0 0 1 ${x-2} ${y-r+4}" fill="none" stroke="#fff" stroke-width="2" opacity=".35" stroke-linecap="round"/>`;
+  if(G.look==="plate"||G.look==="spiked"||G.look==="claw")s+=[-8,0,8].map(d=>`<circle cx="${x+d}" cy="${y+4.6+Math.abs(d)*.12}" r="1.7" fill="#e3e6ee" stroke="${INK}" stroke-width="1"/>`).join("");
+  if(G.look==="studded")s+=`<path d="M${x-11} ${y+4} Q${x} ${y+10} ${x+11} ${y+4}" fill="none" stroke="#c9a46a" stroke-width="1.3" stroke-dasharray="2.4 2"/>`;
+  if(G.look==="fingerless")s+=`<path d="M${x-9} ${y+6} L${x+9} ${y+6}" stroke="#3fe0ff" stroke-width="2"/><path d="M${x-9} ${y+6} L${x-3} ${y+6}" stroke="#ff5fd0" stroke-width="2"/>`;
+  if(G.look==="boxing")s+=`<path d="M${x+4} ${y-3} l1.8 3.8 4 .4 -3 2.7 .9 4 -3.7 -2.1 -3.7 2.1 .9 -4 -3 -2.7 4 -.4 Z" fill="#ffd23f" stroke="${INK}" stroke-width="1"/>`;
+  if(G.id==="g10")s+=`<path d="M${x} ${y+6} L${x+4} ${y+10} L${x} ${y+14} L${x-4} ${y+10} Z" fill="#e8283c" stroke="${INK}" stroke-width="1.2"/>`;
+  if(G.id==="g11")s+=`<path d="M${x+3} ${y+1} L${x-2} ${y+7} L${x+2} ${y+7} L${x-3} ${y+14}" fill="none" stroke="#bff4ff" stroke-width="2.2"/>`;
+  if(G.id==="g9")s+=`<path d="M${x-2} ${y+5} a4.6 4.6 0 1 0 4.6 7 a3.6 3.6 0 1 1 -4.6 -7 Z" fill="#c9b8ff" stroke="${INK}" stroke-width=".9"/>`;
   if(G.magic==="storm")s+=`<g class="bz"><polyline points="${x-20},${y-14} ${x-12},${y-6} ${x-18},${y-2} ${x-8},${y+8}" fill="none" stroke="#f4fbff" stroke-width="2.6"/></g><g class="bz" style="animation-delay:-.7s"><polyline points="${x+18},${y-18} ${x+12},${y-8} ${x+20},${y-4} ${x+12},${y+6}" fill="none" stroke="#f4fbff" stroke-width="2.6"/></g>`;
   if(G.magic==="shadow")s+=`<g class="mf-smoke">${[[x-10,y-12,0],[x+8,y-14,1],[x,y-16,1.8]].map(([a,b,d])=>`<path style="animation-delay:-${d}s" d="M${a} ${b} Q${a-6} ${b-8} ${a-1} ${b-15} Q${a+4} ${b-21} ${a-2} ${b-28}" fill="none" stroke="#7a4ad0" stroke-width="4" stroke-linecap="round"/>`).join("")}</g>`;
   return s;
 }
-/* A glove for the loot icon (100 units): open hand, fingers up, cuff at the bottom. */
+/* A glove for the loot icon (100 units): open hand, fingers up, cuff at the bottom. Strokes are pre-comic (x1.6 later). */
 function gloveIcon(G){
-  const c=G.c||"#7a4a26",dk=darker(c,.62),L=G.look;let s="";
-  const P=(d,f)=>`<path d="${d}" fill="${f}"/>`,Ln=(d,w,col)=>`<path d="${d}" fill="none" stroke="${col||INK}" stroke-width="${w}"/>`;
-  const cuff=L==="boxing"?"#f4f2f8":L==="rubber"?c:dk;
+  const c=G.c||"#7a4a26",dk=darker(c,.62),lt=shadeHex(c,.45),L=G.look,id=G.id,SK="#e9b48a",SKD="#c98e64";
+  const P=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,O=(d,f,o)=>`<path d="${d}" fill="${f}" stroke="none"${o?` opacity="${o}"`:""}/>`,Ln=(d,w,col,x)=>`<path d="${d}" fill="none" stroke="${col||INK}" stroke-width="${w}" stroke-linecap="round"${x||""}/>`;
+  const ST=(d,col,w)=>Ln(d,w||1,col,` stroke-dasharray="2.4 2"`),C=(x,y,r,f,w)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${INK}" stroke-width="${w==null?1.2:w}"/>`;
+  const rivet=(x,y,col)=>C(x,y,1.8,col||lt,.9);
+  let s="";
   if(G.magic==="storm")s+=`<circle class="mf-glow" cx="50" cy="50" r="40" fill="#7fb4ff" opacity=".45" stroke="none"/>`;
   if(G.magic==="shadow")s+=`<circle class="mf-glow" cx="50" cy="50" r="40" fill="#7a4ad0" opacity=".45" stroke="none"/>`;
+  const fx=[29,40,51,62],tops=[19,12,14,22],W=10;
+  const finger=(i,fill)=>{const x=fx[i],t=tops[i];return P(`M${x} 46 L${x} ${t+5} Q${x} ${t} ${x+W/2} ${t} Q${x+W} ${t} ${x+W} ${t+5} L${x+W} 46 Z`,fill);};
+  const palm="M27 76 L27 45 Q27 40 32 40 L69 40 Q73 40 73 45 L73 76 Z",thumb="M27 64 Q13 58 11.5 44 Q11.5 35 18 35 Q24 38 28 49 Z";
+  const sheen=()=>fx.map((x,i)=>Ln(`M${x+2.4} ${tops[i]+5} L${x+2.4} ${tops[i]+14}`,1.4,"#fff",` opacity=".55"`)).join("")+O("M62 42 L73 45 L73 76 L66 76 Q68 60 62 42 Z","#000",.16);
   if(L==="boxing"||L==="mitt"){
-    s+=P("M28 74 Q18 54 24 34 Q32 12 52 12 Q76 12 78 38 Q80 58 72 74 Z",c)+P("M28 58 Q12 54 12 42 Q14 32 24 36 Z",c);
-    if(L==="mitt")s+=Ln("M32 22 L70 62 M44 14 L76 46 M26 40 L56 72 M70 22 L32 62 M76 36 L44 72",2.4,"#fff");
-    else s+=`<ellipse cx="44" cy="26" rx="10" ry="5" fill="#fff" opacity=".6" stroke="none"/>`+Ln("M42 78 L58 84 M58 78 L42 84",2);
+    s+=P("M28 76 Q18 56 23 34 Q31 11 52 11 Q77 11 79 38 Q81 60 72 76 Z",c)+P("M29 60 Q11 56 11 43 Q13 32 24 36 Z",c)+O("M66 16 Q80 26 79 44 Q79 62 72 76 L66 76 Q74 56 70 34 Q68 22 66 16 Z","#000",.15);
+    if(L==="mitt"){s+=`<defs><clipPath id="gmc${id}"><path d="M28 76 Q18 56 23 34 Q31 11 52 11 Q77 11 79 38 Q81 60 72 76 Z"/></clipPath></defs><g clip-path="url(#gmc${id})">`+Ln("M10 20 L70 80 M22 8 L86 72 M34 0 L96 62 M0 34 L58 92 M90 20 L30 80 M78 8 L14 72 M66 0 L4 64 M100 34 L42 92",1.6,"#fff",` opacity=".85"`)+`</g>`;
+      s+=O("M44 50 Q52 44 60 50 Q58 58 50 60 Q44 56 44 50 Z","#3a2a22",.45);}
+    else s+=O("M34 22 Q42 13 54 14 Q44 18 38 28 Z","#fff",.65)+P("M45 33 l2.4 5 5.4 .6 -4 3.6 1.2 5.2 -5 -2.8 -5 2.8 1.2 -5.2 -4 -3.6 5.4 -.6 Z","#ffd23f",` stroke-width="1"`)+ST("M23 52 Q15 50 15 43",lt,1);
   }else{
-    const tops=[18,12,14,22],fx=[30,40,50,60];
-    fx.forEach((x,i)=>{s+=P(`M${x} 46 L${x} ${tops[i]+5} Q${x} ${tops[i]} ${x+5} ${tops[i]} Q${x+10} ${tops[i]} ${x+10} ${tops[i]+5} L${x+10} 46 Z`,c);
-      if(L==="fingerless")s+=P(`M${x} ${tops[i]+12} L${x} ${tops[i]+5} Q${x} ${tops[i]} ${x+5} ${tops[i]} Q${x+10} ${tops[i]} ${x+10} ${tops[i]+5} L${x+10} ${tops[i]+12} Z`,"#e9b48a");
-      if(L==="claw")s+=P(`M${x+2} ${tops[i]+2} Q${x+4} ${tops[i]-10} ${x+9} ${tops[i]-14} Q${x+8} ${tops[i]-4} ${x+8} ${tops[i]+2} Z`,BONE);
-      if(L==="plate"||L==="spiked"||L==="claw")s+=Ln(`M${x} ${tops[i]+14} L${x+10} ${tops[i]+14} M${x} ${tops[i]+22} L${x+10} ${tops[i]+22}`,1.6,dk);
-      if(L==="wraps")s+=Ln(`M${x} ${tops[i]+10} L${x+10} ${tops[i]+16} M${x} ${tops[i]+20} L${x+10} ${tops[i]+26}`,1.6,"#b9b29c");});
-    s+=P("M28 74 L28 44 Q28 40 32 40 L68 40 Q72 40 72 44 L72 74 Z",c)+P("M28 62 Q14 56 12 42 Q12 34 18 34 Q24 38 28 48 Z",c);
-    if(L==="spiked")s+=[33,45,57,67].map(x=>P(`M${x-4} 44 L${x} 32 L${x+4} 44 Z`,"#d5d9e2")).join("");
-    if(L==="studded")s+=[34,44,54,64].map(x=>`<circle cx="${x}" cy="48" r="2.6" fill="#e3e6ee"/>`).join("");
-    if(L==="rubber")s+=`<ellipse cx="40" cy="54" rx="5" ry="10" fill="#fff" opacity=".6" stroke="none"/>`;
-    if(L==="wraps")s+=Ln("M28 50 L72 66 M28 62 L60 74 M40 42 L72 54",1.8,"#b9b29c");
-    if(L==="plate"||L==="spiked"||L==="claw")s+=Ln("M28 56 Q50 62 72 56",2,dk)+`<ellipse cx="40" cy="50" rx="7" ry="3.4" fill="#fff" opacity=".45" stroke="none"/>`;
+    const fill=L==="wraps"?SK:c;
+    for(let i=0;i<4;i++)s+=finger(i,fill);
+    s+=P(palm,fill)+P(thumb,fill);
+    if(L==="fingerless"){for(let i=0;i<4;i++){const x=fx[i],t=tops[i];s+=P(`M${x} ${t+13} L${x} ${t+5} Q${x} ${t} ${x+W/2} ${t} Q${x+W} ${t} ${x+W} ${t+5} L${x+W} ${t+13} Z`,SK)+Ln(`M${x+2.6} ${t+3.4} Q${x+5} ${t+2.4} ${x+7.4} ${t+3.4}`,.9,SKD)+O(`M${x} ${t+13} L${x+W} ${t+13} L${x+W} ${t+15} L${x} ${t+15} Z`,dk);}
+      s+=P("M13 39 Q15 34 18 35 Q22 37 24 42 Z",SK)+[[36,46],[47,45],[58,47]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="3.4" ry="2" fill="#111" stroke="${INK}" stroke-width=".8"/>`).join("");
+      s+=O("M34 54 L66 54 L66 70 L34 70 Z","#3a3646")+ST("M34 54 L66 54 L66 70 L34 70 Z","#5a5670",.8)+Ln("M37 62 L63 62",1.6,"#3fe0ff")+Ln("M41 62 L49 62",1.6,"#ff5fd0");}
+    if(L==="rubber"){s+=sheen();for(let i=0;i<4;i++)s+=Ln(`M${fx[i]+2} ${tops[i]+16} Q${fx[i]+5} ${tops[i]+14} ${fx[i]+8} ${tops[i]+16}`,.9,dk);
+      s+=O("M33 46 Q37 44 39 50 Q38 62 35 66 Q32 58 33 46 Z","#fff",.55)+`<circle cx="82" cy="24" r="4" fill="#cfefff" opacity=".8" stroke="${INK}" stroke-width=".8"/><circle cx="86" cy="34" r="2.4" fill="#cfefff" opacity=".8" stroke="${INK}" stroke-width=".7"/><circle cx="16" cy="22" r="3" fill="#cfefff" opacity=".8" stroke="${INK}" stroke-width=".7"/>`;}
+    if(L==="wraps"){for(let i=0;i<4;i++)s+=Ln(`M${fx[i]+2.4} ${tops[i]+4} Q${fx[i]+5} ${tops[i]+2.6} ${fx[i]+7.6} ${tops[i]+4}`,.9,SKD);
+      const wrap="#f2efe6",wd="#c9c2ac";s+=P("M27 40 L73 40 L73 52 L27 52 Z",wrap)+P("M27 52 L73 56 L73 64 L27 62 Z",wrap)+P("M27 64 L73 66 L73 76 L27 76 Z",wrap)+P("M29 60 Q15 55 13.6 46 L22 42 Q25 50 29 52 Z",wrap);
+      s+=Ln("M27 44 L73 48 M30 56 L70 58 M30 69 L70 71",.9,wd)+Ln("M28 41 L28 51 M39 41 L39 51 M50 41 L50 51 M61 41 L61 51",.9,wd)+P("M70 74 Q82 80 84 90 L78 90 Q76 82 68 78 Z",wrap)+`<ellipse cx="45" cy="46" rx="3" ry="1.8" fill="#c0392b" opacity=".5" stroke="none"/>`;}
+    if(L==="studded"){s+=sheen();for(let i=0;i<4;i++)s+=ST(`M${fx[i]+5} ${tops[i]+3} L${fx[i]+5} 44`,lt,.9)+Ln(`M${fx[i]} ${tops[i]+13} Q${fx[i]+5} ${tops[i]+15} ${fx[i]+W} ${tops[i]+13}`,.9,dk);
+      s+=[34,45,56,67].map(x=>`<path d="M${x-3.4} 50 L${x} 45 L${x+3.4} 50 L${x} 55 Z" fill="#e3e6ee" stroke="${INK}" stroke-width="1"/><path d="M${x-1.4} 48 L${x} 46 L${x} 50 Z" fill="#fff" stroke="none"/>`).join("")+ST("M30 60 Q50 66 70 60",lt,1);}
+    if(L==="plate"||L==="spiked"||L==="claw"){
+      for(let i=0;i<4;i++){const x=fx[i],t=tops[i];s+=Ln(`M${x} ${t+11} Q${x+5} ${t+13.4} ${x+W} ${t+11} M${x} ${t+20} Q${x+5} ${t+22.4} ${x+W} ${t+20}`,1.2,dk)+Ln(`M${x+2.4} ${t+4} L${x+2.4} ${t+9}`,1.4,"#fff",` opacity=".5"`);}
+      s+=P("M27 44 Q50 36 73 44 L73 52 Q50 46 27 52 Z",c)+O("M62 42 L73 45 L73 76 L66 76 Q68 60 62 42 Z","#000",.18)+Ln("M28 60 Q50 66 72 60",1.4,dk)+O("M33 55 Q40 52 46 55 Q40 58 33 55 Z","#fff",.45);
+      s+=[31,42,53,64,70].slice(0,4).map((x,i)=>rivet(x+3,48-(i==1||i==2?2:0))).join("")+Ln("M18 42 Q14 46 15 52",1,dk);
+      if(id==="g10"){s+=Ln("M36 62 Q42 58 46 63 Q50 68 54 63 Q58 58 64 62",1.2,"#a07a10")+`<path d="M50 50 L54 55 L50 60 L46 55 Z" fill="#e8283c" stroke="${INK}" stroke-width="1.1"/><path d="M48.6 53.4 L50 52 L50 55 Z" fill="#fff" stroke="none"/>`;}
+      if(id==="g11"){s+=`<path class="mf-glow" d="M53 50 L46 58 L51 58 L46 68" fill="none" stroke="#7fe8ff" stroke-width="5" opacity=".6"/>`+Ln("M53 50 L46 58 L51 58 L46 68",1.8,"#e8fbff");}
+      if(id==="g9")s+=`<path d="M48 54 a6 6 0 1 0 6 9 a4.6 4.6 0 1 1 -6 -9 Z" fill="#c9b8ff" stroke="${INK}" stroke-width=".8"/><circle cx="60" cy="55" r="1" fill="#c9b8ff" stroke="none"/><circle cx="64" cy="60" r=".8" fill="#c9b8ff" stroke="none"/>`;
+      if(id==="g12")s+=Ln("M36 56 L42 62 L40 68 M60 54 L56 62 L62 68",1.4,"#b48cff")+`<path class="mf-glow" d="M36 56 L42 62 L40 68 M60 54 L56 62 L62 68" fill="none" stroke="#9b6bff" stroke-width="4" opacity=".5"/>`;}
+    if(L==="claw")for(let i=0;i<4;i++){const x=fx[i],t=tops[i];s+=P(`M${x+1.6} ${t+3} Q${x+3} ${t-9} ${x+9} ${t-14} Q${x+8.4} ${t-4} ${x+8.4} ${t+3} Z`,"#f2ead8",` stroke-width="1.1"`)+Ln(`M${x+4} ${t} Q${x+5.4} ${t-6} ${x+8} ${t-10}`,.8,"#c9bfa6");}
+    if(L==="spiked")s+=[33,44,55,66].map(x=>`<path d="M${x-4} 46 L${x} 30 L${x+4} 46 Z" fill="#d5d9e2" stroke="${INK}" stroke-width="1.2"/><path d="M${x-1.6} 44 L${x} 34 L${x} 44 Z" fill="#fff" stroke="none" opacity=".7"/>`).join("");
   }
-  s+=P("M26 74 L74 74 L76 90 L24 90 Z",cuff)+(L==="wraps"||L==="fingerless"?"":Ln("M26 80 L74 80",1.6,darker(cuff,.6)));
+  // Cuff: boxing white band, rubber rolled lip, mitt loop, plate a flared gauntlet, cloth a ribbed band
+  if(L==="boxing")s+=P("M25 74 L75 74 L77 90 L23 90 Z","#f4f2f8")+P("M24 79 L76 79 L76 85 L24 85 Z","#d8343c",` stroke-width="1.2"`)+Ln("M42 79 L42 85 M58 79 L58 85",1,"#9a1422");
+  else if(L==="rubber")s+=P("M24 74 L76 74 L80 92 L20 92 Z",c)+P("M19 88 Q50 84 81 88 L81 93 Q50 89 19 93 Z",lt,` stroke-width="1.2"`)+Ln("M28 78 L27 86 M38 78 L37.4 86 M50 78 L50 86 M62 78 L62.6 86 M72 78 L73 86",.9,dk);
+  else if(L==="mitt")s+=P("M25 74 L75 74 L77 90 L23 90 Z","#9aa0ad")+ST("M27 78 L73 78",BONE,1)+P("M68 88 Q72 98 78 92",`none`,` stroke="${INK}" stroke-width="2.4"`);
+  else if(L==="plate"||L==="spiked"||L==="claw"){s+=P("M25 74 L75 74 L82 92 L18 92 Z",c)+O("M66 74 L75 74 L82 92 L70 92 Z","#000",.18)+Ln("M24 80 L76 80",1.2,dk)+Ln("M38 82 L36 91 M50 82 L50 91 M62 82 L64 91",1,dk)+rivet(28,77)+rivet(72,77);
+    if(L==="spiked")s+=[30,50,70].map(x=>`<path d="M${x-3} 92 L${x} 99 L${x+3} 92 Z" fill="#d5d9e2" stroke="${INK}" stroke-width="1"/>`).join("");
+    if(id==="g10")s+=Ln("M24 86 L80 86",1.4,"#a07a10");}
+  else if(L==="wraps")s+=P("M26 74 L74 74 L75 90 L25 90 Z","#f2efe6")+Ln("M26 78 L74 82 M25 84 L75 88",.9,"#c9c2ac");
+  else s+=P("M26 74 L74 74 L76 90 L24 90 Z",dk)+Ln(L==="fingerless"?"M26 80 L74 80":"M26 80 L74 80",1.2,darker(dk,.6))+(L==="studded"?P("M44 78 L56 78 L56 86 L44 86 Z","#c9cdd6",` stroke-width="1.1"`)+Ln("M47 82 L53 82",1)+P("M24 79 L44 79 L44 85 L24 85 Z",darker(c,.5),` stroke-width="1"`):"")+(L==="fingerless"?P("M42 78 L58 78 L58 86 L42 86 Z","#3a3646",` stroke-width="1"`)+`<path d="M47 82 l3 -3 3 3 -3 3 Z" fill="#3fe0ff" stroke="none"/>`:"");
   if(G.magic==="storm")s+=`<g class="bz"><polyline points="14,30 24,40 16,44 28,56" fill="none" stroke="#f4fbff" stroke-width="2.6"/></g><g class="bz" style="animation-delay:-.8s"><polyline points="86,24 78,36 88,40 76,52" fill="none" stroke="#f4fbff" stroke-width="2.6"/></g>`;
-  if(G.magic==="shadow")s+=`<g class="mf-smoke">${[[36,16,0],[64,14,1],[50,10,2]].map(([a,b,d])=>`<path style="animation-delay:-${d}s" d="M${a} ${b} Q${a-4} ${b-5} ${a-1} ${b-9} Q${a+2} ${b-12} ${a-2} ${b-16}" fill="none" stroke="#9b6bff" stroke-width="3" stroke-linecap="round"/>`).join("")}</g>`;
+  if(G.magic==="shadow")s+=`<g class="mf-smoke">${[[36,12,0],[64,10,1],[50,6,2]].map(([a,b,d])=>`<path style="animation-delay:-${d}s" d="M${a} ${b} Q${a-4} ${b-5} ${a-1} ${b-9} Q${a+2} ${b-12} ${a-2} ${b-16}" fill="none" stroke="#9b6bff" stroke-width="3" stroke-linecap="round"/>`).join("")}</g>`;
   return s;
 }
 /* Boots on the avatar: a shaft over the shin and a foot shaped like the sneaker it replaces.
@@ -6648,38 +6683,96 @@ function bootArt(x,dir,B,u){
   if(L!=="sneaker"&&L!=="slipper")s+=sh(`M${f(lx-16)} ${top} L${f(lx+16)} ${top} L${f(lx+16)} 368 L${f(lx-16)} 368 Z`,c)+ln(`M${f(lx-16)} ${top+4} L${f(lx+16)} ${top+4}`,2.4,dk);
   s+=sh(L==="slipper"?`M${x-24*dir} 374 Q${x-26*dir} 350 ${x-6*dir} 350 L${x+12*dir} 352 Q${x+34*dir} 360 ${x+33*dir} 376 L${x-24*dir} 376 Z`:foot,c);
   s+=sh(`M${x-24*dir} 376 L${x+31*dir} 376 L${x+31*dir} 384 L${x-24*dir} 384 Z`,L==="slipper"?"#f4f2f8":INK);
-  if(L==="sneaker")s+=ln(`M${x-10*dir} 366 Q${x+6*dir} 360 ${x+20*dir} 368`,4,"#fff");
+  if(L!=="slipper")s+=ln([0,1,2,3,4,5].map(i=>`M${x+(-18+i*9)*dir} 384 L${x+(-18+i*9)*dir} 381`).join(" "),1.6,"#555")+`<ellipse cx="${x+18*dir}" cy="364" rx="5" ry="2.4" fill="#fff" opacity=".3" stroke="none"/>`;
+  if(L==="sneaker")s+=ln(`M${x-10*dir} 366 Q${x+6*dir} 360 ${x+20*dir} 368`,4,"#fff")+sh(`M${x+16*dir} 362 Q${x+30*dir} 366 ${x+30*dir} 376 L${x+18*dir} 376 Z`,"#f4f2f8")+ln(`M${x-4*dir} 358 L${x+4*dir} 362 M${x+4*dir} 358 L${x-4*dir} 362`,1.6,"#fff");
+  if(L==="slipper")s+=sh(`M${x+6*dir} 352 Q${x+2*dir} 336 ${x+8*dir} 332 Q${x+14*dir} 340 ${x+12*dir} 352 Z`,c)+sh(`M${x+14*dir} 352 Q${x+18*dir} 336 ${x+24*dir} 336 Q${x+26*dir} 344 ${x+20*dir} 354 Z`,c);
+  if(L==="ranger"||L==="seven")s+=sh(`M${f(lx-17)} ${top+16} L${f(lx+17)} ${top+16} L${f(lx+17)} ${top+21} L${f(lx-17)} ${top+21} Z`,darker(c,.45))+`<rect x="${f(lx-4)}" y="${top+14.5}" width="8" height="8" rx="1" fill="none" stroke="#c9cdd6" stroke-width="2"/>`;
+  if(L==="greave"||L==="frost")s+=[-11,11].map(d=>`<circle cx="${f(lx+d)}" cy="${top+26}" r="2" fill="#e3e6ee" stroke="${INK}" stroke-width="1.2"/>`).join("");
+  if(L==="hiker")s+=`<path d="M${x-20*dir} 382 Q${x-10*dir} 376 ${x} 382 Q${x+10*dir} 386 ${x+20*dir} 380" fill="none" stroke="#6b4a2a" stroke-width="3" opacity=".75"/>`;
+  if(L==="roller")s+=sh(`M${f(lx-10)} 362 Q${f(lx-6)} 352 ${f(lx-2)} 358 Q${lx} 350 ${f(lx+4)} 358 Q${f(lx+8)} 354 ${f(lx+10)} 362 Z`,"#ff7a1f");
+  if(L==="shadow")s+=ln(`M${f(lx-16)} ${top+5} L${f(lx+16)} ${top+5}`,2,"#9b6bff");
   if(L==="slipper")s+=`<circle cx="${x+16*dir}" cy="356" r="5" fill="#fff"/><circle cx="${x+14*dir}" cy="355" r="1.4" fill="${INK}"/><circle cx="${x+19*dir}" cy="355" r="1.4" fill="${INK}"/>`;
   if(L==="work")s+=sh(`M${x+14*dir} 358 Q${x+30*dir} 362 ${x+30*dir} 376 L${x+14*dir} 376 Z`,"#9aa0ad")+ln(`M${f(lx-10)} 344 L${f(lx+10)} 350 M${f(lx-10)} 354 L${f(lx+10)} 360`,2,"#f0d23a");
   if(L==="hiker"||L==="ranger")s+=ln(`M${f(lx-10)} ${top+12} L${f(lx+10)} ${top+18} M${f(lx+10)} ${top+12} L${f(lx-10)} ${top+18} M${f(lx-10)} ${top+26} L${f(lx+10)} ${top+32} M${f(lx+10)} ${top+26} L${f(lx-10)} ${top+32}`,2,L==="hiker"?"#e8283c":"#e8d8b0")+(L==="ranger"?sh(`M${f(lx-18)} ${top-4} L${f(lx+18)} ${top-4} L${f(lx+16)} ${top+8} L${f(lx-16)} ${top+8} Z`,dk):"");
   if(L==="greave"||L==="frost")s+=ln(`M${f(lx-16)} ${top+18} L${f(lx+16)} ${top+18} M${f(lx-16)} ${top+34} L${f(lx+16)} ${top+34}`,2.4,dk)+sh(`M${f(lx-10)} ${top-2} L${f(lx+10)} ${top-2} L${lx} ${top+14} Z`,L==="frost"?"#e6fbff":"#d5d9e2")+`<ellipse cx="${f(lx-6)}" cy="${top+24}" rx="3" ry="8" fill="#fff" opacity=".4"/>`;
-  if(L==="roller")s+=[x-12*dir,x+4*dir,x+20*dir].map(wx=>`<circle cx="${wx}" cy="390" r="6" fill="#ff5fa8" stroke="${INK}" stroke-width="2.4"/>`).join("")+ln(`M${f(lx-14)} 350 L${f(lx+14)} 350`,3,"#fff");
+  if(L==="roller")s+=[x-12*dir,x+4*dir,x+20*dir].map(wx=>`<circle cx="${wx}" cy="390" r="6" fill="#ff5fa8" stroke="${INK}" stroke-width="2.4"/><circle cx="${wx}" cy="390" r="2.2" fill="#f4f2f8" stroke="none"/>`).join("")+ln(`M${f(lx-14)} 350 L${f(lx+14)} 350`,3,"#fff");
   if(L==="seven")s+=[top+14,top+30,top+46].map(y=>sh(`M${f(lx-17)} ${y} L${f(lx+17)} ${y} L${f(lx+17)} ${y+5} L${f(lx-17)} ${y+5} Z`,dk)+`<rect x="${f(lx-4)}" y="${y-1}" width="8" height="7" rx="1" fill="#ffd23f" stroke="${INK}" stroke-width="1.4"/>`).join("")+sh(`M${f(lx+16)} ${top+6} Q${f(lx+34*dir)} ${top-8} ${f(lx+38*dir)} ${top+14} Q${f(lx+26*dir)} ${top+10} ${f(lx+16)} ${top+18} Z`,"#f4f2f8");
   if(L==="shadow")s+=`<g class="mf-smoke">${[0,1,2].map(i=>`<path style="animation-delay:-${i*.7}s" d="M${f(lx-8+i*8)} ${top} Q${f(lx-14+i*8)} ${top-10} ${f(lx-6+i*8)} ${top-20}" fill="none" stroke="#6b4aa8" stroke-width="4" stroke-linecap="round"/>`).join("")}</g>`;
   if(L==="ember")s+=`<g class="mf-fire" fill="#ffb21f" stroke="${INK}" stroke-width="1.4">${[-10,0,10].map((dx,i)=>`<path style="animation-delay:-${(i*.13).toFixed(2)}s" d="M${f(lx+dx)} ${top+2} Q${f(lx+dx+8)} ${top-8} ${f(lx+dx+2)} ${top-20} Q${f(lx+dx-6)} ${top-8} ${f(lx+dx)} ${top+2} Z"/>`).join("")}</g>`+ln(`M${f(lx-12)} ${top+20} L${f(lx-2)} ${top+30} L${f(lx-10)} ${top+40}`,2.4,"#ff7a1f");
   if(L==="frost")s+=`<g class="mf-frost" fill="#f2fcff" stroke="#2f7fc0" stroke-width="1">${_st(lx-20,top+10,5,0)+_st(lx+20,top+30,4,.7)}</g>`;
   return s;
 }
-/* A boot for the loot icon (100 units), side view: shaft up top, toe to the right. */
+/* A boot for the loot icon (100 units), side view: shaft up top, toe to the right. Strokes are pre-comic. */
 function bootIcon(B){
-  const c=B.c||"#7a4a26",dk=darker(c,.6),L=B.look,P=(d,f)=>`<path d="${d}" fill="${f}"/>`,Ln=(d,w,col)=>`<path d="${d}" fill="none" stroke="${col||INK}" stroke-width="${w}"/>`;
-  const top={flip:70,sneaker:50,slipper:48,roller:38,work:30,hiker:28,ranger:16,greave:16,seven:10,shadow:16,ember:20,frost:16}[L]||28;
+  const c=B.c||"#7a4a26",dk=darker(c,.6),lt=shadeHex(c,.45),L=B.look,id=B.id;
+  const P=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,O=(d,f,o)=>`<path d="${d}" fill="${f}" stroke="none"${o?` opacity="${o}"`:""}/>`,Ln=(d,w,col,x)=>`<path d="${d}" fill="none" stroke="${col||INK}" stroke-width="${w}" stroke-linecap="round"${x||""}/>`;
+  const ST=(d,col,w)=>Ln(d,w||1,col,` stroke-dasharray="2.4 2"`),C=(x,y,r,f,w)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${INK}" stroke-width="${w==null?1.2:w}"/>`;
+  const top={flip:70,sneaker:48,slipper:46,roller:34,work:28,hiker:26,ranger:14,greave:14,seven:10,shadow:14,ember:24,frost:14}[L]||28;
+  const boot=`M22 ${top} L54 ${top} L55 56 Q60 60 74 64 Q88 68 88 78 L88 82 L20 82 Q19 70 22 ${top} Z`;
   let s="";
   if(B.magic==="fire")s+=`<circle class="mf-glow" cx="50" cy="56" r="40" fill="#ff7a1f" opacity=".4" stroke="none"/>`;
   if(B.magic==="frost")s+=`<circle class="mf-glow" cx="50" cy="56" r="40" fill="#7fd8ff" opacity=".4" stroke="none"/>`;
-  if(L==="flip")return s+P("M14 74 L86 74 Q90 80 86 84 L14 84 Q10 80 14 74 Z",c)+Ln("M40 74 L30 56 M40 74 L54 58",3,dk);
-  if(L==="slipper")s+=P("M14 82 Q12 56 34 52 L62 52 Q88 56 88 78 L88 82 Z",c)+`<circle cx="72" cy="60" r="8" fill="#fff"/><circle cx="69" cy="58" r="1.8" fill="${INK}"/><circle cx="75" cy="58" r="1.8" fill="${INK}"/>`;
-  else s+=P(`M22 ${top} L54 ${top} L54 60 Q80 62 86 78 L86 84 L22 84 Z`,c)+Ln(`M22 ${top+5} L54 ${top+5}`,2.4,dk);
-  s+=P("M18 82 L90 82 L90 92 L18 92 Z",L==="slipper"?"#f4f2f8":INK);
-  if(L==="sneaker")s+=Ln("M30 70 Q56 60 80 74",4,"#fff");
-  if(L==="work")s+=P("M66 62 Q84 64 86 80 L66 80 Z","#9aa0ad")+Ln("M28 40 L48 46 M28 50 L48 56",2,"#f0d23a");
-  if(L==="hiker"||L==="ranger")s+=Ln(`M28 ${top+12} L48 ${top+18} M48 ${top+12} L28 ${top+18} M28 ${top+26} L48 ${top+32} M48 ${top+26} L28 ${top+32}`,2,L==="hiker"?"#e8283c":"#e8d8b0")+(L==="ranger"?P(`M18 ${top-4} L58 ${top-4} L56 ${top+8} L20 ${top+8} Z`,dk):"");
-  if(L==="greave"||L==="frost")s+=Ln(`M22 ${top+18} L54 ${top+18} M22 ${top+34} L54 ${top+34}`,2.4,dk)+P(`M30 ${top-2} L46 ${top-2} L38 ${top+14} Z`,L==="frost"?"#e6fbff":"#d5d9e2");
-  if(L==="roller")s+=[30,52,74].map(x=>`<circle cx="${x}" cy="94" r="5" fill="#ff5fa8"/>`).join("");
-  if(L==="seven")s+=[22,38,54].map(y=>P(`M20 ${y} L56 ${y} L56 ${y+5} L20 ${y+5} Z`,dk)+`<rect x="34" y="${y-1}" width="8" height="7" rx="1" fill="#ffd23f"/>`).join("")+P("M54 16 Q74 2 80 24 Q68 20 56 28 Z","#f4f2f8");
-  if(L==="shadow")s+=`<g class="mf-smoke">${[0,1,2].map(i=>`<path style="animation-delay:-${i*.7}s" d="M${28+i*10} ${top} Q${22+i*10} ${top-8} ${30+i*10} ${top-14}" fill="none" stroke="#9b6bff" stroke-width="3" stroke-linecap="round"/>`).join("")}</g>`;
-  if(L==="ember")s+=`<g class="mf-fire" fill="#ffb21f" stroke="${INK}" stroke-width="1.2">${[28,38,48].map((x,i)=>`<path style="animation-delay:-${(i*.13).toFixed(2)}s" d="M${x} ${top+2} Q${x+7} ${top-6} ${x+2} ${top-16} Q${x-5} ${top-6} ${x} ${top+2} Z"/>`).join("")}</g>`;
-  if(L==="frost")s+=`<g class="mf-frost" fill="#f2fcff" stroke="none">${_st(70,30,5,0)+_st(16,50,4,.7)}</g>`;
+  const sole=(col,h,tread)=>P(`M17 80 L90 80 Q92 ${80+h/2} 89 ${80+h} L17 ${80+h} Z`,col)+(tread?Ln(Array.from({length:8},(_,i)=>`M${23+i*8.4} ${80+h} L${23+i*8.4} ${80+h-2.6}`).join(" "),1.2,tread):"");
+  const shade=()=>O(`M22 ${top} L30 ${top} Q26 ${(top+80)/2} 27 80 L20 80 Q19 70 22 ${top} Z`,"#fff",.16)+O("M60 62 Q78 66 86 72 Q88 76 88 80 L70 80 Q72 70 60 62 Z","#000",.14);
+  if(L==="flip"){
+    s+=P("M10 76 Q12 70 30 70 L76 70 Q90 70 90 76 Q90 82 76 82 L24 82 Q10 82 10 76 Z",c)+P("M10 80 Q12 86 24 86 L76 86 Q90 86 90 80 L90 76 Q90 82 76 82 L24 82 Q10 82 10 76 Z",dk)+Ln("M18 74 Q34 71 50 72",1.2,lt);
+    s+=Ln("M58 73 L46 56 M58 73 L72 56",4.4)+Ln("M58 73 L46 56 M58 73 L72 56",2.4,"#ffd23f")+C(58,73,2.6,"#ffd23f",1)+`<g transform="translate(59 56)">${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-4" rx="2.6" ry="4" fill="#fff" stroke="${INK}" stroke-width=".8" transform="rotate(${a})"/>`).join("")}<circle r="2" fill="#ff8a1f" stroke="${INK}" stroke-width=".8"/></g>`
+      +`<circle cx="30" cy="92" r="1.2" fill="#e8d0a0" stroke="none"/><circle cx="36" cy="94" r="1" fill="#e8d0a0" stroke="none"/><circle cx="70" cy="93" r="1.2" fill="#e8d0a0" stroke="none"/>`;
+    return s;}
+  if(L==="slipper"){ // a fuzzy bunny slipper: scalloped fluff collar, ears, face
+    s+=P("M70 44 Q66 24 74 20 Q80 28 76 46 Z",c)+P("M71.6 42 Q70 30 74 25 Q76 32 74.4 42 Z","#ffd0e4",` stroke="none"`)+P("M80 46 Q84 26 92 26 Q94 36 84 50 Z",c);
+    s+=P("M12 82 Q10 56 34 50 L62 48 Q90 52 90 76 L90 82 Z",c)+O("M66 52 Q86 56 88 76 L80 80 Q80 62 66 52 Z","#000",.12);
+    let fluff="M14 58";for(let x=14;x<60;x+=6)fluff+=` Q${x+3} ${53+(x%12?1:-1)} ${x+6} 58`;s+=P(fluff+" L60 64 L14 64 Z","#fff",` stroke-width="1.4"`);
+    s+=C(72,62,2,INK,0)+C(82,62,2,INK,0)+`<circle cx="72.6" cy="61.4" r=".7" fill="#fff"/><circle cx="82.6" cy="61.4" r=".7" fill="#fff"/>`+P("M75 67 L79 67 L77 69.4 Z","#ff5fa8",` stroke-width=".8"`)+Ln("M77 69.4 Q75 72 73 71 M77 69.4 Q79 72 81 71",.9)+Ln("M70 68 L64 66 M70 70 L64 71 M84 68 L90 66 M84 70 L90 71",.7,"#c06090");
+    s+=P("M12 82 L90 82 L90 90 L12 90 Z","#f4f2f8")+ST("M16 86 L86 86","#c9c6d6",.9);return s;}
+  if(L==="roller"){s+=O("M14 70 Q2 72 4 66 Q10 68 14 64 Q6 62 10 58 Q14 62 18 60","#ff7a1f",.9)+Ln("M17 66 Q6 64 5 66 M18 62 Q10 58 9 60",1.4,"#ffd23f");}
+  s+=P(boot,c)+shade();
+  // per-boot details
+  if(L==="sneaker"){
+    s+=P("M54 58 Q74 62 86 72 Q88 76 88 80 L72 80 Q74 68 54 64 Z","#f4f2f8",` stroke-width="1.2"`)+P(`M22 ${top} Q30 ${top-4} 38 ${top}`,"none",` stroke="${INK}" stroke-width="2"`)+P(`M20 ${top+2} L27 ${top+2} L26 ${top+14} L20 ${top+14} Z`,dk,` stroke-width="1"`);
+    s+=P("M30 68 L46 60 L44 66 L62 60 L40 74 L42 68 Z","#ffd23f",` stroke-width="1.1"`);
+    for(let i=0;i<4;i++){const x=36+i*5,y=top+2+i*2.6;s+=C(x,y,1.2,"#fff",.7);}s+=Ln(`M36 ${top+2} L46 ${top+7.2} M41 ${top+4.6} L51 ${top+9.8} M46 ${top+7.2} L36 ${top+12} M51 ${top+9.8} L42 ${top+14}`,1.4,"#fff");
+    s+=sole("#f4f2f8",6,"#9aa0ad")+Ln("M90 66 Q94 62 96 56 M92 72 Q97 70 99 66",1.4,INK);}
+  if(L==="work"){
+    s+=P("M62 62 Q82 64 88 74 L88 80 L66 80 Q66 68 62 62 Z","#9aa0ad",` stroke-width="1.4"`)+O("M66 64 Q78 66 84 72 Q76 68 68 68 Z","#fff",.55)+C(70,72,1.4,"#e3e6ee",.8);
+    s+=ST(`M22 ${top+5} L54 ${top+5}`,lt,.9)+ST("M22 76 L62 76",lt,.9)+P(`M48 ${top-6} L54 ${top-6} L54 ${top+3} L48 ${top+3} Z`,dk,` stroke-width="1"`);
+    for(let y=top+10;y<58;y+=8)s+=`<path d="M52 ${y} l4 0" stroke="#c9cdd6" stroke-width="2.4"/>`+C(56,y,1.3,"#c9cdd6",.7);s+=Ln(`M38 ${top+10} L56 ${top+18} M56 ${top+10} L38 ${top+18} M38 ${top+18} L56 ${top+26} M56 ${top+18} L38 ${top+26}`,1.4,"#f0d23a");
+    s+=sole(INK,8,"#555");}
+  if(L==="hiker"){
+    s+=P(`M20 ${top-4} Q38 ${top-10} 56 ${top-4} L55 ${top+6} Q38 ${top} 21 ${top+6} Z`,shadeHex(c,-.25),` stroke-width="1.4"`)+P("M60 62 Q80 64 88 74 L88 80 L68 80 Q70 70 60 62 Z","#3a3a40",` stroke-width="1.2"`);
+    for(let y=top+10;y<56;y+=8)s+=`<path d="M53 ${y-2.4} Q58 ${y} 53 ${y+2.4}" fill="none" stroke="#c9cdd6" stroke-width="1.6"/>`;
+    s+=Ln(`M34 ${top+10} L54 ${top+18} M54 ${top+10} L34 ${top+18} M34 ${top+18} L54 ${top+26} M54 ${top+18} L34 ${top+26}`,1.6,"#e8283c")+Ln(`M54 ${top+10} Q62 ${top+16} 60 ${top+24}`,1.4,"#e8283c")+ST(`M23 ${top+30} L50 ${top+30}`,lt,.9);
+    s+=sole("#3a3a40",8,"#777")+O("M24 86 Q32 82 40 86 Q46 90 52 85 L52 88 L24 88 Z","#6b4a2a",.75);}
+  if(L==="ranger"){
+    s+=P(`M18 ${top-6} L58 ${top-6} L56 ${top+10} L20 ${top+10} Z`,dk,` stroke-width="1.4"`)+O(`M20 ${top-4} L34 ${top-4} L33 ${top+8} L21 ${top+8} Z`,"#fff",.12)+ST(`M20 ${top+7} L56 ${top+7}`,lt,.9);
+    for(const y of [top+22,top+38]){s+=P(`M21 ${y} L55 ${y-2} L55 ${y+4} L21 ${y+6} Z`,shadeHex(c,-.35),` stroke-width="1.1"`)+P(`M40 ${y-3} L48 ${y-3.6} L48 ${y+5.4} L40 ${y+6} Z`,"none",` stroke="#c9cdd6" stroke-width="1.6"`)+Ln(`M42 ${y+1.4} L47 ${y+1}`,1.2,"#c9cdd6");}
+    s+=ST("M54 58 Q70 62 84 70",lt,.9)+`<ellipse cx="72" cy="72" rx="4" ry="1.6" fill="#fff" opacity=".18" stroke="none"/>`+sole("#2a1a10",7,"#5a4030");}
+  if(L==="greave"||L==="frost"){
+    const pl=L==="frost"?"#d9f4ff":c;
+    s+=P(`M20 ${top} L56 ${top} L55 ${top+40} L21 ${top+40} Z`,pl)+P(`M29 ${top-2} L47 ${top-2} L38 ${top+14} Z`,L==="frost"?"#e6fbff":"#d5d9e2")+Ln(`M38 ${top+14} L38 ${top+38}`,1.6,dk)+O(`M24 ${top+4} L30 ${top+4} L29 ${top+38} L23 ${top+38} Z`,"#fff",.35);
+    for(const y of [top+18,top+30])s+=C(24,y,1.6,lt,.8)+C(52,y,1.6,lt,.8);
+    s+=[0,1,2].map(i=>P(`M${56+i*9} ${60+i*2.6} Q${66+i*9} ${60+i*3} ${70+i*7} ${68+i*3} L${66+i*7} ${72+i*2.4} Q${60+i*9} ${66+i*2} ${54+i*9} ${66+i*2} Z`,pl,` stroke-width="1.2"`)).join("")+Ln(`M21 ${top+40} L55 ${top+40}`,2,dk);
+    s+=sole(darker(pl,.4),7,null);
+    if(L==="frost")s+=`<path d="M30 ${top+24} L46 ${top+24} M38 ${top+16} L38 ${top+32} M32 ${top+18} L44 ${top+30} M44 ${top+18} L32 ${top+30}" stroke="#fff" stroke-width="1.4"/>`+[[26,88],[44,90],[62,89],[80,88]].map(([x,y])=>`<path d="M${x-3} ${y} L${x} ${y+5} L${x+3} ${y} Z" fill="#e6fbff" stroke="${INK}" stroke-width=".8"/>`).join("");}
+  if(L==="roller"){
+    s+=P("M54 58 Q74 62 86 72 Q88 76 88 80 L72 80 Q74 68 54 64 Z","#f4f2f8",` stroke-width="1.2"`)+P(`M18 ${top-4} Q36 ${top-10} 56 ${top-4} L55 ${top+6} Q36 ${top} 19 ${top+6} Z`,"#f4f2f8",` stroke-width="1.2"`);
+    s+=P("M24 62 Q30 52 34 58 Q38 48 44 56 Q48 50 52 60 L52 70 L24 70 Z","#ff7a1f",` stroke-width="1"`)+O("M28 66 Q32 60 35 64 Q39 58 43 63 Q47 60 49 66 L49 70 L28 70 Z","#ffd23f");
+    for(let y=top+10;y<56;y+=7)s+=Ln(`M40 ${y} L56 ${y+4} M56 ${y} L40 ${y+4}`,1.2,"#fff");
+    s+=P("M20 80 L90 80 L90 86 L20 86 Z","#c9cdd6",` stroke-width="1.4"`)+P("M86 82 Q96 82 94 90 L88 90 Z","#e8283c",` stroke-width="1.2"`);
+    s+=[30,52,74].map(x=>C(x,92,6.4,"#ff5fa8",1.6)+C(x,92,2.4,"#f4f2f8",1)).join("")+P("M8 62 L18 60 L18 70 L8 68 Z","#9aa0ad",` stroke-width="1.2"`);}
+  if(L==="seven"){
+    for(const y of [top+12,top+28,top+44])s+=P(`M21 ${y} L56 ${y-1} L56 ${y+5} L21 ${y+6} Z`,dk,` stroke-width="1.1"`)+`<rect x="36" y="${y-1.6}" width="8" height="8.6" rx="1" fill="#ffd23f" stroke="${INK}" stroke-width="1.1"/>`+Ln(`M40 ${y+1} L40 ${y+5}`,1);
+    s+=P(`M20 ${top} Q4 ${top-8} 2 ${top+8} Q10 ${top+4} 12 ${top+12} Q6 ${top+14} 8 ${top+22} Q14 ${top+16} 21 ${top+20} Z`,"#f4f2f8",` stroke-width="1.2"`)+Ln(`M6 ${top+2} L19 ${top+8} M8 ${top+12} L20 ${top+14}`,.8,"#c9c6d6");
+    s+=P("M60 58 L72 56 L74 66 L62 68 Z","#f2e6c8",` stroke-width="1"`)+Ln("M63 59.6 L63.6 65.6 M65.4 59.2 L66 65.2 M67.8 58.8 L68.4 64.8 M70.2 58.4 L70.8 64.4 M62.4 62.6 L71.6 61.2 M72.2 58 L72.8 64",.8)
+      +`<path d="M84 50 l1.2 2.6 2.8 .3 -2.1 1.9 .6 2.8 -2.5 -1.4 -2.5 1.4 .6 -2.8 -2.1 -1.9 2.8 -.3 Z" fill="#ffd23f" stroke="${INK}" stroke-width=".7"/>`+sole("#2a1a10",7,"#5a4030");}
+  if(L==="shadow"){
+    s+=Ln(`M22 ${top+4} L54 ${top+4}`,1.6,"#9b6bff")+ST(`M38 ${top+8} L38 56 Q50 60 70 64`,"#b48cff",1.1)+`<path class="mf-glow" d="M22 ${top+4} L54 ${top+4}" stroke="#9b6bff" stroke-width="4" opacity=".5"/>`;
+    s+=P("M74 66 Q86 70 88 78 L80 78 Q78 72 72 70 Z","#3b2a5a",` stroke-width="1"`)+sole("#1a1426",5,null);
+    s+=`<g class="mf-smoke">${[[30,92,0],[52,93,.8],[74,92,1.6]].map(([x,y,d])=>`<path style="animation-delay:-${d}s" d="M${x} ${y} Q${x-6} ${y-4} ${x-2} ${y-8}" fill="none" stroke="#6b4aa8" stroke-width="3" stroke-linecap="round"/>`).join("")}</g>`;}
+  if(L==="ember"){
+    s+=Ln(`M30 ${top+10} L36 ${top+22} L30 ${top+32} L38 ${top+46} M48 ${top+14} L44 ${top+28} M60 62 L68 68 L64 74`,2.6,"#ff7a1f")+Ln(`M30 ${top+10} L36 ${top+22} L30 ${top+32} L38 ${top+46} M48 ${top+14} L44 ${top+28} M60 62 L68 68 L64 74`,1,"#ffd23f");
+    s+=`<g class="mf-fire" fill="#ffb21f" stroke="${INK}" stroke-width="1.2">${[26,38,50].map((x,i)=>`<path style="animation-delay:-${(i*.13).toFixed(2)}s" d="M${x} ${top+2} Q${x+7} ${top-8} ${x+2} ${top-18} Q${x-5} ${top-8} ${x} ${top+2} Z"/>`).join("")}</g>`+sole("#2a0e08",6,null)+Ln("M18 86 L88 86",1.6,"#ff7a1f");}
+  if(L==="frost"||L==="greave");else if(L!=="sneaker"&&L!=="work"&&L!=="hiker"&&L!=="ranger"&&L!=="roller"&&L!=="seven"&&L!=="shadow"&&L!=="ember")s+=sole(INK,8,null);
   return s;
 }
 /* ---------- Expansion art: armour, headgear and capes drawn from a style table ---------- */
@@ -7877,8 +7970,8 @@ function lootIconSVG(id,raw){
   const t0=s.length;
   switch(it0&&it0.slot==="belt"?"__belt":it0&&it0.slot==="ring"?"__ring":it0&&it0.slot==="trinket"?"__trinket":it0&&it0.slot==="gloves"?"__glove":it0&&it0.slot==="boots"?"__boot":newArt&&it0.slot==="weapon"?"__wpn":it0&&it0.slot==="armor"?"__arm":newArt&&it0.slot==="head"?"__head":newArt&&it0.slot==="cape"?"__cape":id){
     case "__belt":s+=beltArt(BELT_STYLE[aid],it0.belt);break;
-    case "__glove":s+=gloveIcon(it0);break;
-    case "__boot":s+=bootIcon(it0);break;
+    case "__glove":{const g=gloveIcon(it0);s+=it0.magic?g.replace(/stroke-width="(\d+(?:\.\d+)?)"/g,(m,w)=>`stroke-width="${(+w/1.6).toFixed(2)}"`):g;break;}
+    case "__boot":{const g=bootIcon(it0);s+=it0.magic?g.replace(/stroke-width="(\d+(?:\.\d+)?)"/g,(m,w)=>`stroke-width="${(+w/1.6).toFixed(2)}"`):g;break;}
     case "__wpn":{const [x0,x1,y0,y1]=WEAPON_BOX[aid],k=Math.min(98/(y1-y0),1.2),cx=(x0+x1)/2,cy=(y0+y1)/2;
       s+=`<g transform="translate(50 50) rotate(42) scale(${k.toFixed(3)}) translate(${-cx} ${-cy})" stroke-width="${(1.7/k).toFixed(2)}">${weaponUpright(aid,null,u).replace(/stroke-width="(\d+(?:\.\d+)?)"/g,(m,v)=>`stroke-width="${(+v*.65).toFixed(2)}"`)}</g>`;break;}
     case "__arm":s+=armorIcon(ARMOR_STYLE[it0.base||aid],u,it0.magic);break;
