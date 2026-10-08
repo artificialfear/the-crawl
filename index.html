@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=4be8c75fd5"></script>
-<script>window.CRAWL_BUILD="4be8c75fd5";</script>
+<script src="firebase-config.js?v=b0de55f641"></script>
+<script>window.CRAWL_BUILD="b0de55f641";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -990,6 +990,15 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 #ptCode{font-family:var(--mono,monospace);letter-spacing:2px;text-transform:uppercase}
 .pt-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:10px}
 .pt-head h3{margin:0;font-size:20px}
+#ptH2{display:flex;align-items:baseline;gap:8px;min-width:0}.pt-hname{font-size:.62em;color:var(--muted);font-weight:600;letter-spacing:.02em;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pt-alerts{margin:0 0 12px}@media (max-width:560px){.pt-hunt{flex-wrap:wrap}.pt-hunt>button{flex-basis:100%}}.pt-alerts .pt-hunt:first-child{margin-top:0}
+.pt-sec{border:1px solid var(--line-2);border-radius:12px;margin-top:10px;background:var(--panel-2)}
+.pt-sech{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;min-height:44px}
+.pt-sech:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;border-radius:12px}
+.pt-sech .label{margin:0;flex:none}.pt-secsum{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.pt-secsum .pt-slain{color:#ff5a6a}.pt-chev{flex:none;transition:transform .2s;color:var(--muted)}.pt-sec.open .pt-chev{transform:rotate(180deg)}
+.pt-sec.open .pt-secsum{visibility:hidden}.pt-secb{padding:0 10px 12px}.pt-secb .pt-raid{border:0;padding:0;background:none}
+.pt-foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--line-2)}.pt-foot .pt-head{margin-bottom:6px}
 .pt-codebar{display:flex;align-items:center;gap:10px;flex-basis:100%;flex-wrap:wrap}
 .pt-code{font-family:var(--mono,monospace);font-weight:700;letter-spacing:2px;background:var(--panel-2);border:1px dashed var(--gold);color:var(--gold);border-radius:6px;padding:3px 8px}
 .pt-link{width:100%;font-size:12px}
@@ -1010,7 +1019,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .zboss{position:relative;line-height:0}.zboss svg{width:100%;height:auto;display:block}.zdead{text-decoration:line-through;text-decoration-color:var(--blood)}
 .zoomdlg.z-boss .zoom-art{width:min(280px,72%);border-radius:0;overflow:visible}.zboss .vstamp.still{font-size:clamp(28px,9vw,42px)}
 .raidpanel .bossart.thumb .vstamp.still{font-size:11px;border-width:2px;padding:0 4px}
-@media (min-width:861px){body[data-tab="party"] .pt-raid{display:none}}
+@media (min-width:861px){body[data-tab="party"] .pt-raid,body[data-tab="party"] .pt-sec.sec-raid{display:none}}
 .mwbadge{position:absolute;left:2px;bottom:1px;font-size:9px;line-height:1;color:#ffd23f;text-shadow:0 0 2px #000,0 0 2px #000,0 0 4px #000;letter-spacing:-1px;pointer-events:none}
 .mwst{color:#ffd23f;letter-spacing:1px}.mwst .dim{color:var(--faint)}
 .bench-top{display:grid;gap:6px}.mats{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}.mat b{font-size:14px}
@@ -1453,7 +1462,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
     <section class="panel safepanel" id="safe" aria-label="Safe room" hidden></section>
     </div>
     <div class="tabpane" data-pane="party" role="tabpanel" aria-label="Party">
-    <section class="panel partypanel" aria-label="Party"><h2>Party</h2><div id="party"></div></section>
+    <section class="panel partypanel" aria-label="Party"><h2 id="ptH2">Party</h2><div id="party"></div></section>
     </div>
     <div class="tabpane" data-pane="safe-empty"></div>
   </div>
@@ -9241,8 +9250,21 @@ function miniAvatar(c){
   if(!v){try{v=avatarSVG(eq);}catch(e){v="";}avCache.set(k,v);if(avCache.size>40)avCache.delete(avCache.keys().next().value);}
   return v;
 }
+/* A collapsible Party-tab section. Open/closed is remembered per device; key changes (e.g. a new week, a slain boss) reset to the default. */
+function ptSec(key,title,sum,body,defOpen,cls){
+  const st=(prefs.ptSec||{})[key],open=st==null?defOpen:st;
+  return `<div class="pt-sec${open?" open":""}${cls?" "+cls:""}"><button type="button" class="pt-sech" data-ptsec="${esc(key)}" aria-expanded="${open}"><span class="label">${esc(title)}</span><span class="pt-secsum">${sum}</span><span class="pt-chev" aria-hidden="true">▾</span></button>${open?`<div class="pt-secb">${body}</div>`:""}</div>`;
+}
+function rfSummary(){
+  const r=rfState();if(!r)return "";
+  if(r.pos===RF_LAIR)return "You're in the lair";
+  if(r.tgt==null||r.tgt===r.pos)return "Standing still";
+  const p=rfPath(rfMaze(r.code,r.wk).adj,r.pos,r.tgt),n=p?p.length-1:0,ra=rfRally();
+  return `${n} quest${n===1?"":"s"} to ${r.tgt===RF_LAIR?"the lair":ra&&r.tgt===ra.cell?"the rally flag":"your marker"}`;
+}
 function renderParty(){
   const el=$("party");if(!el)return;
+  {const h=$("ptH2");if(h)h.innerHTML=`Party${party&&party.doc?` <span class="pt-hname">(${esc(party.doc.name||"Party")})</span>`:""}`;}
   if(fb&&loadedP&&loadedT){
     if(!ui.partyLinked){ui.partyLinked=true;partyFromLink();}
     const want=player.party&&player.party.code;
@@ -9297,7 +9319,7 @@ function renderParty(){
   const seg=`<div class="pt-seg" role="tablist"><button type="button" role="tab" data-ptview="crew" class="${view==="crew"?"on":""}" aria-selected="${view==="crew"}">Crew</button><button type="button" role="tab" data-ptview="chat" class="${view==="chat"?"on":""}" aria-selected="${view==="chat"}">Chat${cu?` <span class="pt-badge">${cu}</span>`:""}</button></div>`;
   if(view==="chat"){
     const box0=$("chatBox"),atBottom=!box0||box0.scrollHeight-box0.scrollTop-box0.clientHeight<40,keepTop=box0?box0.scrollTop:0;
-    el.innerHTML=`${seg}<div class="pt-head"><h3>${esc(party.doc.name||"Party")}</h3></div>${chatHTML()}`;
+    el.innerHTML=`${seg}${chatHTML()}`;
     el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
     // Re-rendering rebuilds the chat box: stick to the newest message if you were there, otherwise stay exactly where you were
     const box=$("chatBox");if(box)box.scrollTop=atBottom?box.scrollHeight:keepTop;
@@ -9310,34 +9332,39 @@ function renderParty(){
     if(cu&&ui.tab==="party"){prefs.chatSeen=Date.now();savePrefs();}
     return;
   }
-  el.innerHTML=seg+`<div class="pt-head">
-      ${ui.partyRenaming?`<form id="ptRenameForm" class="pt-row"><input type="text" id="ptRename" maxlength="40" value="${esc(ui.ptRename||party.doc.name||"")}"><button class="btn sm" type="submit">Save</button></form>`
-        :`<h3>${esc(party.doc.name||"Party")}</h3><button class="linkbtn" type="button" id="ptRenameBtn">Rename</button>`}
-      <div class="pt-codebar"><span class="pt-code">${esc(party.code)}</span><span class="muted">${mem.length} of ${PARTY_MAX}</span><button class="btn gold sm" type="button" id="ptInvite">Copy invite link</button></div>
-      ${ui.partyLink?`<input type="text" class="pt-link" readonly value="${esc(ui.partyLink)}">`:""}
-    </div>${err}
-    ${buff}
-    <div class="pt-raid">
+  const raidBody=`<div class="pt-raid">
       <div class="pt-raidart bossart${r.dead?" slain":""}" id="ptRaidArt" role="button" tabindex="0" aria-label="${esc(r.boss.n)}: tap to enlarge">${bossSVG(r.boss.n,r.dead,{art:r.boss.art,num:"raid"})}${r.dead?`<div class="vstamp still" aria-hidden="true">Slain</div>`:""}<span class="pt-zoom" aria-hidden="true">⤢</span></div>
-      <div class="pt-raidinfo"><div class="label">Weekly raid boss</div><h3>${esc(r.boss.n)}</h3><p class="muted">${esc(r.boss.line)}</p>
+      <div class="pt-raidinfo"><h3>${esc(r.boss.n)}</h3><p class="muted">${esc(r.boss.line)}</p>
         <div class="pt-hp" role="img" aria-label="${left} of ${r.hp} HP left"><i style="width:${pct}%"></i></div>
         <div class="pt-hpnum">${r.dead?"<b>Defeated!</b> Everyone who landed a hit gets a Gold Box.":`${left.toLocaleString()} / ${r.hp.toLocaleString()} HP · ${daysLeft} day${daysLeft===1?"":"s"} left`}</div>
         ${contrib.length?`<ul class="pt-dmg">${contrib.map(([uid,v])=>{const c=cardOf(uid);return `<li><span>${esc(uid===me?"You":c&&c.name||"Crawler")}</span><i style="width:${Math.max(4,Math.round(v/maxC*100))}%"></i><b>${v.toLocaleString()}</b></li>`;}).join("")}</ul>`:`<p class="muted" style="font-size:13px">No hits yet this week. ${stormOn(wk)?"Damage only lands in the lair: walk there on the raid floor below. Quests on the way store half their damage as ⚡ Charge.":"Every quest you clear does damage equal to its XP."}</p>`}
         ${stormOn(wk)&&!r.dead?(()=>{const ch=mem.map(uid=>({uid,c:cardOf(uid)})).filter(x=>x.c&&x.c.wk===wk&&(x.c.chg||0)>0);
           return ch.length?`<div class="pt-charge">⚡ Charge waiting: ${ch.map(x=>`${esc(x.uid===me?"You":x.c.name||"Crawler")} <b>${x.c.chg}</b>`).join(" · ")}</div>`:"";})():""}
-      </div></div>
-    ${raidFloorHTML()}
-    ${(()=>{const cr=crewRanks(weekOf(td));if(cr.length<2)return "";const top=Math.max(0,...cr.filter(x=>!x.pending).map(x=>x.s));
-      return `<div class="label" style="margin-top:14px">This week's standings</div><ol class="pt-stand">${cr.map((x,i)=>x.pending?`<li class="pend"><span class="ps-pos">–</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}${skullsOf(x.sk)}</b><span class="muted ps-why">${x.pending==="old"?"Needs to open the latest version":"Hasn't played this week yet"}</span></li>`
-        :`<li class="${x.me?"me":""}"><span class="ps-pos">${i===0&&x.s>0?"👑":"#"+(i+1)}</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}${skullsOf(x.sk)}</b><span class="muted">Floor ${x.f||1}</span><i style="width:${top?Math.max(3,Math.round(x.s/top*100)):3}%"></i><span class="num">${x.s.toLocaleString()}</span></li>`).join("")}</ol>
-        <div class="muted" style="font-size:12px">Boss damage on this week's floor. Crewmates also appear on your Crawler rankings in the Show tab.</div>`;})()}
-    ${rivalCrewHTML()}
-    <div class="label" style="margin-top:14px">Crew</div>
-    <div class="pt-roster">${roster}</div>
-    <div class="label" style="margin-top:14px">Party feed</div>
-    <ul class="pt-feed">${feed}</ul>
+      </div></div>`;
+  const myHit=r.per[me]||0;
+  const raidSum=r.dead?`<b class="pt-slain">Slain</b> · Gold Box for every hitter${myHit?` · you hit ${myHit.toLocaleString()}`:""}`:`${pct}% HP left · ${daysLeft} day${daysLeft===1?"":"s"} left${myHit?` · you ${myHit.toLocaleString()}`:""}`;
+  const cr=crewRanks(wk),crTop=Math.max(0,...cr.filter(x=>!x.pending).map(x=>x.s));
+  const standBody=cr.length<2?"":`<ol class="pt-stand">${cr.map((x,i)=>x.pending?`<li class="pend"><span class="ps-pos">–</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}${skullsOf(x.sk)}</b><span class="muted ps-why">${x.pending==="old"?"Needs to open the latest version":"Hasn't played this week yet"}</span></li>`
+        :`<li class="${x.me?"me":""}"><span class="ps-pos">${i===0&&x.s>0?"👑":"#"+(i+1)}</span><span class="ps-dot" style="background:${x.col}"></span><b>${esc(x.n)}${skullsOf(x.sk)}</b><span class="muted">Floor ${x.f||1}</span><i style="width:${crTop?Math.max(3,Math.round(x.s/crTop*100)):3}%"></i><span class="num">${x.s.toLocaleString()}</span></li>`).join("")}</ol>
+        <div class="muted" style="font-size:12px">Boss damage on this week's floor. Crewmates also appear on your Crawler rankings in the Show tab.</div>`;
+  const myRank=cr.filter(x=>!x.pending).findIndex(x=>x.me),lead=cr.find(x=>!x.pending&&x.s>0);
+  const standSum=lead?`👑 ${esc(lead.me?"You":lead.n)}${myRank>0?` · you're #${myRank+1}`:""}`:"No hits yet";
+  const floorBody=raidFloorHTML(),hunts=rivalCrewHTML();
+  el.innerHTML=seg+`${err}${hunts?`<div class="pt-alerts">${hunts}</div>`:""}
+    ${buff}
+    ${ptSec("raid-"+wk+(r.dead?"-d":""),"Weekly raid boss",raidSum,raidBody,!r.dead,"sec-raid")}
+    ${floorBody?ptSec("floor","Raid floor",rfSummary(),floorBody,true):""}
+    ${standBody?ptSec("stand","This week's standings",standSum,standBody,true):""}
+    ${ptSec("crew","Crew",`${todayDone} of ${cards.length} quested today`,`<div class="pt-roster">${roster}</div>`,true)}
+    ${ptSec("feed","Party feed",party.feed[0]?`latest ${ago(party.feed[0].at||0)}`:"quiet",`<ul class="pt-feed">${feed}</ul>`,true)}
+    <div class="pt-foot">
+      <div class="pt-head">${ui.partyRenaming?`<form id="ptRenameForm" class="pt-row"><input type="text" id="ptRename" maxlength="40" value="${esc(ui.ptRename||party.doc.name||"")}"><button class="btn sm" type="submit">Save</button></form>`
+        :`<span class="label">Invite your crew</span><button class="linkbtn" type="button" id="ptRenameBtn">Rename party</button>`}
+      <div class="pt-codebar"><span class="pt-code">${esc(party.code)}</span><span class="muted">${mem.length} of ${PARTY_MAX}</span><button class="btn gold sm" type="button" id="ptInvite">Copy invite link</button></div>
+      ${ui.partyLink?`<input type="text" class="pt-link" readonly value="${esc(ui.partyLink)}">`:""}</div>
     <div class="pt-leave">${ui.partyLeaveAsk?`<span>Leave ${esc(party.doc.name||"the party")}? Your own progress stays.</span><button class="btn sm" type="button" id="ptLeaveYes">Leave</button><button class="btn ghost sm" type="button" id="ptLeaveNo">Stay</button>`
-      :`<button class="linkbtn" type="button" id="ptLeave">Leave party</button>`}</div>`;
+      :`<button class="linkbtn" type="button" id="ptLeave">Leave party</button>`}</div></div>`;
+  el.querySelectorAll("[data-ptsec]").forEach(b=>b.onclick=()=>{const k=b.dataset.ptsec,o=b.getAttribute("aria-expanded")!=="true";prefs.ptSec=Object.assign({},prefs.ptSec,{[k]:o});savePrefs();render();});
   const on=(id,f)=>{const x=$(id);if(x)x.onclick=f;};
   on("ptInvite",partyInvite);on("ptRenameBtn",()=>{ui.partyRenaming=true;ui.ptRename=party.doc.name||"";render();const i=$("ptRename");if(i){i.focus();i.select();}});
   const rf=$("ptRenameForm");if(rf){rf.onsubmit=e=>{e.preventDefault();ui.ptRename=$("ptRename").value;partyRename();};$("ptRename").oninput=e=>{ui.ptRename=e.target.value;};}
@@ -9450,8 +9477,7 @@ function raidFloorHTML(){
   const near=crew.map(c=>({c,d:(rfPath(adj,r.pos,c.pos)||[]).length-1})).filter(x=>x.d>0).sort((a,b)=>a.d-b.d)[0];
   const tgtTxt=r.tgt==null||r.tgt===r.pos?(r.pos===RF_LAIR?"You're in the lair.":"You're standing still. Tap a room to head there."):`Heading to ${r.tgt===RF_LAIR?"the lair":rally&&r.tgt===rally.cell?`${rally.mine?"your":esc(rally.who)+"'s"} rally flag`:"your marker"}: <b>${steps}</b> quest${steps===1?"":"s"} away.`;
   const lair=rfLairCrew();
-  return `<div class="label" style="margin-top:14px">Raid floor</div>
-    <div class="rfwrap"><div class="rfmapbox">${s}</div>
+  return `<div class="rfwrap"><div class="rfmapbox">${s}</div>
     <div class="rfinfo"><div>${tgtTxt}</div>
       ${mates.length?`<div class="rfaura"><b>Sharing a room with ${esc(mates.map(m=>m.name).join(" and "))}</b>${au.list.map(a=>`<span>${esc(a.who)}: <b>${esc(a.n)}</b>, ${esc(a.d)}</span>`).join("")}</div>`
         :`<div class="muted">${near?`Nearest crewmate: ${esc(near.c.name)}, ${near.d} room${near.d===1?"":"s"} away.`:crew.length?"":"Your crew shows up here once they open the app this week."} Share a room with a crewmate to borrow their class aura.</div>`}
