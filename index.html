@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=70ed7ed947"></script>
-<script>window.CRAWL_BUILD="70ed7ed947";</script>
+<script src="firebase-config.js?v=766c4f17dc"></script>
+<script>window.CRAWL_BUILD="766c4f17dc";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3812,7 +3812,7 @@ function renderQt(){
   o.querySelectorAll("[data-qtup]").forEach(b=>b.onclick=()=>qtUpgrade(b.dataset.qtup));
   o.querySelectorAll("[data-qttrain]").forEach(b=>b.onclick=()=>qtTrain(b.dataset.qttrain));
   o.querySelectorAll("[data-qtfuse]").forEach(b=>b.onclick=()=>qtFuse(b.dataset.qtfuse));
-  o.querySelectorAll("[data-qtbench]").forEach(b=>b.onclick=()=>openBench());
+  o.querySelectorAll("[data-qtbench]").forEach(b=>b.onclick=()=>{craftSound();openBench();});
   o.querySelectorAll("[data-qtguest]").forEach(b=>b.onclick=()=>qtGuest(b.dataset.qtguest));
   o.querySelectorAll("[data-openbox]").forEach(b=>b.onclick=()=>{openBox(b.dataset.openbox);const v=document.querySelector(".victory");if(v)v.style.zIndex=50;renderQt();});
   o.querySelectorAll("[data-qtep]").forEach(b=>b.onclick=()=>{closeQt();playEpisode(b.dataset.qtep);});
