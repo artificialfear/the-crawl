@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=7fcd682e91"></script>
-<script>window.CRAWL_BUILD="7fcd682e91";</script>
+<script src="firebase-config.js?v=29f6b3de13"></script>
+<script>window.CRAWL_BUILD="29f6b3de13";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -999,6 +999,15 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .pt-raidart{margin:5px 0 16px 5px;position:relative;cursor:zoom-in}.pt-raidart svg{width:100%;height:auto;display:block}
 .pt-raidart:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .pt-zoom{position:absolute;right:4px;bottom:4px;width:22px;height:22px;display:grid;place-items:center;font-size:14px;line-height:1;border-radius:50%;background:rgba(11,7,19,.8);color:#fff;border:1px solid rgba(255,255,255,.4);pointer-events:none}
+.zoomable{position:relative;cursor:zoom-in}.zoomable:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.zoomable::after{content:"⤢";position:absolute;right:3px;bottom:3px;width:18px;height:18px;display:grid;place-items:center;font-size:11px;line-height:1;border-radius:50%;background:rgba(11,7,19,.8);color:#fff;border:1px solid rgba(255,255,255,.4);pointer-events:none}
+.petpic.sm.zoomable::after{width:14px;height:14px;font-size:9px;right:1px;bottom:1px}
+.zoomdlg .zoom-art{width:min(300px,78%);margin:0 auto;line-height:0;border-radius:8px;overflow:hidden}.zoomdlg .zoom-art svg{width:100%;height:auto;display:block}
+.zoomdlg.z-pet .zoom-art{width:min(220px,60%)}
+.zoom-sub{text-align:center;margin:0;color:var(--muted)}
+.zstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.zstat{display:grid;gap:3px;font-size:13px}.zstat b{font-size:13px}
+.zoomdlg .bar{height:8px}.zoomdlg .bar.rvbar>b{background:#e8283c}
+.zoom-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.zgear{font-size:13px}
 .vstamp.still{opacity:1;animation:none;transform:translate(-50%,-50%) rotate(-12deg) scale(1);z-index:2;pointer-events:none}
 .pt-raidart .vstamp.still{font-size:clamp(14px,5vw,22px);border-width:3px;padding:0 8px}
 .raiddlg .raid-big{position:relative;width:min(300px,80%);margin:0 auto}.raiddlg .raid-big svg{width:100%;height:auto;display:block}
@@ -3432,7 +3441,7 @@ function renderRivalAlert(){
   const key=JSON.stringify([rv.id,rv.hp,ran,player.gold>=bribe,odds,rv.nights]);if(el.dataset.k===key&&!el.hidden)return;el.dataset.k=key;el.hidden=false;
   const helpers=Object.keys(rv.as||{}).filter(u=>rv.as[u]>0).map(u=>esc(memberName(u)));
   el.innerHTML=`<div class="rvalert${rv.psy?" psy":""}" role="status" aria-live="polite">
-    <div class="rv-av" aria-hidden="true">${rvAvatar(rv)}</div>
+    <div class="rv-av zoomable" id="rvAv" role="button" tabindex="0" aria-label="${esc(rv.n)} up close">${rvAvatar(rv)}</div>
     <div class="rv-body"><div class="ma-k">${rv.psy?"☠ Psycho crawler":"⚔ Rival crawler"}${rv.rematch?" · Rematch":""}</div>
       <div class="rv-n"><b>${esc(rv.n)}</b> <span class="muted">the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board</span></div>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(rv.hp/rv.max*100)}%"></b></div><span class="num">${rv.hp}/${rv.max} HP</span></div>
@@ -3443,6 +3452,7 @@ function renderRivalAlert(){
         <button type="button" class="btn sm ghost" id="rvRun"${ran?" disabled":""}>${ran?"Ran today":`Run · ${odds}%`}</button>
         <span class="muted rv-shr">or walk to a shrine on your map</span></div></div></div>`;
   const b=$("rvBribe");if(b)b.onclick=rivalBribe;$("rvRun").onclick=rivalRun;
+  {const av=$("rvAv");if(av){av.onclick=zoomRival;av.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomRival();}};}}
 }
 /* Party tab: crewmates being hunted, with a Help toggle. */
 function rivalCrewHTML(){
@@ -7097,20 +7107,21 @@ function renderHeader(){
   const st=standings();
   const fl=$("floorNo");if(fl)fl.textContent=playerExists&&player.boss&&player.boss.tier!=null?`Floor ${floorOf()} · ${player.boss.defeated?"cleared":TIERS[player.boss.tier].n}${st?` · Rank #${st.rank}`:""}`:"";
 }
+function wirePetZoom(el){el.querySelectorAll("[data-zpet]").forEach(b=>{b.onclick=()=>zoomPet(b.dataset.zpet);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomPet(b.dataset.zpet);}};});}
 function renderPet(){
   const el=$("pet");const keys=Object.keys(player.pets||{});
   if(!playerExists&&!keys.length){el.innerHTML=`<div class="muted" style="font-size:14px;margin-top:8px">Your pet arrives once the show starts. Add a quest to begin.</div>`;return;}
   if(!keys.length){
     el.innerHTML=`<div class="muted" style="font-size:14px;margin:8px 0">Choose a companion. Every quest you finish builds your bond, and higher bond means bigger bonuses. Three more pets hatch from rare eggs in Gold and Legendary boxes.</div>
-      <div class="petlist">${Object.keys(PETS).filter(k=>PETS[k].starter).map(k=>`<div class="petrow"><div class="petpic sm">${petSVG(k)}</div>
+      <div class="petlist">${Object.keys(PETS).filter(k=>PETS[k].starter).map(k=>`<div class="petrow"><div class="petpic sm zoomable" data-zpet="${k}" role="button" tabindex="0" aria-label="${esc(PETS[k].n)} up close">${petSVG(k)}</div>
         <div class="what"><b>${esc(PETS[k].n)}</b><span>${esc(PETS[k].line)}</span><span class="pfx">${esc(PETS[k].passive(1))} at bond 1 · <b>${esc(PETS[k].ab)}</b>: ${esc(PETS[k].abd)}</span></div>
         <button class="btn gold" type="button" data-choose="${k}">Choose</button></div>`).join("")}</div>`;
-    el.querySelectorAll("[data-choose]").forEach(b=>b.onclick=()=>choosePet(b.dataset.choose));return;
+    el.querySelectorAll("[data-choose]").forEach(b=>b.onclick=()=>choosePet(b.dataset.choose));wirePetZoom(el);return;
   }
   const a=activePet(),k=a.key,L=bondLevel(a.bond),sulk=petSulking(),tf=trinketFx(player),EL=petLevel(player,a);
   const lo=40*(L-1)**2,hi=40*L*L,prog=L>=10?1:(a.bond-lo)/(hi-lo);
   const others=keys.filter(x=>x!==k);
-  el.innerHTML=`<div class="petcard"><div class="petpic${sulk?" sulk":""}">${petSVG(k,{trinket:wearing(player).trinket})}</div>
+  el.innerHTML=`<div class="petcard"><div class="petpic zoomable${sulk?" sulk":""}" data-zpet="${k}" role="button" tabindex="0" aria-label="${esc(a.name)} up close">${petSVG(k,{trinket:wearing(player).trinket})}</div>
     <div class="what">
       ${ui.renamingPet===k?`<input class="name" id="petName" maxlength="30" value="${esc(a.name)}" aria-label="Pet name">`:`<button class="petname" id="petNameBtn" title="Rename">${esc(a.name)}</button>`}
       <div class="muted" style="font-size:13px">${esc(PETS[k].n)} · <span class="chip ${sulk?"sulk":"happy"}">${sulk?"Sulking":"Happy"}</span></div>
@@ -7120,9 +7131,9 @@ function renderPet(){
     <div class="pfxbox"><div><span class="label">Passive</span> ${esc(PETS[k].passive(EL))}${tf.item&&tf.lv?` <span class="muted">(acts as bond ${EL} thanks to the ${esc(tf.item.n)})</span>`:""}</div>
       ${tf.item?`<div><span class="label">Trinket</span> <span class="rar-${tf.item.rar}">${esc(tf.item.n)}</span>: ${esc(tf.item.d)}</div>`:""}<div><span class="label">${esc(PETS[k].ab)}</span> ${esc(PETS[k].abd)}${k==="raccoon"?` (${10-(a.scav||0)} to go)`:""}${k==="tortoise"&&player.boss&&player.shellWeek===player.boss.week?" (used this floor)":""}</div>
       ${sulk?`<div class="err" style="font-weight:600">Sulking: no finished quests in 3 days. Bonuses are paused until you finish one.</div>`:""}</div>
-    ${others.length?`<div class="label" style="margin-top:10px">Your other pets</div><div class="petlist">${others.map(x=>`<div class="petrow"><div class="petpic sm">${petSVG(x)}</div><div class="what"><b>${esc(player.pets[x].name)}</b><span>${esc(PETS[x].n)} · bond ${bondLevel(player.pets[x].bond)}</span></div><button class="btn" type="button" data-setpet="${x}">Make active</button></div>`).join("")}</div>`:""}
+    ${others.length?`<div class="label" style="margin-top:10px">Your other pets</div><div class="petlist">${others.map(x=>`<div class="petrow"><div class="petpic sm zoomable" data-zpet="${x}" role="button" tabindex="0" aria-label="${esc(player.pets[x].name)} up close">${petSVG(x)}</div><div class="what"><b>${esc(player.pets[x].name)}</b><span>${esc(PETS[x].n)} · bond ${bondLevel(player.pets[x].bond)}</span></div><button class="btn" type="button" data-setpet="${x}">Make active</button></div>`).join("")}</div>`:""}
     <div class="muted" style="font-size:12px;margin-top:8px">${keys.length} of ${Object.keys(PETS).length} pets found. Only your active pet's bonuses count, and only it gains bond.</div>`;
-  el.querySelectorAll("[data-setpet]").forEach(b=>b.onclick=()=>setPet(b.dataset.setpet));
+  el.querySelectorAll("[data-setpet]").forEach(b=>b.onclick=()=>setPet(b.dataset.setpet));wirePetZoom(el);
   const nb=$("petNameBtn");if(nb)nb.onclick=()=>{ui.renamingPet=k;render();const i=$("petName");if(i){i.focus();i.select();}};
   const ni=$("petName");if(ni){ni.onkeydown=e=>{if(e.key==="Enter")renamePet(k,ni.value);if(e.key==="Escape"){ui.renamingPet=null;render();}};ni.onblur=()=>renamePet(k,ni.value);}
 }
@@ -7308,7 +7319,7 @@ function renderSheet(){
   const sb=Math.min(Math.max(streakLive,1)-1,5)*5;
   $("sheet").innerHTML=`
     <div class="who">
-      <div class="avatar" id="avatarBox" role="button" tabindex="0" title="Edit your look" aria-label="Edit your look"><span class="avedit" aria-hidden="true">✎</span><div class="print" id="avatar" role="img" aria-label="${esc(avatarDesc(p))}${activePet(p)?`, with ${esc(activePet(p).name)} the ${esc(PETS[activePet(p).key].n)}${petSulking(p)?" sulking":""} at their feet`:""}">${avatarSVG(Object.assign({},wear,{look:p.look},activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{}))}</div><span class="camtag" aria-hidden="true"><i>●</i> Crawler cam</span><span class="lvl num" aria-hidden="true">${li.L}</span></div>
+      <div class="avatar" id="avatarBox" role="button" tabindex="0" title="See your stats" aria-label="See your character up close"><span class="avedit" aria-hidden="true">⤢</span><div class="print" id="avatar" role="img" aria-label="${esc(avatarDesc(p))}${activePet(p)?`, with ${esc(activePet(p).name)} the ${esc(PETS[activePet(p).key].n)}${petSulking(p)?" sulking":""} at their feet`:""}">${avatarSVG(Object.assign({},wear,{look:p.look},activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{}))}</div><span class="camtag" aria-hidden="true"><i>●</i> Crawler cam</span><span class="lvl num" aria-hidden="true">${li.L}</span></div>
       <div style="min-width:0;flex:1">
         ${ui.editingName
           ?`<input class="name" id="nameInput" maxlength="40" value="${esc(p.name)}" aria-label="Character name">`
@@ -7345,7 +7356,7 @@ function renderSheet(){
     </div>`;
   const ti=$("toInv");if(ti)ti.onclick=()=>{setTab("loot");const ip=$("invPanel");if(ip&&ip.scrollIntoView)setTimeout(()=>ip.scrollIntoView({behavior:"smooth",block:"start"}),50);};
   const lb=$("lookBtn");if(lb)lb.onclick=openLook;
-  const ab=$("avatarBox");if(ab){ab.onclick=openLook;ab.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openLook();}};}
+  const ab=$("avatarBox");if(ab){ab.onclick=zoomMe;ab.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomMe();}};}
   const nb=$("nameBtn");if(nb)nb.onclick=()=>{ui.editingName=true;render();const i=$("nameInput");i.focus();i.select();};
   const ni=$("nameInput");if(ni){ni.onkeydown=e=>{if(e.key==="Enter")rename(ni.value);if(e.key==="Escape"){ui.editingName=false;render();}};ni.onblur=()=>rename(ni.value);}
 }
@@ -8426,6 +8437,83 @@ let partyPubTimer=null,partyLastPub="";
 const avCache=new Map();
 const weekOf=d=>{const x=new Date(d+"T12:00:00");return addDays(d,-((x.getDay()+6)%7));};
 function partyBossFor(wk){let h=7;for(const c of wk)h=(h*31+c.charCodeAt(0))>>>0;return PARTY_BOSSES[h%PARTY_BOSSES.length];}
+/* ---------- Card close-ups ----------
+   Tap any avatar or pet picture (your hero, crewmates, pets, a rival on your heels) to see it big, with its numbers.
+   One dialog, filled by whoever opened it. */
+function zoomCard(o){
+  let w=$("zoomWrap");if(!w){w=document.createElement("div");w.id="zoomWrap";w.className="gearwrap";document.body.appendChild(w);w.addEventListener("click",e=>{if(e.target===w)closeZoom();});}
+  w.innerHTML=`<div class="geardlg inspdlg zoomdlg${o.kind?" z-"+o.kind:""}" role="dialog" aria-modal="true" aria-label="${esc(o.title)}">
+    <div class="gearhead"><h2>${o.titleHTML||esc(o.title)}</h2><button class="btn ghost sm" type="button" id="zoomClose">Close</button></div>
+    <div class="zoom-art print">${o.art}</div>
+    ${o.sub?`<p class="zoom-sub">${o.sub}</p>`:""}
+    ${o.tiles&&o.tiles.length?`<div class="raid-stats">${o.tiles.map(([k,v])=>`<div><span class="label">${esc(k)}</span><b>${v}</b></div>`).join("")}</div>`:""}
+    ${o.body||""}
+    ${o.acts&&o.acts.length?`<div class="zoom-acts">${o.acts.map((a,i)=>`<button class="btn ${a.gold?"gold":"ghost"} sm" type="button" data-zact="${i}">${esc(a.label)}</button>`).join("")}</div>`:""}
+  </div>`;
+  $("zoomClose").onclick=closeZoom;
+  w.querySelectorAll("[data-zact]").forEach(b=>b.onclick=()=>{const a=o.acts[+b.dataset.zact];closeZoom();a.fn();});
+  SFX.play("tick");
+}
+function closeZoom(){const w=$("zoomWrap");if(w)w.remove();}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("zoomWrap"))closeZoom();});
+const zbar=(f,cls)=>`<div class="bar ${cls||""}"><b style="width:${Math.max(0,Math.min(100,f*100)).toFixed(1)}%"></b></div>`;
+/* You */
+function zoomMe(){
+  const p=player,li=levelInfo(p.xp||0),mx=maxHp(p),gx=gearFx(p),R=raceOf(p),K=classOf(p),a=activePet();
+  const st=p.lastDoneDate===today()||p.lastDoneDate===addDays(today(),-1)?(p.streak||0):0;
+  const stats=Object.keys(STATS).map(k=>`<div class="zstat"><span>${STATS[k].n}</span><b>Lv ${lvlOf(p,k)}</b>${zbar(statProg((p.stats||{})[k]||0))}</div>`).join("");
+  const bon=[gx.xp?`+${Math.round(gx.xp*100)}% XP`:"",gx.dmg?`+${Math.round(gx.dmg*100)}% boss damage`:"",armorCut(p)?`overdue damage −${Math.round(armorCut(p)*100)}%`:"",gx.hp?`+${gx.hp} max HP`:"",gx.spd?`${Math.round(gx.spd*100)}% faster movement`:""].filter(Boolean);
+  zoomCard({kind:"me",title:p.name,titleHTML:esc(p.name)+skullsOf(mySkulls()),art:avatarSVG(Object.assign({},wearing(p),p.look?{look:p.look}:{},a?{pet:a.key,petSulk:petSulking()}:{})),
+    sub:`${esc(titleFor(li.L))} · Level ${li.L}${R||K?` · ${[R,K].filter(Boolean).map(x=>esc(x.n)).join(" ")}`:""}`,
+    tiles:[["HP",`${Math.round(p.hp)} / ${mx}`],["XP to next",`${li.need-li.into}`],["Gold",(p.gold||0).toLocaleString()],["Streak",st?`🔥 ${st} day${st===1?"":"s"}`:"–"],
+      ["Floor",floorOf()],["Quests done",(p.doneCount||0).toLocaleString()],["Bosses slain",C(p,"bossKills")],["Crawler kills",`${C(p,"rivalKills")} ☠ · ${C(p,"rivalKOs")} 💫`]],
+    body:`<div class="label">Level ${li.L} progress</div>${zbar(li.into/li.need)}
+      <div class="label">Stats</div><div class="zstats">${stats}</div>
+      ${bon.length?`<div class="label">Gear bonuses</div><div class="muted" style="font-size:13px">${bon.join(" · ")}</div>`:""}
+      ${a?`<div class="label">Pet</div><div class="muted" style="font-size:13px">${esc(a.name)} the ${esc(PETS[a.key].n)} · bond ${bondLevel(a.bond)}${petSulking()?" · sulking":""}</div>`:""}`,
+    acts:[{label:"Change look",gold:true,fn:openLook},{label:"Inventory",fn:()=>{setTab("loot");render();}}]});
+}
+/* A crewmate (their party card) */
+function zoomCrew(uid){
+  const c=cardOf(uid);if(!c)return;const me=uid===myUid(),td=today();
+  const wk=Object.entries(c.days||{}).filter(([d])=>d>=addDays(td,-6)).reduce((a,[,n])=>a+n,0);
+  const cls=CLASSES.find(x=>x.id===c.cls),pet=c.pet&&PETS[c.pet];
+  zoomCard({kind:"crew",title:c.name||"Crawler",titleHTML:esc(c.name||"Crawler")+skullsOf(c.sk||0),art:miniAvatar(c),
+    sub:`${esc(c.title||"")} · Level ${c.lvl||1}${cls?` · ${esc(cls.n)}`:""}`,
+    tiles:[["Floor",c.floor||1],["Streak",c.streak>1?`🔥 ${c.streak}`:"–"],["Quests today",(c.days||{})[td]||0],["Last 7 days",wk],
+      ["Boss score",c.rk&&c.rk.s?c.rk.s.toLocaleString():"–"],["Raid damage",(c.wkDmg||0).toLocaleString()],["Crawler kills",`${c.sk||0} ☠`],["Pet",pet?esc(pet.n):"–"]],
+    body:`${c.rvl?`<div class="rv-help">⚔ ${esc(c.rvl.n)} is hunting ${me?"you":"them"} (${c.rvl.hp}/${c.rvl.max} HP).</div>`:""}
+      ${c.qt?`<div class="muted" style="font-size:13px">Owns Personal Quarters${(c.qt.up||[]).length?` with ${(c.qt.up||[]).length} upgrade${(c.qt.up||[]).length===1?"":"s"}`:""}${c.qt.cj?" · in the Communal Hall":""}.</div>`:""}`,
+    acts:[{label:me?"My gear":"Gear",gold:true,fn:()=>openInspect(uid)}].concat(me?[]:[{label:"🎁 Trade",fn:()=>openTradeWith(uid)}])});
+}
+/* A pet you own (or one you could choose) */
+function zoomPet(k){
+  const own=player.pets&&player.pets[k],P=PETS[k];if(!P)return;
+  if(!own){zoomCard({kind:"pet",title:P.n,art:petSVG(k),sub:esc(P.line),
+    body:`<div class="pfxbox"><div><span class="label">Passive</span> ${esc(P.passive(1))} at bond 1, growing with bond</div><div><span class="label">${esc(P.ab)}</span> ${esc(P.abd)}</div></div>`,
+    acts:Object.keys(player.pets||{}).length?[]:[{label:"Choose",gold:true,fn:()=>choosePet(k)}]});return;}
+  const active=player.pet===k,a=Object.assign({key:k},own),L=bondLevel(a.bond),lo=40*(L-1)**2,hi=40*L*L,prog=L>=10?1:(a.bond-lo)/(hi-lo);
+  const EL=active?petLevel(player,a):L,tf=active?trinketFx(player):{},sulk=active&&petSulking();
+  const days=own.at?Math.max(0,daysBetween(iso(new Date(own.at)),today())):null;
+  zoomCard({kind:"pet",title:own.name,art:petSVG(k,active?{trinket:wearing(player).trinket}:{}),sub:`${esc(P.n)} · ${active?(sulk?"Sulking":"Your active pet"):"Resting"}`,
+    tiles:[["Bond level",`${L}${L>=10?" (max)":""}`],["Bond",L>=10?a.bond:`${a.bond-lo} / ${hi-lo}`],["Acts as",`bond ${EL}`],["Together",days==null?"–":`${days} day${days===1?"":"s"}`]],
+    body:`${zbar(prog,"bond")}
+      <div class="pfxbox"><div><span class="label">Passive</span> ${esc(P.passive(EL))}</div>
+        ${tf.item?`<div><span class="label">Trinket</span> <span class="rar-${tf.item.rar}">${esc(tf.item.n)}</span>: ${esc(tf.item.d)}</div>`:""}
+        <div><span class="label">${esc(P.ab)}</span> ${esc(P.abd)}</div></div>
+      ${active?"":`<div class="muted" style="font-size:12px">Only your active pet's bonuses count, and only it gains bond.</div>`}`,
+    acts:active?[]:[{label:"Make active",gold:true,fn:()=>setPet(k)}]});
+}
+/* The rival crawler on your heels */
+function zoomRival(){
+  const rv=player.rival;if(!rv)return;const g=rvGear(rv.n),it=rv.item&&itemOf(rv.item);
+  zoomCard({kind:"rival",title:rv.n,art:rvAvatar(rv),sub:`the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""}`,
+    tiles:[["HP",`${rv.hp} / ${rv.max}`],["Hits you for",`${rvHit()} / quest`],["Overnight",`${rvNight()} HP`],["Purse",`${rv.purse}g`]],
+    body:`${zbar(rv.hp/rv.max,"rvbar")}
+      <div class="label">Wearing</div><div class="zgear">${Object.entries(g).map(([s,id])=>{const i=itemOf(id);return i?`<span class="rar-${i.rar}">${esc(i.n)}</span>`:"";}).join(" · ")||"Rags"}</div>
+      ${it?`<div class="rv-psy" style="color:var(--gold)">Carrying your ${esc(it.n)}.</div>`:""}${(rv.boxes||[]).length?`<div class="rv-psy" style="color:var(--gold)">Carrying your unopened ${esc(BOXES[rv.boxes[0].tier].n)}.</div>`:""}
+      <div class="muted" style="font-size:12px">Beat them for XP, gold and a 35% shot at something they're wearing${rv.psy?" (a psycho always drops one, plus a Gold Box)":""}.</div>`});
+}
 /* Tap the raid boss card: a big look at the monster and the week's numbers. */
 function openRaidBoss(){
   if(!party||!party.doc)return;const me=myUid(),td=today(),wk=weekOf(td),r=raidState(wk),mem=partyMembers();
@@ -8888,7 +8976,7 @@ function renderParty(){
   const roster=cards.map(({uid,c})=>{
     const n=(c.days||{})[td]||0;let mia=true;for(let i=0;i<PARTY_MIA_DAYS;i++)if((c.days||{})[addDays(td,-i)]){mia=false;break;}
     const nudged=player.nudged&&player.nudged.d===td&&player.nudged.u.includes(uid);
-    return `<div class="pt-card${uid===me?" me":""}"><div class="pt-av print" aria-hidden="true">${miniAvatar(c)}</div>
+    return `<div class="pt-card${uid===me?" me":""}"><div class="pt-av print zoomable" data-zcrew="${esc(uid)}" role="button" tabindex="0" aria-label="${esc(c.name||"Crawler")} up close">${miniAvatar(c)}</div>
       <div class="pt-who"><b>${esc(c.name||"Crawler")}</b>${skullsOf(skullsFor(uid))}${uid===me?` <span class="muted">(you)</span>`:""}</div>
       <div class="pt-meta">Lv ${c.lvl||1} · ${esc(c.title||"")}</div>
       <div class="pt-meta">Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}`:""}</div>
@@ -8949,6 +9037,7 @@ function renderParty(){
   el.querySelectorAll("[data-cheer]").forEach(b=>b.onclick=()=>partyCheer(b.dataset.cheer));
   el.querySelectorAll("[data-nudge]").forEach(b=>b.onclick=()=>partyNudge(b.dataset.nudge));
   el.querySelectorAll("[data-rvhelp]").forEach(b=>b.onclick=()=>rivalHelp(b.dataset.rvhelp));
+  el.querySelectorAll("[data-zcrew]").forEach(b=>{b.onclick=()=>zoomCrew(b.dataset.zcrew);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();zoomCrew(b.dataset.zcrew);}};});
   {const ra=$("ptRaidArt");if(ra){ra.onclick=openRaidBoss;ra.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openRaidBoss();}};}}
   el.querySelectorAll("[data-ptview]").forEach(b=>b.onclick=()=>{ui.ptView=b.dataset.ptview;if(ui.ptView==="chat"){prefs.chatSeen=Date.now();savePrefs();}render();});
   el.querySelectorAll("[data-inspect]").forEach(b=>b.onclick=()=>openInspect(b.dataset.inspect));
