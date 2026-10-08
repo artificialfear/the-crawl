@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9539a95358"></script>
-<script>window.CRAWL_BUILD="9539a95358";</script>
+<script src="firebase-config.js?v=36b04cfada"></script>
+<script>window.CRAWL_BUILD="36b04cfada";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -138,6 +138,34 @@ body.has-hb.has-sp .toasts{bottom:calc(166px + env(safe-area-inset-bottom,0px))}
 .sb-btns{display:flex;gap:6px;flex:none}
 @media (max-width:520px){.sb-row{flex-wrap:wrap}.sb-btns{width:100%;justify-content:flex-end}}
 #sheet.casting,#hotbar.casting{animation:castglow 1.2s ease-out}
+.spellfx{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;cursor:pointer;background:radial-gradient(circle at 50% 44%,color-mix(in srgb,var(--sc) 30%,rgba(5,3,12,.86)),rgba(5,3,12,.93) 62%);animation:sfx-in .2s both}
+.spellfx.out{animation:sfx-out .22s both}
+.sfx-stage{width:min(82vw,420px);text-align:center;pointer-events:none}
+.sfx-stage svg{width:100%;height:auto;overflow:visible;filter:drop-shadow(0 0 16px var(--sc))}
+.sfx-name{font-family:var(--display);font-size:30px;color:#fff;text-shadow:0 0 18px var(--sc),0 2px 0 #000;margin-top:-4px;animation:sfx-pop .4s .1s both}
+.spellfx .sa{transform-box:fill-box;transform-origin:center;animation-timing-function:cubic-bezier(.2,.7,.3,1)}
+@keyframes sfx-in{from{opacity:0}}@keyframes sfx-out{to{opacity:0}}
+@keyframes sfx-pop{0%{transform:scale(0);opacity:0}55%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes sfx-fly{from{transform:translate(var(--fx),var(--fy)) scale(.5);opacity:.4}90%{opacity:1}to{transform:translate(0,0) scale(1);opacity:0}}
+@keyframes sfx-burst{0%{transform:scale(.2);opacity:0}30%{opacity:1}100%{transform:scale(1.6);opacity:0}}
+@keyframes sfx-shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-7px,2px)}40%{transform:translate(7px,-2px)}60%{transform:translate(-5px,1px)}80%{transform:translate(3px,0)}}
+@keyframes sfx-spin{to{transform:rotate(360deg)}}@keyframes sfx-spinr{to{transform:rotate(-360deg)}}
+@keyframes sfx-rise{0%{transform:translateY(24px);opacity:0}30%{opacity:1}100%{transform:translateY(-70px);opacity:0}}
+@keyframes sfx-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes sfx-flash{0%,100%{opacity:0}12%{opacity:.85}}
+@keyframes sfx-ring{0%{transform:scale(.3);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+@keyframes sfx-twinkle{0%{transform:scale(0) rotate(0);opacity:0}40%{transform:scale(1.2) rotate(45deg);opacity:1}100%{transform:scale(0) rotate(90deg);opacity:0}}
+@keyframes sfx-open{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes sfx-reveal{from{opacity:0;fill:#3a2a1c}to{opacity:1;fill:#fff3c4}}
+@keyframes sfx-fade{0%,100%{opacity:0}30%,70%{opacity:1}}
+@keyframes sfx-fall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(24px,90px) rotate(120deg);opacity:0}}
+@keyframes sfx-blinkout{0%{transform:scale(1);opacity:1}60%,100%{transform:scale(0) rotate(180deg);opacity:0}}
+@keyframes sfx-blinkin{0%,45%{transform:scale(0) rotate(-180deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes sfx-streak{from{transform:translateX(-240px);opacity:0}30%{opacity:1}to{transform:translateX(240px);opacity:0}}
+@keyframes sfx-zoom{0%{transform:translateX(-180px) scale(.6);opacity:0}45%{transform:translateX(0) scale(1.1);opacity:1}100%{transform:translateX(30px) scale(1);opacity:1}}
+@keyframes sfx-flip{0%,15%{transform:rotate(0)}65%,100%{transform:rotate(180deg)}}
+@keyframes sfx-glow{0%{filter:none;opacity:.5}60%{filter:drop-shadow(0 0 14px var(--gc));opacity:1}100%{filter:drop-shadow(0 0 6px var(--gc));opacity:1}}
+@keyframes sfx-beam{0%{transform:scaleY(0)}35%{transform:scaleY(1)}85%{opacity:1}100%{transform:scaleY(1);opacity:0}}
 @keyframes castglow{0%{box-shadow:0 0 0 0 var(--castc)}25%{box-shadow:0 0 34px 6px var(--castc)}100%{box-shadow:0 0 0 0 transparent}}
 body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 @media (max-width:860px){
@@ -5122,10 +5150,9 @@ function warpPick(){
 function payMana(id){const S=SPELLS[id];if((player.mp||0)<S.cost){toast(`${S.n} needs ${S.cost} mana. You have ${player.mp||0}. Finish quests to charge up.`,"bad");return false;}player.mp-=S.cost;return true;}
 function castDone(id,msg,loot){
   const S=SPELLS[id];bump("casts");bump("cast_"+id);pushEvent(`Cast ${S.n}`);
-  if(!clip("spell-cast",.8))SFX.play("cast");castFx(S.school);
+  castFx(S.school);
   store.savePlayer(player).catch(writeFailed);if(S.party)partyPublish(true);render();
-  toastH(`<b>${esc(S.n)}</b> ${msg}`);
-  if(loot)setTimeout(()=>lootToast(loot),900);
+  spellAnim(id,()=>{toastH(`<b>${esc(S.n)}</b> ${msg}`);if(loot)setTimeout(()=>lootToast(loot),300);});
   checkAch();}
 function castSpell(id){
   const S=SPELLS[id];if(!S||!knows(id))return;
@@ -5173,6 +5200,114 @@ function spellCrew(){
     pushEvent(`${c.name||"A crewmate"}'s Mass Mend healed you ${h} HP`);toast(`<b>${esc(c.name||"A crewmate")}</b> cast Mass Mend.${h?` +${h} HP.`:" You were already at full HP."}`);}
   if(ch){store.savePlayer(player).catch(writeFailed);render();}}
 const chantOn=()=>partyMembers().some(u=>{const c=cardOf(u);return c&&c.ch===today();});
+/* Spell animations: a ~1.5s full-screen moment per spell (tap to skip), drawn in a 300x300 stage.
+   Every animated piece uses class "sa" plus an inline animation, so timing lives next to the shape it moves. */
+function saA(name,dur,delay,extra){return ` class="sa" style="animation:${name} ${dur}s ${delay||0}s both${extra?";"+extra:""}"`;}
+const SA_K="#120c1e";
+function saBoss(x,y,shakeAt){ // a horned silhouette with red eyes
+  return `<g transform="translate(${x} ${y})"><g${saA("sfx-shake",.42,shakeAt)}><path d="M-34 40 Q-40 -6 -18 -24 L-30 -50 L-8 -30 Q0 -34 8 -30 L30 -50 L18 -24 Q40 -6 34 40 Z" fill="${SA_K}" stroke="#3a2a5a" stroke-width="3"/><circle cx="-10" cy="-8" r="4" fill="#ff3b3b"/><circle cx="10" cy="-8" r="4" fill="#ff3b3b"/><path d="M-12 12 L-6 18 L0 12 L6 18 L12 12" fill="none" stroke="#ff3b3b" stroke-width="2.4"/></g></g>`;}
+function saFigure(x,y,c,anim){return `<g transform="translate(${x} ${y})"><g${anim||""}><circle cx="0" cy="-30" r="12" fill="${c||SA_K}" stroke="#5a4a8a" stroke-width="2.4"/><path d="M-18 22 Q-20 -12 0 -14 Q20 -12 18 22 Z" fill="${c||SA_K}" stroke="#5a4a8a" stroke-width="2.4"/></g></g>`;}
+function saSpark(cx,cy,r,col,delay){return `<path d="M${cx} ${cy-r} L${cx+r*.28} ${cy-r*.28} L${cx+r} ${cy} L${cx+r*.28} ${cy+r*.28} L${cx} ${cy+r} L${cx-r*.28} ${cy+r*.28} L${cx-r} ${cy} L${cx-r*.28} ${cy-r*.28} Z" fill="${col||"#fff"}"${saA("sfx-twinkle",.7,delay)}/>`;}
+function saRays(cx,cy,n,r0,r1,col,w,delay){let d="";for(let i=0;i<n;i++){const a=i*2*Math.PI/n;d+=`M${(r0*Math.cos(a)).toFixed(1)} ${(r0*Math.sin(a)).toFixed(1)} L${(r1*Math.cos(a)).toFixed(1)} ${(r1*Math.sin(a)).toFixed(1)} `;}
+  return `<g transform="translate(${cx} ${cy})"><path d="${d}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"${saA("sfx-burst",.6,delay)}/></g>`;}
+function spellScene(id){
+  const K=SA_K;let s="";
+  switch(id){
+    case "firebolt":
+      s+=saBoss(222,130,.68);
+      s+=`<g transform="translate(222 130)"><g${saA("sfx-fly",.55,.12,"--fx:-170px;--fy:120px")}><path d="M-46 22 Q-26 6 -6 -6 Q-22 18 -46 22 Z M-40 4 Q-24 -6 -8 -12" fill="#ff7a1f" stroke="#ffd23f" stroke-width="2" opacity=".85"/><circle r="16" fill="#ff7a1f"/><circle r="10" fill="#ffd23f"/><circle r="5" fill="#fff6c8"/></g></g>`;
+      s+=`<circle cx="222" cy="130" r="42" fill="#ffb21f"${saA("sfx-burst",.6,.66)}/><circle cx="222" cy="130" r="26" fill="#fff3b0"${saA("sfx-burst",.5,.68)}/>`+saRays(222,130,10,30,62,"#ff7a1f",5,.7);
+      for(let i=0;i<6;i++)s+=`<circle cx="${200+i*9}" cy="${150-i%3*14}" r="3" fill="#ffd23f"${saA("sfx-rise",.8,.75+i*.05)}/>`;
+      break;
+    case "chain":
+      s+=saBoss(150,170,.4)+`<circle cx="70" cy="226" r="9" fill="${K}" stroke="#7fb4ff" stroke-width="2"/><circle cx="234" cy="232" r="9" fill="${K}" stroke="#7fb4ff" stroke-width="2"/>`;
+      const bolt=(d,dl)=>`<path d="${d}" fill="none" stroke="#7fb4ff" stroke-width="10" stroke-linejoin="round" opacity=".6" pathLength="1" stroke-dasharray="1" ${saA("sfx-draw",.22,dl).slice(1)}/><path d="${d}" fill="none" stroke="#f4fbff" stroke-width="4" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" ${saA("sfx-draw",.22,dl).slice(1)}/>`;
+      s+=bolt("M160 -10 L140 40 L166 60 L138 104 L156 120 L150 150",.15)+bolt("M150 150 L120 180 L100 172 L70 226",.42)+bolt("M150 150 L186 186 L206 180 L234 232",.55);
+      s+=`<rect width="300" height="300" fill="#e8f4ff"${saA("sfx-flash",.5,.3)}/>`+saRays(150,150,12,24,70,"#e8f4ff",3,.35)+saSpark(70,226,12,"#fff",.6)+saSpark(234,232,12,"#fff",.72);
+      break;
+    case "charm":
+      s+=`<g transform="translate(150 178)"><path d="M-30 44 Q-34 0 -16 -14 L-34 -28 L-10 -22 Q0 -30 10 -22 L34 -28 L16 -14 Q34 0 30 44 Z" fill="#3a6a2a" stroke="#1a3a10" stroke-width="3"/><circle cx="-10" cy="-2" r="5" fill="#fff"/><circle cx="10" cy="-2" r="5" fill="#fff"/>`
+        +`<g${saA("sfx-pop",.35,.55)}><path d="M-10 4 Q-17 -1 -15 -6 Q-12 -9 -10 -5 Q-8 -9 -5 -6 Q-3 -1 -10 4 Z M10 4 Q3 -1 5 -6 Q8 -9 10 -5 Q12 -9 15 -6 Q17 -1 10 4 Z" fill="#ff3b8a"/></g><path d="M-8 18 Q0 24 8 18" fill="none" stroke="#1a3a10" stroke-width="2.4"/></g>`;
+      s+=`<g transform="translate(196 170)"><g${saA("sfx-fall",.7,.45)}><path d="M0 -40 L5 -34 L5 10 L-5 10 L-5 -34 Z" fill="#d5d9e2" stroke="${K}" stroke-width="2"/><path d="M-12 10 L12 10 L12 15 L-12 15 Z M-3 15 L3 15 L3 30 L-3 30 Z" fill="#7a4a26" stroke="${K}" stroke-width="2"/></g></g>`;
+      for(const [x,dl,sc] of [[110,.1,1],[150,.25,1.4],[190,.4,1],[130,.55,.8],[176,.7,.9]])s+=`<g transform="translate(${x} 150) scale(${sc})"><path d="M0 12 Q-14 2 -12 -6 Q-9 -14 0 -6 Q9 -14 12 -6 Q14 2 0 12 Z" fill="#ff5fa8" stroke="${K}" stroke-width="1.6"${saA("sfx-rise",.9,dl)}/></g>`;
+      break;
+    case "hex":
+      s+=saFigure(150,178,"#2a1a3a");
+      s+=`<g transform="translate(150 160)"><g${saA("sfx-spin",1.4,0,"animation-timing-function:linear")}><circle r="84" fill="none" stroke="#9b6bff" stroke-width="3" stroke-dasharray="10 6"/><circle r="70" fill="none" stroke="#c9b8ff" stroke-width="1.6"/>`
+        +[0,60,120,180,240,300].map(a=>`<path d="M0 -84 l5 -9 l5 9 z" fill="#c9b8ff" transform="rotate(${a})"/>`).join("")+`</g>`
+        +`<path d="M0 -66 L39 54 L-63 -20 L63 -20 L-39 54 Z" fill="none" stroke="#b48cff" stroke-width="3" pathLength="1" stroke-dasharray="1" ${saA("sfx-draw",.6,.2).slice(1)}/>`
+        +`<circle r="66" fill="#9b6bff"${saA("sfx-flash",.6,.75)}/></g>`;
+      s+=`<g transform="translate(150 72)"><g${saA("sfx-pop",.35,.8)}><path d="M-16 6 Q-16 -16 0 -16 Q16 -16 16 6 Q16 12 9 13 L9 20 L-9 20 L-9 13 Q-16 12 -16 6 Z" fill="#e6d6ff" stroke="${K}" stroke-width="2.4"/><circle cx="-6" cy="0" r="4" fill="${K}"/><circle cx="6" cy="0" r="4" fill="${K}"/></g></g>`;
+      break;
+    case "mend":
+      s+=`<g transform="translate(150 150)"><circle r="70" fill="#5fd06a" opacity=".25"${saA("sfx-ring",1,.2)}/><circle r="70" fill="none" stroke="#9fffa0" stroke-width="4"${saA("sfx-ring",1,.45)}/>`
+        +`<g${saA("sfx-pop",.45,.05)}><path d="M-16 -50 L16 -50 L16 -16 L50 -16 L50 16 L16 16 L16 50 L-16 50 L-16 16 L-50 16 L-50 -16 L-16 -16 Z" fill="#f4fff4" stroke="${K}" stroke-width="4" stroke-linejoin="round"/><path d="M-10 -44 L-10 -10 L-44 -10" fill="none" stroke="#5fd06a" stroke-width="5"/></g></g>`;
+      for(let i=0;i<8;i++)s+=saSpark(96+i*16,200-(i%3)*18,6+(i%2)*3,"#c9ffb0",.3+i*.08);
+      break;
+    case "ward":
+      s+=saFigure(150,190);
+      s+=`<g transform="translate(150 160)"><path d="M0 -92 Q60 -86 88 -60 Q96 20 0 96 Q-96 20 -88 -60 Q-60 -86 0 -92 Z" fill="#ffd23f" opacity=".14" stroke="#ffd23f" stroke-width="4" pathLength="1" stroke-dasharray="1" ${saA("sfx-draw",.55,.05).slice(1)}/>`
+        +[[-40,-40],[0,-60],[40,-40],[-50,0],[0,-16],[50,0],[-30,40],[30,40]].map(([x,y],i)=>`<path d="M${x} ${y-14} l12 7 0 14 -12 7 -12 -7 0 -14 z" fill="#fff6c8" opacity=".55" stroke="#ffd23f" stroke-width="1.6"${saA("sfx-pop",.3,.35+i*.05)}/>`).join("")
+        +`<path d="M0 -92 Q60 -86 88 -60 Q96 20 0 96 Q-96 20 -88 -60 Q-60 -86 0 -92 Z" fill="none" stroke="#fff" stroke-width="6"${saA("sfx-ring",.6,.85)}/></g>`;
+      break;
+    case "regrowth":
+      const vine=(d,dl)=>`<path d="${d}" fill="none" stroke="#2f7a3a" stroke-width="7" stroke-linecap="round" pathLength="1" stroke-dasharray="1" ${saA("sfx-draw",.7,dl).slice(1)}/><path d="${d}" fill="none" stroke="#7fd06a" stroke-width="3" stroke-linecap="round" pathLength="1" stroke-dasharray="1" ${saA("sfx-draw",.7,dl).slice(1)}/>`;
+      s+=vine("M150 300 Q130 230 156 180 Q180 130 150 80",0)+vine("M90 300 Q70 240 100 200 Q120 170 96 130",.15)+vine("M210 300 Q236 240 200 196 Q180 166 206 130",.25);
+      for(const [x,y,a,dl] of [[146,200,-40,.4],[160,150,30,.5],[96,230,-30,.5],[104,170,40,.6],[206,226,30,.6],[198,170,-40,.7]])s+=`<g transform="translate(${x} ${y}) rotate(${a})"><path d="M0 0 Q14 -14 28 0 Q14 14 0 0 Z" fill="#7fd06a" stroke="#1f5a2a" stroke-width="2"${saA("sfx-pop",.3,dl)}/></g>`;
+      s+=`<g transform="translate(150 78)"><g${saA("sfx-pop",.4,.8)}>${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-12" rx="8" ry="12" fill="#ff8ad0" stroke="${K}" stroke-width="2" transform="rotate(${a})"/>`).join("")}<circle r="7" fill="#ffd23f" stroke="${K}" stroke-width="2"/></g></g>`;
+      break;
+    case "clair":
+      s+=`<g transform="translate(150 120)"><g${saA("sfx-open",.45,.05)}><path d="M-110 0 Q0 -84 110 0 Q0 84 -110 0 Z" fill="#fff" stroke="${K}" stroke-width="5"/>`
+        +`<g${saA("sfx-pop",.4,.35)}><circle r="38" fill="#ff5fa8" stroke="${K}" stroke-width="4"/><circle r="16" fill="${K}"/><circle cx="-10" cy="-10" r="7" fill="#fff"/></g></g>`
+        +saRays(0,0,14,90,120,"#ff8ad0",3,.6)+`</g>`;
+      for(let i=0;i<3;i++)s+=`<rect x="${78+i*52}" y="222" width="40" height="40" rx="6" fill="#f2e4c2" stroke="#3a2814" stroke-width="3" transform="rotate(${[-3,2,-1][i]} ${98+i*52} 242)"${saA("sfx-reveal",.4,.7+i*.15)}/>`;
+      s+=`<path d="M118 242 L130 242 M170 242 L182 242" stroke="#3a2814" stroke-width="6"${saA("sfx-fade",.6,.9)}/>`;
+      break;
+    case "blink":
+      const portal=(x,dl)=>`<g transform="translate(${x} 170)"><g${saA("sfx-pop",.3,dl)}><g${saA("sfx-spin",1.2,dl,"animation-timing-function:linear")}><ellipse rx="34" ry="48" fill="#0a2a3a" stroke="#3fe0ff" stroke-width="5"/><path d="M0 -40 A30 40 0 0 1 26 10 M0 40 A30 40 0 0 1 -26 -10" fill="none" stroke="#e6fbff" stroke-width="3"/></g></g></g>`;
+      s+=portal(70,0)+portal(230,.35);
+      s+=saFigure(70,182,"#e6fbff",saA("sfx-blinkout",.6,.2))+saFigure(230,182,"#e6fbff",saA("sfx-blinkin",.9,.2));
+      s+=`<path d="M100 150 Q150 110 200 150" fill="none" stroke="#3fe0ff" stroke-width="3" stroke-dasharray="4 8"${saA("sfx-fade",.8,.3)}/>`+saSpark(150,118,10,"#e6fbff",.45);
+      break;
+    case "haste":
+      for(let i=0;i<7;i++)s+=`<g transform="translate(150 ${60+i*30})"><path d="M-70 0 L70 0" stroke="${i%2?"#3fe0ff":"#e6fbff"}" stroke-width="${3+i%3*2}" stroke-linecap="round"${saA("sfx-streak",.55,i*.08)}/></g>`;
+      s+=`<g transform="translate(150 150)"><g${saA("sfx-zoom",.9,.2)}><path d="M-60 -50 L-10 0 L-60 50 L-36 50 L14 0 L-36 -50 Z M-6 -50 L44 0 L-6 50 L18 50 L68 0 L18 -50 Z" fill="#e6fbff" stroke="${K}" stroke-width="5" stroke-linejoin="round"/></g></g>`;
+      break;
+    case "warp":
+      s+=`<g transform="translate(150 150)"><circle r="104" fill="none" stroke="#3fe0ff" stroke-width="3" opacity=".6"/>${[...Array(12)].map((_,i)=>`<path d="M0 -104 L0 -92" stroke="#e6fbff" stroke-width="4" transform="rotate(${i*30})"/>`).join("")}`
+        +`<g${saA("sfx-spinr",1.3,0,"animation-timing-function:ease-in-out")}><path d="M0 0 L0 -80" stroke="#e6fbff" stroke-width="5" stroke-linecap="round"/></g><g${saA("sfx-spinr",1.3,0,"animation-timing-function:linear;animation-iteration-count:1")}><path d="M0 0 L54 0" stroke="#3fe0ff" stroke-width="7" stroke-linecap="round" transform="rotate(-60)"/></g>`
+        +`<g${saA("sfx-flip",.9,.2)}><path d="M-34 -60 L34 -60 L34 -52 Q34 -16 8 0 Q34 16 34 52 L34 60 L-34 60 L-34 52 Q-34 16 -8 0 Q-34 -16 -34 -52 Z" fill="#e6fbff" stroke="${K}" stroke-width="4" stroke-linejoin="round"/><path d="M-24 52 Q-24 30 0 22 Q24 30 24 52 Z M-22 -46 L22 -46 Q18 -26 0 -14 Q-18 -26 -22 -46 Z" fill="#ffd23f"/><path d="M-40 -60 L40 -60 M-40 60 L40 60" stroke="${K}" stroke-width="9" stroke-linecap="round"/></g></g>`;
+      break;
+    case "chant":
+      s+=`<g transform="translate(92 176)"><g${saA("sfx-pop",.35,0)}><path d="M-34 24 L30 -34 L48 -18 L-8 38 Q-22 48 -32 40 Q-42 32 -34 24 Z" fill="#c98a3c" stroke="${K}" stroke-width="4" stroke-linejoin="round"/><path d="M30 -34 L48 -18 L58 -30 L40 -46 Z" fill="#ffd23f" stroke="${K}" stroke-width="3.4"/></g></g>`;
+      for(const dl of [.25,.45,.65])s+=`<g transform="translate(150 140)"><path d="M0 -40 A40 40 0 0 1 0 40" fill="none" stroke="#ffd23f" stroke-width="6" stroke-linecap="round"${saA("sfx-ring",.7,dl)}/></g>`;
+      for(const [x,y,dl] of [[206,196,.55],[244,172,.7],[222,236,.85]])s+=saFigure(x,y,"#3a1a1a",saA("sfx-glow",.6,dl,"--gc:#ff5a3a"));
+      break;
+    case "massmend":
+      s+=`<g transform="translate(150 150)"><circle r="40" fill="#5fd06a"${saA("sfx-ring",.9,.3)}/><circle r="40" fill="none" stroke="#9fffa0" stroke-width="5"${saA("sfx-ring",.9,.55)}/>`
+        +`<g${saA("sfx-spin",1.4,0,"animation-timing-function:linear")}>${[0,90,180,270].map(a=>`<g transform="rotate(${a}) translate(0 -88) rotate(${-a})"><path d="M-7 -20 L7 -20 L7 -7 L20 -7 L20 7 L7 7 L7 20 L-7 20 L-7 7 L-20 7 L-20 -7 L-7 -7 Z" fill="#f4fff4" stroke="${K}" stroke-width="3"${saA("sfx-pop",.3,.1+a/900)}/></g>`).join("")}</g>`
+        +`<g${saA("sfx-pop",.4,.15)}><path d="M-12 -38 L12 -38 L12 -12 L38 -12 L38 12 L12 12 L12 38 L-12 38 L-12 12 L-38 12 L-38 -12 L-12 -12 Z" fill="#f4fff4" stroke="${K}" stroke-width="4" stroke-linejoin="round"/></g></g>`;
+      break;
+    case "beacon":
+      s+=`<g transform="translate(150 300)"><rect x="-26" y="-300" width="52" height="300" fill="#fff6c8" opacity=".8"${saA("sfx-beam",1.3,.05,"transform-origin:bottom")}/><rect x="-10" y="-300" width="20" height="300" fill="#fff"${saA("sfx-beam",1.3,.1,"transform-origin:bottom")}/></g>`;
+      s+=`<g transform="translate(150 258)"><ellipse rx="70" ry="14" fill="none" stroke="#3fe0ff" stroke-width="4"${saA("sfx-ring",.8,.2)}/></g>`;
+      s+=`<g transform="translate(150 70)"><g${saA("sfx-pop",.4,.45)}><path d="M0 -40 L11 -12 L40 -10 L17 8 L25 37 L0 20 L-25 37 L-17 8 L-40 -10 L-11 -12 Z" fill="#fff6c8" stroke="${K}" stroke-width="3.4" stroke-linejoin="round"/></g></g>`+saRays(150,70,12,44,70,"#fff6c8",3,.55);
+      s+=saFigure(150,236,"#e6fbff",saA("sfx-blinkin",.8,.3));
+      break;
+  }
+  return s;}
+/* Plays the animation and its sound, then calls done() (also on tap, or straight away with reduced motion). */
+function spellAnim(id,done){
+  const S=SPELLS[id],col=SPELL_COL[S.school]||"#3fe0ff";
+  if(!clip("spell-"+id,.85)&&!clip("spell-cast",.8))SFX.play("spell",id);
+  const calm=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(calm){done();return;}
+  document.querySelectorAll(".spellfx").forEach(n=>n.remove());
+  const ov=document.createElement("div");ov.className="spellfx";ov.style.setProperty("--sc",col);ov.setAttribute("role","presentation");
+  ov.innerHTML=`<div class="sfx-stage"><svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${spellScene(id)}</svg><div class="sfx-name">${esc(S.n)}</div></div>`;
+  document.body.appendChild(ov);let fin=false;
+  const end=()=>{if(fin)return;fin=true;ov.classList.add("out");setTimeout(()=>ov.remove(),220);done();};
+  ov.addEventListener("click",end);setTimeout(end,1550);}
 /* Avatar and hotbar flash in the spell's colour. */
 function castFx(school){const c=SPELL_COL[school]||"#3fe0ff";for(const el of [$("sheet"),$("hotbar")]){if(!el)continue;el.style.setProperty("--castc",c);el.classList.remove("casting");void el.offsetWidth;el.classList.add("casting");setTimeout(()=>el.classList.remove("casting"),1300);}}
 /* Spell art: a round badge in the school colour with the spell's glyph (100 units). */
@@ -9470,6 +9605,23 @@ const SFX=(()=>{
     tick:()=>{noise(.012,.06,"highpass",5000);},
     // UI: a soft click for buttons and tabs, a rounder pop for tapping gear, a metal clink for putting gear on
     click:()=>{noise(.018,.07,"bandpass",2400,0,null,2.5);tone(1800,.02,"sine",.025,0);},
+    spell:id=>{const T=(n,d,ty,v,dl,g)=>tone(NOTE(n),d,ty,v,dl||0,g!=null?NOTE(g):undefined);
+      switch(id){
+        case "firebolt":noise(.45,.22,"bandpass",600,0,2600,2);tone(90,.5,"sine",.4,.62,40);noise(.35,.3,"lowpass",700,.62,null,1);break;
+        case "chain":for(let i=0;i<6;i++)noise(.06,.22,"highpass",3200,.15+i*.07,null,1);tone(1800,.25,"sawtooth",.07,.15,300);tone(1400,.2,"sawtooth",.05,.45,250);break;
+        case "charm":[76,79,83,88].forEach((n,i)=>T(n,.25,"sine",.14,i*.08));T(88,.4,"sine",.06,.5,95);break;
+        case "hex":T(48,.9,"sawtooth",.08,0,41);T(49,.9,"sawtooth",.06,0,42);noise(.6,.08,"lowpass",400,.2,null,1);break;
+        case "mend":chord([NOTE(60),NOTE(64),NOTE(67)],.9,0,.12);[84,88,91].forEach((n,i)=>T(n,.25,"triangle",.07,.3+i*.1));break;
+        case "ward":T(72,1,"triangle",.16);T(79,1,"sine",.1,.05);T(84,.8,"sine",.08,.1);T(91,.5,"sine",.05,.6);break;
+        case "regrowth":[60,62,64,67,69,72].forEach((n,i)=>T(n,.3,"triangle",.13,i*.09));break;
+        case "clair":[79,83,86,91].forEach((n,i)=>T(n,.4,"sine",.1,i*.1,n+5));noise(.8,.03,"highpass",6000,.1,null,1);break;
+        case "blink":tone(300,.25,"sine",.18,0,1800);tone(1800,.25,"sine",.14,.35,300);break;
+        case "haste":for(let i=0;i<3;i++)noise(.18,.22,"bandpass",1200,i*.12,4000,3);T(84,.15,"square",.04,.4);break;
+        case "warp":tone(800,.7,"sine",.1,0,200);for(let i=0;i<6;i++)tone(i%2?1600:2000,.03,"square",.05,.1+i*.13);break;
+        case "chant":T(45,.6,"sawtooth",.12);T(52,.6,"sawtooth",.09);T(57,.7,"sawtooth",.12,.35);T(64,.7,"sawtooth",.08,.35);break;
+        case "massmend":chord([NOTE(60),NOTE(64),NOTE(67),NOTE(72)],1.1,0,.11);[72,76,79,84].forEach((n,i)=>T(n,.3,"sine",.08,.25+i*.1));break;
+        case "beacon":T(60,.9,"sine",.14,0,84);T(84,.8,"triangle",.1,.45);T(91,.6,"sine",.06,.55);break;
+        default:[64,71,76,83].forEach((n,i)=>T(n,.22,"sine",.12,i*.05,n+12));}},
     cast:()=>{[64,71,76,83].forEach((n,i)=>tone(NOTE(n),.22,"sine",.12,i*.05,NOTE(n+12)));noise(.35,.05,"highpass",4500,.12,null,2);},
     pop:()=>{tone(520,.06,"sine",.18,0,880);noise(.02,.05,"bandpass",3000,0,null,3);},
     equip:()=>{tone(2093,.22,"triangle",.07,0);tone(3136,.16,"sine",.05,.012);tone(4699,.08,"sine",.025,.02);noise(.03,.12,"highpass",6000);tone(1568,.18,"triangle",.05,.07);tone(2637,.12,"sine",.03,.08);},
@@ -9732,6 +9884,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.4.1",d:"2026-10-08",t:"Spell effects",items:["Every spell now has its own animation and sound when you cast it: a Firebolt slams into the boss, Chain Lightning forks across the room, a Ward of golden hexes snaps into place, Blink steps you through a portal, and so on. Tap to skip; the result appears right after."]},
   {v:"3.4.0",d:"2026-10-08",t:"Spells",items:["Spells are here. Every finished quest charges your mana (bigger quests more, Intelligence quests a bit extra, and your INT bonus helps). Tap a spell on the new spell row above your belt to cast it.",
     "Your class teaches you a spell: Firebolt, Charm, Hex, Mend, Ward, Regrowth, Clairvoyance, Blink, Haste, Time Warp or War Chant. Crawlers who already have a class know theirs now.",
     "More spells come from tomes: they drop from loot boxes, bosses, rivals and secret rooms, and the Safe room shop sells the common and uncommon ones. Read them in your new Spellbook on the Hero tab.",
