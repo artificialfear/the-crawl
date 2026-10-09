@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=5ff23e5bf2"></script>
-<script>window.CRAWL_BUILD="5ff23e5bf2";</script>
+<script src="firebase-config.js?v=21ff647d10"></script>
+<script>window.CRAWL_BUILD="21ff647d10";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1087,6 +1087,7 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 }
 .soundctl{display:flex;flex-direction:column;gap:10px;margin-top:8px}
 .sndrow{display:flex;align-items:center;gap:10px;font-size:14px}
+.showrow{align-items:flex-start}.showrow input{margin-top:3px}.showrow>span{display:flex;flex-direction:column;gap:2px}.showrow .muted{font-size:12px}
 .sndrow input[type=range]{flex:1;max-width:260px;accent-color:var(--gold)}
 .soundctl .btn{align-self:flex-start}
 #sndBtn{font-size:16px}
@@ -1395,6 +1396,18 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .hist-item .achlist{margin:4px 0 2px;padding-left:18px;font-size:13px}
 .hist-item .achacts{display:none}
 .rep-foot{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.repwrap.mini{background:none;pointer-events:none;place-items:end center;padding:0 12px calc(var(--mini-b,120px) + env(safe-area-inset-bottom,0px));animation:none}
+.repwrap.mini .repcard{pointer-events:auto;width:min(420px,100%);max-height:32vh;padding:8px 34px 8px 10px;box-shadow:0 10px 30px #000a;animation:rise .25s ease;cursor:pointer}
+.repwrap.mini .rep-lines{gap:3px}
+.repwrap.mini .rep-line{padding:3px 8px;font-size:13px;line-height:1.35;background:none;border-left-width:2px;border-radius:0}
+.repwrap.mini .rep-line.k-head{text-align:left;font-size:14px;padding:0 0 2px}
+.repwrap.mini .rep-line .big{display:inline;font-size:13px;margin-right:4px}
+.repwrap.mini .rep-line .quip{display:none}
+.repwrap.mini .rep-line .btn{margin-top:3px;padding:2px 10px;min-height:0;font-size:12px}
+.repwrap.mini .rep-foot,.repwrap.mini .rep-kicker{display:none}
+.repwrap.mini .repx{top:4px;right:4px;padding:2px 8px;min-height:0}
+.repwrap.mini.out .repcard{opacity:0;transform:translateY(12px);transition:opacity .2s,transform .2s}
+@media (min-width:861px){.repwrap.mini{place-items:end end;padding:0 20px 70px}}
 .rep-foot .btn.gold{min-width:150px}
 @keyframes repin{from{opacity:0;transform:translateY(6px)}}
 @media (prefers-reduced-motion:reduce){.rep-line{animation:none}}
@@ -1887,6 +1900,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
       <input type="file" id="restoreFile" accept=".json,application/json" hidden>
     </section>
 <section class="panel" aria-label="Quest auto-sort"><h2>Quest auto-sort</h2><div class="soundctl" id="aiCtl"></div></section>
+<section class="panel" aria-label="After a quest"><h2>After a quest</h2><div class="soundctl" id="showCtl"></div></section>
 <section class="panel" aria-label="Sound"><h2>Sound</h2><div class="soundctl" id="soundCtl"></div></section>
 <section class="panel" aria-label="How the show works"><details open>
         <summary class="label" style="margin-top:12px">How the show works</summary>
@@ -7142,9 +7156,16 @@ function completeQuest(id,actual,touched){
   const qt=ui.questToast;ui.questToast=null;
   const mobSnd0=ui.mobSnd,rvNew=ui.rvSnd;ui.mobSnd=null;ui.rvSnd=null;
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
-  beatHold(850); // let the slice land
-  beat(stageGo,0);beat(()=>stageEnd(fx>0),0);
-  beat(()=>{camOut();if(STAGE.on){STAGE.on=0;render();}if(fg>0)coreSnd.gold();openReport(qt||"<b>Quest complete</b>");if(voice)announce(voice.line);},1000);
+  /* How much show (Settings → After a quest): "full" always; "big" (default) only when something big happened;
+     "quick" never. Without the show, there's no glide or crawler cam and a slim summary card fills in at the bottom. */
+  const mobDied=(prevP.mobs||[]).some(m=>!(player.mobs||[]).some(x=>x.id===m.id));
+  const bigMoment=!!(after>before||loot||ui.rivalWin||mobSnd0||rvNew||lairLi!=null||ambushBeat||ENTR.wait.size||ui.stormMsg||mobDied);
+  ui.lastShow={lv:after>before,loot:!!loot,rv:!!ui.rivalWin,mob:!!mobSnd0,rvNew:!!rvNew,lair:lairLi!=null,amb:!!ambushBeat,entr:ENTR.wait.size,storm:!!ui.stormMsg,died:mobDied}; // why the show did or didn't play (for tests)
+  const mode=prefs.showMode||"big",slim=REP.el?!!REP.mini:(mode==="quick"||(mode==="big"&&!bigMoment));
+  beatHold(slim?450:850); // let the slice land
+  if(slim)beat(()=>stageEnd(fx>0,true),0);
+  else{beat(stageGo,0);beat(()=>stageEnd(fx>0),0);}
+  beat(()=>{camOut();if(STAGE.on){STAGE.on=0;render();}if(fg>0)coreSnd.gold();openReport(qt||"<b>Quest complete</b>",slim);if(voice)announce(voice.line);},slim?350:1000);
   if(usedFocus)beat(()=>toast("Potion of Focus spent: that quest earned double XP."),700);
   if(ui.kindled){ui.kindled=false;const a=activePet();if(a)beat(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),700);}
   if(after>before)beat(()=>{SFX.play("level");toast(`<span class="big">Level ${after}</span> ${esc(titleFor(after))} · HP restored · ${after-before>1?(after-before)+" loot boxes":"a loot box"} earned`,"lvl");},1400);
@@ -10356,6 +10377,14 @@ document.addEventListener("pointerdown",()=>SFX.unlock(),{once:true});
 document.addEventListener("keydown",()=>SFX.unlock(),{once:true});
 // A quiet clock ticks on the last day of a floor, while the page is visible.
 setInterval(()=>{try{if(SFX.ready&&document.visibilityState==="visible"&&playerExists&&player.boss&&finalDay(player.boss))SFX.play("tick");}catch(e){}},1000);
+const SHOW_MODES=[["big","Big moments only","The full show (glide up to the fight, crawler cam, quest report) when a boss, rival or mob goes down, you level up or something new turns up. Other quests get a slim summary that tucks itself away."],
+  ["full","Every quest","The full show after every quest."],["quick","Quick","Never the full show: just the slash and a slim summary, so you can tick off a list fast. Newcomers appear without an entrance."]];
+function renderShowCtl(){
+  const el=$("showCtl");if(!el)return;const cur=prefs.showMode||"big";
+  el.innerHTML=SHOW_MODES.map(([k,n,d])=>`<label class="sndrow showrow"><input type="radio" name="showMode" value="${k}"${k===cur?" checked":""}><span><b>${n}</b><span class="muted">${d}</span></span></label>`).join("")
+    +`<div class="muted" style="font-size:12px">Tap anywhere while the show is playing to skip to the report.</div>`;
+  el.querySelectorAll("input").forEach(i=>i.onchange=()=>{prefs.showMode=i.value;savePrefs();});
+}
 function renderAiCtl(){
   const el=$("aiCtl");if(!el)return;
   if(!el.dataset.wired){el.dataset.wired="1";
@@ -10555,6 +10584,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.11.0",d:"2026-10-09",t:"Less waiting, more crawling",items:["New setting, After a quest (in Settings): Big moments only (the default), Every quest, or Quick. With Big moments only, the glide up, crawler cam and full quest report are saved for when a boss, rival or mob goes down, you level up or something new turns up. Ordinary quests get a slim summary just above the hotbar that tucks itself away after a few seconds (tap it to put it away sooner).",
+    "Tap anywhere while the show is playing to skip straight to the report, and tap outside the report to fill in the rest or close it.",
+    "News that turns up as you finish a quest (sponsor offers, floor notes) now goes into that quest's report instead of popping up over the fight."]},
   {v:"3.10.2",d:"2026-10-09",t:"Grand entrances",items:["A new boss, mob or rival that shows up during a quest no longer appears behind the popups. Its card stays hidden until you close the quest report (and any victory card), then the page glides up to it, the crawler cam shows you squaring up, and each newcomer slams in with a stamp and its own sound, one at a time.",
     "Achievement popups put their Later and Got it buttons on their own row, so the title and description no longer get squeezed into a narrow column on phones."]},
   {v:"3.10.1",d:"2026-10-09",t:"Front row seat",items:["Finishing a quest now glides the page up to the boss, mob and rival cards before the hits land, so you actually see the damage, the shakes and the mob deaths. Closing the quest report takes you back down to where you were.",
@@ -10825,7 +10857,7 @@ const STAGE={on:0,y:null,to:null,hit:false};
 const STAGE_FROZEN=new Set([renderBoss,renderMobAlert,renderRivalAlert]);
 const staged=()=>!!STAGE.on&&Date.now()-STAGE.on<8000;
 const camOn=()=>{const c=$("crawlCam");return !!(c&&c.classList.contains("in"));};
-function stageOn(){STAGE.on=Date.now();}
+function stageOn(){STAGE.on=Date.now();if(!REP.el&&!REP.pend)REP.pend=[];}
 function onScreen(el,bottom,dy){if(!el||!el.offsetParent)return false;const r=el.getBoundingClientRect(),y=r.top+(dy||0)+Math.min(r.height,160)/2;return r.width>0&&y>0&&y<bottom;}
 // The strip of screen not covered by the undo bar at the top or the hotbar, tab bar and ticker at the bottom.
 function viewBand(){let bottom=innerHeight;document.querySelectorAll("#hotbar,#tabbar,.ticker").forEach(e=>{const r=e.getBoundingClientRect();if(r.height&&r.top>innerHeight/2&&r.top<innerHeight)bottom=Math.min(bottom,r.top);});
@@ -10870,7 +10902,7 @@ function entrWatch(){
   if(!loadedP||!playerExists)return;const p=player,b=p.boss,live=b&&!b.defeated&&!hunting(b);
   const cur={boss:live?b.name+"|"+b.tier:null,mob:(p.mobs||[]).map(m=>m.id),rv:p.rival?p.rival.id:null};
   const o=ENTR.prev;ENTR.prev=cur;
-  if(o&&showBusy()){
+  if(o&&showBusy()&&prefs.showMode!=="quick"){
     if(cur.boss&&cur.boss!==o.boss)ENTR.wait.add("boss");
     if(cur.mob.some(id=>!o.mob.includes(id)))ENTR.wait.add("mob");
     if(cur.rv&&cur.rv!==o.rv)ENTR.wait.add("rv");
@@ -10911,8 +10943,9 @@ function entrStamp(el,k){
   d.style.left=(r.left+r.width/2+scrollX)+"px";d.style.top=(r.top+Math.min(r.height,180)/2+scrollY)+"px";
   document.body.appendChild(d);setTimeout(()=>d.remove(),1300);
 }
-function stageEnd(hitBoss){
+function stageEnd(hitBoss,quiet){
   if(!staged()){STAGE.on=0;return;}
+  if(quiet){STAGE.on=0;render();react(hitBoss);return;} // no show: the cards just update
   // The hits land on the cards as they were (a slain mob's card is still there to burst), then the cards catch up.
   let seen=false;try{seen=fxTick(fxSnap());}catch(e){console.warn("fx",e);}
   react(hitBoss);
@@ -10931,14 +10964,14 @@ function stageBack(){
    The queue pauses while a victory card or a close-up is open, so nothing plays behind it. */
 const SHOWQ={q:[],busy:false,hold:0};
 function beat(fn,gap){SHOWQ.q.push({fn,gap:gap==null?1100:gap});if(!SHOWQ.busy){SHOWQ.busy=true;setTimeout(beatNext,Math.max(0,SHOWQ.hold-Date.now()));}}
-function beatHold(ms){SHOWQ.hold=Math.max(SHOWQ.hold,Date.now()+ms);}
+function beatHold(ms){if(SHOWQ.fast)return;SHOWQ.hold=Math.max(SHOWQ.hold,Date.now()+ms);}
 function beatNext(){
   if(document.querySelector(".victory")||document.getElementById("zoomWrap")){setTimeout(beatNext,400);return;}
   const w=SHOWQ.hold-Date.now();if(w>0){setTimeout(beatNext,w);return;}
-  const b=SHOWQ.q.shift();if(!b){SHOWQ.busy=false;SHOWQ.fast=false;repSync();return;}
+  const b=SHOWQ.q.shift();if(!b){SHOWQ.busy=false;SHOWQ.fast=false;repSync();if(REP.el&&REP.mini)repAuto();return;}
   try{b.fn();}catch(e){console.error("beat",e);}
   repSync();
-  setTimeout(beatNext,SHOWQ.fast?80:b.gap);
+  setTimeout(beatNext,SHOWQ.fast?80:REP.mini?Math.min(b.gap,450):b.gap);
 }
 /* toast() escapes plain-text kinds; toastH() is for messages built with markup whose dynamic parts are already escaped. */
 const toastH=(html,kind,undo,label)=>toast(html,kind,undo,label,true);
@@ -10946,6 +10979,8 @@ function toast(html,kind,undo,label,raw){
   const body=raw||["lvl","ach","quest"].includes(kind)?html:esc(html);
   // While a quest report is open, news becomes a line in it instead of a popup that flies past.
   if(REP.el&&kind!=="ach"){repLine(body,kind,undo,label);return null;}
+  // News that turns up while a quest's show is starting waits and becomes a line in its report, instead of covering the fight.
+  if(REP.pend&&kind!=="ach"&&Date.now()-STAGE.on<9000){REP.pend.push([body,kind,undo,label]);return null;}
   if(kind!=="ach")histAdd(kind,body);
   const el=document.createElement("div");el.className="toast "+(kind||"");
   el.innerHTML=`<span>${body}</span>`;
@@ -10961,22 +10996,27 @@ function toast(html,kind,undo,label,raw){
    beats play). It stays until the crawler closes it: "Show all" fast-forwards the rest, "Continue" closes.
    Achievements wait until it closes. The undo bar stays usable while it's open, then for 10 more seconds. */
 const REP={el:null,entry:null,ach:[]};
-function openReport(head){
-  if(REP.el){repLine(head,"head");return;} // a second quest finished while the first report is still open
-  const ov=document.createElement("div");ov.className="repwrap";ov.id="repWrap";
+function openReport(head,mini){
+  if(REP.el){repLine(head,"head");repPend();if(REP.mini)repAuto(true);return;} // a second quest finished while the first report is still open
+  const ov=document.createElement("div");ov.className="repwrap"+(mini?" mini":"");ov.id="repWrap";REP.mini=!!mini;
   ov.innerHTML=`<div class="repcard" role="dialog" aria-modal="true" aria-labelledby="repTitle">
     <button class="btn ghost sm repx" type="button" data-repx aria-label="Close">✕</button>
     <div class="label rep-kicker" id="repTitle">Quest complete</div>
     <div class="rep-lines" aria-live="polite"></div>
     <div class="rep-foot"><button class="btn gold" type="button" id="repGo">Show all</button></div></div>`;
   document.body.appendChild(ov);REP.el=ov;
+  if(mini){ // the slim card: no backdrop, tap it to put it away, it tucks itself away a few seconds after the last line
+    const c=ov.querySelector(".repcard");c.setAttribute("role","status");c.removeAttribute("aria-modal");
+    if(innerWidth<=860)ov.style.setProperty("--mini-b",(innerHeight-viewBand().bottom+10)+"px"); // just above the hotbar
+    c.addEventListener("click",e=>{if(!e.target.closest("button"))closeReport();});
+  }else ov.addEventListener("click",e=>{if(e.target===ov)$("repGo").click();}); // tap outside the card: show all, then continue
   REP.entry=histAdd("report","",true);REP.entry.lines=[];
   ov.querySelector("[data-repx]").onclick=()=>closeReport();
   $("repGo").onclick=()=>{if(SHOWQ.busy&&SHOWQ.q.length)SHOWQ.fast=true;else closeReport();};
   // hold the undo countdown while the report is up
   if(undoTimer){clearTimeout(undoTimer);undoTimer=null;const ub=$("undoBar");if(ub)ub.classList.add("held");}
-  repLine(head,"head");repSync();
-  setTimeout(()=>{const g=$("repGo");if(g&&REP.el)g.focus();},50);
+  repLine(head,"head");repPend();repSync();
+  if(!mini)setTimeout(()=>{const g=$("repGo");if(g&&REP.el)g.focus();},50);
 }
 function repLine(h,kind,undo,label){
   if(!REP.el)return;const box=REP.el.querySelector(".rep-lines");
@@ -10986,16 +11026,24 @@ function repLine(h,kind,undo,label){
   box.appendChild(d);box.scrollTop=box.scrollHeight;
   if(REP.entry){REP.entry.lines.push({k:kind||"",h});histSave();}
 }
+function repPend(){const q=REP.pend||[];REP.pend=null;q.forEach(a=>repLine(...a));}
+function repAuto(cancel){clearTimeout(REP.auto);if(cancel||REP.hover)return;REP.auto=setTimeout(()=>{if(REP.el&&REP.mini&&!REP.hover)closeReport();},4500);}
 function repSync(){const b=$("repGo");if(!b)return;const more=SHOWQ.busy&&SHOWQ.q.length>0;
   b.textContent=more?(SHOWQ.fast?"Showing…":"Show all"):"Continue";}
 function closeReport(){
-  const ov=REP.el;if(!ov)return;REP.el=null;REP.entry=null;ov.remove();
+  const ov=REP.el;if(!ov)return;REP.el=null;REP.entry=null;REP.mini=false;REP.hover=false;clearTimeout(REP.auto);
+  if(REP.pend){const q=REP.pend;REP.pend=null;q.forEach(a=>toast(a[0],a[1],a[2],a[3],true));}
+  if(ov.classList.contains("mini")){ov.classList.add("out");setTimeout(()=>ov.remove(),250);}else ov.remove();
   const ub=$("undoBar");if(ub){ub.classList.remove("held");const t=ub.querySelector(".ub-time");if(t){t.style.animation="none";void t.offsetWidth;t.style.animation="";}clearTimeout(undoTimer);undoTimer=setTimeout(clearUndo,10000);}
   // achievements earned during the quest, one after another
   const q=REP.ach;REP.ach=[];
   const tail=()=>{q.forEach((a,i)=>setTimeout(()=>achToast(a.html,a.ids,a.snd),250+i*50));stageBack();};
   if(ENTR.wait.size||ENTR.going){ENTR.after=tail;if(!ENTR.timer&&!ENTR.going)ENTR.timer=setTimeout(entrRun,300);}else tail();
 }
+// Tapping anywhere while a quest's show is still building up skips straight to the report.
+document.addEventListener("pointerdown",e=>{if(REP.el||!SHOWQ.busy||!STAGE.on||Date.now()-STAGE.on<300)return;
+  if(e.target.closest&&e.target.closest("#hotbar,#tabbar,.undobar,button,a,input,textarea"))return;
+  SHOWQ.fast=true;SHOWQ.hold=0;},true);
 document.addEventListener("keydown",e=>{if(!REP.el||document.querySelector(".victory,#zoomWrap"))return;
   if(e.key==="Escape"){e.preventDefault();closeReport();}
   else if(e.key==="Enter"&&document.activeElement===$("repGo")){e.preventDefault();$("repGo").click();}});
@@ -12508,7 +12556,7 @@ async function boot(){
     $("lookWrap").addEventListener("click",e=>{if(e.target.id==="lookWrap")closeLook();});
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("lookWrap").hidden)closeLook();});
     $("sndBtn").onclick=()=>{prefs.sound=prefs.sound===false;savePrefs();renderSound();if(prefs.sound)SFX.play("coin");else if(player&&!C(player,"mutes")){bump("mutes");checkAch();}};
-    renderSound();renderAiCtl();renderIdeas();$("gearClose").onclick=closeGear;
+    renderSound();renderAiCtl();renderShowCtl();renderIdeas();$("gearClose").onclick=closeGear;
     $("gearWrap").addEventListener("click",e=>{if(e.target.id==="gearWrap")closeGear();});
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("gearWrap").hidden)closeGear();});
   }catch(e){console.error(e);}

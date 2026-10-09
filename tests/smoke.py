@@ -137,6 +137,32 @@ def main():
             check("quest: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- an ordinary quest in the default mode: no glide, slim card, folds popups in, tucks itself away ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            E(pg, "ensureBoss();player.boss.maxHp=99999;player.mobs=[];player.rival=null;player.hp=80;setTab('quests');render()")
+            E(pg, "document.querySelectorAll('#board .quest')[document.querySelectorAll('#board .quest').length-1].scrollIntoView({block:'center'})")
+            pg.wait_for_timeout(300); y0 = E(pg, "scrollY")
+            pg.wait_for_timeout(500); E(pg, "document.querySelectorAll('#toasts .toast').forEach(n=>n.remove())")  # the floor note from loading
+            pg.locator("#board .quest [data-done]").last.click()
+            try:
+                pg.wait_for_selector("#repWrap.mini", timeout=4000); ok = True
+            except Exception:
+                ok = False
+            why = E(pg, "JSON.stringify(ui.lastShow)")
+            big = E(pg, "Object.values(ui.lastShow).some(Boolean)")  # the map can still roll a mob or a rival: that's a big moment
+            if big:
+                check("quest with a random big moment: full show", E(pg, "!!REP.el&&!REP.mini"), why)
+            else:
+                check("ordinary quest: slim summary, no glide or cam", ok and not E(pg, "!!$('crawlCam')") and not E(pg, "STAGE.to!=null"), why)
+            stray = E(pg, "[...document.querySelectorAll('#toasts .toast:not(.ach)')].map(t=>t.textContent.slice(0,60)).join(' / ')")
+            check("ordinary quest: no stray popups over the board", not stray, stray)
+            if not big:
+                pg.wait_for_timeout(7000)
+                check("ordinary quest: summary tucks itself away", not E(pg, "!!REP.el"))
+            check("ordinary quest: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- combat numbers ----
             pg, errs = page()
             pg.evaluate(SETUP)

@@ -127,3 +127,10 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 ## Pre-deploy test run (tests/smoke.py)
 - **Run `python3 tests/smoke.py` before every push**; it must end "0 failed". It builds, serves a test copy on a free port and drives headless Chromium: script parses, save path through the real `fbDb` over a fake Firestore (metadata listener, no save before the server copy, revision chain), finishing a quest from low on the board (glide up, numbers, report, unfreeze, glide back after entrances), combat numbers, all six tabs at 390px and 1280px (no errors, no sideways scroll), reduced motion.
 - When a bug slips through, add a check for it there.
+
+## After-quest modes (v3.11.0)
+- `prefs.showMode`: "big" (default) | "full" | "quick"; Settings → After a quest (`renderShowCtl`, `SHOW_MODES`).
+- In `completeQuest`, `bigMoment` = level-up, boss loot, rival win, mob death, arrivals (mobSnd0/rvNew/ENTR.wait), lair, ambush, storm. `slim` (no big moment in "big", or "quick") skips stageGo/cam: `stageEnd(hit,true)` unfreezes at once, and `openReport(head,true)` builds `.repwrap.mini` (no backdrop, compact lines, above the hotbar via `--mini-b`, tap to close, `repAuto()` closes 4.5 s after the last beat). Beat gaps cap at 450 ms while mini. A second quest joins whatever report is open.
+- Quick mode never queues entrances.
+- Skips: a document pointerdown (capture) while staged and before the report sets `SHOWQ.fast` and clears the hold; `beatHold` is a no-op while fast. Clicking the full report's backdrop = the Show all / Continue button.
+- `REP.pend`: created by `stageOn`, toasts (not achievements) raised before the report opens are queued and replayed as report lines by `repPend()`; closeReport flushes any leftovers as normal toasts.
