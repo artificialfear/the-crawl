@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=d5fef10437"></script>
-<script>window.CRAWL_BUILD="d5fef10437";</script>
+<script src="firebase-config.js?v=a79c76207b"></script>
+<script>window.CRAWL_BUILD="a79c76207b";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -4367,17 +4367,16 @@ function crownIcon(){return `<path d="M0 10 L0 2 L4 6 L8 0 L12 6 L16 2 L16 10 Z"
 /* The hero without the dungeon set, for standing in other rooms. */
 function bareAvatar(eq){try{return avatarSVG(Object.assign({},eq,{bare:true}));}catch(e){return "";}}
 /* Your avatar reacts: a victory pose for 10 minutes after a boss kill, a rival knocked out or a level-up; winded
-   below 30% HP; a scowl (in your chosen pose) while a mob or rival is on you. Otherwise your chosen pose and face.
-   Only the first two replace your pose, and the look editor says when one is showing. */
+   below 30% HP. Otherwise (mobs and rivals included) your chosen pose and face; the look editor says when a
+   reaction is showing instead. */
 function myMood(){const p=player;if(!p||!playerExists)return {};
   const sig=C(p,"bossKills")+C(p,"rivalKills")+C(p,"rivalKOs")+levelInfo(p.xp||0).L;
   if(ui.winSig==null)ui.winSig=sig;else if(sig>ui.winSig){ui.winSig=sig;ui.winAt=Date.now();}
   if(ui.winAt&&Date.now()-ui.winAt<10*6e4)return {pose:"victory",expr:"happy"};
   if(p.hp<maxHp(p)*.3)return {pose:"hurt",expr:"hurt"};
-  if((p.mobs||[]).length||p.rival)return {expr:"angry"};
   return {};}
-function moodNote(){const m=myMood();if(m.pose==="victory")return "You're celebrating a big win, so your Hero tab shows the victory pose for a few more minutes before your pose comes back.";
-  if(m.pose==="hurt")return "You're below 30% HP, so your Hero tab shows you winded until you heal. Your pose comes back after that.";return "";}
+function moodNote(){const m=myMood();if(m.pose==="victory")return "You're celebrating a big win, so your Hero tab shows the victory pose and a grin for a few more minutes. Your pose and face come back after that.";
+  if(m.pose==="hurt")return "You're below 30% HP, so your Hero tab shows you winded with a worried face until you heal. Your pose and face come back after that.";return "";}
 function myAvatarEq(){const a=activePet();return Object.assign({},wearing(player),player.look?{look:player.look}:{},myMood());}
 /* The Portal card in the Safe Room tab. */
 function qtSafeBox(){
@@ -5872,13 +5871,14 @@ function lookRow(label,key,opts){
 const LOOK_TABS=[["body","Body"],["face","Face"],["hair","Hair"],["outfit","Outfit"],["extras","Extras"]];
 function lookSection(t){
   const sw=arr=>arr.map(([k,c,n])=>[k,n,c]);
-  if(t==="face")return lookRow("Face shape","face",[["m","Square jaw"],["f","Soft features"]])+lookRow("Eyes","eyes",sw(EYEC))+lookRow("Eyebrows","brow",BROWS)+lookRow("Expression","mouth",MOUTHS)+lookRow("Facial hair","beard",BEARDS);
+  if(t==="face")return lookRow("Face shape","face",[["m","Square jaw"],["f","Soft features"]])+lookRow("Eyes","eyes",sw(EYEC))+lookRow("Eyebrows","brow",BROWS)+lookRow("Expression","mouth",MOUTHS)+lookRow("Facial hair","beard",BEARDS)
+    +(moodNote()?`<div class="lk-mood">${esc(moodNote())}</div>`:"");
   if(t==="hair")return lookRow("Hair","hair",HAIRS)+lookRow("Hair colour","hc",HAIRC.map(([c,n],i)=>[i,n,c]));
   if(t==="outfit")return lookRow("Shirt","tee",sw(TEES))+lookRow("Shirt print","print",PRINTS)+lookRow("Pants","pants",sw(PANTSC))
     +`<div class="muted" style="font-size:12px">Your starter outfit shows whenever no armour is equipped.</div>`;
   if(t==="extras")return lookRow("Eyewear","eyewear",EYEWEAR)+lookRow("Earrings","ears",EARS)+lookRow("Scars & marks","marks",MARKS)+lookRow("Face paint","paint",PAINTS);
   return lookRow("Skin","skin",SKINS.map((c,i)=>[i,["Lightest","Light","Medium","Tan","Brown","Deep"][i],c]))+lookRow("Build","body",BODIES)+lookRow("Pose","pose",POSES)
-    +`<div class="muted" style="font-size:12px">Your crawler strikes a victory pose for 10 minutes after big wins and gets winded below 30% HP, then goes back to this pose. With a mob or rival on you, they scowl but keep the pose.</div>`
+    +`<div class="muted" style="font-size:12px">Your crawler strikes a victory pose for 10 minutes after big wins and gets winded below 30% HP, then goes back to this pose. Mobs and rivals don't change your pose or face.</div>`
     +(moodNote()?`<div class="lk-mood">${esc(moodNote())}</div>`:"");
 }
 function openLook(){ui.lookDraft=Object.assign({},LOOK_DEFAULT,player.look||{});renderLook();$("lookWrap").hidden=false;}
@@ -10399,7 +10399,7 @@ function renderTabs(){
    with every deploy that players would notice. */
 const CHANGELOG=[
   {v:"3.9.0",d:"2026-10-09",t:"Strike a pose",items:["Crawlers have poses now: Battle ready, Hands on hips, Arms crossed, Victory and Winded. Pick your default on the Body tab of Change look. Out of the battle stance, your weapon is slung on your back.",
-    "Your crawler reacts to what's happening: a victory pose for 10 minutes after a boss kill, a rival knockout or a level-up, winded below 30% HP, and a scowl while a mob or rival is on you. Your crew sees your victory pose too.",
+    "Your crawler reacts to what's happening: a victory pose for 10 minutes after a boss kill, a rival knockout or a level-up, and winded below 30% HP. Your crew sees your victory pose too.",
     "New faces in the look editor: Worried brows, plus Ouch and Unhinged mouths.",
     "Rival crawlers have personalities: each has their own stance and face (smug, stern, cocky…), they get angry under half HP and winded near the end, and psychos wear an unhinged grin."]},
   {v:"3.8.0",d:"2026-10-09",t:"New look",items:["Crawlers now stand in the torchlight: a warm glow on the lit side and shadow on the far side, on your avatar, your crewmates and the look editor.",
