@@ -1206,7 +1206,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .zoomdlg.z-item .zoom-art{width:min(140px,40%);overflow:visible}.zitem{position:relative;width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;line-height:0}.zitem svg{width:100%;height:100%}
 .twinbar{font-size:12px;color:var(--gold);font-weight:700}
 .zladder{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13px}.zladder .now{color:var(--gold)}
-.zoom-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.zgear{font-size:13px}
+.zoom-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.zoom-top{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:-2px 0 10px}.zgear{font-size:13px}
 .vstamp.still{opacity:1;animation:none;transform:translate(-50%,-50%) rotate(-12deg) scale(1);z-index:2;pointer-events:none}
 .pt-raidart .vstamp.still{font-size:clamp(14px,5vw,22px);border-width:3px;padding:0 8px}
 .raiddlg .raid-big{position:relative;width:min(300px,80%);margin:0 auto}.raiddlg .raid-big svg{width:100%;height:auto;display:block}
@@ -10761,6 +10761,7 @@ function zoomCard(o){
   let w=$("zoomWrap");if(!w){w=document.createElement("div");w.id="zoomWrap";w.className="gearwrap";document.body.appendChild(w);w.addEventListener("click",e=>{if(e.target===w)closeZoom();});}
   w.innerHTML=`<div class="geardlg inspdlg zoomdlg${o.kind?" z-"+o.kind:""}" role="dialog" aria-modal="true" aria-label="${esc(o.title)}">
     <div class="gearhead"><h2>${o.titleHTML||esc(o.title)}</h2><button class="btn ghost sm" type="button" id="zoomClose">Close</button></div>
+    ${o.top&&o.top.length?`<div class="zoom-top">${o.top.map((a,i)=>`<button class="btn ${a.gold?"gold":"ghost"} sm" type="button" data-ztop="${i}">${esc(a.label)}</button>`).join("")}</div>`:""}
     <div class="zoom-art print">${o.art}</div>
     ${o.sub?`<p class="zoom-sub">${o.sub}</p>`:""}
     ${o.tiles&&o.tiles.length?`<div class="raid-stats">${o.tiles.map(([k,v])=>`<div><span class="label">${esc(k)}</span><b>${v}</b></div>`).join("")}</div>`:""}
@@ -10769,6 +10770,7 @@ function zoomCard(o){
   </div>`;
   $("zoomClose").onclick=closeZoom;
   w.querySelectorAll("[data-zact]").forEach(b=>b.onclick=()=>{const a=o.acts[+b.dataset.zact];closeZoom();a.fn();});
+  w.querySelectorAll("[data-ztop]").forEach(b=>b.onclick=()=>{const a=o.top[+b.dataset.ztop];closeZoom();a.fn();});
   zoomSound();
 }
 function closeZoom(){const w=$("zoomWrap");if(w)w.remove();}
@@ -10788,7 +10790,8 @@ function zoomMe(){
       <div class="label">Stats</div><div class="zstats">${stats}</div>
       ${bon.length?`<div class="label">Gear bonuses</div><div class="muted" style="font-size:13px">${bon.join(" · ")}</div>`:""}
       ${a?`<div class="label">Pet</div><div class="muted" style="font-size:13px">${esc(a.name)} the ${esc(PETS[a.key].n)} · bond ${bondLevel(a.bond)}${petSulking()?" · sulking":""}</div>`:""}`,
-    acts:[{label:"Change look",gold:true,fn:openLook},{label:"Inventory",fn:()=>{setTab("loot");render();}}]});
+    top:[{label:"Change look",gold:true,fn:openLook}],
+    acts:[{label:"Inventory",fn:()=>{setTab("loot");render();}}]});
 }
 /* A crewmate (their party card) */
 function zoomCrew(uid){
