@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=07c49f66f3"></script>
-<script>window.CRAWL_BUILD="07c49f66f3";</script>
+<script src="firebase-config.js?v=d5fef10437"></script>
+<script>window.CRAWL_BUILD="d5fef10437";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1098,7 +1098,7 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 .lk-body{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:16px;align-items:start}
 .lk-prev{border-radius:2px;overflow:hidden}
 .lk-ctl{display:flex;flex-direction:column;gap:10px}
-.lk-row .label{margin-bottom:4px}
+.lk-row .label{margin-bottom:4px}.lk-mood{font-size:12.5px;margin-top:6px;padding:6px 10px;border-radius:8px;background:rgba(255,210,63,.1);border:1px solid rgba(255,210,63,.35)}
 .lk-opts{display:flex;flex-wrap:wrap;gap:6px}
 .lk-opt{padding:5px 10px;border-radius:6px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--fg);font:600 13px var(--body);cursor:pointer}
 .lk-opt.on{background:var(--gold);color:#111;border-color:var(--gold)}
@@ -4367,14 +4367,17 @@ function crownIcon(){return `<path d="M0 10 L0 2 L4 6 L8 0 L12 6 L16 2 L16 10 Z"
 /* The hero without the dungeon set, for standing in other rooms. */
 function bareAvatar(eq){try{return avatarSVG(Object.assign({},eq,{bare:true}));}catch(e){return "";}}
 /* Your avatar reacts: a victory pose for 10 minutes after a boss kill, a rival knocked out or a level-up; winded
-   below 30% HP; weapon up and scowling while a mob or rival is on you. Otherwise your chosen pose and face. */
+   below 30% HP; a scowl (in your chosen pose) while a mob or rival is on you. Otherwise your chosen pose and face.
+   Only the first two replace your pose, and the look editor says when one is showing. */
 function myMood(){const p=player;if(!p||!playerExists)return {};
   const sig=C(p,"bossKills")+C(p,"rivalKills")+C(p,"rivalKOs")+levelInfo(p.xp||0).L;
   if(ui.winSig==null)ui.winSig=sig;else if(sig>ui.winSig){ui.winSig=sig;ui.winAt=Date.now();}
   if(ui.winAt&&Date.now()-ui.winAt<10*6e4)return {pose:"victory",expr:"happy"};
   if(p.hp<maxHp(p)*.3)return {pose:"hurt",expr:"hurt"};
-  if((p.mobs||[]).length||p.rival)return {pose:"ready",expr:"angry"};
+  if((p.mobs||[]).length||p.rival)return {expr:"angry"};
   return {};}
+function moodNote(){const m=myMood();if(m.pose==="victory")return "You're celebrating a big win, so your Hero tab shows the victory pose for a few more minutes before your pose comes back.";
+  if(m.pose==="hurt")return "You're below 30% HP, so your Hero tab shows you winded until you heal. Your pose comes back after that.";return "";}
 function myAvatarEq(){const a=activePet();return Object.assign({},wearing(player),player.look?{look:player.look}:{},myMood());}
 /* The Portal card in the Safe Room tab. */
 function qtSafeBox(){
@@ -5875,7 +5878,8 @@ function lookSection(t){
     +`<div class="muted" style="font-size:12px">Your starter outfit shows whenever no armour is equipped.</div>`;
   if(t==="extras")return lookRow("Eyewear","eyewear",EYEWEAR)+lookRow("Earrings","ears",EARS)+lookRow("Scars & marks","marks",MARKS)+lookRow("Face paint","paint",PAINTS);
   return lookRow("Skin","skin",SKINS.map((c,i)=>[i,["Lightest","Light","Medium","Tan","Brown","Deep"][i],c]))+lookRow("Build","body",BODIES)+lookRow("Pose","pose",POSES)
-    +`<div class="muted" style="font-size:12px">Your crawler strikes a victory pose after big wins, gets winded at low HP and raises their weapon when something's on them, then goes back to this pose.</div>`;
+    +`<div class="muted" style="font-size:12px">Your crawler strikes a victory pose for 10 minutes after big wins and gets winded below 30% HP, then goes back to this pose. With a mob or rival on you, they scowl but keep the pose.</div>`
+    +(moodNote()?`<div class="lk-mood">${esc(moodNote())}</div>`:"");
 }
 function openLook(){ui.lookDraft=Object.assign({},LOOK_DEFAULT,player.look||{});renderLook();$("lookWrap").hidden=false;}
 function closeLook(){$("lookWrap").hidden=true;ui.lookDraft=null;}
@@ -10395,7 +10399,7 @@ function renderTabs(){
    with every deploy that players would notice. */
 const CHANGELOG=[
   {v:"3.9.0",d:"2026-10-09",t:"Strike a pose",items:["Crawlers have poses now: Battle ready, Hands on hips, Arms crossed, Victory and Winded. Pick your default on the Body tab of Change look. Out of the battle stance, your weapon is slung on your back.",
-    "Your crawler reacts to what's happening: a victory pose (weapon raised) for 10 minutes after a boss kill, a rival knockout or a level-up, winded below 30% HP, and weapon up and scowling while a mob or rival is on you. Your crew sees your victory pose too.",
+    "Your crawler reacts to what's happening: a victory pose for 10 minutes after a boss kill, a rival knockout or a level-up, winded below 30% HP, and a scowl while a mob or rival is on you. Your crew sees your victory pose too.",
     "New faces in the look editor: Worried brows, plus Ouch and Unhinged mouths.",
     "Rival crawlers have personalities: each has their own stance and face (smug, stern, cocky…), they get angry under half HP and winded near the end, and psychos wear an unhinged grin."]},
   {v:"3.8.0",d:"2026-10-09",t:"New look",items:["Crawlers now stand in the torchlight: a warm glow on the lit side and shadow on the far side, on your avatar, your crewmates and the look editor.",
