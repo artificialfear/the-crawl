@@ -62,3 +62,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 ## Hotbar layout
 - One row by default: spells (`.hb-sp`), a divider, then the belt row (`.hb-bt`). `hbFit()` measures the unclamped width after each render and resize; if it's wider than the screen minus 16px, it adds `.two` to the hotbar (spells stack on top) and `has-sp` to the body (extra bottom padding).
 - With spells prepared, the belt button (`.hb-belt.mp`) is also the mana gauge: a conic ring via `--mp`, with the number in `.hb-mp`. The old `.hb-mana` circle is gone (its CSS is unused).
+
+## INT mana refill and CHA haggling (v3.7.0)
+- `manaRate(p)` = 1 + INT level, per hour. `manaTick()` accrues from `player.mpAt` (time away counts, nothing banks while full or with no spells). It runs on load and every 60 s. No save per tick: mp and mpAt only change together, so whichever gets saved next is consistent.
+- `chaOff(p)` = 1% per CHA level above 1, max 20%, folded into `priceOf()`, so every in-game price uses it and `priceTag` shows the struck-out price. Real-world prizes don't use `priceOf`.

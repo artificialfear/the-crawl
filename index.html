@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=ad4fa57791"></script>
-<script>window.CRAWL_BUILD="ad4fa57791";</script>
+<script src="firebase-config.js?v=91b629fee5"></script>
+<script>window.CRAWL_BUILD="91b629fee5";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -138,7 +138,7 @@ body.has-hb{padding-bottom:150px}
 body.has-hb.has-sp{padding-bottom:204px}
 body.has-hb.has-sp .toasts{bottom:calc(166px + env(safe-area-inset-bottom,0px))}
 .bar.mp>b{background:repeating-linear-gradient(-45deg,var(--mana) 0 3px,#1a8fc4 3px 5px);box-shadow:0 0 10px rgba(63,224,255,.4)}
-.sb-hint{font-size:13px;margin:8px 0 6px}
+.sb-hint{font-size:13px;margin:8px 0 6px}.haggle{font-size:13px;margin:0 0 8px}
 .sb-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;container-type:inline-size}
 .sb-row{display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:12px;row-gap:10px;align-items:start;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel-2)}
 .sb-name{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
@@ -2216,7 +2216,10 @@ function themeFx(p,t,actual){
   }
   return z;
 }
-const priceOf=n=>Math.max(1,Math.round(n*themeFx(player).price));
+/* Haggling: 1% off every in-game gold price per Charisma level above 1, up to 20% (stacks with floor sales).
+   Real-world prizes are priced by the players themselves, so they're never discounted. */
+const chaOff=p=>Math.min(.2,Math.max(0,lvlOf(p||player,"CHA")-1)*.01);
+const priceOf=n=>Math.max(1,Math.round(n*themeFx(player).price*(1-chaOff(player))));
 /* ---------- Floor theme dressing ----------
    Each theme repaints the whole page: its own palette, an ambient scene behind everything, and a banner
    under the tabs saying where you are. Purely cosmetic; the rules live in themeFx. */
@@ -2358,7 +2361,7 @@ function petFx(p){
   return Object.assign(z,PETS[a.key].fx(petLevel(p,a)),{ability:a.key});
 }
 const maxHp=p=>BASE_HP+statFx(p).hp+petFx(p).hp+gearFx(p).hp;
-function fxText(k,p){const f=statFx(p);return {STR:`+${Math.round(f.dmg*100)}% boss damage`,INT:`+${Math.round(f.xp*100)}% XP`,CON:`+${f.hp} max HP`,DEX:`+${Math.round(f.win*100)}% wider accuracy window`,CHA:`+${Math.round(f.cha*100)}% gold, more viewers`}[k];}
+function fxText(k,p){const f=statFx(p);return {STR:`+${Math.round(f.dmg*100)}% boss damage`,INT:`+${Math.round(f.xp*100)}% XP`,CON:`+${f.hp} max HP`,DEX:`+${Math.round(f.win*100)}% wider accuracy window`,CHA:`+${Math.round(f.cha*100)}% gold, more viewers`}[k]+(k==="INT"?`, mana refills ${manaRate(p)}/hr`:k==="CHA"&&chaOff(p)?`, ${Math.round(chaOff(p)*100)}% off in shops`:"");}
 
 const need = L => Math.round(60*Math.pow(L,1.5));
 function levelInfo(total){let L=1,rem=total;while(rem>=need(L)){rem-=need(L);L++;}return {L,into:rem,need:need(L)};}
@@ -5309,6 +5312,14 @@ const spellSlots=p=>{const L=levelInfo(((p||player)||{}).xp||0).L;return L>=20?4
 const prepRow=()=>((player.prep||[]).filter(knows)).slice(0,spellSlots());
 /* Mana a finished quest gives (0 until you know a spell, so nobody banks mana before they can use it). */
 function manaFor(t){const base=[0,5,8,12,16,20][t&&t.effort]||8;let m=base*(1+(statFx(player).xp||0));if(t&&t.stat==="INT")m*=1.25;return Math.max(1,Math.round(m));}
+/* Mana also refills on its own: 1 per hour, plus 1 per INT level. Accrued from player.mpAt, so time away counts.
+   It isn't banked while you're full, and nothing is saved per tick: mp and mpAt always move together. */
+const manaRate=p=>1+lvlOf(p||player,"INT");
+function manaTick(){if(!playerExists||!player)return 0;const now=Date.now();
+  if(!(player.spells||[]).length||(player.mp||0)>=MP_MAX||!player.mpAt||player.mpAt>now){player.mpAt=now;return 0;}
+  const per=36e5/manaRate(),n=Math.floor((now-player.mpAt)/per);if(n<1)return 0;
+  const g=Math.min(n,MP_MAX-(player.mp||0));player.mp=(player.mp||0)+g;player.mpAt=player.mp>=MP_MAX?now:player.mpAt+n*per;return g;}
+setInterval(()=>{try{if(manaTick())render();}catch(e){}},60000);
 function gainMana(t){if(!(player.spells||[]).length)return 0;const before=player.mp||0;player.mp=Math.min(MP_MAX,before+manaFor(t));return player.mp-before;}
 function learnSpell(id,src,quiet){
   const S=SPELLS[id];if(!S||knows(id))return false;
@@ -5571,7 +5582,7 @@ function renderSpellbook(){
   const known=player.spells||[],tomes=player.tomes||[];sec.hidden=!known.length&&!tomes.length;if(sec.hidden)return;
   const pr=prepRow(),n=spellSlots(),mp=player.mp||0;
   let h=`<div class="barrow"><div class="top"><span class="label">Mana</span><span class="num">${mp} / ${MP_MAX}</span></div><div class="bar mp" role="progressbar" aria-label="Mana" aria-valuemin="0" aria-valuemax="${MP_MAX}" aria-valuenow="${mp}"><b style="width:${(mp/MP_MAX*100).toFixed(1)}%"></b></div></div>`;
-  h+=`<p class="muted sb-hint">Finished quests charge mana (bigger quests more; INT helps). <b>${pr.length} of ${n}</b> spells prepared on your hotbar${n<4?` · ${n<3?"3 slots at level 10":"4 slots at level 20"}`:""}.</p>`;
+  h+=`<p class="muted sb-hint">Finished quests charge mana (bigger quests more; INT helps), and it refills on its own at <b>${manaRate()} an hour</b> (faster with more INT). <b>${pr.length} of ${n}</b> spells prepared on your hotbar${n<4?` · ${n<3?"3 slots at level 10":"4 slots at level 20"}`:""}.</p>`;
   if(tomes.length)h+=`<div class="sb-list">${tomes.map((id,i)=>{const S=SPELLS[id];return `<div class="sb-row tome"><span class="sb-ico">${tomeIcon(id)}</span><div class="what"><b class="rar-${S.rar}">Tome of ${esc(S.n)}</b><span>${RARITY[S.rar].n} · unread</span></div><button class="btn gold sm" type="button" data-sbread="${id}">Read</button></div>`;}).join("")}</div>`;
   h+=`<div class="sb-list">${known.map(id=>{const S=SPELLS[id],on=pr.includes(id);return `<div class="sb-row${on?" on":""}"><span class="sb-ico">${spellIcon(id)}</span><div class="what"><div class="sb-name"><b class="rar-${S.rar}">${esc(S.n)}</b><span class="sb-cost${mp<S.cost?" low":""}">${S.cost} mana</span>${S.party?`<span class="sb-cost party">Party</span>`:""}</div><span class="sb-d">${esc(S.d)}.</span></div>
     <div class="sb-btns"><button class="btn sm" type="button" data-sbcast="${id}" ${mp<S.cost?"disabled":""}>Cast</button><button class="btn ghost sm" type="button" data-sbprep="${id}">${on?"Unprepare":"Prepare"}</button></div></div>`;}).join("")}</div>`;
@@ -6673,6 +6684,7 @@ function afterLoad(){
   if(loadedP&&loadedT&&!ticked&&playerExists){
     ticked=true;const c=ensureBoss();dailyTick(c);
     if(poisonTick()){store.savePlayer(player).catch(writeFailed);render();}
+    if(manaTick())render();
     {const f=mobUpkeep();if(f.length){store.savePlayer(player).catch(writeFailed);render();setTimeout(()=>toast(f.map(esc).join("<br>")),1200);}}
     const h=new Date().getHours();
     if(ui.pendingSay){say(...ui.pendingSay);ui.pendingSay=null;}
@@ -9614,8 +9626,8 @@ function renderRewards(){
 }
 const priceTag=n=>priceOf(n)!==n?`<s class="was">${n}</s><span class="price">${priceOf(n)}g</span>`:`<span class="price">${n}g</span>`;
 function renderShop(){
-  const p=player;
-  let h=`<div class="item"><div class="what"><b>Healing potion</b><span>Restores ${healAmt(p)} HP · you carry ${p.potions}</span></div>
+  const p=player,off=chaOff(p);
+  let h=(off?`<p class="muted haggle">🗣 Your Charisma talks the shopkeeper down: <b>${Math.round(off*100)}% off</b> everything here.</p>`:"")+`<div class="item"><div class="what"><b>Healing potion</b><span>Restores ${healAmt(p)} HP · you carry ${p.potions}</span></div>
     <div style="display:flex;gap:6px"><button class="btn ghost" id="drink" ${p.potions<1||p.hp>=maxHp(player)?"disabled":""}>Drink</button>
     <button class="btn" id="buyPot" ${p.gold<priceOf(POTION.price)?"disabled":""}>${priceTag(POTION.price)}</button></div></div>`;
   for(const t of ["bronze","silver"]){
@@ -10150,6 +10162,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.7.0",d:"2026-10-08",t:"Brains and charm",items:["Mana now refills on its own, even while you're away: 1 an hour, plus 1 for each Intelligence level. Quests still charge it too.",
+    "Charisma haggles: every gold price in the game drops 1% for each Charisma level above 1, up to 20% off. That covers the shop, boxes, potions, tomes and wandering merchants, but not your real-world prizes. It stacks with floor sales.",
+    "Your Hero tab shows both: Intelligence lists your refill rate, and Charisma lists your discount."]},
   {v:"3.6.0",d:"2026-10-08",t:"Floor monsters",items:["Every floor theme now has its own mob family. On a themed floor, about 4 in 10 mobs you meet come from it; the rest are the usual rats, goblins and oozes.",
     "Haunted Halls: Ghosts. Quests pass right through them. Firebolt and Chain Lightning hit them (instead of the boss), Ward banishes one, Charm doesn't work. Left alone, a ghost haunts you until 6 a.m., then fades with no loot. Kills pay double XP.",
     "Flooded Floor: Bog Leeches heal a quarter of their HP after each quest they survive. Night Market: Pickpocket Imps steal gold instead of HP, and give it all back when they die. Fog of War: Mist Stalkers hide their HP, and 30% of your quests miss them.",
