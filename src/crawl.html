@@ -3909,7 +3909,7 @@ function zoomMob(){
       ["Bounty",`~${bx} XP + ${lead.pack?"10–20":"3–8"}g${lead.stolen?` + your ${lead.stolen}g`:""}`],["Your HP",`${Math.round(player.hp)} / ${maxHp(player)}`],["You've beaten",`${kills} ${esc(K.n.toLowerCase())}`],["Loot",K.box?"Bronze Box":lead.pack?"25% Bronze Box":"Scrap, maybe"]],
     body:`<div class="bubble mobbub">“${esc(spick(Math.random,MOB_TAUNTS[k]))}”</div>${zbar(K.hide?1:lead.hp/lead.max,"rvbar")}
       ${ms.length>1?`<div class="label">Behind it</div><div class="muted" style="font-size:13px">${ms.slice(1).map(m=>`${esc(m.n)} (${mobHpTxt(m)})`).join(" · ")}</div>`:""}
-      <div class="muted" style="font-size:12px">${esc(K.line)} ${K.noPhys?"While it's on you, Firebolt and Chain Lightning hit it instead of the boss.":"Your next quest hits it first, and mob damage never comes out of your boss fight."}${shield&&!K.noNip?" Your gargoyle blocks its nips.":""}</div>`,
+      <div class="muted" style="font-size:12px">${esc(K.line)} ${K.noPhys?"Cast Firebolt or Chain Lightning and pick it as the target.":"Your next quest hits it first, and mob damage never comes out of your boss fight."}${shield&&!K.noNip?" Your gargoyle blocks its nips.":""}</div>`,
     acts:canDrink?[{label:`Drink a potion (+${POTION.heal} HP)`,gold:true,fn:drink}]:[]});
 }
 /* A big, hard-to-miss encounter card above the quest board while anything is chasing you. */
@@ -5288,8 +5288,8 @@ document.addEventListener("keydown",e=>{
    on the hotbar's spell row; tap to cast. Damage spells can only take a quarter of any one boss's HP. */
 const MP_MAX=100,MP_DUPE=25;
 const SPELLS={
-  firebolt:{n:"Firebolt",       school:"fire",  rar:"common",   cost:30,d:"Hits the boss for about one quest's worth of damage, more with INT. With a ghost on you, it hits the mobs instead"},
-  chain:   {n:"Chain Lightning",school:"storm", rar:"epic",     cost:45,d:"Hits the boss for one and a half quests' worth of damage, more with INT. With a ghost on you, it hits the mobs instead"},
+  firebolt:{n:"Firebolt",       school:"fire",  rar:"common",   cost:30,d:"Hits the boss, the mob on you or your rival crawler (you pick) for about one quest's worth of damage, more with INT"},
+  chain:   {n:"Chain Lightning",school:"storm", rar:"epic",     cost:45,d:"Hits the boss, the mob on you or your rival crawler (you pick) for one and a half quests' worth of damage, more with INT"},
   charm:   {n:"Charm",          school:"mind",  rar:"common",   cost:25,d:"The mob on you (or the next one you meet) gives up without a fight. You still get its loot. Ghosts ignore it"},
   hex:     {n:"Hex",            school:"shadow",rar:"uncommon", cost:30,d:"Your rival crawler takes +50% damage from your next 3 quests"},
   mend:    {n:"Mend",           school:"life",  rar:"common",   cost:25,d:"Heal 30 HP"},
@@ -5357,14 +5357,14 @@ function spellTick(){
   store.savePlayer(player).catch(writeFailed);}
 /* Damage spells hit the boss you're fighting, or store as Charge while you're hunting. Each boss only takes
    a quarter of its HP from spells (a hunt's Charge: about three quests' worth a day). */
-function spellBossHit(mult){
+function spellBossHit(mult,dry){
   ensureBoss();const b=player.boss;if(!b||b.defeated)return {err:"There's no boss left standing on this floor."};
   const base=Math.max(1,Math.round(mobScale().xp*mult*(1+(statFx(player).xp||0))));
   const hunt=hunting(b),key=hunt?"chg"+today():`${b.week}:${b.tier}:${b.cur==null?"":b.cur}`;
   const cap=hunt?Math.round(mobScale().xp*3):Math.max(1,Math.round((b.maxHp||bossHp(b))*.25));
   const used=player.spDmg&&player.spDmg.k===key?player.spDmg.n:0,room=cap-used;
   if(room<=0)return {err:hunt?"Your Charge has taken all the spell power it will today. Try again tomorrow, or find the boss.":`${b.name} has already taken all the spell damage it will (a quarter of its HP). Finish quests to bring it down.`};
-  const dmg=Math.min(base,room);player.spDmg={k:key,n:used+dmg};
+  const dmg=Math.min(base,room);if(dry)return {dmg,hunt};player.spDmg={k:key,n:used+dmg};
   const loot=dealDamage(dmg);return {dmg,loot,hunt};}
 function warpPick(){
   const td=today(),list=tasks.filter(t=>!t.done&&t.due).sort((a,b)=>a.due.localeCompare(b.due));
@@ -5390,8 +5390,11 @@ function castSpell(id){
   const no=m=>{toast(m,"bad");return;};
   switch(id){
     case "firebolt":case "chain":{
-      if(hasGhost()){const dmg=Math.max(1,Math.round(mobScale().xp*(id==="chain"?1.5:1)*(1+(statFx(player).xp||0))));payMana(id);const out=mobFight(0,null,{spell:true,raw:dmg});
-        castDone(id,`${id==="chain"?"Lightning arcs":"A bolt of fire tears"} through the mobs on you for <b>${dmg}</b>. ${out.map(esc).join(" ")}`);return;}
+      const T=spellTargets(id),ok=T.filter(x=>!x.err);
+      if(!ok.length)return no(T.length?T[T.length-1].err:"There's nothing to hit right now.");
+      // never send it to the boss without asking while something else is on you (even if that one can't be hit now)
+      if(ok.length>1||(ok[0].k==="boss"&&T.length>1))return spellPick(id,T);
+      if(ok[0].k!=="boss")return spellStrike(id,ok[0].k);
       const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err)return no(r0.err);payMana(id);
       castDone(id,r0.hunt?`Your spell crackles into your stored Charge: +${r0.dmg}. It lands when you find the boss.`:`${id==="chain"?"Lightning arcs":"A bolt of fire slams"} into ${esc(player.boss.name||"the boss")} for <b>${r0.dmg}</b> damage.`,r0.loot&&r0.loot.kills&&r0.loot.kills.length?r0.loot:null);return;}
     case "charm":{
@@ -5427,6 +5430,37 @@ function castSpell(id){
       if(!near)return no("None of your crew is anywhere else on the raid floor right now.");
       payMana(id);r.pos=near.c.pos;r.tgt=null;rfReveal(r,r.pos);castDone(id,`You flash across the raid floor to ${esc(near.c.name)}.`);return;}
   }}
+/* Attack spells pick a target: the mob on you, your rival crawler, or the boss. With one option they just fire;
+   with more, a small picker opens (mana is only spent once you choose). Spells can finish mobs and rivals, but a
+   rival takes at most a quarter of its max HP from spells per day (player.rvSp), and the boss keeps its own cap. */
+const spellDmg=id=>Math.max(1,Math.round(mobScale().xp*(id==="chain"?1.5:1)*(1+(statFx(player).xp||0))));
+const RV_SPELL_CAP=.25;
+function rvSpellRoom(rv){const td=today(),u=player.rvSp&&player.rvSp.id===rv.id&&player.rvSp.d===td?player.rvSp.n:0;return Math.max(0,Math.max(1,Math.round(rv.max*RV_SPELL_CAP))-u);}
+function spellTargets(id){const T=[],dmg=spellDmg(id),ms=player.mobs||[];
+  if(ms.length){const lead=ms[0];T.push({k:"mob",label:`${lead.n}${ms.length>1?` (+${ms.length-1} more)`:""}`,note:`about ${dmg} damage, through the mobs in order`});}
+  const rv=player.rival;
+  if(rv){const room=rvSpellRoom(rv);T.push(room>0?{k:"rival",label:`${rv.n}, rival crawler`,note:`up to ${Math.min(dmg,room,rv.hp)} damage`}:{k:"rival",err:`${rv.n} has taken all the spell damage they will today. Quests still hit them.`});}
+  const b=spellBossHit(id==="chain"?1.5:1,true);
+  T.push(b.err?{k:"boss",err:b.err}:{k:"boss",label:b.hunt?"The boss (into your Charge)":`${player.boss.name||"The boss"}`,note:`${b.dmg} damage`});
+  return T;}
+function spellPick(id,T){const S=SPELLS[id];
+  const off=T.filter(x=>x.err);
+  zoomCard({kind:"item",title:`Cast ${S.n} at…`,art:spellIcon(id),sub:`${S.cost} mana · pick a target`,
+    body:`<div class="muted" style="font-size:13px">${T.filter(x=>!x.err).map(x=>`<b>${esc(x.label)}</b>: ${esc(x.note)}`).join("<br>")}${off.length?`<br>${off.map(x=>esc(x.err)).join("<br>")}`:""}</div>`,
+    acts:T.filter(x=>!x.err).map((x,i)=>({label:x.k==="mob"?"The mob":x.k==="rival"?"Your rival":"The boss",gold:i===0,fn:()=>x.k==="boss"?castBoss(id):spellStrike(id,x.k)}))});}
+function castBoss(id){const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err){toast(r0.err,"bad");return;}payMana(id);
+  castDone(id,r0.hunt?`Your spell crackles into your stored Charge: +${r0.dmg}. It lands when you find the boss.`:`${id==="chain"?"Lightning arcs":"A bolt of fire slams"} into ${esc(player.boss.name||"the boss")} for <b>${r0.dmg}</b> damage.`,r0.loot&&r0.loot.kills&&r0.loot.kills.length?r0.loot:null);}
+function spellStrike(id,k){const S=SPELLS[id];if((player.mp||0)<S.cost){payMana(id);return;}const dmg=spellDmg(id),verb=id==="chain"?"Lightning arcs into":"A bolt of fire slams into";
+  if(k==="mob"){if(!(player.mobs||[]).length){toast("Nothing's on you anymore.","bad");return;}
+    payMana(id);const lead=player.mobs[0],out=mobFight(0,null,{spell:true,raw:dmg});
+    castDone(id,`${verb} ${esc(lead.n)} for <b>${dmg}</b>. ${out.map(esc).join(" ")}`);return;}
+  if(k==="rival"){const rv=player.rival;if(!rv){toast("Your rival is gone.","bad");return;}const room=rvSpellRoom(rv);if(room<=0){toast(`${rv.n} has taken all the spell damage they will today.`,"bad");return;}
+    payMana(id);const d=Math.min(dmg,room,rv.hp),td=today();rv.hp-=d;
+    player.rvSp={id:rv.id,d:td,n:(player.rvSp&&player.rvSp.id===rv.id&&player.rvSp.d===td?player.rvSp.n:0)+d};bump("spellRival");
+    if(rv.hp<=0){const out=[];rivalDown(out,null);ui.rivalWin=null;castDone(id,`${verb} ${esc(rv.n)} for <b>${d}</b>. ${out.map(esc).join(" ")}`);
+      setTimeout(()=>{if(!clip("boss-kill",.8))SFX.play("kill");},calmMotion()?200:1700);return;}
+    castDone(id,`${verb} ${esc(rv.n)} for <b>${d}</b> (${rv.hp}/${rv.max} HP left).${rvSpellRoom(rv)<=0?" That's all the spell damage they'll take today.":""}`);return;}
+}
 /* Crewmates' party spells, applied on your own device (only you ever write your own save). */
 function spellCrew(){
   if(!party||!party.cards||!playerExists)return;const me=myUid(),seen=player.mmSeen||[];let ch=false;
