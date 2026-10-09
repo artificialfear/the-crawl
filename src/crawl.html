@@ -92,6 +92,11 @@ h2.foldh:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-r
 .hb-slot.empty{border-style:dashed;color:var(--muted);font:700 20px/1 var(--body)}
 .hb-n{position:absolute;right:3px;bottom:2px;font:800 13px/1 var(--body);color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
 .hb-slot.out .hb-n{color:var(--blood)}
+.hb-slot.sick svg{filter:grayscale(.8) brightness(.55)}
+.hb-sick{position:absolute;inset:0;display:grid;place-items:center;font:800 12px/1 var(--body);color:#c6ff7a;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000;pointer-events:none}
+.hb-psn{position:absolute;right:0;bottom:0;min-width:18px;height:18px;padding:0 3px;border-radius:9px;background:#3a7a1a;border:2px solid #111;color:#e6ffcc;font:800 10px/14px var(--body);text-align:center}
+.bar.hp.psn>b{background:repeating-linear-gradient(-45deg,#7ad04a 0 3px,#3a7a1a 3px 5px)}
+.stline{font-size:12.5px;margin-top:4px}.psnwarn{color:#c6d47a;flex-basis:100%}.stline.psn{color:#9be06a}.stline.sick{color:#c6d47a}
 .hb-key{position:absolute;left:3px;top:2px;font:700 10px/1 var(--body);color:#fff;opacity:.85;text-shadow:0 0 3px #000,0 0 3px #000}
 .hb-slot.used{animation:hbpop .35s ease-out}
 @keyframes hbpop{40%{transform:scale(1.14)}}
@@ -2089,7 +2094,9 @@ const POTION = {price:25, heal:40};
 const CONSUMABLES = {
   focus:{n:"Potion of Focus",    price:70, w:3, d:"Doubles the XP (and boss damage) of your next finished quest"},
   scroll:{n:"Scroll of Extension",price:45, w:4, d:"Pushes one quest's due date back 2 days with no penalty. Overdue quests move to 2 days from today"},
-  smoke:{n:"Smoke Bomb",          price:40, w:3, d:"Skips one occurrence of a repeating quest. Its chain stays intact"}};
+  smoke:{n:"Smoke Bomb",          price:40, w:3, d:"Skips one occurrence of a repeating quest. Its chain stays intact"},
+  mana:{n:"Mana Potion",          price:150,w:2, d:"Restores 40 mana. Causes potion sickness"},
+  antidote:{n:"Poison Antidote",  price:60, w:2, d:"Cures poison. Never causes potion sickness"}};
 const bagN=k=>((player.bag||{})[k]||0);
 function addBag(k,n){player.bag=Object.assign({},player.bag||{});player.bag[k]=(player.bag[k]||0)+n;}
 /* Spare copies of gear you already own, kept instead of auto-sold when "Keep duplicates" is on. */
@@ -4884,8 +4891,8 @@ function renderRank(){
    Your best belt (most slots, whatever the avatar wears) sets how many consumables ride on the hotbar.
    player.belt holds the slot order (consumable keys or null); slots past your belt's size are kept, just hidden.
    Tap a slot or press 1-6 to use it at once. Scrolls and Smoke Bombs ask which quest. */
-const BELT_KEYS=["potion","focus","scroll","smoke"],BELT_BARE=1,BELT_MAX=6;
-const BELT_PLURAL={potion:"healing potions",focus:"Potions of Focus",scroll:"Scrolls of Extension",smoke:"Smoke Bombs"};
+const BELT_KEYS=["potion","focus","scroll","smoke","mana","antidote"],BELT_BARE=1,BELT_MAX=6;
+const BELT_PLURAL={potion:"healing potions",focus:"Potions of Focus",scroll:"Scrolls of Extension",smoke:"Smoke Bombs",mana:"Mana Potions",antidote:"Poison Antidotes"};
 /* s strap, b buckle, p pouches; k picks a special shape */
 const BELT_STYLE={bt1:{s:"#c9a46a",b:"#8a6a3a",p:"#a9844e",k:"rope"},bt2:{s:"#9aa3b2",b:"#c9cdd6",p:"#7d8698",k:"tape"},
   bt3:{s:"#3a3f4c",b:"#ffd23f",p:"#5b6b3a"},bt4:{s:"#2f78d0",b:"#ff2e6e",p:"#ff8fc2"},bt5:{s:"#7a4a26",b:"#ffd23f",p:"#5a3920"},
@@ -4983,8 +4990,10 @@ function hbUse(i){const k=beltRow()[i];if(!k){openBelt(i);return;}
   if(consN(k)<1){toast(`Out of ${BELT_PLURAL[k]}. The shop sells more.`,"bad");return;}
   const flash=()=>{const b=document.querySelector(`#hotbar [data-hb="${i}"]`);if(b){b.classList.remove("used");void b.offsetWidth;b.classList.add("used");}};
   if(k==="potion"){if(player.hp>=maxHp(player)){toast("You're already at full HP.");return;}
-    const hp0=player.hp;drink();flash();toast(`Gulp. +${player.hp-hp0} HP.`);return;}
-  if(k==="focus"){if(player.focused){toast("You're already focused. Your next finished quest uses it up.");return;}drinkFocus();SFX.play("pop");flash();return;}
+    const hp0=player.hp,n0=player.potions;drink(true);if(player.potions<n0){flash();toast(`Gulp. +${player.hp-hp0} HP.`);}return;}
+  if(k==="focus"){if(player.focused){toast("You're already focused. Your next finished quest uses it up.");return;}drinkFocus(true);if(player.focused){SFX.play("pop");flash();}return;}
+  if(k==="mana"){const n0=bagN("mana");drinkMana(true);if(bagN("mana")<n0)flash();return;}
+  if(k==="antidote"){const n0=bagN("antidote");drinkAntidote();if(bagN("antidote")<n0)flash();return;}
   pickQuest(k);}
 function closeHbDlg(){const o=$("hbDlg");if(o){o.remove();const h=$("hotbar");if(h&&ui.hbBack!=null){const b=h.querySelector(`[data-hb="${ui.hbBack}"]`)||h.querySelector("[data-hbedit]");if(b)b.focus();}ui.hbBack=null;}}
 function hbDlg(label,inner,back){closeHbDlg();ui.hbBack=back;
@@ -5025,11 +5034,11 @@ function renderHotbar(){
   const spRow=spl.length?`<div class="hb-row hb-sp"><span class="hb-mana" role="img" aria-label="Mana ${mp} of ${MP_MAX}" title="Mana ${mp} / ${MP_MAX}" style="--mp:${(mp/MP_MAX*100).toFixed(1)}%"><b>${mp}</b></span>`
     +spl.map(id=>{const S=SPELLS[id],ok=mp>=S.cost;return `<button type="button" class="hb-slot sp${ok?"":" out"}" data-sp="${id}" aria-label="Cast ${esc(S.n)}, ${S.cost} mana" title="${esc(S.n)} · ${S.cost} mana · ${esc(S.d)}">${spellIcon(id)}<span class="hb-n hb-cost">${S.cost}</span></button>`;}).join("")+`</div>`:"";
   document.body.classList.toggle("has-sp",!!spl.length);
-  const html=spRow+`<div class="hb-row"><button type="button" class="hb-belt" data-hbedit aria-label="${esc(b?b.n:"Old leather belt")}: change what's on your belt" title="Change what's on your belt">${beltIconSVG(b)}</button>`
+  const html=spRow+`<div class="hb-row"><button type="button" class="hb-belt" data-hbedit aria-label="${esc(b?b.n:"Old leather belt")}: change what's on your belt" title="Change what's on your belt">${beltIconSVG(b)}${player.poison?`<span class="hb-psn" title="Poisoned ×${player.poison.n}">☠${player.poison.n>1?player.poison.n:""}</span>`:""}</button>`
     +row.map((k,i)=>{const key=keys?`<span class="hb-key" aria-hidden="true">${i+1}</span>`:"";
       if(!k)return `<button type="button" class="hb-slot empty" data-hb="${i}" aria-label="Empty belt slot ${i+1}" title="Empty slot: tap to fill">+${key}</button>`;
-      const n=consN(k),on=k==="focus"&&player.focused;
-      return `<button type="button" class="hb-slot${n<1?" out":""}${on?" on":""}" data-hb="${i}" aria-label="${esc(consName(k))}, ${n} left, slot ${i+1}" title="${esc(consName(k))} · ${n} left${keys?` · key ${i+1}`:""}">${tierIcon(k,"cons")}<span class="hb-n">${n}</span>${key}</button>`;}).join("")+`</div>`;
+      const n=consN(k),on=k==="focus"&&player.focused,sk=POTION_KINDS.has(k)&&sickLeft()>0;
+      return `<button type="button" class="hb-slot${n<1?" out":""}${on?" on":""}${sk?" sick":""}" data-hb="${i}" aria-label="${esc(consName(k))}, ${n} left, slot ${i+1}" title="${esc(consName(k))} · ${n} left${keys?` · key ${i+1}`:""}">${tierIcon(k,"cons")}<span class="hb-n">${n}</span>${key}${sk?`<span class="hb-sick" aria-hidden="true">${Math.ceil(sickLeft()/6e4)}m</span>`:""}</button>`;}).join("")+`</div>`;
   if(ui.hbHtml!==html){const fi=document.activeElement&&el.contains(document.activeElement)?document.activeElement.dataset.hb:undefined;
     el.innerHTML=html;ui.hbHtml=html;if(fi!=null){const f=el.querySelector(`[data-hb="${fi}"]`);if(f)f.focus();}}}
 /* Number keys 1-6 use belt slots, unless you're typing or a dialog is open. */
@@ -5332,9 +5341,37 @@ function renderSpellbook(){
   el.querySelectorAll("[data-sbread]").forEach(b=>b.onclick=()=>readTome(b.dataset.sbread));
   el.querySelectorAll("[data-sbcast]").forEach(b=>b.onclick=()=>castSpell(b.dataset.sbcast));
   el.querySelectorAll("[data-sbprep]").forEach(b=>b.onclick=()=>prepToggle(b.dataset.sbprep));}
+/* ---------- Potion sickness ----------
+   Drinking a potion (healing, mana or Focus) starts a cooldown: 30 minutes, 3 fewer for each CON level above 1
+   (10 at the least). The belt won't pour another during it. Drinking one anyway, from the bag or any other button,
+   poisons you: 2 HP per stack every 15 minutes (never below 1 HP) until you drink a Poison Antidote.
+   Healing restores HP but doesn't cure poison. The antidote itself never causes sickness. */
+const SICK_BASE=30,SICK_PER=3,SICK_MIN=10,POISON_TICK=15*6e4,POISON_DMG=2,MANA_POT=40,POTION_KINDS=new Set(["potion","mana","focus"]);
+const sickMins=p=>Math.max(SICK_MIN,SICK_BASE-SICK_PER*(lvlOf(p||player,"CON")-1));
+const sickLeft=()=>Math.max(0,((player&&player.sickUntil)||0)-Date.now());
+function quaff(hud){
+  const left=sickLeft();
+  if(left>0&&hud){toast(`Potion sickness: ${fmtLeft(left)} to go. Your belt won't pour another until it passes.`,"bad");return false;}
+  if(left>0){poisonTick();const n=((player.poison&&player.poison.n)||0)+1;player.poison={n,at:(player.poison&&player.poison.at)||Date.now()};bump("poisoned");
+    pushEvent(`Drank a potion during potion sickness: poisoned ×${n}`,true);
+    setTimeout(()=>toastH(`<span class="big">Poisoned ×${n}</span> Your stomach turns itself inside out. You'll lose ${POISON_DMG*n} HP every 15 minutes until you drink a Poison Antidote. Healing won't cure it.`,"bad"),600);}
+  player.sickUntil=Date.now()+sickMins()*6e4;return true;}
+/* Poison bites in 15-minute ticks, counted from when it took hold (so time away counts too). */
+function poisonTick(){const ps=player&&player.poison;if(!ps)return 0;const n=Math.floor((Date.now()-ps.at)/POISON_TICK);if(n<1)return 0;
+  ps.at+=n*POISON_TICK;const d=Math.min(Math.max(0,player.hp-1),n*POISON_DMG*ps.n);player.hp-=d;if(d)pushEvent(`Poison: −${d} HP`,true);return d;}
+function drinkMana(o){const hud=o===true;
+  if(bagN("mana")<1)return;if(!(player.spells||[]).length){toast("You don't know any spells yet, so there's nothing for mana to fuel.");return;}
+  if((player.mp||0)>=MP_MAX){toast("Your mana is already full.");return;}
+  if(!quaff(hud))return;addBag("mana",-1);const g=Math.min(MANA_POT,MP_MAX-(player.mp||0));player.mp=(player.mp||0)+g;bump("manaPots");
+  if(!clip("potion-drink",.9))SFX.play("pop");store.savePlayer(player).catch(writeFailed);render();toast(`Glug. +${g} mana.`);}
+function drinkAntidote(){if(bagN("antidote")<1)return;if(!player.poison){toast("You're not poisoned.");return;}
+  poisonTick();addBag("antidote",-1);player.poison=null;bump("antidotes");pushEvent("Drank a Poison Antidote");if(!clip("potion-drink",.9))SFX.play("pop");
+  store.savePlayer(player).catch(writeFailed);render();toast("The antidote burns all the way down. Then the poison's gone.");}
+setInterval(()=>{try{if(!playerExists||!player||!(sickLeft()>0||player.poison||player.sickUntil))return;
+  const d=poisonTick();if(d){store.savePlayer(player).catch(writeFailed);render();}else{if(player.sickUntil&&sickLeft()<=0)player.sickUntil=0;ui.hbHtml=null;renderHotbar();try{renderSheet();}catch(e){}}}catch(e){}},30000);
 /* ---------- Consumables ---------- */
-function drinkFocus(){
-  if(bagN("focus")<1||player.focused)return;
+function drinkFocus(o){
+  if(bagN("focus")<1||player.focused)return;if(!quaff(o===true))return;
   addBag("focus",-1);player.focused=true;bump("focusDrunk");pushEvent("Drank a Potion of Focus");say("focus",{});
   store.savePlayer(player).catch(writeFailed);render();toast("Focused. Your next finished quest earns double XP.");
 }
@@ -5368,7 +5405,7 @@ function bagHtml(){
   if(player.focused)rows.push(`<div class="bagrow focused"><span class="mini-ico">${lootIconSVG("focus")}</span><div class="what"><b>Focused</b><span>Your next finished quest earns double XP</span></div></div>`);
   if((player.potions||0)>0)rows.push(`<div class="bagrow"><span class="mini-ico">${lootIconSVG("potion")}</span><div class="what"><b>${player.potions}× Healing potion</b><span>Restores ${POTION.heal} HP</span></div><button class="btn sm" type="button" data-bagdrink ${player.hp>=maxHp(player)?"disabled":""}>Drink</button></div>`);
   for(const k of Object.keys(CONSUMABLES)){const n=bagN(k);if(!n)continue;const c=CONSUMABLES[k];
-    rows.push(`<div class="bagrow"><span class="mini-ico">${lootIconSVG(k)}</span><div class="what"><b>${n}× ${esc(c.n)}</b><span>${esc(c.d)}</span></div>${k==="focus"?`<button class="btn sm" type="button" data-usefocus ${player.focused?"disabled":""}>Drink</button>`:`<span class="baghint">Use from a quest's ⋯ menu</span>`}</div>`);}
+    rows.push(`<div class="bagrow"><span class="mini-ico">${lootIconSVG(k)}</span><div class="what"><b>${n}× ${esc(c.n)}</b><span>${esc(c.d)}</span></div>${k==="focus"?`<button class="btn sm" type="button" data-usefocus ${player.focused?"disabled":""}>Drink</button>`:k==="mana"?`<button class="btn sm" type="button" data-usemana ${(player.mp||0)>=MP_MAX||!(player.spells||[]).length?"disabled":""}>Drink</button>`:k==="antidote"?`<button class="btn sm" type="button" data-useanti ${player.poison?"":"disabled"}>Drink</button>`:`<span class="baghint">Use from a quest's ⋯ menu</span>`}</div>`);}
   return rows.length?`<div class="label" style="margin-top:4px">Bag</div><div class="bag">${rows.join("")}</div>`:"";
 }
 
@@ -6397,6 +6434,7 @@ function mobBite(p,floor){if(petFx(p).ability==="gargoyle")return 0;return (p.mo
 function afterLoad(){
   if(loadedP&&loadedT&&!ticked&&playerExists){
     ticked=true;const c=ensureBoss();dailyTick(c);
+    if(poisonTick()){store.savePlayer(player).catch(writeFailed);render();}
     const h=new Date().getHours();
     if(ui.pendingSay){say(...ui.pendingSay);ui.pendingSay=null;}
     else if(h>=18&&player.lastDoneDate!==today()&&tasks.some(t=>!t.done))say("idle",{time:new Date().toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})});
@@ -6962,7 +7000,7 @@ function equip(slot,id){
   store.savePlayer(player).catch(writeFailed);render();
 }
 function buyPotion(){if(player.gold<priceOf(POTION.price))return;SFX.play("coin");player.gold-=priceOf(POTION.price);player.potions++;store.savePlayer(player).catch(writeFailed);render();}
-function drink(){if(player.potions<1||player.hp>=maxHp(player))return;if(!clip("potion-drink",.9))SFX.play("pop");player.potions--;player.hp=Math.min(maxHp(player),player.hp+healAmt(player));bump("potions");store.savePlayer(player).catch(writeFailed);render();checkAch();}
+function drink(o){if(player.potions<1||player.hp>=maxHp(player))return;if(!quaff(o===true))return;if(!clip("potion-drink",.9))SFX.play("pop");player.potions--;player.hp=Math.min(maxHp(player),player.hp+healAmt(player));bump("potions");store.savePlayer(player).catch(writeFailed);render();checkAch();}
 function rename(n){n=n.trim().slice(0,40);if(n&&n!==player.name){player.name=n;store.savePlayer(player).catch(writeFailed);}ui.editingName=false;render();}
 function loadExamples(){
   const td=today();ui.quiet=true;setTimeout(()=>{ui.quiet=false;},0);
@@ -8527,6 +8565,8 @@ function lootIconSVG(id,raw){
     case "focus":s+=`<rect x="44" y="12" width="12" height="9" rx="2" fill="${BONE}"/>`+P("M45 21 L55 21 L55 30 Q80 38 80 62 Q80 88 50 88 Q20 88 20 62 Q20 38 45 30 Z",BONE)+P("M23 58 Q50 50 77 58 Q78 86 50 86 Q22 86 23 58 Z",RAYC)+P("M50 56 L54 66 L64 67 L56 73 L59 83 L50 77 L41 83 L44 73 L36 67 L46 66 Z",BONE)+`<ellipse cx="34" cy="48" rx="4" ry="7" fill="${BONE}" stroke="none" opacity=".7"/>`;break;
     case "scroll":s+=P("M24 26 L76 26 L76 74 L24 74 Z",BONE)+O("M24 26 L34 26 L34 74 L24 74 Z",HA)+`<ellipse cx="24" cy="50" rx="8" ry="26" fill="${BONE}"/><ellipse cx="76" cy="50" rx="8" ry="26" fill="${BONE}"/>`+L("M40 38 L68 38 M40 46 L66 46 M40 54 L62 54",2)+`<circle cx="58" cy="66" r="8" fill="${RED}"/>`+L("M54 66 L62 66 M58 62 L58 70",1.6,BONE);break;
     case "smoke":s+=`<circle cx="46" cy="60" r="26" fill="${INK}"/>`+O("M30 52 Q34 40 46 38",HB)+`<rect x="40" y="28" width="14" height="10" rx="2" fill="${BONE}"/>`+L("M52 30 Q62 18 72 22",2.4)+P("M72 14 L75 21 L82 22 L76 26 L78 33 L72 29 L66 33 L68 26 L62 22 L69 21 Z",RED)+`<ellipse cx="36" cy="54" rx="5" ry="8" fill="${BONE}" stroke="none" opacity=".5"/>`+P("M70 74 Q78 66 86 72 Q94 70 92 80 Q90 88 80 86 Q72 90 70 84 Q62 82 70 74 Z",BONE);break;
+    case "mana":s+=`<rect x="42" y="12" width="16" height="10" rx="2" fill="#c98a3c"/>`+P("M44 22 L56 22 L56 36 Q78 44 78 64 Q78 88 50 88 Q22 88 22 64 Q22 44 44 36 Z",BONE)+P("M25 58 Q50 52 75 58 Q76 86 50 86 Q24 86 25 58 Z","#2f78d0")+P("M28 62 Q50 57 72 62 Q66 70 50 70 Q34 70 28 62 Z","#3fe0ff")+`<path d="M50 64 l2.4 5.6 6 .6 -4.6 4 1.4 6 -5.2 -3.2 -5.2 3.2 1.4 -6 -4.6 -4 6 -.6 Z" fill="#e6fbff" stroke="none"/><ellipse cx="34" cy="48" rx="4" ry="7" fill="${BONE}" stroke="none" opacity=".7"/>`;break;
+    case "antidote":s+=`<rect x="44" y="10" width="12" height="12" rx="2" fill="#7a4a26"/>`+P("M44 22 L56 22 L56 34 L64 40 L64 84 Q64 90 58 90 L42 90 Q36 90 36 84 L36 40 L44 34 Z",BONE)+P("M38 56 L62 56 L62 84 Q62 88 58 88 L42 88 Q38 88 38 84 Z","#5fd06a")+P("M45 62 L55 62 L55 68 L61 68 L61 76 L55 76 L55 82 L45 82 L45 76 L39 76 L39 68 L45 68 Z",BONE)+`<path d="M34 30 Q24 26 22 16 Q32 18 36 28 Z" fill="#5fd06a"/>`;break;
     case "potion":s+=`<rect x="42" y="14" width="16" height="10" rx="2" fill="${BONE}"/>`+P("M44 24 L56 24 L56 38 Q76 46 76 64 Q76 88 50 88 Q24 88 24 64 Q24 46 44 38 Z",BONE)+P("M27 60 Q50 54 73 60 Q74 86 50 86 Q26 86 27 60 Z",RED)+`<ellipse cx="38" cy="66" rx="4" ry="7" fill="${BONE}" stroke="none" opacity=".7"/>`;break;
     default:{ // gold hoard
       const c=(x,y)=>`<ellipse cx="${x}" cy="${y}" rx="11" ry="5" fill="${BONE}"/>`+L(`M${x-11} ${y} L${x-11} ${y+4} Q${x} ${y+9} ${x+11} ${y+4} L${x+11} ${y}`,1.8);
@@ -8973,7 +9013,10 @@ function invTipHtml(cell,pinned){
     let act="";
     if(pinned&&isP)act=`<button class="btn gold sm" type="button" data-tipdrink ${p.hp>=maxHp(p)?"disabled":""}>${p.hp>=maxHp(p)?"Already at full HP":"Drink"}</button>`;
     else if(pinned&&k==="focus")act=`<button class="btn gold sm" type="button" data-tipfocus ${p.focused?"disabled":""}>${p.focused?"Already focused":"Drink"}</button>`;
+    else if(pinned&&k==="mana"){const kn=(p.spells||[]).length,full=(p.mp||0)>=MP_MAX;act=`<button class="btn gold sm" type="button" data-tipmana ${!kn||full?"disabled":""}>${!kn?"No spells to fuel yet":full?"Mana already full":"Drink"}</button>`;}
+    else if(pinned&&k==="antidote")act=`<button class="btn gold sm" type="button" data-tipanti ${p.poison?"":"disabled"}>${p.poison?"Drink":"You're not poisoned"}</button>`;
     else if(pinned)act=`<span class="muted tline">Use it from a quest's ⋯ menu or your belt.</span>`;
+    if(pinned&&POTION_KINDS.has(k)&&sickLeft()>0)act=`<span class="tline psnwarn">🤢 Potion sickness for ${fmtLeft(sickLeft())}. Drinking this now will poison you.</span>`+act;
     if(pinned){const on=beltRow().indexOf(k);act+=on>=0?`<span class="muted tline">On your belt · slot ${on+1}</span>`:`<button class="btn sm" type="button" data-tipbelt="${k}">Put on belt</button>`;}
     return `<div class="thead"><span class="tico">${tierIcon(k,"cons")}</span><div><b>${esc(c.n)}</b><div class="tsub">Consumable · ${n} in your bag</div></div></div><div class="tline">${esc(c.d)}</div>${act?`<div class="tacts">${act}</div>`:""}`;}
   const it=ITEMS.find(x=>x.id===cell.dataset.inv);if(!it)return "";
@@ -9002,6 +9045,8 @@ function showInvTip(cell,pinned){
   tip.querySelectorAll("[data-tipdrink]").forEach(b=>b.onclick=e=>{e.stopPropagation();drink();});
   tip.querySelectorAll("[data-tipbelt]").forEach(b=>b.onclick=e=>{e.stopPropagation();beltAdd(b.dataset.tipbelt);});
   tip.querySelectorAll("[data-tipfocus]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;drinkFocus();});
+  tip.querySelectorAll("[data-tipmana]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;drinkMana();});
+  tip.querySelectorAll("[data-tipanti]").forEach(b=>b.onclick=e=>{e.stopPropagation();ui.invPin=null;drinkAntidote();});
 }
 function hideInvTip(){const tip=$("invTip");if(tip&&!ui.invPin){tip.hidden=true;}}
 function wireInv(el){
@@ -9036,7 +9081,7 @@ function renderBoxes(){
   const eggs=(player.eggs||[]).map(e=>`<div class="boxrow"><div class="bico">${petSVG("egg")}</div><div class="what"><b>Mystery Egg</b><span>Something inside is already judging you</span></div><button class="btn gold" type="button" data-hatch="${e.id}">Hatch</button></div>`).join("");
   const wireEggs=()=>el.querySelectorAll("[data-hatch]").forEach(b=>b.onclick=()=>hatchEgg(b.dataset.hatch));
   const bag="";
-  const wireBag=()=>{el.querySelectorAll("[data-usefocus]").forEach(b=>b.onclick=drinkFocus);el.querySelectorAll("[data-bagdrink]").forEach(b=>b.onclick=drink);};
+  const wireBag=()=>{el.querySelectorAll("[data-usefocus]").forEach(b=>b.onclick=drinkFocus);el.querySelectorAll("[data-usemana]").forEach(b=>b.onclick=drinkMana);el.querySelectorAll("[data-useanti]").forEach(b=>b.onclick=drinkAntidote);el.querySelectorAll("[data-bagdrink]").forEach(b=>b.onclick=drink);};
   if(!bx.length&&eggs){el.innerHTML=`<div class="boxes">${bag}${eggs}${coll}</div>`;wireEggs();wireBag();return;}
   if(!bx.length){
     el.innerHTML=`<div class="boxes">${bag}<div class="muted" style="font-size:14px">No loot boxes. You earn them from achievements, level-ups and floor bosses, or buy one in the shop, you impatient gremlin. This is where you open them: the dungeon's rules, not ours.</div>${coll}</div>`;wireBag();return;
@@ -9090,7 +9135,9 @@ function renderSheet(){
     </div>
     <div class="barrow">
       <div class="top"><span class="label">Health</span><span class="num">${p.hp} / ${maxHp(player)}</span></div>
-      <div class="bar hp" role="progressbar" aria-label="Health" aria-valuemin="0" aria-valuemax="${maxHp(p)}" aria-valuenow="${p.hp}"><b style="width:${Math.max(0,p.hp/maxHp(p)*100).toFixed(1)}%"></b></div>
+      <div class="bar hp${p.poison?" psn":""}" role="progressbar" aria-label="Health" aria-valuemin="0" aria-valuemax="${maxHp(p)}" aria-valuenow="${p.hp}"><b style="width:${Math.max(0,p.hp/maxHp(p)*100).toFixed(1)}%"></b></div>
+      ${p.poison?`<div class="stline psn">☠ <b>Poisoned ×${p.poison.n}</b> · −${POISON_DMG*p.poison.n} HP every 15 min until you drink a Poison Antidote</div>`:""}
+      ${sickLeft()>0?`<div class="stline sick">🤢 <b>Potion sickness</b> · ${fmtLeft(sickLeft())} left · drinking another potion now will poison you</div>`:""}
     </div>
     ${(p.spells||[]).length?`<div class="barrow"><div class="top"><span class="label">Mana</span><span class="num">${p.mp||0} / ${MP_MAX}</span></div><div class="bar mp" role="progressbar" aria-label="Mana" aria-valuemin="0" aria-valuemax="${MP_MAX}" aria-valuenow="${p.mp||0}"><b style="width:${((p.mp||0)/MP_MAX*100).toFixed(1)}%"></b></div></div>`:""}
     <div class="tiles">
@@ -9863,6 +9910,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.5.0",d:"2026-10-08",t:"Potion sickness",items:["New: the Mana Potion (+40 mana, 150 gold) and the Poison Antidote (60 gold), both in the Safe room shop, in loot boxes and on your belt.",
+    "Potion sickness: drinking a healing, mana or Focus potion starts a cooldown of 30 minutes, 3 minutes shorter for each Constitution level above 1 (never under 10). Your belt shows the countdown and won't pour another until it passes.",
+    "Drink one anyway from your bag or another button, and you're Poisoned: 2 HP every 15 minutes per stack, until you drink a Poison Antidote. Healing won't cure it, and it never drops you below 1 HP."]},
   {v:"3.4.1",d:"2026-10-08",t:"Spell effects",items:["Every spell now has its own animation and sound when you cast it: a Firebolt slams into the boss, Chain Lightning forks across the room, a Ward of golden hexes snaps into place, Blink steps you through a portal, and so on. Tap to skip; the result appears right after."]},
   {v:"3.4.0",d:"2026-10-08",t:"Spells",items:["Spells are here. Every finished quest charges your mana (bigger quests more, Intelligence quests a bit extra, and your INT bonus helps). Tap a spell on the new spell row above your belt to cast it.",
     "Your class teaches you a spell: Firebolt, Charm, Hex, Mend, Ward, Regrowth, Clairvoyance, Blink, Haste, Time Warp or War Chant. Crawlers who already have a class know theirs now.",
