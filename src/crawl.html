@@ -1141,7 +1141,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .pt-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:10px}
 .pt-head h3{margin:0;font-size:20px}
 #ptH2{display:flex;align-items:baseline;gap:8px;min-width:0}.pt-hname{font-size:1em;color:var(--muted);font-weight:600;letter-spacing:.02em;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.pt-alerts{margin:0 0 12px}@media (max-width:560px){.pt-hunt{flex-wrap:wrap}.pt-hunt>button{flex-basis:100%}}.pt-alerts .pt-hunt:first-child{margin-top:0}
+.pt-alerts{margin:0 0 12px}.pt-alerts .pt-hunt:first-child{margin-top:0}
 .pt-sec{border:1px solid var(--line-2);border-radius:12px;margin-top:10px;background:var(--panel-2)}
 .pt-sech{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;min-height:44px}
 .pt-sech:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;border-radius:12px}
@@ -1416,9 +1416,13 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .rvalert .mobhp{display:flex;align-items:center;gap:8px}.rvalert .mobhp .bar{flex:1}
 .rvalert .mobhp .bar>b,.pt-hunt .mobhp .bar>b{background:#e8283c}
 .rv-acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:2px}.rv-shr{font-size:11px}
-.pt-hunt{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:14px;padding:10px 12px;border:2px solid #ff7a1f;border-radius:10px;background:rgba(255,122,31,.08)}
+.pt-hunt{container-type:inline-size;margin-top:14px;padding:10px 12px;border:2px solid #ff7a1f;border-radius:10px;background:rgba(255,122,31,.08)}
 .pt-hunt.psy{border-color:#e8283c;background:rgba(232,40,60,.1)}
-.pt-hunt>div{flex:1;min-width:0}.pt-hunt>.pt-hunt-av{flex:none;width:56px;height:78px;border-radius:6px;overflow:hidden;border:2px solid #000;background:#000}.pt-hunt-av svg{width:100%;height:100%;display:block}.pt-hunt .mobhp{display:flex;align-items:center;gap:8px;margin:4px 0}.pt-hunt .mobhp .bar{flex:1}
+.pt-hunt-in{display:grid;grid-template-columns:56px minmax(0,1fr);column-gap:12px;row-gap:10px;align-items:start}
+.pt-hunt-in>div{min-width:0}.pt-hunt-in>button{grid-column:2;justify-self:start}
+.pt-hunt-in .label{line-height:1.3}.pt-hunt-in>div>.muted{line-height:1.4}
+@container (min-width:520px){.pt-hunt-in{grid-template-columns:56px minmax(0,1fr) auto;align-items:center}.pt-hunt-in>button{grid-column:3;grid-row:1}}
+.pt-hunt-in>.pt-hunt-av{width:56px;height:78px;border-radius:6px;overflow:hidden;border:2px solid #000;background:#000}.pt-hunt-av svg{width:100%;height:100%;display:block}.pt-hunt .mobhp{display:flex;align-items:center;gap:8px;margin:4px 0}.pt-hunt .mobhp .bar{flex:1}
 .mobalert{position:relative;border:3px solid #e8283c;border-radius:12px;overflow:hidden;background:#120a0a;box-shadow:0 0 0 2px #000,0 0 18px rgba(232,40,60,.55);animation:mobpulse 2.2s ease-in-out infinite}
 .mobalert.k-ooze{border-color:#8adf3a;box-shadow:0 0 0 2px #000,0 0 18px rgba(138,223,58,.5)}
 .mobalert.k-goblin{border-color:#ffb21f;box-shadow:0 0 0 2px #000,0 0 18px rgba(255,178,31,.5)}
@@ -4132,11 +4136,11 @@ function rivalCrewHTML(){
   const hunted=huntedMates();
   if(!hunted.length)return "";
   return hunted.map(([u,c])=>{const on=player.helping&&player.helping.to===u&&player.helping.rid===c.rvl.id;
-    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div class="pt-hunt-av zoomable" data-zhunt="${esc(u)}" role="button" tabindex="0" aria-label="${esc(c.rvl.n)} up close">${rvAvatar({n:c.rvl.n})}</div><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
+    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div class="pt-hunt-in"><div class="pt-hunt-av zoomable" data-zhunt="${esc(u)}" role="button" tabindex="0" aria-label="${esc(c.rvl.n)} up close">${rvAvatar({n:c.rvl.n})}</div><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
       <b>${esc(c.rvl.n)}</b> is hunting <b>${esc(c.name||"your crewmate")}</b>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(c.rvl.hp/c.rvl.max*100)}%"></b></div><span class="num">${c.rvl.hp}/${c.rvl.max}</span></div>
       <div class="muted" style="font-size:12px">${on?"Each quest you finish hits them for half your damage. You can't land the final blow: that's theirs.":"Help, and each quest you finish also hits this rival for half your damage."}</div></div>
-      <button type="button" class="btn sm ${on?"":"gold"}" data-rvhelp="${esc(u)}" aria-pressed="${on}">${on?"Helping ✓":"Help"}</button></div>`;}).join("");
+      <button type="button" class="btn sm ${on?"":"gold"}" data-rvhelp="${esc(u)}" aria-pressed="${on}">${on?"Helping ✓":"Help"}</button></div></div>`;}).join("");
 }
 /* ---------- Personal Quarters ----------
    A private room behind a portal in the Safe Room, sold by Mortimer Plinth, Dungeon Realtor, for 1,500 gold
