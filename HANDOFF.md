@@ -80,3 +80,5 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 ## Pokes (v3.7.1)
 - `pokeHit(lead)` runs on every poke: 1 damage, at most `POKE_MAX` (5) per mob (`mb.pk`), never below 1 HP, and a `POKE_NIP` (10%) chance of −1 HP to you. Family reactions: noPhys (ghost) is untouchable, miss (stalker) can dodge, flee+box (loot goblin) bolts and is removed, split (bunny) splits. The result shows in the close-up as `.poke-res` (passed via `ui.pokeNote`); a goblin that bolts shows a toast instead.
 - Aim step: picking a target (or the only target) opens `spellAim(id,target,T)`, a preview of exactly what lands (mobs in order with before → after HP, rival/boss caps, fog-hidden HP) with Cast / Back / Cancel. Mana is spent only on Cast.
+
+- Rival spell limit (updated): `RV_SPELL_CASTS` (2) spell hits per rival per day, each up to `RV_SPELL_CAP` (25%) of max HP (`rvHitCap`, `rvCastsLeft`, `rvSpNote`; `player.rvSp` = {id,d,n,c}). Crewmates' hits count toward the same 2: their card `asp[rid]` carries {n,c}, the owner's card publishes `rvl.spc` (hits left), and `mateSpellRoom` also counts the caster's own sends today (`asSpDay.c`).

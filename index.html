@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=7f5b6d9d05"></script>
-<script>window.CRAWL_BUILD="7f5b6d9d05";</script>
+<script src="firebase-config.js?v=52b14b844e"></script>
+<script>window.CRAWL_BUILD="52b14b844e";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -4063,7 +4063,7 @@ function rivalDown(out,t){
     if(r==="new"&&["epic","legendary"].includes(it.rar))partyPost("loot",`took a ${RARITY[it.rar].n} ${it.n} off ${rv.n}`);}
   if((rv.boxes||[]).length){rv.boxes.forEach(b=>giveBox(b.tier,`Taken back from ${rv.n}`));extra.push(`you took back ${rv.boxes.length>1?rv.boxes.length+" stolen loot boxes":"your stolen "+BOXES[rv.boxes[0].tier].n}`);if(!rv.item)giveBox("silver",`Revenge on ${rv.n}`),extra.push("plus a Silver Box for the rematch");}
   if(kill)giveBox("gold",`Put down ${rv.n} for good`);
-  const helpers=[...new Set(Object.keys(rv.as||{}).filter(u=>rv.as[u]>0).concat(Object.keys(rv.asp||{}).filter(u=>rv.asp[u]>0)))];
+  const helpers=[...new Set(Object.keys(rv.as||{}).filter(u=>rv.as[u]>0).concat(Object.keys(rv.asp||{}).filter(u=>{const x=rv.asp[u];return typeof x==="number"?x>0:!!(x&&x.n>0);})))];
   if(helpers.length)player.rvDone={id:rv.id,n:rv.n,by:helpers,at:Date.now()};
   const names=helpers.map(u=>memberName(u));
   partyPost("rival",`${kill?"killed":"knocked out"} ${rv.n}, the ${rv.c}${names.length?` with help from ${names.join(" and ")}`:""}`);
@@ -4122,9 +4122,11 @@ function rivalCrew(){
     // Crewmates' attack spells: share this rival's daily spell cap with yours, and never land the final blow.
     rv.asp=rv.asp||{};
     for(const [uid,c] of Object.entries(party.cards)){const a=uid!==me&&c&&c.asp&&c.asp[rv.id];if(!a||a.to!==me)continue;
-      const fresh=(a.n||0)-(rv.asp[uid]||0);if(fresh<=0)continue;rv.asp[uid]=a.n;ch=true;
-      const d=Math.min(fresh,rvSpellRoom(rv),rv.hp-1);if(d<=0)continue;rv.hp-=d;const td=today();
-      player.rvSp={id:rv.id,d:td,n:(player.rvSp&&player.rvSp.id===rv.id&&player.rvSp.d===td?player.rvSp.n:0)+d};
+      let seen=rv.asp[uid];if(typeof seen==="number")seen={n:seen,c:0};seen=seen||{n:0,c:0};
+      const fn=(a.n||0)-seen.n,fc=a.c!=null?a.c-seen.c:(fn>0?1:0);if(fn<=0&&fc<=0)continue;
+      rv.asp[uid]={n:Math.max(seen.n,a.n||0),c:a.c!=null?a.c:seen.c+fc};ch=true;
+      const casts=Math.min(Math.max(1,fc),rvCastsLeft(rv));if(!casts||fn<=0)continue;
+      const d=Math.min(fn,rvHitCap(rv)*casts,rv.hp-1);if(d<=0)continue;rv.hp-=d;rvSpNote(rv,d,casts);
       setTimeout(()=>toast(`<b>${esc(c.name||"A crewmate")}</b> cast a spell at ${esc(rv.n)} for ${d}${rv.hp<=1?". They're hanging on by a thread: finish them!":` (${rv.hp}/${rv.max} HP left)`}.`,"quest"),300);}}
   // Thank-you for helping take one down
   for(const [uid,c] of Object.entries(party.cards)){if(uid===me||!c||!c.rvDone||!(c.rvDone.by||[]).includes(me))continue;
@@ -4157,7 +4159,7 @@ function renderRivalAlert(){
   if(!rv){if(el.innerHTML)el.innerHTML="";el.hidden=true;return;}
   const it=rv.item&&itemOf(rv.item),bribe=rvBribe(),odds=Math.round(rvRunOdds()*100),ran=rv.ran===today();
   const key=JSON.stringify([rv.id,rv.hp,ran,player.gold>=bribe,odds,rv.nights]);if(el.dataset.k===key&&!el.hidden)return;el.dataset.k=key;el.hidden=false;
-  const helpers=[...new Set(Object.keys(rv.as||{}).filter(u=>rv.as[u]>0).concat(Object.keys(rv.asp||{}).filter(u=>rv.asp[u]>0)))].map(u=>esc(memberName(u)));
+  const helpers=[...new Set(Object.keys(rv.as||{}).filter(u=>rv.as[u]>0).concat(Object.keys(rv.asp||{}).filter(u=>{const x=rv.asp[u];return typeof x==="number"?x>0:!!(x&&x.n>0);})))].map(u=>esc(memberName(u)));
   el.innerHTML=`<div class="rvalert${rv.psy?" psy":""}" role="status" aria-live="polite">
     <div class="rv-av zoomable" id="rvAv" role="button" tabindex="0" aria-label="${esc(rv.n)} up close">${rvAvatar(rv)}</div>
     <div class="rv-body"><div class="ma-k">${rv.psy?"☠ Psycho crawler":"⚔ Rival crawler"}${rv.rematch?" · Rematch":""}</div>
@@ -5484,19 +5486,25 @@ function castSpell(id,ok){
   }}
 /* Attack spells pick a target: the mob on you, your rival crawler, or the boss. With one option they just fire;
    with more, a small picker opens (mana is only spent once you choose). Spells can finish mobs and rivals, but a
-   rival takes at most a quarter of its max HP from spells per day (player.rvSp), and the boss keeps its own cap. */
+   rival takes at most RV_SPELL_CASTS spell hits a day, each up to a quarter of its max HP (player.rvSp), and the boss keeps its own cap. */
 const spellDmg=id=>Math.max(1,Math.round(mobScale().xp*(id==="chain"?1.5:1)*(1+(statFx(player).xp||0))));
-const RV_SPELL_CAP=.25;
-function rvSpellRoom(rv){const td=today(),u=player.rvSp&&player.rvSp.id===rv.id&&player.rvSp.d===td?player.rvSp.n:0;return Math.max(0,Math.max(1,Math.round(rv.max*RV_SPELL_CAP))-u);}
+/* A rival takes at most RV_SPELL_CASTS spell hits a day, each capped at RV_SPELL_CAP of its max HP.
+   player.rvSp = {id, d, n: damage, c: hits} for the rival on you; crewmates' hits count toward the same total. */
+const RV_SPELL_CAP=.25,RV_SPELL_CASTS=2;
+const rvHitCap=rv=>Math.max(1,Math.round(rv.max*RV_SPELL_CAP));
+function rvSpUsed(rv){const td=today(),u=player.rvSp;return u&&u.id===rv.id&&u.d===td?{n:u.n||0,c:u.c!=null?u.c:(u.n>=rvHitCap(rv)?1:0)}:{n:0,c:0};}
+const rvCastsLeft=rv=>Math.max(0,RV_SPELL_CASTS-rvSpUsed(rv).c);
+function rvSpellRoom(rv){return rvCastsLeft(rv)>0?rvHitCap(rv):0;}
+function rvSpNote(rv,d,casts){const u=rvSpUsed(rv);player.rvSp={id:rv.id,d:today(),n:u.n+d,c:u.c+(casts||1)};}
 function spellTargets(id){const T=[],dmg=spellDmg(id),ms=player.mobs||[];
   if(ms.length){const lead=ms[0];T.push({k:"mob",label:`${lead.n}${ms.length>1?` (+${ms.length-1} more)`:""}`,note:`about ${dmg} damage, through the mobs in order`});}
   const rv=player.rival;
-  if(rv){const room=rvSpellRoom(rv);T.push(room>0?{k:"rival",label:`${rv.n}, rival crawler`,note:`up to ${Math.min(dmg,room,rv.hp)} damage`}:{k:"rival",err:`You can't hit ${rv.n} with spells again today: they've taken all the spell damage they will. Quests still hit them, and spells work on them again tomorrow.`});}
+  if(rv){const room=rvSpellRoom(rv);T.push(room>0?{k:"rival",label:`${rv.n}, rival crawler`,note:`up to ${Math.min(dmg,room,rv.hp)} damage · spell hit ${RV_SPELL_CASTS-rvCastsLeft(rv)+1} of ${RV_SPELL_CASTS} today`}:{k:"rival",err:`You can't hit ${rv.n} with spells again today: that's ${RV_SPELL_CASTS} spell hits already. Quests still hit them, and spells work on them again tomorrow.`});}
   // rivals hunting your crewmates
   try{for(const [u,c] of huntedMates()){const R=c.rvl,who=c.name||"your crewmate",first=String(who).split(/[\s#]/)[0]||"Crewmate";
     const room=mateSpellRoom(R);
     T.push(R.hp<=1?{k:"mate:"+u,err:`${R.n} is hanging on by a thread. Only ${who} can finish them.`}
-      :room<=0?{k:"mate:"+u,err:`You can't hit ${R.n} (hunting ${who}) with spells again today: they've taken all the spell damage they will. Spells work on them again tomorrow.`}
+      :room<=0?{k:"mate:"+u,err:`You can't hit ${R.n} (hunting ${who}) with spells again today: they've taken ${RV_SPELL_CASTS} spell hits already. Spells work on them again tomorrow.`}
       :{k:"mate:"+u,label:`${R.n}, hunting ${who}`,btn:`${first}'s rival`,note:`up to ${Math.min(dmg,room)} damage (only ${who} can land the final blow)`});}}catch(e){}
   const b=spellBossHit(id==="chain"?1.5:1,true);
   T.push(b.err?{k:"boss",err:b.err}:{k:"boss",label:b.hunt?"The boss (into your Charge)":`${player.boss.name||"The boss"}`,note:`${b.dmg} damage`});
@@ -5514,9 +5522,10 @@ function spellAim(id,x,T){const S=SPELLS[id],dmg=spellDmg(id),many=T.filter(t=>!
     if(pool>0&&lines.length)lines.push(`<span class="muted">${pool} damage left over is wasted.</span>`);}
   else if(x.k==="rival"){const rv=player.rival,d=Math.min(dmg,rvSpellRoom(rv),rv.hp);
     lines.push(rv.hp-d<=0?`<b>${esc(rv.n)}</b>: ${rv.hp} HP → <b>knocked out</b>`:hpTo(rv.n,rv.hp,rv.hp-d,rv.max));
-    if(d<dmg&&rv.hp-d>0)lines.push(`<span class="muted">Only ${d} of your ${dmg} lands: that's all the spell damage ${esc(rv.n)} will take today.</span>`);}
+    if(d<dmg&&rv.hp-d>0)lines.push(`<span class="muted">Only ${d} of your ${dmg} lands: one spell can take at most a quarter of their HP.</span>`);
+    lines.push(`<span class="muted">Spell hit ${RV_SPELL_CASTS-rvCastsLeft(rv)+1} of ${RV_SPELL_CASTS} on ${esc(rv.n)} today.</span>`);}
   else if(x.k.startsWith("mate:")){const c=party.cards[x.k.slice(5)],R=c.rvl,d=Math.min(dmg,mateSpellRoom(R));
-    lines.push(hpTo(R.n,R.hp,R.hp-d,R.max));lines.push(`<span class="muted">${d<dmg?`Only ${d} of your ${dmg} lands (today's spell cap, and the last HP is theirs). `:""}It reaches ${esc(c.name||"your crewmate")}'s game the next time it syncs.</span>`);}
+    lines.push(hpTo(R.n,R.hp,R.hp-d,R.max));lines.push(`<span class="muted">${d<dmg?`Only ${d} of your ${dmg} lands (one spell takes at most a quarter of their HP, and the last HP is theirs). `:""}It reaches ${esc(c.name||"your crewmate")}'s game the next time it syncs.</span>`);}
   else{const b=player.boss,r0=spellBossHit(id==="chain"?1.5:1,true);if(r0.err){toast(r0.err,"bad");return;}
     if(r0.hunt)lines.push(`<b>Your Charge</b>: +${r0.dmg}, landing when you find the boss`);
     else if(themeFx(player).fog)lines.push(`<b>${esc(b.name||"The boss")}</b>: takes ${r0.dmg} (its HP is hidden in the fog)`);
@@ -5529,8 +5538,8 @@ function castBoss(id){const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err){toast
   castDone(id,r0.hunt?`Your spell crackles into your stored Charge: +${r0.dmg}. It lands when you find the boss.`:`${id==="chain"?"Lightning arcs":"A bolt of fire slams"} into ${esc(player.boss.name||"the boss")} for <b>${r0.dmg}</b> damage.`,r0.loot&&r0.loot.kills&&r0.loot.kills.length?r0.loot:null);}
 /* What's left of a crewmate's rival's daily spell cap from where you stand: their card's shared room (sp),
    less what you've already sent today, and never the last HP. */
-function mateSpellRoom(R){const cap=Math.max(1,Math.round(R.max*RV_SPELL_CAP)),td=today(),mine=player.asSpDay&&player.asSpDay.rid===R.id&&player.asSpDay.d===td?player.asSpDay.n:0;
-  return Math.max(0,Math.min(R.sp==null?cap:R.sp,cap-mine,R.hp-1));}
+function mateSpellRoom(R){const cap=rvHitCap(R),td=today(),mine=player.asSpDay&&player.asSpDay.rid===R.id&&player.asSpDay.d===td?(player.asSpDay.c!=null?player.asSpDay.c:1):0;
+  const left=Math.min(R.spc!=null?R.spc:RV_SPELL_CASTS,RV_SPELL_CASTS-mine);return left>0?Math.max(0,Math.min(cap,R.hp-1)):0;}
 function spellStrike(id,k){const S=SPELLS[id];if((player.mp||0)<S.cost){payMana(id);return;}const dmg=spellDmg(id),verb=id==="chain"?"Lightning arcs into":"A bolt of fire slams into";
   if(k==="mob"){if(!(player.mobs||[]).length){toast("Nothing's on you anymore.","bad");return;}
     payMana(id);const lead=player.mobs[0],out=mobFight(0,null,{spell:true,raw:dmg});
@@ -5538,16 +5547,16 @@ function spellStrike(id,k){const S=SPELLS[id];if((player.mp||0)<S.cost){payMana(
   if(k.startsWith("mate:")){const u=k.slice(5),c=party&&party.cards&&party.cards[u],R=c&&c.rvl;if(!R){toast("That rival isn't hunting your crewmate anymore.","bad");return;}
     const room=mateSpellRoom(R);if(room<=0){toast(`You can't hit ${R.n} with spells again today. Spells work on them again tomorrow.`,"bad");return;}
     payMana(id);const d=Math.min(dmg,room),td=today(),who=c.name||"your crewmate";
-    player.asSp=Object.assign({},player.asSp||{});const prev=player.asSp[R.id]&&player.asSp[R.id].n||0;player.asSp[R.id]={to:u,n:prev+d};
+    player.asSp=Object.assign({},player.asSp||{});const pv=player.asSp[R.id]||{};player.asSp[R.id]={to:u,n:(pv.n||0)+d,c:(pv.c||0)+1};
     {const ks=Object.keys(player.asSp);if(ks.length>6)ks.slice(0,ks.length-6).forEach(x=>delete player.asSp[x]);}
-    player.asSpDay={rid:R.id,d:td,n:(player.asSpDay&&player.asSpDay.rid===R.id&&player.asSpDay.d===td?player.asSpDay.n:0)+d};bump("spellAssist");
+    {const o=player.asSpDay&&player.asSpDay.rid===R.id&&player.asSpDay.d===td?player.asSpDay:{n:0,c:0};player.asSpDay={rid:R.id,d:td,n:(o.n||0)+d,c:(o.c!=null?o.c:1)+1};}bump("spellAssist");
     castDone(id,`${verb} ${esc(R.n)} for <b>${d}</b>. It lands on ${esc(who)}'s game the next time it syncs; the final blow is theirs.`);partyPublish(true);return;}
   if(k==="rival"){const rv=player.rival;if(!rv){toast("Your rival is gone.","bad");return;}const room=rvSpellRoom(rv);if(room<=0){toast(`You can't hit ${rv.n} with spells again today. Quests still hit them, and spells work on them again tomorrow.`,"bad");return;}
     payMana(id);const d=Math.min(dmg,room,rv.hp),td=today();rv.hp-=d;
-    player.rvSp={id:rv.id,d:td,n:(player.rvSp&&player.rvSp.id===rv.id&&player.rvSp.d===td?player.rvSp.n:0)+d};bump("spellRival");
+    rvSpNote(rv,d);bump("spellRival");
     if(rv.hp<=0){const out=[];rivalDown(out,null);ui.rivalWin=null;castDone(id,`${verb} ${esc(rv.n)} for <b>${d}</b>. ${out.map(esc).join(" ")}`);
       setTimeout(()=>{if(!clip("boss-kill",.8))SFX.play("kill");},calmMotion()?200:1700);return;}
-    castDone(id,`${verb} ${esc(rv.n)} for <b>${d}</b> (${rv.hp}/${rv.max} HP left).${rvSpellRoom(rv)<=0?" That's all the spell damage they'll take today.":""}`);return;}
+    castDone(id,`${verb} ${esc(rv.n)} for <b>${d}</b> (${rv.hp}/${rv.max} HP left).${rvCastsLeft(rv)<=0?` That's your ${RV_SPELL_CASTS} spell hits on them for today.`:` ${rvCastsLeft(rv)} spell hit left on them today.`}`);return;}
 }
 /* Crewmates' party spells, applied on your own device (only you ever write your own save). */
 function spellCrew(){
@@ -11086,7 +11095,7 @@ function myCard(){
   const wear={};const w=wearing(player);for(const k of Object.keys(w))wear[k]=w[k]||null;
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
-    wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy,sp:rvSpellRoom(player.rival)}:null,asp:player.asSp||null,
+    wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy,sp:rvSpellRoom(player.rival),spc:rvCastsLeft(player.rival)}:null,asp:player.asSp||null,
     rvDone:player.rvDone||null,as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,ch:player.chant===today()?today():null,mm:player.mm&&Date.now()-player.mm.at<3*864e5?player.mm:null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
