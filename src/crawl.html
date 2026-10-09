@@ -1165,7 +1165,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .lairchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .mobalert.zoomable{cursor:pointer}.mobalert.poked .mobscene{animation:mpoke .45s ease-out}
 @keyframes mpoke{0%{transform:none}20%{transform:translate(-6px,2px) scale(1.04)}40%{transform:translate(5px,-2px) scale(1.06)}60%{transform:translate(-3px,1px) scale(1.03)}100%{transform:none}}
-.zoomdlg.z-mob .zoom-art{width:100%;border-radius:8px}.mobbub{margin:8px 0;font-style:italic}
+.zoomdlg.z-mob .zoom-art{width:100%;border-radius:8px}.poke-res{font-size:13.5px;font-weight:600;padding:6px 10px;border-radius:8px;background:rgba(255,210,63,.1);border:1px solid rgba(255,210,63,.35)}.mobbub{margin:8px 0;font-style:italic}
 @media (prefers-reduced-motion:reduce){.mobalert.poked .mobscene{animation:none}}
 .bstlist{display:flex;flex-direction:column;gap:8px}.bst{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;border:1px solid var(--line-2);border-radius:10px;padding:8px;background:var(--panel-2)}
 .bst-art{border-radius:6px;overflow:hidden;line-height:0;border:2px solid #000}.bst-art svg{width:100%;height:auto;display:block}.bst.unseen{opacity:.6}
@@ -3889,17 +3889,34 @@ function mobIcon(x,y,s,pack,k){
 /* Poke the mob: it snarls (its own sound), the scene flinches, then its close-up opens. */
 /* Poking a mob plays its own poke sound when it has one (sfx/poke-<kind>.mp3), else its arrival cry. */
 const MOB_POKE_SND={goblin:"poke-goblin"};
+/* A poke does a little: 1 damage, at most POKE_MAX times per mob, never the kill (a quest finishes it), and now and
+   then it nips back for 1 HP. Families react their own way: ghosts can't be touched, Mist Stalkers may dodge,
+   Loot Goblins bolt with their sack, Shed Bunnies split. Returns the line for the close-up (or a toast). */
+const POKE_MAX=5,POKE_NIP=.1;
+function pokeHit(lead){const K=mobFam(mobKind(lead));
+  if(K.noPhys)return {t:"Your finger goes right through it. It feels like sticking your hand in a fridge."};
+  if((lead.pk||0)>=POKE_MAX)return {t:"It's ignoring you now. Finish a quest if you want its attention."};
+  lead.pk=(lead.pk||0)+1;
+  if(K.flee&&K.box){player.mobs=player.mobs.filter(m=>m!==lead);bump("pokeSpook");return {t:`The ${lead.n} shrieks, clutches its sack and bolts into the dark. Gone. Maybe don't poke the ones carrying loot.`,gone:true};}
+  if(K.miss&&Math.random()<K.miss)return {t:`It melts into the fog. Your poke hits nothing.`};
+  let t=lead.hp>1?(lead.hp--,`You poke it for 1 damage.`):`It's hanging on by a thread. A quest will finish it.`;
+  if(K.split&&player.mobs.filter(m=>mobKind(m)===mobKind(lead)).length<K.split){const hp=Math.max(3,Math.ceil(lead.max*.5));
+    player.mobs.push({id:newId(),n:lead.n,k:lead.k,a:lead.a,pack:false,hp,max:hp,room:null,q:0});t+=" It sneezes and splits in two. Oops.";bump("splits");}
+  if(!K.noNip&&Math.random()<POKE_NIP&&player.hp>1){player.hp-=1;t+=" It nips your finger: −1 HP.";}
+  return {t};}
 function pokeMob(){
   const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead);
   if(!clip(MOB_POKE_SND[k]||"mob-"+k,.85))SFX.play(k==="ghost"?"wail":"hurt");
-  bump("pokes");bump("poke_"+k);store.savePlayer(player).catch(writeFailed);
+  bump("pokes");bump("poke_"+k);const res=pokeHit(lead);store.savePlayer(player).catch(writeFailed);
+  if(res.gone){render();toast(res.t,"bad");checkAch();return;}
+  ui.pokeNote=res.t;
   if(Math.random()<.3)setTimeout(()=>say("poke",{}),1400); // the announcer has opinions
   checkAch(); // plays once the close-up is closed
   const a=document.querySelector(".mobalert");if(a){a.classList.remove("poked");void a.offsetWidth;a.classList.add("poked");}
-  setTimeout(()=>zoomMob(),calmMotion()?0:380);
+  setTimeout(()=>{render();zoomMob();},calmMotion()?0:380);
 }
 function zoomMob(){
-  const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead),K=MOB_KINDS[k],floor=floorOf(),sc=mobScale();
+  const pn=ui.pokeNote;ui.pokeNote=null;const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead),K=MOB_KINDS[k],floor=floorOf(),sc=mobScale();
   const shield=petFx(player).ability==="gargoyle",nip=shield?0:mobNip(lead,floor),bite=MOB_BITE?mobBite(player,floor):0;
   const hits=Math.max(1,Math.ceil(lead.hp/Math.max(1,sc.hit))),bx=Math.round(sc.xp*(lead.pack?.3:.15)*(grinding()?GRIND_XP:1)*(K.xpMul||1));
   const kills=C(player,"mk_"+k),canDrink=player.potions>0&&player.hp<maxHp(player);
@@ -3907,7 +3924,7 @@ function zoomMob(){
     sub:`${esc(K.n)} · ${lead.pack?"Mob pack":"Mob"} · Floor ${floor}${lead.room!=null?` · from room ${lead.room+1}`:" · wandered in"}`,
     tiles:[["HP",K.hide?"???":`${lead.hp} / ${lead.max}`],["Quests to kill",K.noPhys?"Spells only":K.hide?"???":`about ${hits}`],[K.steal?"Steals":"Nips you",K.noNip?"Never":K.steal?`${nip} gold / quest`:`${nip} HP / quest`],K.fade?["Fades at","6 a.m."]:K.flee?["Runs after",`${K.flee} quest${K.flee>1?"s":""}${lead.q?` (${lead.q} so far)`:""}`]:["Overnight bite",bite?`${bite} HP`:"–"],
       ["Bounty",`~${bx} XP + ${lead.pack?"10–20":"3–8"}g${lead.stolen?` + your ${lead.stolen}g`:""}`],["Your HP",`${Math.round(player.hp)} / ${maxHp(player)}`],["You've beaten",`${kills} ${esc(K.n.toLowerCase())}`],["Loot",K.box?"Bronze Box":lead.pack?"25% Bronze Box":"Scrap, maybe"]],
-    body:`<div class="bubble mobbub">“${esc(spick(Math.random,MOB_TAUNTS[k]))}”</div>${zbar(K.hide?1:lead.hp/lead.max,"rvbar")}
+    body:`${pn?`<div class="poke-res">👉 ${esc(pn)}</div>`:""}<div class="bubble mobbub">“${esc(spick(Math.random,MOB_TAUNTS[k]))}”</div>${zbar(K.hide?1:lead.hp/lead.max,"rvbar")}
       ${ms.length>1?`<div class="label">Behind it</div><div class="muted" style="font-size:13px">${ms.slice(1).map(m=>`${esc(m.n)} (${mobHpTxt(m)})`).join(" · ")}</div>`:""}
       <div class="muted" style="font-size:12px">${esc(K.line)} ${K.noPhys?"Cast Firebolt or Chain Lightning and pick it as the target.":"Your next quest hits it first, and mob damage never comes out of your boss fight."}${shield&&!K.noNip?" Your gargoyle blocks its nips.":""}</div>`,
     acts:canDrink?[{label:`Drink a potion (+${POTION.heal} HP)`,gold:true,fn:drink}]:[]});
@@ -10218,6 +10235,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.7.1",d:"2026-10-09",t:"Pokes",items:["Poking a mob now does a little something: 1 damage per poke, up to 5 pokes per mob. Pokes never land the kill; a quest always finishes it. About 1 poke in 10 gets your finger nipped for 1 HP.",
+    "Each family reacts its own way: your finger goes right through a ghost, Mist Stalkers can dodge into the fog, Shed Bunnies split in two, and a poked Loot Goblin bolts with its sack."]},
   {v:"3.7.0",d:"2026-10-08",t:"Brains and charm",items:["Mana now refills on its own, even while you're away: 1 an hour, plus 1 for each Intelligence level. Quests still charge it too.",
     "Charisma haggles: every gold price in the game drops 1% for each Charisma level above 1, up to 20% off. That covers the shop, boxes, potions, tomes and wandering merchants, but not your real-world prizes. It stacks with floor sales.",
     "Your Hero tab shows both: Intelligence lists your refill rate, and Charisma lists your discount."]},
