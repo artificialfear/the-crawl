@@ -3544,12 +3544,12 @@ function renderBestiary(){
   const el=$("bestiary");if(!el||!playerExists)return;
   const key=Object.keys(MOB_KINDS).map(k=>[C(player,"mk_"+k),C(player,"ms_"+k),C(player,"poke_"+k)].join(".")).join("|")+(player.mobs||[]).map(m=>m.k).join("");if(el.dataset.k===key)return;el.dataset.k=key;
   const rows=Object.keys(MOB_KINDS).map(k=>{const K=MOB_KINDS[k],n=C(player,"mk_"+k),seen=n>0||C(player,"ms_"+k)>0||C(player,"mobKills")>Object.keys(MOB_KINDS).reduce((t,x)=>t+C(player,"mk_"+x),0)||(player.mobs||[]).some(m=>mobKind(m)===k);
-    if(!seen)return `<div class="bst unseen"><div class="bst-art"><svg viewBox="40 40 240 84" aria-hidden="true"><rect width="320" height="124" fill="#111"/><text x="160" y="96" text-anchor="middle" font-size="48" fill="#444" font-family="Georgia,serif">?</text></svg></div><div><b>???</b><div class="muted" style="font-size:12px">Not met yet. Keep crawling.</div></div></div>`;
+    if(!seen)return [1,`<div class="bst unseen"><div class="bst-art"><svg viewBox="40 40 240 84" aria-hidden="true"><rect width="320" height="124" fill="#111"/><text x="160" y="96" text-anchor="middle" font-size="48" fill="#444" font-family="Georgia,serif">?</text></svg></div><div><b>???</b><div class="muted" style="font-size:12px">Not met yet. ${K.th&&themeById(K.th)?`Lives on ${esc(themeById(K.th).n)} floors.`:"Keep crawling."}</div></div></div>`];
     const t=bestTitle(k,n),nx=BEST_MS.find(m=>n<m),pk=C(player,"poke_"+k);
     return `<div class="bst"><div class="bst-art">${mobScene({k,pack:false,n:K.names[0]})}</div><div class="bst-txt"><b>${esc(K.n)}</b>${t?` <span class="bst-title">${esc(t)}</span>`:""}
       <div class="muted" style="font-size:12px">${esc(K.line)}</div>
       <div class="bst-num"><b class="num">${n}</b> beaten${pk?` · poked ${pk}×`:""}</div>
-      ${nx?`<div class="bar"><b style="width:${Math.round(n/nx*100)}%"></b></div><div class="muted" style="font-size:11px">${nx-n} more for <b>${esc(BEST_TITLES[k][BEST_MS.indexOf(nx)])}</b></div>`:`<div class="muted" style="font-size:11px">Every title earned. They tell stories about you down here.</div>`}</div></div>`;}).join("");
+      ${nx?`<div class="bar"><b style="width:${Math.round(n/nx*100)}%"></b></div><div class="muted" style="font-size:11px">${nx-n} more for <b>${esc(BEST_TITLES[k][BEST_MS.indexOf(nx)])}</b></div>`:`<div class="muted" style="font-size:11px">Every title earned. They tell stories about you down here.</div>`}</div></div>`;}).map(x=>Array.isArray(x)?x:[0,x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]).join("");
   const h=`<p class="muted" style="font-size:13px;margin:0 0 8px">Every mob family you've met, how many you've beaten, and the titles you've earned off their backs.</p><div class="bstlist">${rows}</div>`;
   el.innerHTML=h;
 }
@@ -3560,12 +3560,186 @@ const MOB_TAUNTS={
   ooze:["Blorp.","Glrrk. Translation: hello, food.","We have absorbed eleven crawlers and one very confused mop.","You smell like unfinished chores. Delicious.","Don't step back. We're already on your shoe."]};
 const MOBS=[].concat(...Object.values(MOB_KINDS).map(k=>k.names));
 const MOB_PACKS=[].concat(...Object.values(MOB_KINDS).map(k=>k.packs));
+/* Theme mob families: each floor theme has its own family with a twist. On a floor with that theme, 40% of the mobs
+   you meet are from it; the rest are rats, goblins and oozes as usual. Twist keys, read by mobFight and friends:
+   noPhys (quests pass through; only spells), fade (leaves at 6 a.m., no loot), regen (heals that share of max HP per
+   quest it survives), steal (nips take gold, given back on the kill), hide (HP hidden), miss (chance a quest whiffs),
+   quick (quests of 30 min or less ×2, 90 min or more ×½), flee (bolts after that many quests), noNip, box (a kill
+   drops one), stat/offMul (that stat ×2, other stats ×offMul), nipMul, xpMul, viewMul, split (survivors split, up
+   to that many), hpMul (spawn HP). col = [scene glow, scene dark, eye glint, alert border]. */
+const BASE_MOBS=["rat","goblin","ooze"],THEME_MOB=.4;
+Object.assign(MOB_KINDS.rat,{col:["#5a1a1a","#1a0d0d","#ff2e2e","#e8283c"]});
+Object.assign(MOB_KINDS.goblin,{col:["#4a3a14","#141008","#ffd23f","#ffb21f"]});
+Object.assign(MOB_KINDS.ooze,{col:["#2c5a1a","#0f1a0c","#e8ff3a","#8adf3a"]});
+Object.assign(MOB_KINDS,{
+  ghost:{th:"haunted",n:"Ghosts",names:["Wailing Shade","Hallway Haunt","Weeping Wisp","Cold Spot Specter"],packs:["Séance Gone Wrong","Poltergeist Pair"],
+    line:"Quests pass right through them. Only Firebolt, Chain Lightning or Ward can touch one. Otherwise it haunts you until 6 a.m.",
+    noPhys:true,fade:true,xpMul:2,col:["#2c2350","#08060f","#7fd8ff","#b48cff"]},
+  leech:{th:"flooded",n:"Bog Leeches",names:["Bog Leech","Leech Clot","Bloated Bloodsucker","Drain Leech"],packs:["Leech Bed","Sump Swarm"],
+    line:"Soft, slow and patient. Each quest one survives, it drinks back a quarter of its HP. Hit it hard.",
+    regen:.25,col:["#1a4a4a","#061416","#e8ff3a","#3ac8c8"]},
+  imp:{th:"market",n:"Pickpocket Imps",names:["Pickpocket Imp","Cutpurse Imp","Haggling Imp","Sticky-Finger Sprite"],packs:["Fence Ring","Thieves' Bazaar"],
+    line:"They don't want your blood, just your gold. Kill one and you get back everything it took.",
+    steal:true,col:["#4a1a4a","#120812","#ffd23f","#c25ac8"]},
+  stalker:{th:"fog",n:"Mist Stalkers",names:["Mist Stalker","Fogbound Lurker","Grey Watcher","Murk Haunter"],packs:["The Grey Choir","Fogbank Pack"],
+    line:"You can't see how hurt they are, and some swings hit nothing but fog.",
+    hide:true,miss:.3,col:["#3a4656","#0c1016","#e6f0ff","#9aaabb"]},
+  scuttler:{th:"speed",n:"Clockwork Scuttlers",names:["Clockwork Scuttler","Brass Skitterbug","Wind-Up Biter","Stopwatch Crab"],packs:["Gearbox Swarm","Tick-Tock Brigade"],
+    line:"Quick quests hit them twice as hard, long ones half. Dawdle for 3 quests and they're gone, loot and all.",
+    quick:true,flee:3,col:["#5a3a10","#140c04","#ff4a2a","#d8a03a"]},
+  lootgob:{th:"goblins",n:"Loot Goblins",names:["Loot Goblin","Sack-Hauling Goblin","Shiny-Snatcher","Treasure Gremlin"],packs:["Goblin Heist Crew","Loot Parade"],
+    line:"They never fight back, but they run after one quest. Kill one in a single hit and its sack is yours: a Bronze Box.",
+    noNip:true,flee:1,box:"bronze",hpMul:.6,col:["#4a4a10","#121204","#ffd23f","#e8d23a"]},
+  mascot:{th:"showcase",n:"Rogue Mascots",names:["Rogue Mascot","Off-Brand Foam Head","Disgruntled Spokescritter","Promo Mascot"],packs:["Halftime Show","Brand Ambassador Squad"],
+    line:"Sponsor mascots gone feral. Charisma quests hit them twice as hard, and the cameras love a takedown: 3× viewers.",
+    stat:"CHA",viewMul:3,col:["#5a2a0a","#140a04","#ff8a1f","#ff8a1f"]},
+  pitfighter:{th:"arena",n:"Pit Fighters",names:["Pit Fighter","Sand Brawler","Net Thrower","Arena Veteran"],packs:["Gladiator Troupe","Undercard Gang"],
+    line:"They nip twice as hard and pay twice the XP. Strength quests hit them twice as hard.",
+    stat:"STR",nipMul:2,xpMul:2,col:["#5a3a1a","#160e06","#ff5a3a","#d8b04a"]},
+  shusher:{th:"library",n:"Shushers",names:["Shusher","Overdue Notice","Stack Warden","Margin Scribbler"],packs:["Quiet Committee","Card Catalog Patrol"],
+    line:"Intelligence quests hit them twice as hard. Everything else lands at half.",
+    stat:"INT",offMul:.5,col:["#3a2a1a","#0e0a06","#f4ead0","#c9a46a"]},
+  bunny:{th:"petday",n:"Shed Bunnies",names:["Shed Bunny","Dust Bunny","Fluff Clump","Fur Tumbleweed"],packs:["Fluff Warren","Shedding Season"],
+    line:"Leave one standing and it splits in two (up to 4). Kill them fast or the room fills with fluff.",
+    split:4,col:["#4a4038","#12100c","#e8a0a8","#e8dccb"]}});
+Object.assign(BEST_TITLES,{ghost:["Ghost Spotter","Spook Sweeper","Exorcist","The Lights Stay On"],leech:["Salt Shaker","Leech Lifter","Bog Drainer","Dry Land"],
+  imp:["Purse Guard","Fence Breaker","Market Sheriff","Untouchable Wallet"],stalker:["Fog Cutter","Lamplighter","Mist Breaker","Clear Skies"],
+  scuttler:["Gear Grinder","Spring Breaker","Clock Stopper","Frame Perfect"],lootgob:["Sack Snatcher","Goblin Tripper","Heist Breaker","Loot Lord"],
+  mascot:["Brand Breaker","Foam Popper","Halftime Hero","Ratings Gold"],pitfighter:["Pit Survivor","Sand Champion","Arena Darling","Undefeated"],
+  shusher:["Late Fee","Bookworm","Head Librarian","Out Loud"],bunny:["Lint Roller","Dust Buster","Fluff Sweeper","Vacuum Sealed"]});
+const mobFam=k=>MOB_KINDS[k]||MOB_KINDS.goblin;
+const mobHpTxt=mb=>mobFam(mobKind(mb)).hide?"???":`${mb.hp}/${mb.max}`;
+const mobHpPct=mb=>mobFam(mobKind(mb)).hide?100:Math.round(mb.hp/mb.max*100);
+function themeMobKind(){const th=themeOf(player);return th?Object.keys(MOB_KINDS).find(k=>MOB_KINDS[k].th===th.id)||null:null;}
+function nextDawn(){const d=new Date();if(d.getHours()>=6)d.setDate(d.getDate()+1);d.setHours(6,0,0,0);return d.getTime();}
+function mobNip(mb,floor){const K=mobFam(mobKind(mb));if(K.noNip)return 0;return Math.round((mb.pack?4+floor*2:2+floor)*(K.nipMul||1));}
+function mobHitMul(mb,t,o){const K=mobFam(mobKind(mb));if(o.spell)return 1;if(K.noPhys)return 0;if(!t)return 1;
+  if(K.stat)return t.stat===K.stat?2:(K.offMul||1);if(K.quick)return t.est&&t.est<=30?2:(t.est||0)>=90?.5:1;return 1;}
+/* Ghosts that outlast the night drift off at 6 a.m. Returns lines for a toast. */
+function mobUpkeep(){const ms=player&&player.mobs||[],out=[],now=Date.now();if(!ms.length)return out;
+  player.mobs=ms.filter(mb=>{if(mb.exp&&now>=mb.exp){out.push(`Dawn breaks. The ${mb.n} fades away with the dark.`);bump("faded");return false;}return true;});return out;}
+const hasGhost=()=>(player.mobs||[]).some(mb=>mobFam(mobKind(mb)).noPhys);
+/* The theme families' creatures: same frame as the others (about 64 wide, feet at y=0, facing you). */
+const MOB_ART={
+  ghost:(eye,K)=>`<ellipse cx="0" cy="-1" rx="20" ry="3.4" fill="#7fd8ff" opacity=".3" stroke="none"/>
+    <g opacity=".93"><path d="M-24 -32 Q-40 -28 -44 -12 Q-34 -22 -23 -21 Z M24 -32 Q40 -28 44 -12 Q34 -22 23 -21 Z" fill="#d8d0f4" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M-26 -8 Q-30 -46 -16 -66 Q0 -82 16 -66 Q30 -46 26 -8 L20 -16 L14 -6 L8 -15 L2 -5 L-4 -15 L-10 -5 L-16 -15 L-21 -6 Z" fill="#ece8ff" stroke="${K}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M-16 -62 Q-8 -72 2 -70 Q-10 -64 -12 -48 Z" fill="#fff" stroke="none" opacity=".75"/><path d="M14 -60 Q22 -40 20 -14 L14 -8 Q18 -36 10 -58 Z" fill="#b8aee0" stroke="none" opacity=".7"/></g>
+    <path d="M-13 -58 L-4 -55 M13 -58 L4 -55" stroke="${K}" stroke-width="2"/>
+    <ellipse cx="-8" cy="-49" rx="4.2" ry="6.2" fill="#1b1530" stroke="${K}" stroke-width="1.4"/><ellipse cx="8" cy="-49" rx="4.2" ry="6.2" fill="#1b1530" stroke="${K}" stroke-width="1.4"/>
+    <circle cx="-8" cy="-48" r="1.7" fill="#7fd8ff" stroke="none"/><circle cx="8" cy="-48" r="1.7" fill="#7fd8ff" stroke="none"/>
+    <ellipse cx="0" cy="-33" rx="5" ry="8" fill="#1b1530" stroke="${K}" stroke-width="1.6"/>`,
+  leech:(eye,K)=>`<ellipse cx="-6" cy="0" rx="34" ry="5" fill="#2a5a6a" opacity=".6" stroke="none"/><ellipse cx="-6" cy="0" rx="22" ry="3" fill="none" stroke="#7fc8d8" stroke-width="1.4" opacity=".7"/>
+    <path d="M-26 0 Q-30 -24 -6 -32 Q16 -40 10 -60" fill="none" stroke="${K}" stroke-width="24" stroke-linecap="round"/>
+    <path d="M-26 0 Q-30 -24 -6 -32 Q16 -40 10 -60" fill="none" stroke="#4e5a2a" stroke-width="19" stroke-linecap="round"/>
+    <path d="M-31 -4 Q-34 -26 -9 -35 Q9 -42 5 -58" fill="none" stroke="#8a9a4a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-37 -10 L-19 -12 M-30 -27 L-14 -21 M-14 -40 L-2 -26 M0 -48 L18 -42" stroke="#2e3a16" stroke-width="1.6"/>
+    <circle cx="10" cy="-62" r="12" fill="#5a6a32" stroke="${K}" stroke-width="2.6"/>
+    <circle cx="13" cy="-63" r="7" fill="#3a0e14" stroke="${K}" stroke-width="2"/><circle cx="13" cy="-63" r="4.6" fill="none" stroke="#f4f0e0" stroke-width="2" stroke-dasharray="1.5 1.3"/>
+    ${eye(1,-71,1.8,"#e8ff3a")}${eye(20,-72,1.8,"#e8ff3a")}<path d="M-3 -46 Q0 -41 -3 -37 Q-6 -41 -3 -46 Z" fill="#c0392b" stroke="none"/>`,
+  imp:(eye,K)=>`<path d="M8 -12 Q30 -10 30 -30" fill="none" stroke="${K}" stroke-width="4.4"/><path d="M8 -12 Q30 -10 30 -30" fill="none" stroke="#9a4aa0" stroke-width="2.4"/><path d="M30 -30 L37 -39 L26 -36 Z" fill="#9a4aa0" stroke="${K}" stroke-width="1.6"/>
+    <path d="M-8 0 L-6 -16 M8 0 L6 -16" stroke="${K}" stroke-width="6"/><path d="M-8 0 L-6 -16 M8 0 L6 -16" stroke="#7a3a80" stroke-width="3.4"/>
+    <ellipse cx="-10" cy="-1" rx="5" ry="2.4" fill="#5a2a5a" stroke="${K}" stroke-width="1.4"/><ellipse cx="10" cy="-1" rx="5" ry="2.4" fill="#5a2a5a" stroke="${K}" stroke-width="1.4"/>
+    <ellipse cx="0" cy="-24" rx="14" ry="12" fill="#9a4aa0" stroke="${K}" stroke-width="2.4"/><ellipse cx="0" cy="-21" rx="8" ry="7" fill="#c27ac6" stroke="none"/>
+    <path d="M-12 -28 L-20 -22 M12 -28 L22 -36" stroke="${K}" stroke-width="4.4"/><path d="M-12 -28 L-20 -22 M12 -28 L22 -36" stroke="#9a4aa0" stroke-width="2.4"/>
+    <circle cx="-21" cy="-13" r="9" fill="#c9a46a" stroke="${K}" stroke-width="2.2"/><path d="M-25 -22 L-17 -22" stroke="${K}" stroke-width="2.4"/>
+    <text x="-21" y="-9" text-anchor="middle" font-size="10" font-weight="800" fill="#7a4a1a" stroke="none">$</text>
+    <circle cx="25" cy="-39" r="5" fill="#ffd23f" stroke="${K}" stroke-width="1.6"/><path d="M23 -41 L26 -42" stroke="#fff" stroke-width="1.2"/>
+    <path d="M-12 -52 L-34 -62 L-14 -42 Z M12 -52 L34 -62 L14 -42 Z" fill="#b45ab8" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M-14 -50 L-28 -58 L-15 -45 Z M14 -50 L28 -58 L15 -45 Z" fill="#e88ae0" stroke="none"/>
+    <circle cx="0" cy="-48" r="15" fill="#b45ab8" stroke="${K}" stroke-width="2.6"/>
+    <path d="M-7 -61 L-9 -71 L-2 -62 Z M7 -61 L9 -71 L2 -62 Z" fill="#f4e0b0" stroke="${K}" stroke-width="1.6"/>
+    <path d="M-11 -57 L-2 -53 M11 -57 L2 -53" stroke="${K}" stroke-width="2.4"/>${eye(-6,-50,2.4,"#ffd23f")}${eye(6,-50,2.4,"#ffd23f")}
+    <path d="M-8 -42 Q0 -35 9 -43 Q2 -39 -8 -42 Z" fill="#1a0e10" stroke="${K}" stroke-width="1.6"/><path d="M-4 -41 L-3.4 -39 M4 -41 L4.6 -39" stroke="#fff" stroke-width="1.3"/>`,
+  stalker:(eye,K)=>`<path d="M-12 -54 Q-30 -40 -32 -16 M12 -54 Q30 -40 32 -16" fill="none" stroke="${K}" stroke-width="6"/><path d="M-12 -54 Q-30 -40 -32 -16 M12 -54 Q30 -40 32 -16" fill="none" stroke="#4a5868" stroke-width="3.4"/>
+    <path d="M-32 -16 L-38 -7 M-32 -16 L-33 -5 M-32 -16 L-27 -6 M32 -16 L38 -7 M32 -16 L33 -5 M32 -16 L27 -6" stroke="#d8dee8" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M-16 0 Q-20 -44 -11 -72 Q0 -88 11 -72 Q20 -44 16 0 Z" fill="#3a4656" stroke="${K}" stroke-width="2.6"/>
+    <path d="M-6 -50 L-8 -14 M6 -50 L8 -14 M0 -54 L0 -10" stroke="#2a3440" stroke-width="1.6"/>
+    <path d="M-9 -70 Q0 -82 9 -70 Q8 -58 0 -56 Q-8 -58 -9 -70 Z" fill="#10151c" stroke="none"/>
+    <circle cx="-4.5" cy="-66" r="5" fill="#bcd6ff" opacity=".35" stroke="none"/><circle cx="4.5" cy="-66" r="5" fill="#bcd6ff" opacity=".35" stroke="none"/>
+    <path d="M-7 -67 L-2 -65 M7 -67 L2 -65" stroke="#f0f6ff" stroke-width="2.4" stroke-linecap="round"/>
+    <g fill="#c9d2dc" stroke="none" opacity=".4"><ellipse cx="-20" cy="-4" rx="20" ry="7"/><ellipse cx="12" cy="-8" rx="24" ry="8"/><ellipse cx="0" cy="-18" rx="16" ry="6"/><ellipse cx="-30" cy="-16" rx="10" ry="5"/></g>`,
+  scuttler:(eye,K)=>`<path d="M-14 -14 L-28 -22 L-34 0 M-6 -10 L-18 -16 L-20 0 M14 -14 L28 -22 L34 0 M6 -10 L18 -16 L20 0" fill="none" stroke="${K}" stroke-width="4.4" stroke-linejoin="round"/>
+    <path d="M-14 -14 L-28 -22 L-34 0 M-6 -10 L-18 -16 L-20 0 M14 -14 L28 -22 L34 0 M6 -10 L18 -16 L20 0" fill="none" stroke="#a8782a" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M-22 -14 Q-36 -14 -34 -4 L-29 -8 Q-31 -12 -22 -10 Z M22 -14 Q36 -14 34 -4 L29 -8 Q31 -12 22 -10 Z" fill="#c9963a" stroke="${K}" stroke-width="1.6"/>
+    <ellipse cx="0" cy="-18" rx="24" ry="14" fill="#c9963a" stroke="${K}" stroke-width="2.6"/><path d="M-24 -18 Q0 -10 24 -18" fill="none" stroke="#8a6020" stroke-width="1.6"/>
+    <circle cx="-12" cy="-25" r="1.4" fill="#f4d48a" stroke="none"/><circle cx="12" cy="-25" r="1.4" fill="#f4d48a" stroke="none"/><circle cx="16" cy="-14" r="1.4" fill="#f4d48a" stroke="none"/>
+    <circle cx="4" cy="-33" r="10.5" fill="none" stroke="${K}" stroke-width="5" stroke-dasharray="3.2 2.6"/><circle cx="4" cy="-33" r="8.4" fill="#b8862e" stroke="${K}" stroke-width="1.6"/><circle cx="4" cy="-33" r="2.8" fill="#5a3a10" stroke="none"/>
+    <path d="M4 -42 L4 -50" stroke="${K}" stroke-width="3"/><path d="M-5 -56 Q-6 -50 0 -51 L8 -51 Q14 -50 13 -56 Q11 -62 4 -53 Q-3 -62 -5 -56 Z" fill="#d8b04a" stroke="${K}" stroke-width="1.6"/>
+    <circle cx="-11" cy="-15" r="6.4" fill="#5a3a10" stroke="${K}" stroke-width="2"/>${eye(-11,-15,3.6,"#ff4a2a")}`,
+  lootgob:(eye,K)=>`<path d="M-2 -18 Q-16 -64 14 -70 Q42 -66 34 -24 Q30 -8 12 -8 Q-2 -8 -2 -18 Z" fill="#9a6a3a" stroke="${K}" stroke-width="2.6"/>
+    <path d="M6 -60 Q16 -54 28 -58 M4 -30 L10 -26" fill="none" stroke="#6a4420" stroke-width="1.6"/><path d="M8 -66 Q14 -74 20 -66" fill="none" stroke="${K}" stroke-width="2.4"/>
+    <text x="17" y="-30" text-anchor="middle" font-size="17" font-weight="800" fill="#ffd23f" stroke="${K}" stroke-width=".9">$</text>
+    ${[[22,-72],[29,-77],[15,-78],[33,-70]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="4" ry="2.4" fill="#ffd23f" stroke="${K}" stroke-width="1.2"/>`).join("")}
+    <path d="M38 -82 l1 2.6 2.6 1 -2.6 1 -1 2.6 -1 -2.6 -2.6 -1 2.6 -1 Z" fill="#fff" stroke="none"/>
+    <path d="M-16 0 L-13 -14 M-4 0 L-5 -14" stroke="${K}" stroke-width="5.4"/><path d="M-16 0 L-13 -14 M-4 0 L-5 -14" stroke="#8aa83a" stroke-width="3"/>
+    <ellipse cx="-9" cy="-22" rx="11" ry="10" fill="#7a5a3a" stroke="${K}" stroke-width="2.4"/>
+    <path d="M-3 -26 L8 -38" stroke="${K}" stroke-width="4.4"/><path d="M-3 -26 L8 -38" stroke="#a6b83a" stroke-width="2.4"/>
+    <path d="M-22 -44 L-38 -50 L-23 -35 Z M-6 -46 L2 -58 L-3 -40 Z" fill="#a6b83a" stroke="${K}" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="-14" cy="-40" r="11" fill="#a6b83a" stroke="${K}" stroke-width="2.4"/>${eye(-18,-42,2.2,"#ffd23f")}${eye(-9,-42,2.2,"#ffd23f")}
+    <path d="M-20 -35 Q-14 -29 -7 -35 Q-14 -32 -20 -35 Z" fill="#1a0e10" stroke="${K}" stroke-width="1.4"/>`,
+  mascot:(eye,K)=>`<path d="M-10 0 L-9 -18 M10 0 L9 -18" stroke="${K}" stroke-width="7"/><path d="M-10 0 L-9 -18 M10 0 L9 -18" stroke="#2a2a3a" stroke-width="4.4"/>
+    <ellipse cx="-12" cy="-1" rx="7" ry="3.4" fill="#f4f0e0" stroke="${K}" stroke-width="1.6"/><ellipse cx="12" cy="-1" rx="7" ry="3.4" fill="#f4f0e0" stroke="${K}" stroke-width="1.6"/>
+    <path d="M-20 -42 L-30 -28 M20 -42 L30 -58" stroke="${K}" stroke-width="6"/><path d="M-20 -42 L-30 -28 M20 -42 L30 -58" stroke="#2a7aff" stroke-width="3.6"/>
+    <circle cx="-31" cy="-26" r="5" fill="#f4f0e0" stroke="${K}" stroke-width="1.8"/><circle cx="31" cy="-61" r="5" fill="#f4f0e0" stroke="${K}" stroke-width="1.8"/>
+    <path d="M-18 -18 L-20 -44 Q0 -50 20 -44 L18 -18 Z" fill="#2a7aff" stroke="${K}" stroke-width="2.6"/>
+    <path d="M0 -38 l2.4 5 5.4 .6 -4 3.6 1.2 5.4 -5 -2.8 -5 2.8 1.2 -5.4 -4 -3.6 5.4 -.6 Z" fill="#ffd23f" stroke="${K}" stroke-width="1"/>
+    <circle cx="0" cy="-66" r="22" fill="#ff8a1f" stroke="${K}" stroke-width="2.6"/><path d="M-14 -82 Q-4 -88 6 -86" fill="none" stroke="#ffc07a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M14 -84 L10 -77 L14 -75 L11 -70" fill="none" stroke="${K}" stroke-width="1.3"/>
+    <circle cx="-8" cy="-70" r="6.4" fill="#fff" stroke="${K}" stroke-width="2"/><circle cx="8" cy="-70" r="6.4" fill="#fff" stroke="${K}" stroke-width="2"/>
+    <circle cx="-6.4" cy="-68" r="1.8" fill="${K}"/><circle cx="10" cy="-72.4" r="1.8" fill="${K}"/>
+    <path d="M-14 -58 Q0 -46 14 -58" fill="none" stroke="${K}" stroke-width="2.4"/><path d="M-10 -56 L-11 -52 M-4 -53 L-4 -49 M4 -53 L4 -49 M10 -56 L11 -52" stroke="${K}" stroke-width="1.4"/>`,
+  pitfighter:(eye,K)=>`<path d="M-9 0 L-8 -22 M9 0 L8 -22" stroke="${K}" stroke-width="7"/><path d="M-9 0 L-8 -22 M9 0 L8 -22" stroke="#c98a5a" stroke-width="4.4"/>
+    <path d="M-11 -4 L-6 -6 M-11 -9 L-6 -11 M11 -4 L6 -6 M11 -9 L6 -11" stroke="#5a3418" stroke-width="1.6"/>
+    <path d="M14 -52 L26 -44" stroke="${K}" stroke-width="6"/><path d="M14 -52 L26 -44" stroke="#c98a5a" stroke-width="3.6"/>
+    <path d="M26 -46 L40 -74" stroke="${K}" stroke-width="5"/><path d="M26 -46 L40 -74" stroke="#d5d9e2" stroke-width="2.6"/><path d="M21 -49 L31 -42" stroke="${K}" stroke-width="3.4"/>
+    <path d="M-14 -20 L-16 -31 L16 -31 L14 -20 Z" fill="#8a2a1a" stroke="${K}" stroke-width="2"/><path d="M-8 -30 L-8 -20 M0 -30 L0 -20 M8 -30 L8 -20" stroke="#5a1a10" stroke-width="1.4"/>
+    <path d="M-16 -30 Q-20 -54 -10 -58 L10 -58 Q20 -54 16 -30 Z" fill="#c98a5a" stroke="${K}" stroke-width="2.6"/>
+    <path d="M-8 -46 Q-4 -42 0 -46 Q4 -42 8 -46" fill="none" stroke="${K}" stroke-width="1.2"/><path d="M-16 -31 L16 -31" stroke="#5a3418" stroke-width="3"/>
+    <path d="M-12 -56 L12 -36" stroke="#5a3418" stroke-width="2.6"/>
+    <circle cx="-24" cy="-38" r="13" fill="#8a2a1a" stroke="${K}" stroke-width="2.4"/><circle cx="-24" cy="-38" r="10" fill="none" stroke="#d8b04a" stroke-width="1.4"/><circle cx="-24" cy="-38" r="4" fill="#d8b04a" stroke="${K}" stroke-width="1.2"/>
+    <circle cx="0" cy="-66" r="9" fill="#c98a5a" stroke="${K}" stroke-width="2.2"/>
+    <path d="M-8 -80 Q0 -98 12 -82 Q2 -87 -8 -80 Z" fill="#c0392b" stroke="${K}" stroke-width="1.6"/>
+    <path d="M-11 -66 Q-11 -80 0 -80 Q11 -80 11 -66 L11 -58 L4 -58 L4 -67 L-4 -67 L-4 -58 L-11 -58 Z" fill="#b8bec9" stroke="${K}" stroke-width="2.2"/>
+    <path d="M-7 -76 Q0 -79 7 -76" fill="none" stroke="#fff" stroke-width="1.2" opacity=".7"/><circle cx="0" cy="-63" r="1.7" fill="#ff5a3a" stroke="none"/>`,
+  shusher:(eye,K)=>`${[[-18,-10,36,"#7a2a2a"],[-16,-20,32,"#2a4a7a"],[-19,-30,38,"#3a6a3a"],[-15,-40,30,"#8a6a2a"]].map(([x,y,w,c])=>`<rect x="${x}" y="${y}" width="${w}" height="10" rx="1.4" fill="${c}" stroke="${K}" stroke-width="2"/><rect x="${x+w-6}" y="${y+2}" width="4.4" height="6" fill="#f4ead0" stroke="none"/><path d="M${x+4} ${y+3} L${x+4} ${y+7} M${x+8} ${y+3} L${x+8} ${y+7}" stroke="#ffd23f" stroke-width="1" opacity=".7"/>`).join("")}
+    <path d="M-15 -36 L-28 -28" stroke="${K}" stroke-width="5"/><path d="M-15 -36 L-28 -28" stroke="#c9c2b0" stroke-width="3"/>
+    <rect x="-36" y="-30" width="11" height="7" rx="1" fill="#8a2a1a" stroke="${K}" stroke-width="1.6"/><path d="M-31 -30 L-31 -36" stroke="${K}" stroke-width="3"/>
+    <path d="M-13 -56 Q-14 -70 0 -70 Q14 -70 13 -56" fill="#6a6a72" stroke="${K}" stroke-width="2"/><circle cx="0" cy="-72" r="6" fill="#6a6a72" stroke="${K}" stroke-width="2"/>
+    <circle cx="0" cy="-54" r="13" fill="#c9c2b0" stroke="${K}" stroke-width="2.4"/>
+    <circle cx="-5" cy="-56" r="4.2" fill="#dfe8ff" fill-opacity=".45" stroke="${K}" stroke-width="1.6"/><circle cx="5" cy="-56" r="4.2" fill="#dfe8ff" fill-opacity=".45" stroke="${K}" stroke-width="1.6"/><path d="M-1 -56 L1 -56" stroke="${K}" stroke-width="1.4"/>
+    <path d="M-7 -56 L-3 -55 M7 -56 L3 -55 M-9 -62 L-2 -61 M9 -62 L2 -61" stroke="${K}" stroke-width="1.6"/>
+    <circle cx="0" cy="-46" r="1.7" fill="${K}"/>
+    <path d="M16 -38 Q22 -48 5 -47" fill="none" stroke="${K}" stroke-width="5" stroke-linecap="round"/><path d="M16 -38 Q22 -48 5 -47" fill="none" stroke="#c9c2b0" stroke-width="3" stroke-linecap="round"/>
+    <path d="M4 -46 L1 -52" stroke="${K}" stroke-width="3.6" stroke-linecap="round"/><path d="M4 -46 L1 -52" stroke="#c9c2b0" stroke-width="1.8" stroke-linecap="round"/>`,
+  bunny:(eye,K)=>{const fl=(cx,cy,rx,ry,n)=>"M"+Array.from({length:n},(_,i)=>{const a=i/n*Math.PI*2,r=i%2?1.1:.96;return `${(cx+Math.cos(a)*rx*r).toFixed(1)} ${(cy+Math.sin(a)*ry*r).toFixed(1)}`;}).join(" L")+" Z";
+    return `<path d="M-10 -30 Q-20 -60 -9 -63 Q0 -60 -3 -30 Z M6 -30 Q10 -59 21 -57 Q25 -50 12 -28 Z" fill="#d8cfc0" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M-8 -34 Q-14 -54 -9 -57 Q-5 -54 -5 -34 Z M8 -33 Q12 -52 18 -52 Q19 -48 10 -32 Z" fill="#e8a0a8" stroke="none"/>
+    <ellipse cx="-10" cy="-1" rx="6" ry="3" fill="#c9bfae" stroke="${K}" stroke-width="1.6"/><ellipse cx="10" cy="-1" rx="6" ry="3" fill="#c9bfae" stroke="${K}" stroke-width="1.6"/>
+    <path d="${fl(0,-18,23,18,30)}" fill="#d8cfc0" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="${fl(-6,-24,10,7,14)}" fill="#ece4d6" stroke="none"/>
+    <circle cx="-7" cy="-22" r="3" fill="#140c0c"/><circle cx="7" cy="-22" r="3" fill="#140c0c"/><circle cx="-8" cy="-23" r="1" fill="#fff"/><circle cx="6" cy="-23" r="1" fill="#fff"/>
+    <path d="M-2 -17 L2 -17 L0 -14.6 Z" fill="#e8a0a8" stroke="${K}" stroke-width="1"/><path d="M-1.6 -13 L-1.6 -10 L1.6 -10 L1.6 -13" fill="#fff" stroke="${K}" stroke-width="1"/>
+    <path d="M-4 -16 L-16 -18 M-4 -15 L-15 -13 M4 -16 L16 -18 M4 -15 L15 -13" stroke="${K}" stroke-width=".9" opacity=".7"/>
+    <path d="M-30 -42 q3 -3 5 0 t5 0 M26 -38 q2 -3 4 0 t4 0" fill="none" stroke="#a89a86" stroke-width="1.4"/>`;}};
+Object.assign(MOB_TAUNTS,{
+  ghost:["Boooo. Sorry. Force of habit.","Swing all you like. I'm mostly draft.","I died with three unread emails. I'm not resting till you have more.","Lights out at six. Until then, I'm all yours.","You can't hit me. You can only hurry the sun."],
+  leech:["Slurp.","We're not greedy. We just want all of it.","Your blood type is 'available'.","Hit us harder. We'll wait.","Every quest you dither, we top up."],
+  imp:["Lovely purse. Lighter than it was, though.","Prices are going up. Specifically, yours.","No refunds. That's the market.","Check your pockets. Go on. I'll wait.","Two for me, none for you."],
+  stalker:["Over here. No, here.","You swing at the mist. The mist doesn't mind.","How much HP do I have? Guess.","I've been behind you for four rooms.","Visibility: poor. For you."],
+  scuttler:["Tick. Tick. Tick.","Personal best: 4.2 seconds. Yours?","Long quest? We'll be gone before you're done.","Wind us up and watch us go.","Your splits are looking bad, crawler."],
+  lootgob:["Mine! Mine! Also mine!","Can't stop, got a sack to run with.","Shiny. Shiny. Oh, a crawler. Bye.","Catch me and I'll share. You won't catch me.","Heavy sack. Light feet."],
+  mascot:["Brought to you by violence!","Smile for the sponsors!","My contract says I can't take the head off. Ever.","Like, subscribe, and hold still.","This beating is sponsored content."],
+  pitfighter:["The crowd wants blood. Yours is closest.","I've fought bigger. Never slower.","One more win and I'm free. Sorry.","Thumbs down, crawler.","Sand in your boots yet? It will be."],
+  shusher:["Shhh.","SHHHHH.","That quest is forty years overdue.","Inside voice, crawler.","Fines are payable in HP."],
+  bunny:["Floof.","There's always more fur.","We're what's under the couch.","Achoo. Now there are two of us.","Two of us now. Soon, four."]});
 function mobKind(mb){if(mb&&MOB_KINDS[mb.k])return mb.k;const n=String(mb&&mb.n||"").toLowerCase();
   return /rat|gnaw|skitter/.test(n)?"rat":/slime|ooze|inbox|mold|mildew|sludge|lint/.test(n)?"ooze":"goblin";}
 /* One creature, about 64 wide, feet at y=0, facing you. d = animation delay so the pack doesn't bob in step. */
 function mobCreature(k,x,y,s,d){
   const K="#0e0a08",g=(inner)=>`<g transform="translate(${x} ${y}) scale(${s})"><g class="mc" style="animation-delay:-${d}s">${inner}</g></g>`;
   const eye=(cx,cy,r,c)=>`<circle cx="${cx}" cy="${cy}" r="${r*2.2}" fill="${c}" opacity=".35" stroke="none"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="${c}" stroke="${K}" stroke-width="1.4"/><circle cx="${cx-r*.3}" cy="${cy-r*.3}" r="${r*.35}" fill="#fff" stroke="none"/>`;
+  if(MOB_ART[k])return g(MOB_ART[k](eye,K));
   if(k==="rat")return g(`<path d="M18 -10 Q40 -14 36 -34 Q32 -46 22 -40 Q30 -30 22 -20" fill="none" stroke="${K}" stroke-width="5"/><path d="M18 -10 Q40 -14 36 -34 Q32 -46 22 -40 Q30 -30 22 -20" fill="none" stroke="#b07a7a" stroke-width="2.4"/>
       <path d="M-30 0 Q-34 -26 -14 -36 Q4 -44 20 -32 Q34 -20 28 0 Z" fill="#4a3d38" stroke="${K}" stroke-width="2.6"/>
       <path d="M-22 -30 L-18 -42 L-12 -33 L-6 -44 L0 -35 L6 -45 L10 -34 L16 -42 L18 -30" fill="#3a2f2b" stroke="${K}" stroke-width="2" stroke-linejoin="round"/>
@@ -3597,12 +3771,12 @@ function mobCreature(k,x,y,s,d){
 function mobScene(mb){
   const k=mobKind(mb),u="ms"+(++avUid);
   const spots=mb.pack?[[70,104,.9,0],[250,104,.9,.5],[115,112,1.05,.9],[205,112,1.05,1.3],[160,118,1.25,.2]]:[[100,108,.95,.4],[220,108,.95,1.1],[160,116,1.2,0]];
-  const bg=k==="ooze"?"#0f1a0c":k==="rat"?"#1a0d0d":"#141008";
-  return `<svg class="mobscene" viewBox="0 0 320 124" aria-hidden="true" focusable="false"><defs><radialGradient id="${u}g" cx="50%" cy="80%" r="70%"><stop offset="0" stop-color="${k==="ooze"?"#2c5a1a":k==="rat"?"#5a1a1a":"#4a3a14"}"/><stop offset="1" stop-color="${bg}"/></radialGradient></defs>
+  const col=mobFam(k).col,bg=col[1];
+  return `<svg class="mobscene" viewBox="0 0 320 124" aria-hidden="true" focusable="false"><defs><radialGradient id="${u}g" cx="50%" cy="80%" r="70%"><stop offset="0" stop-color="${col[0]}"/><stop offset="1" stop-color="${bg}"/></radialGradient></defs>
     <rect width="320" height="124" fill="url(#${u}g)"/>
     <g opacity=".5" stroke="#000" stroke-width="2" fill="none"><path d="M0 30 L60 30 L60 0 M60 30 L120 30 M180 24 L240 24 L240 0 M240 24 L320 24 M30 30 L30 60 M150 0 L150 26 M280 24 L280 56"/></g>
     <ellipse cx="160" cy="122" rx="170" ry="16" fill="#000" opacity=".55"/>
-    ${[[40,46],[288,40],[20,80],[300,86]].map(([x,y],i)=>`<g class="mc-eyes" style="animation-delay:-${i*.7}s"><circle cx="${x}" cy="${y}" r="2.2" fill="${k==="goblin"?"#ffd23f":k==="ooze"?"#e8ff3a":"#ff2e2e"}"/><circle cx="${x+7}" cy="${y}" r="2.2" fill="${k==="goblin"?"#ffd23f":k==="ooze"?"#e8ff3a":"#ff2e2e"}"/></g>`).join("")}
+    ${[[40,46],[288,40],[20,80],[300,86]].map(([x,y],i)=>`<g class="mc-eyes" style="animation-delay:-${i*.7}s"><circle cx="${x}" cy="${y}" r="2.2" fill="${col[2]}"/><circle cx="${x+7}" cy="${y}" r="2.2" fill="${col[2]}"/></g>`).join("")}
     ${spots.map(([x,y,s,d])=>mobCreature(k,x,y,s,d)).join("")}</svg>`;
 }
 const MOB_WANDER=.12;
@@ -3614,44 +3788,66 @@ function heroHit(xp){return Math.round(xp*(1+statFx(player).dmg+petFx(player).dm
 function mobScale(){const x=rewardFor(player,{effort:3,est:30,stat:"STR",title:""},null).xp;return {xp:x,hit:Math.max(8,heroHit(x))};}
 function spawnMob(kind,room){
   const sc=mobScale(),pack=kind==="pack";
-  const ks=Object.keys(MOB_KINDS),k=ks[Math.floor(Math.random()*ks.length)],K=MOB_KINDS[k];
+  const tk=themeMobKind(),k=tk&&Math.random()<THEME_MOB?tk:BASE_MOBS[Math.floor(Math.random()*BASE_MOBS.length)],K=MOB_KINDS[k];
   const n=pack?K.packs[Math.floor(Math.random()*K.packs.length)]:K.names[Math.floor(Math.random()*K.names.length)];
-  const hp=Math.max(5,Math.round(sc.hit*(pack?1.4+Math.random()*.6:.35+Math.random()*.6)));
+  const hp=Math.max(5,Math.round(sc.hit*(pack?1.4+Math.random()*.6:.35+Math.random()*.6)*(K.hpMul||1)));
   ui.mobSnd=k;bump("ms_"+k);
-  return {id:newId(),n,k,a:pack?"The":/^[AEIOU]/.test(n)?"An":"A",pack,hp,max:hp,room:room==null?null:room};
+  const mb={id:newId(),n,k,a:pack?"The":/^[AEIOU]/.test(n)?"An":"A",pack,hp,max:hp,room:room==null?null:room};if(K.fade)mb.exp=nextDawn();return mb;
 }
 /* One quest's hit against everything on you, in the order they showed up. Returns toast lines. */
 function mobFight(fx,t,o){
   o=o||{};const out=[];if(!player.mobs)player.mobs=[];
+  out.push(...mobUpkeep());
   // Grinding: once a floor's bosses are all down, the leftovers come out of the walls until the stairwell opens
   const G=grinding(),wr=G?GRIND_MOB:(player.boss&&player.boss.hunt?MOB_WANDER*2:MOB_WANDER);
-  if(!player.mobs.length&&Math.random()<wr){const pk=G&&Math.random()<.35,w=spawnMob(pk?"pack":"mob",null);player.mobs.push(w);bump(G?"grindMobs":"wanderers");
+  if(t&&!player.mobs.length&&Math.random()<wr){const pk=G&&Math.random()<.35,w=spawnMob(pk?"pack":"mob",null);player.mobs.push(w);bump(G?"grindMobs":"wanderers");
     out.push(pk?`A pack of leftovers crawls out of the walls: ${w.n}!`:`${w.a} wandering ${w.n} jumps you!`);}
   if(!player.mobs.length)return out;
-  if(player.charm||o.charm){const lead=player.mobs[0];lead.hp=0;if(player.charm&&!o.charm)out.push(`Your Charm takes hold: the ${lead.n} lays down its weapons.`);player.charm=false;bump("charmed");}
-  let hit=heroHit(fx);const sc=mobScale(),floor=floorOf(),m=player.map;
+  // Charm: the first mob that isn't a ghost lays down its weapons (the dead don't care). A waiting Charm keeps waiting.
+  if(player.charm||o.charm){const lead=player.mobs.find(mb=>!mobFam(mobKind(mb)).noPhys);
+    if(lead){lead.hp=0;lead.charmed=true;if(player.charm&&!o.charm)out.push(`Your Charm takes hold: the ${lead.n} lays down its weapons.`);player.charm=false;bump("charmed");}}
+  let pool=o.raw!=null?o.raw:heroHit(fx);const sc=mobScale(),floor=floorOf(),m=player.map;
   const left=[];
   for(const mb of player.mobs){
-    if(hit>0){const d=Math.min(hit,mb.hp);mb.hp-=d;hit-=d;}
+    const k=mobKind(mb),K=mobFam(k);
+    if(pool>0&&mb.hp>0){const mul=mobHitMul(mb,t,o);
+      if(K.miss&&!o.spell&&t&&Math.random()<K.miss){out.push(`Your swing at the ${mb.n} hits nothing but fog.`);bump("fogMiss");}
+      else if(mul>0){const d=Math.min(Math.round(pool*mul),mb.hp);mb.hp-=d;pool=Math.max(0,pool-Math.ceil(d/mul));
+        if(t&&mul!==1&&d)out.push(mul>1?`${K.stat?({STR:"Strength",INT:"Intelligence",CHA:"Charisma"})[K.stat]+" hits":"A quick quest hits"} the ${mb.n} twice as hard.`:`The ${mb.n} only takes half.`);}
+      else if(t)out.push(`Your quest passes right through the ${mb.n}. Only spells can touch it.`);}
     if(mb.hp<=0){
       const nyxB=isChosen("nyx")&&(new Date().getHours()>=21||new Date().getHours()<6)?2:1;
-      const bx=Math.round(sc.xp*(mb.pack?.3:.15)*nyxB*(grinding()?GRIND_XP:1)),g=mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6);
+      const bx=Math.round(sc.xp*(mb.pack?.3:.15)*nyxB*(grinding()?GRIND_XP:1)*(K.xpMul||1)),g=(mb.pack?10+Math.floor(Math.random()*11):3+Math.floor(Math.random()*6))+(mb.stolen||0);
       player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
-      bump("mobKills");{const mk=mobKind(mb);bump("mk_"+mk);const n=C(player,"mk_"+mk),i=BEST_MS.indexOf(n);if(i>=0){player.viewers=(player.viewers||0)+1000*(i+1);mb.best=`Bestiary: ${n} ${MOB_KINDS[mk].n.toLowerCase()} beaten. New title: ${BEST_TITLES[mk][i]}!`;}}if(mb.pack)bump("packKills");
-      let box="";if(mb.pack&&Math.random()<.25){giveBox("bronze",`Mob pack: ${mb.n}`);box=" and a Bronze Box";}
+      bump("mobKills");{bump("mk_"+k);const n=C(player,"mk_"+k),i=BEST_MS.indexOf(n);if(i>=0){player.viewers=(player.viewers||0)+1000*(i+1);mb.best=`Bestiary: ${n} ${K.n.toLowerCase()} beaten. New title: ${BEST_TITLES[k][i]}!`;}}if(mb.pack)bump("packKills");
+      let box="";if(K.box){giveBox(K.box,`${mb.n}'s sack`);box=` and its sack: a ${K.box[0].toUpperCase()+K.box.slice(1)} Box`;}
+      else if(mb.pack&&Math.random()<.25){giveBox("bronze",`Mob pack: ${mb.n}`);box=" and a Bronze Box";}
       if(m&&mb.room!=null&&m.rooms[mb.room])m.rooms[mb.room].cleared=true;
-      player.viewers=(player.viewers||0)+(mb.pack?900:250);
+      player.viewers=(player.viewers||0)+(mb.pack?900:250)*(K.viewMul||1);
       const md=Math.random()<(mb.pack?.4:.2)?matDrop("scrap",mb.pack?1+Math.floor(Math.random()*2):1):"";
-      out.push(`${mb.pack?"Wiped out":"Squashed"} ${mb.a.toLowerCase()==="the"?"the":mb.a.toLowerCase()} ${mb.n}: +${bx} XP, +${g} gold${box}${md?`, ${md}`:""}.`);if(mb.best)out.push(mb.best);
+      const verb=K.noPhys?"Banished":mb.pack?"Wiped out":"Squashed";
+      out.push(`${verb} ${mb.a.toLowerCase()==="the"?"the":mb.a.toLowerCase()} ${mb.n}: +${bx} XP, +${g} gold${mb.stolen?` (${mb.stolen} of it yours to begin with)`:""}${box}${md?`, ${md}`:""}${K.viewMul?`, and ${K.viewMul}× the viewers`:""}.`);if(mb.best)out.push(mb.best);
     }else left.push(mb);
   }
-  player.mobs=left;
-  if(left.length){
+  // What the survivors do after a quest: leeches drink, scuttlers and loot goblins bolt, bunnies split.
+  const kept=[];
+  for(const mb of left){const K=mobFam(mobKind(mb));
+    if(!t){kept.push(mb);continue;}
+    mb.q=(mb.q||0)+1;
+    if(K.flee&&mb.q>=K.flee){out.push(`The ${mb.n} bolts off into the dark${K.box?" with its sack":""}. Gone.`);bump("fled");continue;}
+    if(K.regen&&mb.hp<mb.max){const h=Math.min(mb.max-mb.hp,Math.max(1,Math.round(mb.max*K.regen)));mb.hp+=h;out.push(`The ${mb.n} drinks back ${h} HP.`);}
+    kept.push(mb);
+    if(K.split){const n=kept.concat(left.slice(left.indexOf(mb)+1)).filter(x=>mobKind(x)===mobKind(mb)).length;
+      if(n<K.split){const hp=Math.max(3,Math.ceil(mb.max*.5));kept.push({id:newId(),n:mb.n,k:mb.k,a:mb.a,pack:false,hp,max:hp,room:null,q:1});out.push(`The ${mb.n} splits in two!`);bump("splits");}}}
+  player.mobs=kept;
+  if(kept.length){
     let shield=petFx(player).ability==="gargoyle";try{shield=shield||auraFx().shield;}catch(e){}
-    const nip=shield||o.charm?0:Math.min(Math.max(0,player.hp-1),left.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0));
+    const quiet=shield||o.charm||o.spell||!t;
+    const nip=quiet?0:Math.min(Math.max(0,player.hp-1),kept.filter(mb=>!mobFam(mobKind(mb)).steal).reduce((a,mb)=>a+mobNip(mb,floor),0));
     if(nip>0){player.hp-=nip;}
-    const lead=left[0];
-    out.push(`${lead.a} ${lead.n} is still on you (${lead.hp}/${lead.max} HP)${left.length>1?` with ${left.length-1} more`:""}${nip?` and nips you for ${nip} HP`:""}.`);
+    let stole=0;if(!quiet)for(const mb of kept.filter(x=>mobFam(mobKind(x)).steal)){const s=Math.min(player.gold,mobNip(mb,floor));if(s>0){player.gold-=s;mb.stolen=(mb.stolen||0)+s;stole+=s;}}
+    const lead=kept[0];
+    out.push(`${lead.a} ${lead.n} is still on you (${mobHpTxt(lead)} HP)${kept.length>1?` with ${kept.length-1} more`:""}${nip?` and nips you for ${nip} HP`:""}${stole?`${nip?",":" and"} picks your pocket for ${stole} gold`:""}.`);
   }
   return out;
 }
@@ -3663,7 +3859,7 @@ function mobIcon(x,y,s,pack,k){
 const MOB_POKE_SND={goblin:"poke-goblin"};
 function pokeMob(){
   const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead);
-  if(!clip(MOB_POKE_SND[k]||"mob-"+k,.85))SFX.play("hurt");
+  if(!clip(MOB_POKE_SND[k]||"mob-"+k,.85))SFX.play(k==="ghost"?"wail":"hurt");
   bump("pokes");bump("poke_"+k);store.savePlayer(player).catch(writeFailed);
   if(Math.random()<.3)setTimeout(()=>say("poke",{}),1400); // the announcer has opinions
   checkAch(); // plays once the close-up is closed
@@ -3672,16 +3868,16 @@ function pokeMob(){
 }
 function zoomMob(){
   const ms=player.mobs||[];if(!ms.length)return;const lead=ms[0],k=mobKind(lead),K=MOB_KINDS[k],floor=floorOf(),sc=mobScale();
-  const shield=petFx(player).ability==="gargoyle",nip=shield?0:(lead.pack?4+floor*2:2+floor),bite=MOB_BITE?mobBite(player,floor):0;
-  const hits=Math.max(1,Math.ceil(lead.hp/Math.max(1,sc.hit))),bx=Math.round(sc.xp*(lead.pack?.3:.15)*(grinding()?GRIND_XP:1));
+  const shield=petFx(player).ability==="gargoyle",nip=shield?0:mobNip(lead,floor),bite=MOB_BITE?mobBite(player,floor):0;
+  const hits=Math.max(1,Math.ceil(lead.hp/Math.max(1,sc.hit))),bx=Math.round(sc.xp*(lead.pack?.3:.15)*(grinding()?GRIND_XP:1)*(K.xpMul||1));
   const kills=C(player,"mk_"+k),canDrink=player.potions>0&&player.hp<maxHp(player);
   zoomCard({kind:"mob",title:`${lead.a} ${lead.n}`,art:mobScene(lead),
     sub:`${esc(K.n)} · ${lead.pack?"Mob pack":"Mob"} · Floor ${floor}${lead.room!=null?` · from room ${lead.room+1}`:" · wandered in"}`,
-    tiles:[["HP",`${lead.hp} / ${lead.max}`],["Quests to kill",`about ${hits}`],["Nips you",`${nip} HP / quest`],["Overnight bite",bite?`${bite} HP`:"–"],
-      ["Bounty",`~${bx} XP + ${lead.pack?"10–20":"3–8"}g`],["Your HP",`${Math.round(player.hp)} / ${maxHp(player)}`],["You've beaten",`${kills} ${esc(K.n.toLowerCase())}`],["Loot",lead.pack?"25% Bronze Box":"Scrap, maybe"]],
-    body:`<div class="bubble mobbub">“${esc(spick(Math.random,MOB_TAUNTS[k]))}”</div>${zbar(lead.hp/lead.max,"rvbar")}
-      ${ms.length>1?`<div class="label">Behind it</div><div class="muted" style="font-size:13px">${ms.slice(1).map(m=>`${esc(m.n)} (${m.hp}/${m.max})`).join(" · ")}</div>`:""}
-      <div class="muted" style="font-size:12px">${esc(K.line)} Your next quest hits it first, and mob damage never comes out of your boss fight.${shield?" Your gargoyle blocks its nips.":""}</div>`,
+    tiles:[["HP",K.hide?"???":`${lead.hp} / ${lead.max}`],["Quests to kill",K.noPhys?"Spells only":K.hide?"???":`about ${hits}`],[K.steal?"Steals":"Nips you",K.noNip?"Never":K.steal?`${nip} gold / quest`:`${nip} HP / quest`],K.fade?["Fades at","6 a.m."]:K.flee?["Runs after",`${K.flee} quest${K.flee>1?"s":""}${lead.q?` (${lead.q} so far)`:""}`]:["Overnight bite",bite?`${bite} HP`:"–"],
+      ["Bounty",`~${bx} XP + ${lead.pack?"10–20":"3–8"}g${lead.stolen?` + your ${lead.stolen}g`:""}`],["Your HP",`${Math.round(player.hp)} / ${maxHp(player)}`],["You've beaten",`${kills} ${esc(K.n.toLowerCase())}`],["Loot",K.box?"Bronze Box":lead.pack?"25% Bronze Box":"Scrap, maybe"]],
+    body:`<div class="bubble mobbub">“${esc(spick(Math.random,MOB_TAUNTS[k]))}”</div>${zbar(K.hide?1:lead.hp/lead.max,"rvbar")}
+      ${ms.length>1?`<div class="label">Behind it</div><div class="muted" style="font-size:13px">${ms.slice(1).map(m=>`${esc(m.n)} (${mobHpTxt(m)})`).join(" · ")}</div>`:""}
+      <div class="muted" style="font-size:12px">${esc(K.line)} ${K.noPhys?"While it's on you, Firebolt and Chain Lightning hit it instead of the boss.":"Your next quest hits it first, and mob damage never comes out of your boss fight."}${shield&&!K.noNip?" Your gargoyle blocks its nips.":""}</div>`,
     acts:canDrink?[{label:`Drink a potion (+${POTION.heal} HP)`,gold:true,fn:drink}]:[]});
 }
 /* A big, hard-to-miss encounter card above the quest board while anything is chasing you. */
@@ -3689,20 +3885,20 @@ function renderMobAlert(){
   const el=$("mobAlert");if(!el)return;const ms=playerExists&&player.mobs||[];
   if(!ms.length){if(el.innerHTML)el.innerHTML="";el.hidden=true;return;}
   const lead=ms[0],k=mobKind(lead),floor=floorOf();
-  const nip=ms.reduce((a,mb)=>a+(mb.pack?4+floor*2:2+floor),0),bite=MOB_BITE?mobBite(player,floor):0;
+  const nip=ms.filter(mb=>!mobFam(mobKind(mb)).steal).reduce((a,mb)=>a+mobNip(mb,floor),0),steal=ms.filter(mb=>mobFam(mobKind(mb)).steal).reduce((a,mb)=>a+mobNip(mb,floor),0),bite=MOB_BITE?mobBite(player,floor):0,LK=mobFam(k);
   const key=JSON.stringify(ms.map(m=>[m.id,m.hp]))+bite;if(el.dataset.k===key&&!el.hidden)return;el.dataset.k=key;el.hidden=false;
   el.onclick=pokeMob;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pokeMob();}};
-  el.innerHTML=`<div class="mobalert k-${k}${lead.pack?" pack":""} zoomable" role="button" tabindex="0" aria-label="${esc(lead.n)}: tap to poke it and see its stats">
+  el.innerHTML=`<div class="mobalert k-${k}${lead.pack?" pack":""} zoomable" style="border-color:${LK.col[3]}" role="button" tabindex="0" aria-label="${esc(lead.n)}: tap to poke it and see its stats">
     ${mobScene(lead)}
-    <div class="ma-body"><div class="ma-k">⚠ ${lead.pack?"Mob pack":"Mob"} encounter</div>
+    <div class="ma-body"><div class="ma-k" style="color:${LK.col[3]}">⚠ ${lead.pack?"Mob pack":"Mob"} encounter · ${esc(LK.n)}</div>
       <div class="ma-n"><b>${esc(lead.a)} ${esc(lead.n)}</b> is on your heels${ms.length>1?` <span class="muted">(+${ms.length-1} more behind it)</span>`:""}</div>
-      <div class="mobhp"><div class="bar"><b style="width:${Math.round(lead.hp/lead.max*100)}%"></b></div><span class="num">${lead.hp}/${lead.max} HP</span></div>
-      <div class="ma-tip">${esc(MOB_KINDS[k].line)} Tap to poke it. Your next quest hits ${ms.length>1?"them":"it"} first. Until ${ms.length>1?"they're":"it's"} dead, ${ms.length>1?"they nip":"it nips"} you for ${petFx(player).ability==="gargoyle"?0:nip} HP per quest${bite?` and bite${ms.length>1?"":"s"} for ${bite} HP overnight`:""}.</div></div></div>`;
+      <div class="mobhp"><div class="bar"><b style="width:${mobHpPct(lead)}%"></b></div><span class="num">${mobHpTxt(lead)} HP</span></div>
+      <div class="ma-tip">${esc(LK.line)} Tap to poke it.${LK.noPhys?"":` Your next quest hits ${ms.length>1?"them":"it"} first.`}${nip||steal?` Until ${ms.length>1?"they're":"it's"} gone: ${[nip?`${petFx(player).ability==="gargoyle"?0:nip} HP`:"",steal?`${steal} gold`:""].filter(Boolean).join(" and ")} per quest`:""}${bite?`, and ${bite} HP overnight`:""}.</div></div></div>`;
 }
 function mobStrip(){
   const ms=player&&player.mobs||[];if(!ms.length)return "";
-  return `<div class="mobstrip" role="status">${ms.map(mb=>`<div class="mob"><svg viewBox="-12 -13 24 24" width="26" height="26" aria-hidden="true">${mobIcon(0,0,1,mb.pack)}</svg><div><b>${esc(mb.n)}</b><span>${mb.pack?"Mob pack":"Mob"} · chasing you</span></div>
-    <div class="mobhp"><div class="bar"><b style="width:${Math.round(mb.hp/mb.max*100)}%"></b></div><span class="num">${mb.hp}/${mb.max}</span></div></div>`).join("")}
+  return `<div class="mobstrip" role="status">${ms.map(mb=>`<div class="mob"><svg viewBox="-12 -13 24 24" width="26" height="26" aria-hidden="true">${mobIcon(0,0,1,mb.pack,mobKind(mb))}</svg><div><b>${esc(mb.n)}</b><span>${mb.pack?"Mob pack":"Mob"} · chasing you</span></div>
+    <div class="mobhp"><div class="bar"><b style="width:${mobHpPct(mb)}%"></b></div><span class="num">${mobHpTxt(mb)}</span></div></div>`).join("")}
     <div class="muted" style="font-size:12px">Your next quest hits ${ms.length>1?"them":"it"}. Mob damage doesn't come out of your boss fight.</div></div>`;
 }
 
@@ -5055,12 +5251,12 @@ document.addEventListener("keydown",e=>{
    on the hotbar's spell row; tap to cast. Damage spells can only take a quarter of any one boss's HP. */
 const MP_MAX=100,MP_DUPE=25;
 const SPELLS={
-  firebolt:{n:"Firebolt",       school:"fire",  rar:"common",   cost:30,d:"Hits the boss for about one quest's worth of damage, more with INT"},
-  chain:   {n:"Chain Lightning",school:"storm", rar:"epic",     cost:45,d:"Hits the boss for one and a half quests' worth of damage, more with INT"},
-  charm:   {n:"Charm",          school:"mind",  rar:"common",   cost:25,d:"The mob on you (or the next one you meet) gives up without a fight. You still get its loot"},
+  firebolt:{n:"Firebolt",       school:"fire",  rar:"common",   cost:30,d:"Hits the boss for about one quest's worth of damage, more with INT. With a ghost on you, it hits the mobs instead"},
+  chain:   {n:"Chain Lightning",school:"storm", rar:"epic",     cost:45,d:"Hits the boss for one and a half quests' worth of damage, more with INT. With a ghost on you, it hits the mobs instead"},
+  charm:   {n:"Charm",          school:"mind",  rar:"common",   cost:25,d:"The mob on you (or the next one you meet) gives up without a fight. You still get its loot. Ghosts ignore it"},
   hex:     {n:"Hex",            school:"shadow",rar:"uncommon", cost:30,d:"Your rival crawler takes +50% damage from your next 3 quests"},
   mend:    {n:"Mend",           school:"life",  rar:"common",   cost:25,d:"Heal 30 HP"},
-  ward:    {n:"Ward",           school:"holy",  rar:"uncommon", cost:35,d:"Blocks the next overnight damage hit"},
+  ward:    {n:"Ward",           school:"holy",  rar:"uncommon", cost:35,d:"Blocks the next overnight damage hit, or banishes a ghost that's on you"},
   regrowth:{n:"Regrowth",       school:"life",  rar:"rare",     cost:40,d:"+5 HP for every quest you finish today"},
   clair:   {n:"Clairvoyance",   school:"mind",  rar:"common",   cost:20,d:"Reveals the next 3 rooms on your map"},
   blink:   {n:"Blink",          school:"arcane",rar:"rare",     cost:35,d:"Move one room ahead on your map right now (not through a sealed door)"},
@@ -5148,16 +5344,22 @@ function castSpell(id){
   const td=today(),H=maxHp(player);
   const no=m=>{toast(m,"bad");return;};
   switch(id){
-    case "firebolt":case "chain":{const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err)return no(r0.err);payMana(id);
+    case "firebolt":case "chain":{
+      if(hasGhost()){const dmg=Math.max(1,Math.round(mobScale().xp*(id==="chain"?1.5:1)*(1+(statFx(player).xp||0))));payMana(id);const out=mobFight(0,null,{spell:true,raw:dmg});
+        castDone(id,`${id==="chain"?"Lightning arcs":"A bolt of fire tears"} through the mobs on you for <b>${dmg}</b>. ${out.map(esc).join(" ")}`);return;}
+      const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err)return no(r0.err);payMana(id);
       castDone(id,r0.hunt?`Your spell crackles into your stored Charge: +${r0.dmg}. It lands when you find the boss.`:`${id==="chain"?"Lightning arcs":"A bolt of fire slams"} into ${esc(player.boss.name||"the boss")} for <b>${r0.dmg}</b> damage.`,r0.loot&&r0.loot.kills&&r0.loot.kills.length?r0.loot:null);return;}
     case "charm":{
-      if((player.mobs||[]).length){const lead=player.mobs[0];payMana(id);const out=mobFight(0,null,{charm:true});castDone(id,`The ${esc(lead.n)} lays down its weapons. ${out.map(esc).join(" ")}`);return;}
+      if((player.mobs||[]).length&&player.mobs.every(mb=>mobFam(mobKind(mb)).noPhys))return no("The dead don't care for Charm. Try Firebolt, Chain Lightning or Ward, or wait for dawn.");
+      if((player.mobs||[]).length){const lead=player.mobs.find(mb=>!mobFam(mobKind(mb)).noPhys);payMana(id);const out=mobFight(0,null,{charm:true});castDone(id,`The ${esc(lead.n)} lays down its weapons. ${out.map(esc).join(" ")}`);return;}
       if(player.charm)return no("Your Charm is already waiting for the next mob.");
       payMana(id);player.charm=true;castDone(id,"The next mob you meet will lay down its weapons.");return;}
     case "hex":{const rv=player.rival;if(!rv)return no("No rival crawler is after you right now.");if((rv.hex||0)>=3)return no(`${rv.n} is already hexed.`);
       payMana(id);rv.hex=3;castDone(id,`${esc(rv.n)} is hexed: your next 3 quests hit them for +50% damage.`);return;}
     case "mend":{if(player.hp>=H)return no("You're already at full HP.");payMana(id);const h=Math.min(30,H-player.hp);player.hp+=h;castDone(id,`+${h} HP.`);return;}
-    case "ward":{if(player.ward)return no("You're already warded against the next overnight hit.");payMana(id);player.ward=true;castDone(id,"A ward settles over you. The next overnight damage won't land.");return;}
+    case "ward":{const gh=(player.mobs||[]).find(mb=>mobFam(mobKind(mb)).noPhys);
+      if(gh){payMana(id);gh.hp=0;const out=mobFight(0,null,{spell:true,raw:0});castDone(id,`Holy light floods the hall and the ${esc(gh.n)} comes apart like smoke. ${out.map(esc).join(" ")}`);return;}
+      if(player.ward)return no("You're already warded against the next overnight hit.");payMana(id);player.ward=true;castDone(id,"A ward settles over you. The next overnight damage won't land.");return;}
     case "regrowth":{if(player.regrow===td)return no("Regrowth is already working today.");payMana(id);player.regrow=td;castDone(id,"For the rest of today, every quest you finish heals 5 HP.");return;}
     case "clair":{const m=ensureMap();if(!m)return no("You don't have a map yet.");const far=farOf(m),add=[];
       for(let i=far+1;i<mapLen(m)&&add.length<3;i++)if(!(m.rev||[]).includes(i))add.push(i);
@@ -6435,6 +6637,7 @@ function afterLoad(){
   if(loadedP&&loadedT&&!ticked&&playerExists){
     ticked=true;const c=ensureBoss();dailyTick(c);
     if(poisonTick()){store.savePlayer(player).catch(writeFailed);render();}
+    {const f=mobUpkeep();if(f.length){store.savePlayer(player).catch(writeFailed);render();setTimeout(()=>toast(f.map(esc).join("<br>")),1200);}}
     const h=new Date().getHours();
     if(ui.pendingSay){say(...ui.pendingSay);ui.pendingSay=null;}
     else if(h>=18&&player.lastDoneDate!==today()&&tasks.some(t=>!t.done))say("idle",{time:new Date().toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})});
@@ -6672,7 +6875,7 @@ function completeQuest(id,actual,touched){
   let rvSoundDone=false;
   if(mapMsgs.length)beat(()=>{if(rvNew&&!rvMsgs.length){rvSoundDone=true;if(!clip("crawler-appear",.9))SFX.play("hurt");}toast(`<b>Map</b> ${mapMsgs.map(x=>esc(x)).join("<br>")}`,"quest");},rvNew&&!rvMsgs.length?1400:1000);
   if(lairLi!=null)beat(()=>{bossAppear();lairPrompt(lairLi);},700); // waits while the card is open
-  if(mobMsgs.length)beat(()=>{if(mobSnd0&&!clip("mob-"+mobSnd0,.85))SFX.play("hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobSnd0?1500:1000);
+  if(mobMsgs.length)beat(()=>{if(mobSnd0&&!clip("mob-"+mobSnd0,.85))SFX.play(mobSnd0==="ghost"?"wail":"hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobSnd0?1500:1000);
   if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;beat(()=>{if(rvNew&&!rvSoundDone){if(!clip("crawler-appear",.9))SFX.play("hurt");}else if(w){if(!clip("boss-kill",.8))SFX.play("kill");}else if(player.rival)SFX.play("hurt");
     toastH(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500);}
   goals.msgs.forEach(m=>beat(()=>toast(m,"lvl"),900));
@@ -6991,7 +7194,7 @@ function zoomSound(){if(!clip("card-zoom",.9))SFX.play("tick");}
 /* Something shows up to fight: each mob kind has its own cry, and rival crawlers have theirs. Queued during a quest, played as the alert appears. */
 function arrivalSounds(){const rv=ui.rvSnd,mb=ui.mobSnd;ui.rvSnd=null;ui.mobSnd=null;
   if(rv)setTimeout(()=>{if(!clip("crawler-appear",.9))SFX.play("hurt");},450);
-  if(mb)setTimeout(()=>{if(!clip("mob-"+mb,.85))SFX.play("hurt");},rv?1500:450);}
+  if(mb)setTimeout(()=>{if(!clip("mob-"+mb,.85))SFX.play(mb==="ghost"?"wail":"hurt");},rv?1500:450);}
 function selectSound(){if(!clip("select-gear",.8))SFX.play("tick");}
 function equipSound(slot){if(!(EQUIP_SND[slot]&&clip("equip-"+slot,EQUIP_SND[slot])))SFX.play("equip");}
 function equip(slot,id){
@@ -9627,6 +9830,7 @@ const SFX=(()=>{
     chat:()=>{tone(NOTE(84),.045,"square",.05,0);tone(NOTE(91),.045,"square",.05,.06);tone(NOTE(96),.05,"square",.045,.12);
       tone(NOTE(79),.42,"sine",.16,.17);tone(NOTE(91),.32,"sine",.06,.17);tone(NOTE(98),.18,"triangle",.025,.18);},
     hurt:()=>{chord([NOTE(33),NOTE(34)],.45,0,.18);tone(110,.35,"sawtooth",.08,0,60);},
+    wail:()=>{tone(520,1.3,"sine",.11,0,360);tone(784,1.1,"triangle",.045,.12,540);noise(1.2,.03,"bandpass",900,0,400,4);},
     gong:()=>{tone(73,2.2,"sine",.6,0,68);tone(146,1.6,"sine",.18,0);noise(.6,.1,"lowpass",500);},
     tick:()=>{noise(.012,.06,"highpass",5000);},
     // UI: a soft click for buttons and tabs, a rounder pop for tapping gear, a metal clink for putting gear on
@@ -9910,6 +10114,12 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.6.0",d:"2026-10-08",t:"Floor monsters",items:["Every floor theme now has its own mob family. On a themed floor, about 4 in 10 mobs you meet come from it; the rest are the usual rats, goblins and oozes.",
+    "Haunted Halls: Ghosts. Quests pass right through them. Firebolt and Chain Lightning hit them (instead of the boss), Ward banishes one, Charm doesn't work. Left alone, a ghost haunts you until 6 a.m., then fades with no loot. Kills pay double XP.",
+    "Flooded Floor: Bog Leeches heal a quarter of their HP after each quest they survive. Night Market: Pickpocket Imps steal gold instead of HP, and give it all back when they die. Fog of War: Mist Stalkers hide their HP, and 30% of your quests miss them.",
+    "Speedrun Sector: Clockwork Scuttlers take double damage from quests of 30 minutes or less, half from 90 minutes or more, and run off after 3 quests. Loot Goblin Infestation: Loot Goblins never hit you and run after 1 quest, but a kill always drops a Bronze Box.",
+    "Sponsor Showcase: Rogue Mascots take double damage from Charisma quests and pay 3× viewers. The Arena: Pit Fighters nip twice as hard, pay double XP and take double damage from Strength quests. Silent Library: Shushers take double damage from Intelligence quests and half from everything else. Pet Day: Shed Bunnies split in two (up to 4) after any quest they survive.",
+    "The Bestiary has all 13 families, with 4 titles each. Families you haven't met yet tell you which floor theme they live on."]},
   {v:"3.5.0",d:"2026-10-08",t:"Potion sickness",items:["New: the Mana Potion (+40 mana, 100 gold) and the Poison Antidote (60 gold), both in the Safe room shop, in loot boxes and on your belt.",
     "Potion sickness: drinking a healing, mana or Focus potion starts a cooldown of 30 minutes, 3 minutes shorter for each Constitution level above 1 (never under 10). Your belt shows the countdown and won't pour another until it passes.",
     "Drink one anyway from your bag or another button, and you're Poisoned: 2 HP every 15 minutes per stack, until you drink a Poison Antidote. Healing won't cure it, and it never drops you below 1 HP."]},

@@ -51,3 +51,10 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - `sickMins()` = max(10, 30 − 3×(CON lvl − 1)); stored as `player.sickUntil`.
 - `poisonTick()` takes 2 HP × stacks per 15 min since `poison.at` (floored at 1 HP); runs on load and in a 30 s interval. Only `drinkAntidote()` clears it.
 - New consumables: `mana` (100g, +40 MP, needs a known spell) and `antidote` (60g). Both are in BELT_KEYS, the shop, box drops and the inventory tooltip.
+
+## Theme mob families (v3.6.0)
+- `MOB_KINDS` now has 13 families. The 3 base ones (`BASE_MOBS`) spawn anywhere; the other 10 each have `th` (a floor theme id) and spawn 40% of the time (`THEME_MOB`) on that theme's floors (`themeMobKind()`).
+- Twist keys live on each family (see the comment above `BASE_MOBS`). `mobFight` reads them: `mobHitMul` (noPhys/stat/offMul/quick), miss, kill rewards (xpMul/viewMul/box/stolen), survivor hooks (flee/regen/split), `mobNip` (nipMul/noNip) and steal.
+- Art: `MOB_ART[k](eye,K)`, called from `mobCreature`. Scene colors: `K.col = [glow, dark, eye glint, alert border]`.
+- Ghosts: `mb.exp` = next 6 a.m.; `mobUpkeep()` drops expired ones (in mobFight and on load). Firebolt/Chain call `mobFight(0,null,{spell:true,raw:dmg})` when `hasGhost()`. Ward banishes the first ghost. Charm skips ghosts.
+- Arrival and poke sounds: `sfx/mob-<kind>.mp3` if present; ghosts fall back to the synth `SFX.wail`, the rest to `hurt`.
