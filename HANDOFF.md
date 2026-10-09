@@ -134,3 +134,9 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Quick mode never queues entrances.
 - Skips: a document pointerdown (capture) while staged and before the report sets `SHOWQ.fast` and clears the hold; `beatHold` is a no-op while fast. Clicking the full report's backdrop = the Show all / Continue button.
 - `REP.pend`: created by `stageOn`, toasts (not achievements) raised before the report opens are queued and replayed as report lines by `repPend()`; closeReport flushes any leftovers as normal toasts.
+
+## Restore points and save status (v3.12.0)
+- `RP` module (above `applyRestore`): `rpSave(pre)` writes `backupData()` to IndexedDB `crawl-restore`/`pts` (id `<uid|local>|<day>[|pre-<ts>]`, with lv/gold/open summary) and, when `store.backups` exists and `RP.cloud`, to `data/users/<uid>/player/backups/<day>[-pre-<ts>]` (needs the backups rule; a permission-denied turns cloud off for the session). Keeps 7 daily + 3 pre-restore per uid. `rpTick()` (end of render) makes the day's first point 3 s after the server copy is confirmed (`prefs["rp:<uid>"]`). `rpLoad()` merges device + account (dedup within 60 s); `rpPick(id)` fills `ui.restore` (with `point:true`) so the existing Replace check shows; `applyRestore` makes a pre-restore point first.
+- fbDb: `docRef.trySet/tryDelete` (no error toast), `colRef.list()` (get). `remoteStore` api has `backups:{put,list,del}` and sets `RP.uid`.
+- Save status: `fire()` calls `syncTrack(p)`; `SYNCQ.n` counts unacknowledged writes; after 1.5 s pending `syncShow` sets class `saving` (gold pulsing dot, "Saving…"/"Offline…"); only overrides the ok/saving states. `setSync` sets `data-short`, shown as `::after` on phones when not ok. Tapping #sync → `syncInfo()` toast with the last-saved time.
+- **Rules:** `firestore.rules` gained `match /backups/{pointId}` under the player doc. Mat must paste the rules into the Firebase console for account copies; device copies work without it.

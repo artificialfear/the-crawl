@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=21ff647d10"></script>
-<script>window.CRAWL_BUILD="21ff647d10";</script>
+<script src="firebase-config.js?v=cc6f802bb9"></script>
+<script>window.CRAWL_BUILD="cc6f802bb9";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -70,7 +70,8 @@ h2.foldh:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-r
 .mast h1 span{color:var(--blood)}
 .sync{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .sync i{width:8px;height:8px;border-radius:50%;background:var(--faint);display:inline-block}
-.sync.ok i{background:var(--leaf)} .sync.local i{background:var(--blood)}
+.sync.ok i{background:var(--leaf)} .sync.local i{background:var(--blood)} .sync.saving i{background:var(--gold);animation:livepulse 1s ease-in-out infinite}
+.sync{cursor:pointer}
 
 /* Character sheet */
 .sheet{display:flex;flex-direction:column;gap:14px}
@@ -1075,6 +1076,8 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
   .mast>*{grid-row:1 / span 2}
   .mast h1{grid-column:1;grid-row:1;font-size:24px;line-height:1.1;white-space:nowrap}
   .sync span{display:none}
+  .sync:not(.ok)[data-short]:not([data-short=""])::after{content:attr(data-short);font-size:11px;font-weight:600;white-space:nowrap}
+  .sync.local::after{color:var(--blood)} .sync.saving::after{color:var(--gold)}
   .mast .onair{grid-column:1;grid-row:2;margin:0;gap:4px 8px;font-size:12px;flex-wrap:nowrap;min-width:0;overflow:hidden}
   .mast .onair .live{font-size:10px;padding:0 6px}
   .mast .onair .floorno{display:none}
@@ -1087,6 +1090,9 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 }
 .soundctl{display:flex;flex-direction:column;gap:10px;margin-top:8px}
 .sndrow{display:flex;align-items:center;gap:10px;font-size:14px}
+.rplist{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.rprow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:6px;font-size:14px}
+.rprow .muted{font-size:12px}
 .showrow{align-items:flex-start}.showrow input{margin-top:3px}.showrow>span{display:flex;flex-direction:column;gap:2px}.showrow .muted{font-size:12px}
 .sndrow input[type=range]{flex:1;max-width:260px;accent-color:var(--gold)}
 .soundctl .btn{align-self:flex-start}
@@ -1727,7 +1733,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 <header class="mast">
   <h1>The <span>Crawl</span></h1>
   <div class="onair"><span class="live">Live</span><span class="viewers num" id="viewers">0 viewers</span><span class="floorno" id="floorNo"></span></div>
-  <div class="sync" id="sync"><i></i><span>Opening your save…</span></div>
+  <div class="sync" id="sync" role="button" tabindex="0" aria-label="Save status"><i></i><span>Opening your save…</span></div>
   <button class="gearbtn achinbox histbtn" type="button" id="histBtn" title="Message history" aria-label="Message history">🔔</button>
   <button class="gearbtn achinbox" type="button" id="achInbox" hidden title="Achievements saved for later"></button>
   <button class="gearbtn" type="button" id="sndBtn" aria-label="Sound">🔊</button>
@@ -2970,8 +2976,14 @@ async function remoteStore(db,uid){
       const base=Math.max(localRev,p._rev||0);localRev=base+1;p._rev=localRev;const body=JSON.parse(JSON.stringify(p));body._base=base;
       return q("player",()=>pRef.set(body)).then(()=>{playerExists=true;});},
     saveTask:t=>{tRev[t.id]=Math.max(tRev[t.id]||0,t._rev||0)+1;t._rev=tRev[t.id];gone.delete(t.id);const {id,...body}=JSON.parse(JSON.stringify(t));return q("t:"+id,()=>tCol.doc(id).set(body));},
-    deleteTask:id=>{gone.add(id);return q("t:"+id,()=>tCol.doc(id).delete());}
+    deleteTask:id=>{gone.add(id);return q("t:"+id,()=>tCol.doc(id).delete());},
+    // Restore points in the account (data/users/<uid>/player/backups/<id>); needs the backups rule in firestore.rules.
+    backups:pRef.collection?{
+      put:(id,d)=>pRef.collection("backups").doc(id).trySet(d),
+      list:()=>pRef.collection("backups").list().then(ds=>ds.map(x=>Object.assign({id:x.id},x.data()))),
+      del:id=>pRef.collection("backups").doc(id).tryDelete()}:null
   };
+  RP.uid=uid;
   return api;
 }
 function localStore(){
@@ -7524,7 +7536,18 @@ function clearLog(){
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $=id=>document.getElementById(id);
 
-function setSync(cls,text){const el=$("sync");el.className="sync "+cls;el.querySelector("span").textContent=text;}
+function setSync(cls,text){const el=$("sync");if(!el)return;el.className="sync "+cls;el.querySelector("span").textContent=text;el.title=text;
+  el.dataset.short=cls==="ok"?"":cls==="saving"?"Saving…":/offline/i.test(text)?"Offline":/loading/i.test(text)?"Loading…":cls==="local"?"This device":"Not saving";}
+/* Save status that means it: a change counts as saved when the server has acknowledged it. Writes still in flight
+   for more than 1.5 s show "Saving…" (or "Offline", where they wait for a connection and then sync). */
+const SYNCQ={n:0,t:null,at:0};
+function syncTrack(p){SYNCQ.n++;clearTimeout(SYNCQ.t);SYNCQ.t=setTimeout(syncShow,1500);
+  const done=()=>{SYNCQ.n=Math.max(0,SYNCQ.n-1);if(!SYNCQ.n){SYNCQ.at=Date.now();syncShow();}};p.then(done,done);}
+function syncShow(){const el=$("sync");if(!el||!/\b(ok|saving)\b/.test(el.className))return;
+  if(SYNCQ.n>0)setSync("saving",navigator.onLine?"Saving…":"Offline. Saves will sync when you reconnect");
+  else setSync("ok","Synced to your account");}
+function syncInfo(){const el=$("sync");if(!el)return;const t=el.querySelector("span").textContent;
+  toast(t+(SYNCQ.at?` · last saved ${new Date(SYNCQ.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}`:"")+". Restore points are in Settings → Backup.");}
 
 function render(){
   const ae=document.activeElement;const aeId=ae&&ae.id;const sel=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null;
@@ -7537,6 +7560,7 @@ function render(){
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
   if(!st)try{fxTick(fxRects);}catch(e){console.warn("fx",e);}
   try{entrWatch();}catch(e){console.warn("entr",e);}
+  try{rpTick();}catch(e){}
 }
 /* ---------- Feedback FX (batch 1) ----------
    After every render, compare with the last one: damage to the boss, the mobs on you or your rival floats up off
@@ -9509,8 +9533,59 @@ function applyImport(){
   store.savePlayer(player).catch(writeFailed);
   render();toast(`<b>Imported ${n} quest${n===1?"":"s"} from Questlog.</b><br><span class="quip">${esc(fill("Fresh content for the show. {name} brought homework from another dungeon."))}</span>`,"quest");
 }
+/* ---------- Restore points ----------
+   Once a day (the first time the save is open and confirmed), and right before any restore, a copy of the whole save
+   (crawler and quests) is kept: the last 7 days plus 3 "before restore" copies on this device (IndexedDB), and the
+   same in your account once firestore.rules has the backups rule (until then the account copy quietly does nothing).
+   Settings → Backup lists them; picking one shows the usual "Replace my save" check first. */
+const RP={uid:null,db:null,list:null,loading:false,cloud:true,keepDays:7,keepPre:3};
+function rpIdb(){if(RP.db)return RP.db;RP.db=new Promise((res,rej)=>{try{const r=indexedDB.open("crawl-restore",1);
+  r.onupgradeneeded=()=>{r.result.createObjectStore("pts",{keyPath:"id"});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}catch(e){rej(e);}});return RP.db;}
+function rpTx(mode,fn){return rpIdb().then(db=>new Promise((res,rej)=>{const tx=db.transaction("pts",mode),st=tx.objectStore("pts");const out=fn(st);
+  tx.oncomplete=()=>res(out&&out.result!==undefined?out.result:undefined);tx.onerror=()=>rej(tx.error);}));}
+function rpSummary(p,ts){return {lv:levelInfo(+p.xp||0).L,gold:Math.round(+p.gold||0),open:ts.filter(t=>!t.done).length,name:p.name||""};}
+function rpPrune(list,del){const who=list.filter(x=>(x.uid||null)===(RP.uid||null));
+  const days=who.filter(x=>!x.pre).sort((a,b)=>b.at-a.at),pre=who.filter(x=>x.pre).sort((a,b)=>b.at-a.at);
+  days.slice(RP.keepDays).concat(pre.slice(RP.keepPre)).forEach(x=>del(x.id));}
+async function rpSave(pre){
+  if(!playerExists||!loadedP||!loadedT)return;
+  const d=backupData(),at=Date.now(),id=(RP.uid||"local")+"|"+today()+(pre?"|pre-"+at:"");
+  const rec=Object.assign({id,uid:RP.uid||null,at,day:today(),pre:!!pre,j:JSON.stringify(d)},rpSummary(d.player,d.tasks));
+  try{await rpTx("readwrite",st=>st.put(rec));const all=await rpTx("readonly",st=>st.getAll());rpPrune(all||[],k=>rpTx("readwrite",st=>st.delete(k)).catch(()=>{}));}catch(e){console.warn("restore point (device)",e);}
+  if(RP.cloud&&store&&store.backups&&rec.j.length<900000){
+    const cid=today()+(pre?"-pre-"+at:"");
+    store.backups.put(cid,{at,day:today(),pre:!!pre,lv:rec.lv,gold:rec.gold,open:rec.open,data:d}).then(()=>
+      store.backups.list().then(l=>rpPrune(l.map(x=>Object.assign(x,{uid:RP.uid})),k=>store.backups.del(k).catch(()=>{})))).catch(e=>{
+      if(e&&e.code==="permission-denied")RP.cloud=false;else console.warn("restore point (account)",e);});
+  }
+  RP.list=null;if(RP.loading)RP.again=true;else if($("gearWrap")&&!$("gearWrap").hidden)rpLoad();
+}
+// Called after every render: the day's first restore point, once this device holds the server's real copy.
+function rpTick(){
+  if(!playerExists||!loadedP||!loadedT||!store||(store.isFresh&&!store.isFresh()))return;
+  const k="rp:"+(RP.uid||"local");if(prefs[k]===today())return;prefs[k]=today();savePrefs();
+  setTimeout(()=>rpSave(false),3000);
+}
+async function rpLoad(){
+  if(RP.loading)return;RP.loading=true;const out=[];
+  try{(await rpTx("readonly",st=>st.getAll())||[]).filter(x=>(x.uid||null)===(RP.uid||null)).forEach(x=>out.push({src:"device",id:x.id,at:x.at,pre:x.pre,lv:x.lv,gold:x.gold,open:x.open}));}catch(e){}
+  if(RP.cloud&&store&&store.backups){try{(await store.backups.list()).forEach(x=>{
+    const at=typeof x.at==="number"?x.at:Date.now();if(out.some(o=>Math.abs(o.at-at)<60000))return; // the same copy this device already has
+    out.push({src:"account",id:x.id,at,pre:x.pre,lv:x.lv,gold:x.gold,open:x.open,data:x.data});});}catch(e){if(e&&e.code==="permission-denied")RP.cloud=false;}}
+  RP.list=out.sort((a,b)=>b.at-a.at);RP.loading=false;
+  if(RP.again){RP.again=false;RP.list=null;return rpLoad();}
+  renderBackup();
+}
+async function rpPick(id){
+  const x=(RP.list||[]).find(y=>y.id===id);if(!x)return;let d=x.data;
+  if(!d){try{const r=await rpTx("readonly",st=>st.get(id));d=r&&JSON.parse(r.j);}catch(e){}}
+  if(!d||!d.player||!Array.isArray(d.tasks)){toast("That restore point couldn't be read.","bad");return;}
+  ui.restore={player:d.player,tasks:d.tasks,at:x.at,point:true};render();
+  const bp=$("backup");if(bp&&bp.scrollIntoView)setTimeout(()=>bp.scrollIntoView({behavior:"smooth",block:"center"}),50);
+}
 function applyRestore(){
   const r=ui.restore;if(!r)return;ui.restore=null;
+  rpSave(true); // so this restore can itself be undone from the list
   const keep=new Set(r.tasks.map(t=>t.id));
   const gone=tasks.filter(t=>!keep.has(t.id));
   player=normPlayer(JSON.parse(JSON.stringify(r.player)));
@@ -9543,10 +9618,18 @@ function renderBackup(){
     const r=ui.restore,p=r.player,open=r.tasks.filter(t=>!t.done).length;
     const cur=levelInfo(player.xp).L,lv=levelInfo(+p.xp||0).L;
     h+=`<div class="restore"><div>This backup${r.at?` from <b>${esc(new Date(r.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</b>`:""} has a Level <b>${lv}</b> character with <b>${+p.xp||0}</b> XP, <b>${+p.gold||0}</b> gold and <b>${open}</b> open quest${open===1?"":"s"}.</div>
-      <div class="muted" style="font-size:14px">Restoring replaces your current save: Level ${cur}, ${player.xp} XP, ${tasks.filter(t=>!t.done).length} open quests. Download a backup of your current save first if you might want it back.</div>
+      <div class="muted" style="font-size:14px">Restoring replaces your current save: Level ${cur}, ${player.xp} XP, ${tasks.filter(t=>!t.done).length} open quests. ${r.point?"A restore point of your current save is kept first, so you can switch back from the list.":"Download a backup of your current save first if you might want it back."}</div>
       <div class="acts"><button class="btn danger" type="button" id="bkApply">Replace my save</button><button class="btn ghost" type="button" id="bkCancel">Cancel</button></div></div>`;
   }
+  if(playerExists){
+    if(!RP.list&&!RP.loading)setTimeout(rpLoad,0);
+    const fmt=t=>new Date(t).toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+    h+=`<div class="rplist"><div class="label">Restore points</div>
+      <div class="muted" style="font-size:13px">Kept automatically: one a day for the last week, plus a copy from right before any restore.${RP.cloud&&store&&store.backups?"":" On this device only."}</div>
+      ${RP.list?RP.list.length?RP.list.map(x=>`<div class="rprow"><span><b>${esc(fmt(x.at))}</b>${x.pre?` <span class="chip">before a restore</span>`:""}<br><span class="muted">Level ${x.lv} · ${(+x.gold||0).toLocaleString()} gold · ${x.open} open quest${x.open===1?"":"s"} · ${x.src==="account"?"in your account":"this device"}</span></span><button class="btn sm" type="button" data-rp="${esc(x.id)}">Restore…</button></div>`).join(""):`<div class="muted" style="font-size:13px">The first one is made today.</div>`:`<div class="muted" style="font-size:13px">Loading…</div>`}</div>`;
+  }
   el.innerHTML=h+`</div>`;
+  el.querySelectorAll("[data-rp]").forEach(b=>b.onclick=()=>rpPick(b.dataset.rp));
   $("bkDownload").onclick=downloadBackup;
   $("bkRestore").onclick=()=>{const f=$("restoreFile");f.value="";f.click();};
   const on=(id,fn)=>{const b=$(id);if(b)b.onclick=fn;};
@@ -10584,6 +10667,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.12.0",d:"2026-10-09",t:"Safety net",items:["Restore points: once a day, and right before any restore, the game keeps a copy of your whole save (crawler and quests) for the last week. Settings → Backup lists them; pick one to see what it holds before replacing your save, and you can always switch back.",
+    "The save light now means it: it turns gold and says Saving… until the server confirms your change, and Offline when it's waiting for a connection. On phones the word shows next to the light when it isn't green, and tapping the light tells you when you last saved."]},
   {v:"3.11.0",d:"2026-10-09",t:"Less waiting, more crawling",items:["New setting, After a quest (in Settings): Big moments only (the default), Every quest, or Quick. With Big moments only, the glide up, crawler cam and full quest report are saved for when a boss, rival or mob goes down, you level up or something new turns up. Ordinary quests get a slim summary just above the hotbar that tucks itself away after a few seconds (tap it to put it away sooner).",
     "Tap anywhere while the show is playing to skip straight to the report, and tap outside the report to fill in the rest or close it.",
     "News that turns up as you finish a quest (sponsor offers, floor notes) now goes into that quest's report instead of popping up over the fight."]},
@@ -10813,7 +10898,7 @@ function changelogCheck(){
   if(verNum(APP_VERSION)>verNum(prefs.seenVer)&&!ui.verToasted){ui.verToasted=true;const c=CHANGELOG[0];
     setTimeout(()=>toast(`<b>Updated to v${c.v}: ${esc(c.t)}.</b> See what changed in Settings.`,"quest",()=>openGear(),"What's new"),1800);}
 }
-function openGear(){const g=$("gearWrap");if(!g)return;renderChangelog();g.hidden=false;const c=$("gearClose");if(c)c.focus();
+function openGear(){const g=$("gearWrap");if(!g)return;renderChangelog();try{if(playerExists){if(!RP.list&&!RP.loading)rpLoad();else renderBackup();}}catch(e){}g.hidden=false;const c=$("gearClose");if(c)c.focus();
   if(prefs.seenVer!==APP_VERSION){setTimeout(()=>{prefs.seenVer=APP_VERSION;savePrefs();const b=$("gearBtn");if(b)b.classList.remove("hasnew");},400);}}
 function closeGear(){const g=$("gearWrap");if(g)g.hidden=true;const b=$("gearBtn");if(b)b.focus();}
 
@@ -11040,6 +11125,8 @@ function closeReport(){
   const tail=()=>{q.forEach((a,i)=>setTimeout(()=>achToast(a.html,a.ids,a.snd),250+i*50));stageBack();};
   if(ENTR.wait.size||ENTR.going){ENTR.after=tail;if(!ENTR.timer&&!ENTR.going)ENTR.timer=setTimeout(entrRun,300);}else tail();
 }
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#sync"))syncInfo();});
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&document.activeElement&&document.activeElement.id==="sync"){e.preventDefault();syncInfo();}});
 // Tapping anywhere while a quest's show is still building up skips straight to the report.
 document.addEventListener("pointerdown",e=>{if(REP.el||!SHOWQ.busy||!STAGE.on||Date.now()-STAGE.on<300)return;
   if(e.target.closest&&e.target.closest("#hotbar,#tabbar,.undobar,button,a,input,textarea"))return;
@@ -11232,8 +11319,10 @@ function fbDb(fs){
   const ser=d=>Object.assign({_rev:d._rev||0},typeof d._base==="number"?{b:d._base}:{},{j:JSON.stringify(d),at:firebase.firestore.FieldValue.serverTimestamp()});
   const de=s=>{const v=s.data();if(!v)return undefined;if(typeof v.j!=="string")return v;try{return JSON.parse(v.j);}catch(e){return undefined;}};
   const wrap=s=>({id:s.id,exists:s.exists,data:()=>de(s),metadata:s.metadata});
-  const fire=(p,path)=>{p.catch(e=>writeFailed(e,path));return Promise.resolve();};
+  const fire=(p,path)=>{syncTrack(p);p.catch(e=>writeFailed(e,path));return Promise.resolve();};
   const docRef=path=>{const r=fs.doc(path);return {path,id:r.id,
+    trySet:d=>r.set(ser(d)), // no error popup: the caller handles failure (restore points)
+    tryDelete:()=>r.delete(),
     // accepts Firestore's optional options object first: onSnapshot(opts, next, err) or onSnapshot(next, err)
     onSnapshot:(a,b,c)=>typeof a==="function"?r.onSnapshot(s=>a(wrap(s)),b):r.onSnapshot(a||{},s=>b(wrap(s)),c),
     set:d=>fire(r.set(ser(d)),path),
@@ -11241,7 +11330,8 @@ function fbDb(fs){
     collection:c=>colRef(path+"/"+c)};};
   const colRef=path=>{const r=fs.collection(path);return {path,
     doc:id=>docRef(path+"/"+id),
-    onSnapshot:(next,err)=>r.onSnapshot(s=>next({docs:s.docs.map(wrap),size:s.size,empty:s.empty}),err)};};
+    onSnapshot:(next,err)=>r.onSnapshot(s=>next({docs:s.docs.map(wrap),size:s.size,empty:s.empty}),err),
+    list:()=>r.get().then(s=>s.docs.map(wrap))};};
   return {doc:docRef,collection:colRef};
 }
 function signInGate(auth){

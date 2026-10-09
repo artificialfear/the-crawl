@@ -102,6 +102,34 @@ def main():
             check("save loop: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- save status: a write the server hasn't acknowledged shows "Saving…" ----
+            pg, errs = page()
+            E(pg, FAKE_FS)
+            E(pg, "fakeFs.doc=(orig=>path=>{const d=orig(path);d.set=x=>{F.writes.push(x);return new Promise(r=>{(window.__acks=window.__acks||[]).push(r);});};return d;})(fakeFs.doc)")
+            E(pg, "remoteStore(fbDb(fakeFs),'u2').then(s=>{store=s;const t=F.cbs['data/users/u2/player/tasks'];if(t)t({docs:[],size:0,empty:true});})"); pg.wait_for_timeout(200)
+            E(pg, "fire('data/users/u2/player',{name:'Mat',_rev:3,gold:10,xp:10},false)"); pg.wait_for_timeout(200)
+            E(pg, "setSync('ok','Synced to your account');player.gold=11;store.savePlayer(player)"); pg.wait_for_timeout(1800)
+            check("unacknowledged save shows Saving…", "saving" in E(pg, "$('sync').className"), E(pg, "$('sync').className"))
+            E(pg, "__acks.forEach(r=>r())"); pg.wait_for_timeout(200)
+            check("acknowledged save shows synced", "ok" in E(pg, "$('sync').className"))
+            pg.close()
+
+            # ---- restore points: made, listed, restored, and the restore itself undoable ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            E(pg, "player.gold=1234;player.name='Point Mat';rpSave(false)"); pg.wait_for_timeout(400)
+            E(pg, "player.gold=5;player.name='Later Mat';RP.list=null;rpLoad()"); pg.wait_for_timeout(400)
+            n = E(pg, "(RP.list||[]).length")
+            check("restore point listed", n >= 1, str(n))
+            E(pg, "rpPick(RP.list[0].id)"); pg.wait_for_timeout(300)
+            check("restore point opens the replace check", E(pg, "!!(ui.restore&&ui.restore.point)") and E(pg, "!!document.getElementById('bkApply')"))
+            E(pg, "applyRestore()"); pg.wait_for_timeout(500)
+            check("restore point restores the save", E(pg, "player.name") == "Point Mat", E(pg, "player.name"))
+            E(pg, "RP.list=null;rpLoad()"); pg.wait_for_timeout(400)
+            check("restoring keeps a 'before restore' point", E(pg, "RP.list.some(x=>x.pre&&x.gold===5)"))
+            check("restore points: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- finishing a quest from low on the board ----
             pg, errs = page()
             pg.evaluate(SETUP)

@@ -14,6 +14,10 @@ service cloud.firestore {
       match /tasks/{taskId} {
         allow read, write: if owner(uid);
       }
+      // Daily restore points (the last week, plus copies made right before a restore). Only the owner.
+      match /backups/{pointId} {
+        allow read, write: if owner(uid);
+      }
     }
 
     function signedIn() { return request.auth != null; }
