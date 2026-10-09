@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=779f185f81"></script>
-<script>window.CRAWL_BUILD="779f185f81";</script>
+<script src="firebase-config.js?v=c5c843e4e8"></script>
+<script>window.CRAWL_BUILD="c5c843e4e8";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -134,14 +134,19 @@ body.has-hb.has-sp{padding-bottom:204px}
 body.has-hb.has-sp .toasts{bottom:calc(166px + env(safe-area-inset-bottom,0px))}
 .bar.mp>b{background:repeating-linear-gradient(-45deg,var(--mana) 0 3px,#1a8fc4 3px 5px);box-shadow:0 0 10px rgba(63,224,255,.4)}
 .sb-hint{font-size:13px;margin:8px 0 6px}
-.sb-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-.sb-row{display:flex;gap:10px;align-items:center;padding:8px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel-2)}
+.sb-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;container-type:inline-size}
+.sb-row{display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:12px;row-gap:10px;align-items:start;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel-2)}
+.sb-name{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.sb-cost{font-size:11.5px;font-weight:700;letter-spacing:.02em;padding:1px 7px;border-radius:999px;background:rgba(80,140,255,.16);border:1px solid #4a6ab8;color:#9fc0ff}
+.sb-cost.low{opacity:.65}.sb-cost.party{background:rgba(255,210,63,.12);border-color:#9a7a20;color:var(--gold)}
+.sb-row .what .sb-d{font-size:13px;line-height:1.4;color:var(--muted)}
 .sb-row.on{border-color:#5a7ad0;box-shadow:inset 0 0 0 1px #5a7ad0}
 .sb-row.tome{border-style:dashed;border-color:var(--gold)}
 .sb-ico{flex:none;width:40px;height:40px;line-height:0}.sb-ico svg{width:100%;height:100%;border-radius:8px}
-.sb-row .what{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.sb-row .what span{font-size:13px;color:var(--muted)}
-.sb-btns{display:flex;gap:6px;flex:none}
-@media (max-width:520px){.sb-row{flex-wrap:wrap}.sb-btns{width:100%;justify-content:flex-end}}
+.sb-row .what{min-width:0;display:flex;flex-direction:column;gap:4px}.sb-row.tome .what span{font-size:13px;color:var(--muted)}
+.sb-row.tome{grid-template-columns:40px minmax(0,1fr) auto;align-items:center}
+.sb-btns{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}
+@container (min-width:520px){.sb-row:not(.tome){grid-template-columns:40px minmax(0,1fr) auto;align-items:center}.sb-row:not(.tome) .sb-btns{grid-column:3;grid-row:1}}
 #sheet.casting,#hotbar.casting{animation:castglow 1.2s ease-out}
 .spellfx{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;cursor:pointer;background:radial-gradient(circle at 50% 44%,color-mix(in srgb,var(--sc) 30%,rgba(5,3,12,.86)),rgba(5,3,12,.93) 62%);animation:sfx-in .2s both}
 .spellfx.out{animation:sfx-out .22s both}
@@ -5558,7 +5563,7 @@ function renderSpellbook(){
   let h=`<div class="barrow"><div class="top"><span class="label">Mana</span><span class="num">${mp} / ${MP_MAX}</span></div><div class="bar mp" role="progressbar" aria-label="Mana" aria-valuemin="0" aria-valuemax="${MP_MAX}" aria-valuenow="${mp}"><b style="width:${(mp/MP_MAX*100).toFixed(1)}%"></b></div></div>`;
   h+=`<p class="muted sb-hint">Finished quests charge mana (bigger quests more; INT helps). <b>${pr.length} of ${n}</b> spells prepared on your hotbar${n<4?` · ${n<3?"3 slots at level 10":"4 slots at level 20"}`:""}.</p>`;
   if(tomes.length)h+=`<div class="sb-list">${tomes.map((id,i)=>{const S=SPELLS[id];return `<div class="sb-row tome"><span class="sb-ico">${tomeIcon(id)}</span><div class="what"><b class="rar-${S.rar}">Tome of ${esc(S.n)}</b><span>${RARITY[S.rar].n} · unread</span></div><button class="btn gold sm" type="button" data-sbread="${id}">Read</button></div>`;}).join("")}</div>`;
-  h+=`<div class="sb-list">${known.map(id=>{const S=SPELLS[id],on=pr.includes(id);return `<div class="sb-row${on?" on":""}"><span class="sb-ico">${spellIcon(id)}</span><div class="what"><b class="rar-${S.rar}">${esc(S.n)}</b><span>${S.cost} mana · ${esc(S.d)}${S.party?" · party":""}</span></div>
+  h+=`<div class="sb-list">${known.map(id=>{const S=SPELLS[id],on=pr.includes(id);return `<div class="sb-row${on?" on":""}"><span class="sb-ico">${spellIcon(id)}</span><div class="what"><div class="sb-name"><b class="rar-${S.rar}">${esc(S.n)}</b><span class="sb-cost${mp<S.cost?" low":""}">${S.cost} mana</span>${S.party?`<span class="sb-cost party">Party</span>`:""}</div><span class="sb-d">${esc(S.d)}.</span></div>
     <div class="sb-btns"><button class="btn sm" type="button" data-sbcast="${id}" ${mp<S.cost?"disabled":""}>Cast</button><button class="btn ghost sm" type="button" data-sbprep="${id}">${on?"Unprepare":"Prepare"}</button></div></div>`;}).join("")}</div>`;
   if(el.dataset.h===h)return;el.dataset.h=h;el.innerHTML=h;
   el.querySelectorAll("[data-sbread]").forEach(b=>b.onclick=()=>readTome(b.dataset.sbread));
