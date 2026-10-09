@@ -1072,6 +1072,12 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 .soundctl{display:flex;flex-direction:column;gap:10px;margin-top:8px}
 .sndrow{display:flex;align-items:center;gap:10px;font-size:14px}
 .rplist{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.guide-q{width:100%;margin:8px 0}
+.toast.guide{border-color:var(--mana)}.toast.guide .guide-t{display:block;color:var(--mana);margin-bottom:2px}
+.guide-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.guide-it{background:var(--panel-2);border-radius:6px;padding:8px 10px;font-size:14px}
+.guide-it summary{cursor:pointer}.guide-it p{margin:6px 0 0}.guide-it .muted{font-size:13px}
+.guide-it.guide-hi{box-shadow:0 0 0 2px var(--gold)}
 .rprow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:6px;font-size:14px}
 .rprow .muted{font-size:12px}
 .showrow{align-items:flex-start}.showrow input{margin-top:3px}.showrow>span{display:flex;flex-direction:column;gap:2px}.showrow .muted{font-size:12px}
@@ -1890,6 +1896,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 <section class="panel" aria-label="Install the app"><h2>Install the app</h2><div class="soundctl" id="installCtl"></div></section>
 <section class="panel" aria-label="After a quest"><h2>After a quest</h2><div class="soundctl" id="showCtl"></div></section>
 <section class="panel" aria-label="Sound"><h2>Sound</h2><div class="soundctl" id="soundCtl"></div></section>
+<section class="panel" aria-label="Field guide"><h2>Field guide</h2><div id="guideBox"></div></section>
 <section class="panel" aria-label="How the show works"><details open>
         <summary class="label" style="margin-top:12px">How the show works</summary>
         <div class="rules">
@@ -7544,6 +7551,7 @@ function render(){
   if(!st)try{fxTick(fxRects);}catch(e){console.warn("fx",e);}
   try{entrWatch();}catch(e){console.warn("entr",e);}
   try{rpTick();}catch(e){}
+  try{guideTick();}catch(e){}
 }
 /* ---------- Feedback FX (batch 1) ----------
    After every render, compare with the last one: damage to the boss, the mobs on you or your rival floats up off
@@ -10650,6 +10658,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.14.0",d:"2026-10-09",t:"Field guide",items:["New crawlers meet the game one piece at a time: the first time a mob jumps you, a rival hunts you, you learn a spell, get potion-sick and so on, a short Field guide card explains it, with More for the full entry. Cards never show during a quest's show, one at a time.",
+    "Settings → Field guide lists every entry with a search box. Crawlers who've finished 25+ quests start with the cards already marked as seen; \"Show the cards again\" brings them back."]},
   {v:"3.13.1",d:"2026-10-09",t:"Out of the way",items:["On phones the potion and spell bar now sits at the bottom left, so it never covers the Complete and ⋯ buttons down the right side of your quests. If your bar gets too long to fit beside them, it wraps to two rows instead."]},
   {v:"3.13.0",d:"2026-10-09",t:"Home screen",items:["The Crawl can live on your home screen like an app: full screen, no browser bar, faster to open and it works with no signal. Settings → Install the app has an Install button (Android and computers) or the exact steps (iPhone), and phones get one reminder after a few quests.",
     "Every sound is now stored on your device the first time you open a new version, so sounds play instantly and work offline."]},
@@ -10886,6 +10896,58 @@ function showUpdate(j){
 }
 setInterval(()=>{if(document.visibilityState==="visible")checkForUpdate();},4*6e4);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkForUpdate();});
+/* ---------- Field guide ----------
+   The game has a lot of systems, and a new crawler meets them one at a time. The first time each one turns up, a
+   short card explains it (one at a time, never during a quest's show), with More opening its full entry here.
+   Settings → Field guide lists every entry with a search box. Crawlers with 25+ quests done start with the cards
+   marked as seen (they've met it all); "Show the cards again" resets them. Seen cards are per device. */
+const GUIDE=[
+  {id:"quest",t:"Quests",when:p=>true,line:"Every quest you finish is an attack: it pays XP and gold and hits whatever you're fighting. Overdue quests rot and hit you back each morning.",
+    more:"Tap ✓ to finish a quest at your estimate, or ⋯ → Complete with time taken to enter how long it really took (close guesses earn a +15% accuracy bonus). Quests hit the boss on your floor, mobs that are on you and any rival crawler hunting you. Overdue quests wound you each morning, more for bigger quests and the longer they rot."},
+  {id:"boss",t:"Bosses and floors",when:p=>!!p.boss,line:"Each week is a floor with bosses hidden in lairs. Find them on the Floor map as you finish quests, beat them for loot boxes, and reach the stairwell before it closes.",
+    more:"Bosses have HP; your quests' damage takes it down. Every finished quest also moves you a room on the Floor map, where you find lairs, chests, traps and ambushes. The stairwell closes at the end of the week, and any bosses left behind just stay there, with no penalty beyond the loot you missed."},
+  {id:"mob",t:"Mobs",when:p=>(p.mobs||[]).length>0,line:"A mob is on you. Your next quests hit it first, and until it's gone it nips you for HP each quest. Tap its card to poke it for a little damage.",
+    more:"Mobs come in families, and each family has a twist that its card explains: ghosts can only be hurt by spells and fade at dawn, some hide their HP, some steal, some split. You can poke a mob a few times a day for tiny damage. Mobs give XP when they go down, and a few drop loot."},
+  {id:"rival",t:"Rival crawlers",when:p=>!!p.rival,line:"A rival crawler is hunting you. Every quest hits them and they hit back, but they can't knock you out overnight. Bribe them, run, or beat them for their loot.",
+    more:"Rivals come from the rankings. Each quest you finish hits them; they hit back each quest and overnight. If they knock you out, they take something from your backpack (an unopened loot box first). Beat them and you get their loot. Attack spells can hit them too, twice a day each, up to a quarter of their HP per cast. Crewmates can help from the Party tab."},
+  {id:"box",t:"Loot boxes",when:p=>(p.boxes||[]).length>0,line:"You have a loot box. Boxes only open somewhere safe (the Safe Room tab or your quarters), and carrying unopened ones makes rival crawlers more likely to jump you.",
+    more:"Boxes come from bosses, achievements, level-ups and the shop. Open them in the Safe Room tab, your quarters or the Communal Hall. Contents are random: gold, potions or gear from Common to Legendary; duplicates turn into gold."},
+  {id:"spell",t:"Spells and mana",when:p=>(p.spells||[]).length>0,line:"You know a spell. Finishing quests fills your mana (and it refills slowly on its own, faster with more Intelligence). Tap a spell on your bar, pick a target, check the damage, then Cast.",
+    more:"Spells live on your hotbar; the ring around the belt button is your mana. Attack spells can hit the boss, a mob, your rival or a crewmate's rival; others heal, shield or move you. Every spell asks you to confirm before it goes off. Mana Potions (Shop) refill mana."},
+  {id:"sick",t:"Potion sickness",when:p=>!!p.sickUntil&&p.sickUntil>Date.now(),line:"Potion sickness: drinking potions close together makes you sick for a while. Drink another while sick and it poisons you instead.",
+    more:"Each potion (health, mana or focus) makes you potion-sick for a short time, shown on the hotbar. Drinking while sick poisons you: you lose a little HP every 15 minutes until you drink an Antidote (Shop). Poison never takes you below 1 HP, and each extra dose makes it hit harder."},
+  {id:"poison",t:"Poison",when:p=>!!p.poison,line:"You're poisoned: you lose a little HP every 15 minutes. An Antidote from the Shop cures it.",more:"Poison comes from drinking a potion while you're potion-sick, and each extra dose makes it hit harder. It never takes you below 1 HP. Antidotes are in the Safe Room shop."},
+  {id:"god",t:"Gods",when:p=>{try{return godsUnlocked();}catch(e){return false;}},line:"The gods have noticed you. Pick a patron on the Hero tab: keep them pleased and they bless you, anger them and they hit back.",
+    more:"Each god likes some kinds of quests and hates others, and has a power for their chosen crawler. Their favor rises and falls with what you do. Switching or angering a god can bring a few days of wrath."},
+  {id:"party",t:"Your party",when:p=>!!(party&&party.doc),line:"You're in a party. Help crewmates fight their rivals, chat, and walk the weekly raid maze together toward the raid boss.",
+    more:"The Party tab shows your crew's cards, chat and the shared raid floor. Every quest walks you a room toward the raid boss's lair; damage only lands once you're in the lair. You can help a crewmate with a rival who's hunting them."},
+  {id:"pet",t:"Pets",when:p=>!!p.pet,line:"Your pet gives a bonus that grows as your bond does. Every quest builds bond; go a few days without finishing one and it sulks (no bonus) until you do.",
+    more:"Pick one of seven starters; three more hatch from Mystery Eggs. Only your active pet's bonuses count, and only it gains bond (levels 1 to 10)."},
+];
+function guideSeen(){try{return prefs.guide||(prefs.guide={});}catch(e){return {};}}
+let guideAt=0;
+function guideTick(){
+  if(!playerExists||!loadedP)return;const seen=guideSeen(),p=player;
+  if(!prefs.guideInit){prefs.guideInit=1;if((p.doneCount||0)>=25)GUIDE.forEach(g=>seen[g.id]=1);savePrefs();}
+  const g=GUIDE.find(x=>!seen[x.id]&&(()=>{try{return x.when(p);}catch(e){return false;}})());if(!g)return;
+  // busy (a quest's show, a popup, Settings open): try again shortly rather than waiting for the next redraw
+  const busy=Date.now()-guideAt<20000||REP.el||SHOWQ.busy||staged()||ENTR.going||ENTR.wait.size
+    ||document.querySelector(".victory,#zoomWrap,.updbar,#toasts .toast")||($("gearWrap")&&!$("gearWrap").hidden);
+  if(busy){if(!guideTick.t)guideTick.t=setTimeout(()=>{guideTick.t=null;try{guideTick();}catch(e){}},6000);return;}
+  seen[g.id]=1;savePrefs();guideAt=Date.now();
+  setTimeout(()=>toastH(`<b class="guide-t">📖 Field guide: ${esc(g.t)}</b>${esc(g.line)}`,"quest guide",()=>openGuide(g.id),"More"),1500);
+}
+function openGuide(id){openGear();renderGuide();setTimeout(()=>{const e=$("guide-"+id);if(e){e.open=true;e.scrollIntoView({behavior:"smooth",block:"center"});fxPulse(e,"guide-hi",1600);}},150);}
+function renderGuide(){
+  const el=$("guideBox");if(!el)return;const q=(ui.guideQ||"").trim().toLowerCase();
+  if(!el.dataset.wired){el.dataset.wired="1";
+    el.innerHTML=`<input class="guide-q" id="guideQ" type="text" inputmode="search" placeholder="Search: mana, rivals, poison…" aria-label="Search the field guide"><div class="guide-list" id="guideList"></div>
+      <button class="btn ghost sm" type="button" id="guideReset">Show the cards again</button>`;
+    $("guideQ").oninput=e=>{ui.guideQ=e.target.value;renderGuide();};
+    $("guideReset").onclick=()=>{prefs.guide={};prefs.guideInit=1;savePrefs();guideAt=0;toast("Field guide cards will show again as you meet each system.");};}
+  const list=GUIDE.filter(g=>!q||(g.t+" "+g.line+" "+g.more).toLowerCase().includes(q));
+  $("guideList").innerHTML=list.length?list.map(g=>`<details class="guide-it" id="guide-${g.id}"><summary><b>${esc(g.t)}</b></summary><p>${esc(g.line)}</p><p class="muted">${esc(g.more)}</p></details>`).join(""):`<div class="muted">Nothing matches. The rules list below covers the numbers.</div>`;
+}
 /* ---------- Install ----------
    The Crawl can already be added to a home screen (it opens full screen and works offline); this tells players so.
    Android and desktop Chrome get a real Install button; iPhone gets the Share → Add to Home Screen steps.
@@ -10922,7 +10984,7 @@ function changelogCheck(){
   if(verNum(APP_VERSION)>verNum(prefs.seenVer)&&!ui.verToasted){ui.verToasted=true;const c=CHANGELOG[0];
     setTimeout(()=>toast(`<b>Updated to v${c.v}: ${esc(c.t)}.</b> See what changed in Settings.`,"quest",()=>openGear(),"What's new"),1800);}
 }
-function openGear(){const g=$("gearWrap");if(!g)return;renderChangelog();try{renderShowCtl();renderInstallCtl();}catch(e){}try{if(playerExists){if(!RP.list&&!RP.loading)rpLoad();else renderBackup();}}catch(e){}g.hidden=false;const c=$("gearClose");if(c)c.focus();
+function openGear(){const g=$("gearWrap");if(!g)return;renderChangelog();try{renderShowCtl();renderInstallCtl();renderGuide();}catch(e){}try{if(playerExists){if(!RP.list&&!RP.loading)rpLoad();else renderBackup();}}catch(e){}g.hidden=false;const c=$("gearClose");if(c)c.focus();
   if(prefs.seenVer!==APP_VERSION){setTimeout(()=>{prefs.seenVer=APP_VERSION;savePrefs();const b=$("gearBtn");if(b)b.classList.remove("hasnew");},400);}}
 function closeGear(){const g=$("gearWrap");if(g)g.hidden=true;const b=$("gearBtn");if(b)b.focus();}
 

@@ -242,6 +242,23 @@ def main():
             check("360px: hotbar clear of quest buttons", not under, under)
             pg.close()
 
+            # ---- field guide: a new crawler gets a card for a mob, once ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            E(pg, "prefs.guide={};prefs.guideInit=1;guideAt=0;player.doneCount=2;document.querySelectorAll('#toasts .toast').forEach(n=>n.remove());render()")
+            pg.wait_for_timeout(2200)
+            first = E(pg, "[...document.querySelectorAll('#toasts .toast')].map(t=>t.textContent).join('|')")
+            check("field guide: first card shows", "Quests" in first or "Bosses" in first, first[:80])
+            E(pg, "GUIDE.forEach(g=>prefs.guide[g.id]=1);delete prefs.guide.mob;guideAt=0;document.querySelectorAll('#toasts .toast').forEach(n=>n.remove());player.mobs=[{id:'m9',n:'Rat Swarm',k:'rat',a:'A',pack:false,hp:30,max:30}];render()")
+            pg.wait_for_timeout(300); E(pg, "document.querySelectorAll('#toasts .toast').forEach(n=>n.remove())")
+            pg.wait_for_timeout(8000)
+            t = E(pg, "[...document.querySelectorAll('#toasts .toast')].map(t=>t.textContent).join('|')")
+            check("field guide: mob card", "Mobs" in t, t[:80])
+            E(pg, "openGear();ui.guideQ='poison';renderGuide()")
+            check("field guide: search finds poison", E(pg, "document.querySelectorAll('#guideList .guide-it').length") >= 1 and "Poison" in E(pg, "$('guideList').textContent"))
+            check("field guide: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- reduced motion still completes a quest ----
             pg, errs = page(reduced_motion="reduce")
             pg.evaluate(SETUP)

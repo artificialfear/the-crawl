@@ -149,3 +149,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 ## Phone hotbar placement (v3.13.1)
 - Phones: `.hotbar` is left-aligned (`left:max(8px,safe-area)`, no transform) so the right-hand quest buttons stay clear; `hbFit` wraps to `.two` when the one-row width exceeds `innerWidth-110` on phones (16 on desktop).
 - tests/smoke.py now also checks that no quest's Complete/⋯ button center sits under the hotbar at any scroll position.
+
+## Field guide (v3.14.0)
+- `GUIDE` entries {id,t,when(p),line,more}; `guideTick()` at the end of render shows the first unseen entry whose `when` is true as a `.toast.guide` (More → `openGuide(id)`), one per 20 s, never while a report/show/entrance/victory/zoom/toast/Settings is up (retries in 6 s). Seen state is per device in `prefs.guide`; `prefs.guideInit` marks everything seen for crawlers with 25+ quests. Settings → Field guide (`renderGuide`, search `ui.guideQ`, reset button).
+- When adding a system, add a GUIDE entry for it.
