@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=9a5398b3a6"></script>
-<script>window.CRAWL_BUILD="9a5398b3a6";</script>
+<script src="firebase-config.js?v=7f5b6d9d05"></script>
+<script>window.CRAWL_BUILD="7f5b6d9d05";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5445,7 +5445,8 @@ function castSpell(id,ok){
   switch(id){
     case "firebolt":case "chain":{
       const T=spellTargets(id),ok=T.filter(x=>!x.err);
-      if(!ok.length)return no(T.length?T[T.length-1].err:"There's nothing to hit right now.");
+      // nothing hittable: explain every target, the one you were likely aiming at (mob, rival) first and the boss last
+      if(!ok.length)return no(T.length?T.map(x=>x.err).join(" "):"There's nothing to hit right now.");
       // always confirm: one target goes straight to its aim card, several open the picker first
       return ok.length===1?spellAim(id,ok[0],T):spellPick(id,T);}
     case "charm":{
@@ -5490,12 +5491,12 @@ function rvSpellRoom(rv){const td=today(),u=player.rvSp&&player.rvSp.id===rv.id&
 function spellTargets(id){const T=[],dmg=spellDmg(id),ms=player.mobs||[];
   if(ms.length){const lead=ms[0];T.push({k:"mob",label:`${lead.n}${ms.length>1?` (+${ms.length-1} more)`:""}`,note:`about ${dmg} damage, through the mobs in order`});}
   const rv=player.rival;
-  if(rv){const room=rvSpellRoom(rv);T.push(room>0?{k:"rival",label:`${rv.n}, rival crawler`,note:`up to ${Math.min(dmg,room,rv.hp)} damage`}:{k:"rival",err:`${rv.n} has taken all the spell damage they will today. Quests still hit them.`});}
+  if(rv){const room=rvSpellRoom(rv);T.push(room>0?{k:"rival",label:`${rv.n}, rival crawler`,note:`up to ${Math.min(dmg,room,rv.hp)} damage`}:{k:"rival",err:`You can't hit ${rv.n} with spells again today: they've taken all the spell damage they will. Quests still hit them, and spells work on them again tomorrow.`});}
   // rivals hunting your crewmates
   try{for(const [u,c] of huntedMates()){const R=c.rvl,who=c.name||"your crewmate",first=String(who).split(/[\s#]/)[0]||"Crewmate";
     const room=mateSpellRoom(R);
     T.push(R.hp<=1?{k:"mate:"+u,err:`${R.n} is hanging on by a thread. Only ${who} can finish them.`}
-      :room<=0?{k:"mate:"+u,err:`${R.n} (hunting ${who}) has taken all the spell damage they will today.`}
+      :room<=0?{k:"mate:"+u,err:`You can't hit ${R.n} (hunting ${who}) with spells again today: they've taken all the spell damage they will. Spells work on them again tomorrow.`}
       :{k:"mate:"+u,label:`${R.n}, hunting ${who}`,btn:`${first}'s rival`,note:`up to ${Math.min(dmg,room)} damage (only ${who} can land the final blow)`});}}catch(e){}
   const b=spellBossHit(id==="chain"?1.5:1,true);
   T.push(b.err?{k:"boss",err:b.err}:{k:"boss",label:b.hunt?"The boss (into your Charge)":`${player.boss.name||"The boss"}`,note:`${b.dmg} damage`});
@@ -5535,13 +5536,13 @@ function spellStrike(id,k){const S=SPELLS[id];if((player.mp||0)<S.cost){payMana(
     payMana(id);const lead=player.mobs[0],out=mobFight(0,null,{spell:true,raw:dmg});
     castDone(id,`${verb} ${esc(lead.n)} for <b>${dmg}</b>. ${out.map(esc).join(" ")}`);return;}
   if(k.startsWith("mate:")){const u=k.slice(5),c=party&&party.cards&&party.cards[u],R=c&&c.rvl;if(!R){toast("That rival isn't hunting your crewmate anymore.","bad");return;}
-    const room=mateSpellRoom(R);if(room<=0){toast(`${R.n} can't take any more spell damage today.`,"bad");return;}
+    const room=mateSpellRoom(R);if(room<=0){toast(`You can't hit ${R.n} with spells again today. Spells work on them again tomorrow.`,"bad");return;}
     payMana(id);const d=Math.min(dmg,room),td=today(),who=c.name||"your crewmate";
     player.asSp=Object.assign({},player.asSp||{});const prev=player.asSp[R.id]&&player.asSp[R.id].n||0;player.asSp[R.id]={to:u,n:prev+d};
     {const ks=Object.keys(player.asSp);if(ks.length>6)ks.slice(0,ks.length-6).forEach(x=>delete player.asSp[x]);}
     player.asSpDay={rid:R.id,d:td,n:(player.asSpDay&&player.asSpDay.rid===R.id&&player.asSpDay.d===td?player.asSpDay.n:0)+d};bump("spellAssist");
     castDone(id,`${verb} ${esc(R.n)} for <b>${d}</b>. It lands on ${esc(who)}'s game the next time it syncs; the final blow is theirs.`);partyPublish(true);return;}
-  if(k==="rival"){const rv=player.rival;if(!rv){toast("Your rival is gone.","bad");return;}const room=rvSpellRoom(rv);if(room<=0){toast(`${rv.n} has taken all the spell damage they will today.`,"bad");return;}
+  if(k==="rival"){const rv=player.rival;if(!rv){toast("Your rival is gone.","bad");return;}const room=rvSpellRoom(rv);if(room<=0){toast(`You can't hit ${rv.n} with spells again today. Quests still hit them, and spells work on them again tomorrow.`,"bad");return;}
     payMana(id);const d=Math.min(dmg,room,rv.hp),td=today();rv.hp-=d;
     player.rvSp={id:rv.id,d:td,n:(player.rvSp&&player.rvSp.id===rv.id&&player.rvSp.d===td?player.rvSp.n:0)+d};bump("spellRival");
     if(rv.hp<=0){const out=[];rivalDown(out,null);ui.rivalWin=null;castDone(id,`${verb} ${esc(rv.n)} for <b>${d}</b>. ${out.map(esc).join(" ")}`);
