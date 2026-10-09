@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=a29a70fecb"></script>
-<script>window.CRAWL_BUILD="a29a70fecb";</script>
+<script src="firebase-config.js?v=5ff23e5bf2"></script>
+<script>window.CRAWL_BUILD="5ff23e5bf2";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1112,6 +1112,13 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 /* Crawler cam: a picture-in-picture of your crawler that slides in after a quest when the Hero tab isn't on screen */
 .crawlcam{position:fixed;z-index:25;right:10px;width:104px;pointer-events:none;opacity:0;transform:translateX(125%);transition:transform .35s cubic-bezier(.2,.9,.3,1.15),opacity .25s}
 .crawlcam.in{opacity:1;transform:none}
+/* Entrances: a newcomer's card waits hidden behind the popups, then slams in with a stamp */
+.entr-wait,.entr-pre{opacity:0!important;pointer-events:none}
+.entr-in{animation:entrin .7s cubic-bezier(.2,1.3,.4,1)}
+@keyframes entrin{0%{opacity:0;transform:translateY(-26px) scale(1.12)}55%{opacity:1;transform:translateY(3px) scale(.98)}75%{transform:translate(-3px,0) rotate(-.6deg)}90%{transform:translate(2px,0)}100%{transform:none}}
+.entrstamp{position:absolute;z-index:24;pointer-events:none;transform:translate(-50%,-50%) rotate(-7deg);font:400 30px/1 var(--comic);letter-spacing:.05em;color:#fff;background:var(--blood);padding:6px 14px 4px;border:3px solid #111;box-shadow:4px 4px 0 #111;white-space:nowrap;animation:entrstamp 1.25s ease-out forwards}
+.entrstamp.es-boss{background:#7a1fd8}.entrstamp.es-rv{background:#ff8a1f;color:#111}
+@keyframes entrstamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-7deg) scale(2.2)}18%{opacity:1;transform:translate(-50%,-50%) rotate(-7deg) scale(.95)}26%{transform:translate(-50%,-50%) rotate(-7deg) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-7deg) scale(1.04)}}
 .crawlcam .cc-av{position:relative;border-radius:4px;box-shadow:0 6px 18px rgba(0,0,0,.6)}
 .crawlcam .camtag{font-size:7.5px}
 #crawlCam.av-hit .cc-av{animation:fxshake .45s ease-out}#crawlCam.av-hit .cc-av::after{content:"";position:absolute;inset:0;border-radius:4px;background:rgba(255,40,40,.42);pointer-events:none;animation:fxflash .6s ease-out forwards}
@@ -1124,7 +1131,7 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
   .avatar .print svg .breathe,.zoomdlg.z-me .zoom-art svg .breathe,.lk-prev svg .breathe{animation:breathe 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
   .avatar .print svg .eyes,.zoomdlg.z-me .zoom-art svg .eyes,.lk-prev svg .eyes,.pt-av svg .eyes{animation:blink 5.3s infinite;transform-box:fill-box;transform-origin:50% 50%}
 }
-@media (prefers-reduced-motion:reduce){.fxnum{animation:fxfade 1.3s ease-out forwards}.fx-shake,#sheet.av-hit .avatar,#sheet.av-hop .avatar .print,#sheet.av-lvl .avatar,#crawlCam .cc-av,#crawlCam .print{animation:none}.crawlcam{transition:none}}
+@media (prefers-reduced-motion:reduce){.fxnum{animation:fxfade 1.3s ease-out forwards}.fx-shake,#sheet.av-hit .avatar,#sheet.av-hop .avatar .print,#sheet.av-lvl .avatar,#crawlCam .cc-av,#crawlCam .print{animation:none}.crawlcam{transition:none}.entr-in{animation:none}}
 .fxdeath{position:absolute;z-index:949;pointer-events:none;width:0;height:0}
 .fd-puff{position:absolute;left:-70px;top:-70px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,var(--c) 0,transparent 68%);opacity:.85;animation:fdpuff .7s ease-out forwards}
 .fd-p{position:absolute;left:0;top:0;transform:translate(-50%,-50%);font:900 24px/1 sans-serif;-webkit-text-stroke:1.4px #000;animation:fdfly 1.1s cubic-bezier(.2,.7,.4,1) forwards}
@@ -1361,7 +1368,9 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .godperks{list-style:none;padding:0;margin:0 0 8px;font-size:13px;color:var(--faint)}.godperks li{margin:3px 0}.godperks li::before{content:"○ "}.godperks li.on{color:var(--leaf)}.godperks li.on::before{content:"● "}
 .godwrath{border:1px solid var(--blood);border-radius:8px;padding:6px 9px;margin:8px 0;font-size:13px;background:rgba(255,46,110,.08)}
 .godconfirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px}
-.toast.ach .achacts{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.toast.ach{flex-wrap:wrap;align-items:flex-start}
+.toast.ach>span{flex:1 1 100%}
+.toast.ach .achacts{display:flex;gap:6px;justify-content:flex-end;align-items:center;flex:1 1 100%;margin-top:4px}
 .toast.ach .achmore{flex:1;align-self:center;font-size:12px;color:var(--muted)}
 .achinbox{position:relative;width:auto;padding:0 8px;gap:3px;display:inline-flex;align-items:center;font-size:15px}.achinbox[hidden]{display:none}
 .achinbox .num{font-size:12px;font-weight:700;color:var(--gold)}
@@ -3144,7 +3153,7 @@ function lootToast(l){
   const after=()=>{
     if(done)return;done=true;
     ui.mapDrop=null;
-    if(nb&&!nb.defeated&&!hunting(nb))setTimeout(bossAppear,500); // the next boss on the ladder steps up
+    if(nb&&!nb.defeated&&!hunting(nb))setTimeout(()=>{if(!ENTR.wait.has("boss"))bossAppear();},500); // the next boss on the ladder steps up (with its entrance, if it's waiting for one)
     if(ui.celestialNote){const f=ui.celestialNote;ui.celestialNote=null;setTimeout(()=>{SFX.play("reveal","magical");toast(`<span class="big">A Celestial Box</span> The ceiling of Floor ${f} cracked open and something from the stars landed at your feet. It's in your Inventory.`,"lvl");},1400);}
     toast(`<span class="big">${esc(t.n)} defeated</span> ${esc(boxText)} ${boxes.length>1?"are":"is"} waiting in your loot boxes.`,"lvl",()=>goBoxes(),"To the Safe Room");
     if(nb&&!nb.defeated&&!hunting(nb))setTimeout(()=>say("next",{boss:nb.name,tier:TIERS[nb.tier].n}),1200);
@@ -7085,7 +7094,7 @@ function completeQuest(id,actual,touched){
   const lairLi=ui.lairFound!=null&&!ui.ambush?ui.lairFound:null;ui.lairFound=null;
   let ambushBeat=null;
   if(ui.ambush){const a=ui.ambush;ui.ambush=null;
-    ambushBeat=()=>{bossAppear();toast(`<span class="big">${a.roam?"It found you!":"Ambush!"}</span> ${a.roam?`<b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}, roams this floor and just jumped you.`:`You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.`}${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?" Fight it out, or retreat from the boss window.":" It blocks the corridor until it falls."):""}`,"lvl");};
+    ambushBeat=()=>{if(!ENTR.wait.has("boss"))bossAppear();toast(`<span class="big">${a.roam?"It found you!":"Ambush!"}</span> ${a.roam?`<b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}, roams this floor and just jumped you.`:`You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.`}${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?" Fight it out, or retreat from the boss window.":" It blocks the corridor until it falls."):""}`,"lvl");};
     mapMsgs=mapMsgs.filter(x=>!/lair!|The stairwell!/.test(x));}
   player.stats[t.stat]=(player.stats[t.stat]||0)+fx;
   const after=levelInfo(player.xp).L;
@@ -7135,7 +7144,7 @@ function completeQuest(id,actual,touched){
   if(new Date().getHours()===23&&new Date().getMinutes()>=50)evs.push("buzzer");
   beatHold(850); // let the slice land
   beat(stageGo,0);beat(()=>stageEnd(fx>0),0);
-  beat(()=>{camOut();if(fg>0)coreSnd.gold();openReport(qt||"<b>Quest complete</b>");if(voice)announce(voice.line);},1000);
+  beat(()=>{camOut();if(STAGE.on){STAGE.on=0;render();}if(fg>0)coreSnd.gold();openReport(qt||"<b>Quest complete</b>");if(voice)announce(voice.line);},1000);
   if(usedFocus)beat(()=>toast("Potion of Focus spent: that quest earned double XP."),700);
   if(ui.kindled){ui.kindled=false;const a=activePet();if(a)beat(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),700);}
   if(after>before)beat(()=>{SFX.play("level");toast(`<span class="big">Level ${after}</span> ${esc(titleFor(after))} · HP restored · ${after-before>1?(after-before)+" loot boxes":"a loot box"} earned`,"lvl");},1400);
@@ -7143,10 +7152,11 @@ function completeQuest(id,actual,touched){
   if(ui.stormMsg){const m=ui.stormMsg;ui.stormMsg=null;beat(()=>{if(!clip("storm-attack",.85))SFX.play("kill");toast(`<span class="big">⚡ Charged attack!</span> ${m}`,"lvl");},1300);}
   if(ambushBeat)beat(ambushBeat,1500);
   let rvSoundDone=false;
-  if(mapMsgs.length)beat(()=>{if(rvNew&&!rvMsgs.length){rvSoundDone=true;if(!clip("crawler-appear",.9))SFX.play("hurt");}toast(`<b>Map</b> ${mapMsgs.map(x=>esc(x)).join("<br>")}`,"quest");},rvNew&&!rvMsgs.length?1400:1000);
-  if(lairLi!=null)beat(()=>{bossAppear();lairPrompt(lairLi);},700); // waits while the card is open
-  if(mobMsgs.length)beat(()=>{if(mobSnd0&&!clip("mob-"+mobSnd0,.85))SFX.play(mobSnd0==="ghost"?"wail":"hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobSnd0?1500:1000);
-  if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;beat(()=>{if(rvNew&&!rvSoundDone){if(!clip("crawler-appear",.9))SFX.play("hurt");}else if(w){if(!clip("boss-kill",.8))SFX.play("kill");}else if(player.rival)SFX.play("hurt");
+  if(mapMsgs.length)beat(()=>{if(rvNew&&!rvMsgs.length){rvSoundDone=true;if(!ENTR.wait.has("rv")&&!clip("crawler-appear",.9))SFX.play("hurt");}toast(`<b>Map</b> ${mapMsgs.map(x=>esc(x)).join("<br>")}`,"quest");},rvNew&&!rvMsgs.length?1400:1000);
+  if(lairLi!=null)beat(()=>{if(!ENTR.wait.has("boss"))bossAppear();lairPrompt(lairLi);},700); // waits while the card is open
+  if(mobSnd0)ENTR.snd.mob=mobSnd0;
+  if(mobMsgs.length)beat(()=>{if(mobSnd0&&!ENTR.wait.has("mob")&&!clip("mob-"+mobSnd0,.85))SFX.play(mobSnd0==="ghost"?"wail":"hurt");toast(mobMsgs.map(x=>esc(x)).join("<br>").replace(/^/,"<b>Mob</b> "),"quest");},mobSnd0?1500:1000);
+  if(rvMsgs.length){const w=ui.rivalWin;ui.rivalWin=null;beat(()=>{if(rvNew&&!rvSoundDone){if(!ENTR.wait.has("rv")&&!clip("crawler-appear",.9))SFX.play("hurt");}else if(w){if(!clip("boss-kill",.8))SFX.play("kill");}else if(player.rival)SFX.play("hurt");
     toastH(`<b>${w?(w.kill?"☠ Rival killed":"💫 Rival down"):"⚔ Rival"}</b> ${rvMsgs.map(x=>esc(x)).join("<br>")}`,w?"lvl":player.rival?"bad":"quest");},1500);}
   goals.msgs.forEach(m=>beat(()=>toast(m,"lvl"),900));
   if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;godMsgs.forEach(m=>pushEvent(m));beat(()=>toastH(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest"),900);}
@@ -7505,6 +7515,7 @@ function render(){
   for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderSpellbook,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker,renderHotbar]){if(st&&STAGE_FROZEN.has(fn))continue;try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
   if(!st)try{fxTick(fxRects);}catch(e){console.warn("fx",e);}
+  try{entrWatch();}catch(e){console.warn("entr",e);}
 }
 /* ---------- Feedback FX (batch 1) ----------
    After every render, compare with the last one: damage to the boss, the mobs on you or your rival floats up off
@@ -10544,6 +10555,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.10.2",d:"2026-10-09",t:"Grand entrances",items:["A new boss, mob or rival that shows up during a quest no longer appears behind the popups. Its card stays hidden until you close the quest report (and any victory card), then the page glides up to it, the crawler cam shows you squaring up, and each newcomer slams in with a stamp and its own sound, one at a time.",
+    "Achievement popups put their Later and Got it buttons on their own row, so the title and description no longer get squeezed into a narrow column on phones."]},
   {v:"3.10.1",d:"2026-10-09",t:"Front row seat",items:["Finishing a quest now glides the page up to the boss, mob and rival cards before the hits land, so you actually see the damage, the shakes and the mob deaths. Closing the quest report takes you back down to where you were.",
     "Crawler cam: on phones, a small picture of your crawler slides in at the bottom corner after a quest so you can see them hop, flinch, heal or celebrate without leaving the Quests tab."]},
   {v:"3.10.0",d:"2026-10-09",t:"It's alive",items:["Hits land: damage floats off the boss, mobs and rivals as numbers (\"Hit!\" where HP is hidden), boss cards shake when hit and crack below a quarter of their HP, and you get a red flash when you're hurt and a green number when you heal.",
@@ -10814,38 +10827,97 @@ const staged=()=>!!STAGE.on&&Date.now()-STAGE.on<8000;
 const camOn=()=>{const c=$("crawlCam");return !!(c&&c.classList.contains("in"));};
 function stageOn(){STAGE.on=Date.now();}
 function onScreen(el,bottom,dy){if(!el||!el.offsetParent)return false;const r=el.getBoundingClientRect(),y=r.top+(dy||0)+Math.min(r.height,160)/2;return r.width>0&&y>0&&y<bottom;}
+// The strip of screen not covered by the undo bar at the top or the hotbar, tab bar and ticker at the bottom.
+function viewBand(){let bottom=innerHeight;document.querySelectorAll("#hotbar,#tabbar,.ticker").forEach(e=>{const r=e.getBoundingClientRect();if(r.height&&r.top>innerHeight/2&&r.top<innerHeight)bottom=Math.min(bottom,r.top);});
+  const ub=$("undoBar");return {head:ub?Math.max(0,ub.getBoundingClientRect().bottom)+8:10,bottom};}
+// Glide so the first of these panels sits just under the top, if any of their art (or the panels) is off screen. Returns how far it moved.
+function viewTo(panels,arts,full){
+  const {head,bottom}=viewBand();panels=panels.filter(e=>e&&!e.hidden&&e.offsetParent&&e.offsetHeight>0);
+  const whole=e=>{const r=e.getBoundingClientRect();return r.top>=head-4&&r.top+Math.min(r.height,300)<=bottom;}; // the card's picture and name, not just its middle
+  if(!panels.length||!(arts||panels).some(e=>full?!whole(e):!onScreen(e,bottom)))return 0;
+  const top=Math.max(0,Math.round(panels[0].getBoundingClientRect().top+scrollY-head));
+  if(Math.abs(top-scrollY)<=20)return 0;
+  if(STAGE.y==null)STAGE.y=scrollY;STAGE.to=top;const dy=scrollY-top;
+  window.scrollTo({top,behavior:calmMotion()?"auto":"smooth"});return dy;
+}
+// The crawler cam slides in unless your Hero card will be on screen after a glide of dy (on a wide screen it scrolls back into view).
+function camIn(dy,mood){
+  if(REP.el||onScreen($("avatarBox"),innerHeight,dy))return false;
+  camOut(true);const p=player,eq=wearing(p),{bottom}=viewBand();
+  const c=document.createElement("div");c.id="crawlCam";c.className="crawlcam";c.setAttribute("aria-hidden","true");
+  c.style.bottom=(innerHeight-bottom+12)+"px";
+  c.innerHTML=`<div class="cc-av"><div class="print">${avatarSVG(Object.assign({},eq,{look:p.look},activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{},mood||myMood()))}</div><span class="camtag"><i>●</i> Crawler cam</span></div>`;
+  document.body.appendChild(c);void c.offsetWidth;c.classList.add("in");
+  setTimeout(()=>{if(c.isConnected)camOut();},6000);return true;
+}
 function stageGo(){
   if(!staged())return;
-  const calm=calmMotion();
-  // the strip of screen not covered by the hotbar, tab bar or ticker
-  let bottom=innerHeight;document.querySelectorAll("#hotbar,#tabbar,.ticker").forEach(e=>{const r=e.getBoundingClientRect();if(r.height&&r.top>innerHeight/2&&r.top<innerHeight)bottom=Math.min(bottom,r.top);});
-  const ub=$("undoBar"),head=ub?Math.max(0,ub.getBoundingClientRect().bottom)+8:10; // the undo bar floats over the top of the page
-  let moved=false,dy=0;
-  if(!REP.el){
-    const panels=["bossPanel","mobAlert","rivalAlert"].map($).filter(e=>e&&!e.hidden&&e.offsetParent&&e.offsetHeight>0);
-    const art=["boss","mob","rv"].map(k=>document.querySelector(FX_SEL[k])).filter(Boolean);
-    if(panels.length&&art.some(e=>!onScreen(e,bottom))){
-      const top=Math.max(0,Math.round(panels[0].getBoundingClientRect().top+scrollY-head));
-      if(Math.abs(top-scrollY)>20){STAGE.y=scrollY;STAGE.to=top;dy=scrollY-top;window.scrollTo({top,behavior:calm?"auto":"smooth"});moved=true;}
-    }
+  if(!REP.el)STAGE.y=STAGE.to=null;
+  const dy=REP.el?0:viewTo(["bossPanel","mobAlert","rivalAlert"].map($),["boss","mob","rv"].map(k=>document.querySelector(FX_SEL[k])).filter(Boolean));
+  const cam=camIn(dy);
+  beatHold(calmMotion()?(cam?150:0):dy?650:cam?380:0);
+}
+/* ---------- Entrances ----------
+   A boss, mob or rival that shows up during a quest (or behind a victory card) used to appear behind the popups.
+   Now its card stays hidden until the quest report and any victory card are closed; then the page glides up to it,
+   the crawler cam slides in with your crawler squaring up, and each newcomer slams in with a stamp and its own cry,
+   one after another. Then achievements show and the page glides back down. */
+const ENTR={wait:new Set(),snd:{},prev:null,after:null,timer:null,going:false};
+const ENTR_PANEL={boss:"bossPanel",mob:"mobAlert",rv:"rivalAlert"};
+const ENTR_WORD={boss:"New boss!",mob:"Mob incoming!",rv:"Crawler incoming!"};
+const showBusy=()=>!!(REP.el||staged()||document.querySelector(".victory"));
+function entrWatch(){
+  if(!loadedP||!playerExists)return;const p=player,b=p.boss,live=b&&!b.defeated&&!hunting(b);
+  const cur={boss:live?b.name+"|"+b.tier:null,mob:(p.mobs||[]).map(m=>m.id),rv:p.rival?p.rival.id:null};
+  const o=ENTR.prev;ENTR.prev=cur;
+  if(o&&showBusy()){
+    if(cur.boss&&cur.boss!==o.boss)ENTR.wait.add("boss");
+    if(cur.mob.some(id=>!o.mob.includes(id)))ENTR.wait.add("mob");
+    if(cur.rv&&cur.rv!==o.rv)ENTR.wait.add("rv");
   }
-  let cam=false;
-  if(!REP.el&&!onScreen($("avatarBox"),innerHeight,dy)){ // on a wide screen the Hero card scrolls back into view
-    camOut(true);const p=player,eq=wearing(p);
-    const c=document.createElement("div");c.id="crawlCam";c.className="crawlcam";c.setAttribute("aria-hidden","true");
-    c.style.bottom=(innerHeight-bottom+12)+"px";
-    c.innerHTML=`<div class="cc-av"><div class="print">${avatarSVG(Object.assign({},eq,{look:p.look},activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{},myMood()))}</div><span class="camtag"><i>●</i> Crawler cam</span></div>`;
-    document.body.appendChild(c);void c.offsetWidth;c.classList.add("in");cam=true;
-    setTimeout(()=>{if(c.isConnected)camOut();},6000);
-  }
-  beatHold(calm?(cam?150:0):moved?650:cam?380:0);
+  if(!cur.boss)ENTR.wait.delete("boss");if(!cur.mob.length)ENTR.wait.delete("mob");if(!cur.rv)ENTR.wait.delete("rv"); // undone or gone already
+  for(const k in ENTR_PANEL){const el=$(ENTR_PANEL[k]);if(el&&!ENTR.going&&!staged())el.classList.toggle("entr-wait",ENTR.wait.has(k));}
+  if(ENTR.wait.size&&!ENTR.timer)ENTR.timer=setTimeout(entrRun,400);
+}
+function entrDone(){ENTR.going=false;const f=ENTR.after;ENTR.after=null;if(f)f();}
+function entrRun(){
+  ENTR.timer=null;if(!ENTR.wait.size)return entrDone();
+  if(showBusy()||SHOWQ.busy||[...document.querySelectorAll("#zoomWrap,.hbwrap,.gearwrap")].some(n=>n.offsetHeight>0)){ENTR.timer=setTimeout(entrRun,400);return;}
+  const ks=["boss","mob","rv"].filter(k=>ENTR.wait.has(k));ENTR.wait.clear();ENTR.going=true;
+  const els=ks.map(k=>[k,$(ENTR_PANEL[k])]);
+  els.forEach(([k,e])=>{if(e){e.classList.remove("entr-wait");e.classList.add("entr-pre");}});
+  const calm=calmMotion(),seen=els.filter(([k,e])=>e&&!e.hidden&&e.offsetParent&&e.offsetHeight>0);
+  const dy=seen.length?viewTo(seen.map(x=>x[1])):0;
+  const cam=seen.length&&camIn(dy,{pose:"ready",expr:"determined",threat:true});
+  // one at a time; a card below the fold gets its own short glide first
+  let i=0;const next=()=>{
+    if(i>=els.length){setTimeout(()=>{camOut();entrDone();},seen.length&&!calm?500:0);return;}
+    const [k,e]=els[i++];
+    const slam=()=>{if(e){e.classList.remove("entr-pre");if(!calm){fxPulse(e,"entr-in",900);entrStamp(e,k);}}entrSound(k);setTimeout(next,calm?700:1000);};
+    const vis=e&&!e.hidden&&e.offsetParent&&e.offsetHeight>0;
+    if(i>1&&vis&&viewTo([e],null,true)&&!calm)setTimeout(slam,450);else slam();
+  };
+  setTimeout(next,calm?0:dy?650:cam?380:0);
+}
+function entrSound(k){
+  if(k==="boss")return bossAppear();
+  if(k==="rv"){if(!clip("crawler-appear",.9))SFX.play("hurt");return;}
+  const ms=player.mobs||[],m=ENTR.snd.mob||(ms.length?mobKind(ms[ms.length-1]):null);ENTR.snd.mob=null;
+  if(m&&!clip("mob-"+m,.85))SFX.play(m==="ghost"?"wail":"hurt");
+}
+function entrStamp(el,k){
+  const r=el.getBoundingClientRect();if(!r.width)return;
+  const d=document.createElement("div");d.className="entrstamp es-"+k;d.textContent=ENTR_WORD[k];d.setAttribute("aria-hidden","true");
+  d.style.left=(r.left+r.width/2+scrollX)+"px";d.style.top=(r.top+Math.min(r.height,180)/2+scrollY)+"px";
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1300);
 }
 function stageEnd(hitBoss){
   if(!staged()){STAGE.on=0;return;}
   // The hits land on the cards as they were (a slain mob's card is still there to burst), then the cards catch up.
   let seen=false;try{seen=fxTick(fxSnap());}catch(e){console.warn("fx",e);}
   react(hitBoss);
-  const tok=STAGE.on;setTimeout(()=>{if(STAGE.on===tok)STAGE.on=0;render();},calmMotion()?0:600);
+  // A newcomer waiting for its entrance would leave a gap, so then the cards hold until the report covers them.
+  const tok=STAGE.on;if(!ENTR.wait.size)setTimeout(()=>{if(STAGE.on===tok){STAGE.on=0;render();}},calmMotion()?0:600);
   beatHold(seen||camOn()||STAGE.to!=null?1400:150);
 }
 function camOut(now){const c=$("crawlCam");if(!c)return;c.id="";if(now||calmMotion()){c.remove();return;}c.classList.remove("in");setTimeout(()=>c.remove(),400);}
@@ -10920,8 +10992,9 @@ function closeReport(){
   const ov=REP.el;if(!ov)return;REP.el=null;REP.entry=null;ov.remove();
   const ub=$("undoBar");if(ub){ub.classList.remove("held");const t=ub.querySelector(".ub-time");if(t){t.style.animation="none";void t.offsetWidth;t.style.animation="";}clearTimeout(undoTimer);undoTimer=setTimeout(clearUndo,10000);}
   // achievements earned during the quest, one after another
-  stageBack();
-  const q=REP.ach;REP.ach=[];q.forEach((a,i)=>setTimeout(()=>achToast(a.html,a.ids,a.snd),250+i*50));
+  const q=REP.ach;REP.ach=[];
+  const tail=()=>{q.forEach((a,i)=>setTimeout(()=>achToast(a.html,a.ids,a.snd),250+i*50));stageBack();};
+  if(ENTR.wait.size||ENTR.going){ENTR.after=tail;if(!ENTR.timer&&!ENTR.going)ENTR.timer=setTimeout(entrRun,300);}else tail();
 }
 document.addEventListener("keydown",e=>{if(!REP.el||document.querySelector(".victory,#zoomWrap"))return;
   if(e.key==="Escape"){e.preventDefault();closeReport();}

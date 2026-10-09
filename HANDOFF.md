@@ -114,3 +114,12 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Beats after the slice: `stageGo` (smooth-scrolls to the first visible of bossPanel/mobAlert/rivalAlert if any boss/mob/rival art is off screen, below the undo bar; shows `#crawlCam` PiP above the hotbar when `#avatarBox` won't be on screen after the scroll), then `stageEnd` (runs `fxTick(fxSnap())` on the frozen cards so a slain mob still bursts on its own card, `react()`, then unfreezes and renders 600 ms later), then `openReport` (which calls `camOut()`).
 - `fxEl("me")` points at the cam while it's in; `meP` pulses both `#sheet` and `#crawlCam` (av-hit/av-hop/av-lvl). `fxTick` now returns whether anything visible fired.
 - `closeReport` → `stageBack()` scrolls back to where you were unless you scrolled yourself (>60 px from where the stage left you).
+
+## Entrances (v3.10.2)
+- `entrWatch()` runs at the end of every `render()`: when a boss key / mob id / rival id is new while `showBusy()` (report open, staged, or a victory card), its kind goes in `ENTR.wait`; the matching panel (`ENTR_PANEL`) gets `.entr-wait` (opacity 0). Not toggled while staged (the frozen cards are still being hit).
+- If a newcomer is waiting, `stageEnd` keeps the cards frozen until the report beat opens (otherwise there'd be a gap on screen).
+- `entrRun()` polls every 400 ms until no report, victory, visible `.gearwrap/.hbwrap/#zoomWrap`, or busy beat queue; then `viewTo` glides up, `camIn(dy,{pose:"ready",expr:"determined",threat:true})`, and each card slams in (`.entr-in` + `.entrstamp`) with `entrSound(k)`, one per second; a card below the fold gets its own `viewTo(...,full)` glide first.
+- The arrival sounds (mob cry, crawler-appear, bossAppear) are skipped in the report beats and the victory `after()` when that kind is in `ENTR.wait`; `ENTR.snd.mob` carries the mob kind.
+- `closeReport` defers achievements + `stageBack()` to `ENTR.after` while entrances are waiting/running.
+- Helpers shared with the stage: `viewBand()`, `viewTo(panels,arts,full)`, `camIn(dy,mood)`.
+- Achievement toast: `.toast.ach` wraps; text and `.achacts` are each full width.
