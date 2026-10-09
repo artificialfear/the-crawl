@@ -66,3 +66,8 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 ## INT mana refill and CHA haggling (v3.7.0)
 - `manaRate(p)` = 1 + INT level, per hour. `manaTick()` accrues from `player.mpAt` (time away counts, nothing banks while full or with no spells). It runs on load and every 60 s. No save per tick: mp and mpAt only change together, so whichever gets saved next is consistent.
 - `chaOff(p)` = 1% per CHA level above 1, max 20%, folded into `priceOf()`, so every in-game price uses it and `priceTag` shows the struck-out price. Real-world prizes don't use `priceOf`.
+
+## Save hold (stale-device guard) fix
+- The player listener uses `{includeMetadataChanges:true}`. Without it, a cached copy that matched the server never got a confirmed snapshot, so `fresh` stayed false: the red "Loading your latest save…" stuck, and any save in the first 20 s (e.g. tapping Help on the Party tab) was dropped.
+- Held saves are now remembered (`held`, `heldRev`) and written once the server copy is confirmed or the 20 s wait ends, but only if no newer revision arrived meanwhile (otherwise the "Another device had newer progress" toast shows).
+- Snapshots carrying the revision we already hold are our own echoes and no longer replace the live `player` object (protects unsaved in-memory changes like mana refill).
