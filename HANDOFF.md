@@ -123,3 +123,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - `closeReport` defers achievements + `stageBack()` to `ENTR.after` while entrances are waiting/running.
 - Helpers shared with the stage: `viewBand()`, `viewTo(panels,arts,full)`, `camIn(dy,mood)`.
 - Achievement toast: `.toast.ach` wraps; text and `.achacts` are each full width.
+
+## Pre-deploy test run (tests/smoke.py)
+- **Run `python3 tests/smoke.py` before every push**; it must end "0 failed". It builds, serves a test copy on a free port and drives headless Chromium: script parses, save path through the real `fbDb` over a fake Firestore (metadata listener, no save before the server copy, revision chain), finishing a quest from low on the board (glide up, numbers, report, unfreeze, glide back after entrances), combat numbers, all six tabs at 390px and 1280px (no errors, no sideways scroll), reduced motion.
+- When a bug slips through, add a check for it there.
