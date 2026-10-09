@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=09005a9fab"></script>
-<script>window.CRAWL_BUILD="09005a9fab";</script>
+<script src="firebase-config.js?v=e866f06b0d"></script>
+<script>window.CRAWL_BUILD="e866f06b0d";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -8526,6 +8526,12 @@ function avatarSVG(eq){
   // its own shading), so its animation doesn't re-run the filter every frame.
   if(!INKS)s+=FXON?`<g filter="url(#${u}fx)">`:`<g>`;
 
+  // Out of the battle pose, the weapon goes behind the whole body (drawn before the legs, so nothing passes in front of
+  // them): slung on the back with the hilt over the right shoulder, or, for a two-handed weapon in the victory pose,
+  // planted point-down at the left side under the left hand while the right fist goes up.
+  if(weapon&&PZ!=="ready"){let wb=weaponUpright(weapon,MW,u);if(_wI&&_wI.tint)wb=tintStr(wb,_wI.tint);const sc2=weapon==="l4"?.66:(WEAPON_SCALE[weapon]||.74);
+    if(PZ!=="victory")s+=`<g transform="translate(206 128) rotate(205) scale(${ONE_HANDED.has(weapon)?.9:sc2*1.05})">${wb}</g>`;
+    else if(!ONE_HANDED.has(weapon))s+=`<g transform="translate(74 238) rotate(182) scale(${sc2})">${wb}</g>`;}
   // Legs: jeans tubes, hips, belt, then bare feet or boots
   const STANCE=PZ==="ready"&&!!weapon&&!ONE_HANDED.has(weapon); // two-handed: feet apart, knees bent
   if(STANCE){
@@ -8549,9 +8555,6 @@ function avatarSVG(eq){
   const _bare=_bI?"":STANCE?bare(102,-1)+bare(200,1):bare(124,-1)+bare(176,1);
   s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):_bare;
 
-  // Out of the battle pose, the weapon is slung on the back, hilt up over the right shoulder and blade down behind the body.
-  if(weapon&&PZ!=="ready"&&PZ!=="victory"){let wb=weaponUpright(weapon,MW,u);if(_wI&&_wI.tint)wb=tintStr(wb,_wI.tint);
-    s+=`<g transform="translate(206 128) rotate(205) scale(${ONE_HANDED.has(weapon)?.9:(WEAPON_SCALE[weapon]||.74)*1.05})">${wb}</g>`;}
   s+=`<g class="upper"${PZ==="hurt"?` transform="rotate(-5 150 262)"`:""}>`+narrow;
   // Torso
   const TORSO="M100 150 Q150 136 200 150 L194 212 Q188 240 186 262 L114 262 Q112 240 106 212 Z";
@@ -8697,10 +8700,10 @@ function avatarSVG(eq){
   if(PZ!=="ready"){
     // Arms in front of the torso for each pose; shoulder plates go over them.
     const A={hips:{l:[[72,214],106,250],r:[[228,214],194,250]},crossed:{l:[[94,228],178,206],r:[[206,228],122,206]},
-      victory:{l:[[72,214],106,250],r:[[238,122],226,70]},hurt:{l:[[92,220],136,226],r:[[216,216],210,272]}}[PZ]||{l:[[88,212],90,262],r:[[212,212],210,262]};
+      victory:{l:weapon&&!ONE_HANDED.has(weapon)?[[66,204],74,236]:[[72,214],106,250],r:[[238,122],226,70]},hurt:{l:[[92,220],136,226],r:[[216,216],210,272]}}[PZ]||{l:[[88,212],90,262],r:[[212,212],210,262]};
     if(PZ==="crossed"){s+=arm1(194,162,A.r[0],A.r[1],A.r[2])+fist(A.r[1],A.r[2])+ringOn(A.r[1],A.r[2])+arm1(108,162,A.l[0],A.l[1],A.l[2]);if(AS)s+=armorDetail(AS,u,MA,true);s+=fist(A.l[1],A.l[2]);}
     else{s+=arm1(108,162,A.l[0],A.l[1],A.l[2])+arm1(194,162,A.r[0],A.r[1],A.r[2]);if(AS)s+=armorDetail(AS,u,MA,true);
-      if(PZ==="victory"&&weapon){const sc=ONE_HANDED.has(weapon)?1:weapon==="l4"?.66:(WEAPON_SCALE[weapon]||.74);s+=`<g transform="translate(${A.r[1]} ${A.r[2]}) rotate(14)${sc!==1?` scale(${sc})`:""}">${w}</g>`;}
+      if(PZ==="victory"&&weapon&&ONE_HANDED.has(weapon))s+=`<g transform="translate(${A.r[1]} ${A.r[2]}) rotate(14)">${w}</g>`; // two-handed ones are drawn behind the body
       s+=fist(A.l[1],A.l[2])+fist(A.r[1],A.r[2])+ringOn(A.r[1],A.r[2]);}
   }else if(POSE&&POSE.one){
     const [ax,ay]=POSE.a;
