@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=52b14b844e"></script>
-<script>window.CRAWL_BUILD="52b14b844e";</script>
+<script src="firebase-config.js?v=a6723d931a"></script>
+<script>window.CRAWL_BUILD="a6723d931a";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1430,6 +1430,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .rv-av{position:relative;overflow:hidden;border-right:2px solid #000;min-height:150px}
 .rv-av svg{position:absolute;left:50%;top:-6px;height:calc(100% + 60px);width:auto;transform:translateX(-50%)}
 .rvalert.psy .rv-av svg{filter:saturate(1.3) contrast(1.1) drop-shadow(0 0 6px rgba(232,40,60,.6))}
+.inkcard .cape,.inkcard [class^="mf-"]{animation:none!important}.rv-av svg.inkcard{position:static;transform:none;width:100%;height:100%;display:block}.rvalert.psy .rv-av svg.inkcard{filter:none}
 .rv-body{padding:8px 12px 10px;display:grid;gap:5px;min-width:0}
 .rvalert .ma-k{color:#ffb35a}.rvalert.psy .ma-k{color:#ff5a6a}
 .rv-n{font-size:15px;line-height:1.25}.rv-n .muted{font-size:12px}
@@ -4000,7 +4001,7 @@ function rvGear(n){const r=srand("rvgear|"+n),s=rvStr(n);
   for(const slot of ["weapon","armor","head","boots","gloves","cape"]){if(slot!=="weapon"&&r()<.3)continue;
     const c=ITEMS.filter(i=>i.slot===slot&&pool.includes(i.rar)&&!i.base);if(c.length)out[slot]=c[Math.floor(r()*c.length)].id;}
   return out;}
-function rvAvatar(rv){try{return avatarSVG(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)}));}catch(e){return "";}}
+function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)}),{psy:!!(rv&&rv.psy),plate:plate?rv.n:null});}catch(e){return "";}}
 const rvHit=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((6+3*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvNight=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((10+4*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvBribe=()=>30+15*floorOf();
@@ -4185,7 +4186,7 @@ function rivalCrewHTML(){
   const hunted=huntedMates();
   if(!hunted.length)return "";
   return hunted.map(([u,c])=>{const on=player.helping&&player.helping.to===u&&player.helping.rid===c.rvl.id;
-    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div class="pt-hunt-in"><div class="pt-hunt-av zoomable" data-zhunt="${esc(u)}" role="button" tabindex="0" aria-label="${esc(c.rvl.n)} up close">${rvAvatar({n:c.rvl.n})}</div><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
+    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div class="pt-hunt-in"><div class="pt-hunt-av zoomable" data-zhunt="${esc(u)}" role="button" tabindex="0" aria-label="${esc(c.rvl.n)} up close">${rvAvatar({n:c.rvl.n,psy:c.rvl.psy})}</div><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
       <b>${esc(c.rvl.n)}</b> is hunting <b>${esc(c.name||"your crewmate")}</b>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(c.rvl.hp/c.rvl.max*100)}%"></b></div><span class="num">${c.rvl.hp}/${c.rvl.max}</span></div>
       <div class="muted" style="font-size:12px">${on?"Each quest you finish hits them for half your damage. You can't land the final blow: that's theirs.":"Help, and each quest you finish also hits this rival for half your damage."}${knows("firebolt")||knows("chain")?" You can also cast Firebolt or Chain Lightning at them.":""}</div></div>
@@ -8378,6 +8379,45 @@ function tallWeaponSVG(id,bg){
 ${bg&&bg!=="none"?`<rect width="${W}" height="${H}" fill="${bg}"/>`:""}<rect width="${W}" height="${H}" fill="url(#${u}d)"/>
 <g transform="translate(${W/2} ${H/2}) scale(${kx.toFixed(3)} ${k.toFixed(3)}) translate(${-cx} ${-cy})" stroke="${INK}" stroke-width="${(2.6/k).toFixed(2)}" stroke-linejoin="round" stroke-linecap="round">${tintStr(weaponUpright(base,it.magic||null,u),it.tint)}</g></svg>`;
 }
+/* Art style (v3.8.0). Crawlers you dress up (you, crewmates, the look editor) are cel-shaded: torchlight from the
+   left on a blurred height map, posterised into hard bands, plus a warm rim on the lit edge. Rival crawlers are
+   etched in ink on tarot cards like the bosses (eq.style "ink", accent eq.inkc). eq.style "flat" = the old look. */
+function avFx(u,eq){
+  if(eq.style==="flat")return "";
+  if(eq.style==="ink")return `<filter id="${u}fx" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="g0"/>
+<feComponentTransfer in="g0" result="g"><feFuncR type="gamma" exponent=".62"/><feFuncG type="gamma" exponent=".62"/><feFuncB type="gamma" exponent=".62"/></feComponentTransfer>
+<feComponentTransfer in="g" result="p"><feFuncR type="discrete" tableValues=".1 .33 .53 .75 .95"/><feFuncG type="discrete" tableValues=".1 .32 .52 .73 .93"/><feFuncB type="discrete" tableValues=".11 .31 .5 .7 .88"/></feComponentTransfer>
+<feMorphology in="SourceAlpha" operator="dilate" radius="5" result="d"/><feGaussianBlur in="d" stdDeviation="5" result="db"/>
+<feFlood flood-color="${eq.inkc||"#e8283c"}" flood-opacity=".8"/><feComposite in2="db" operator="in" result="glow"/>
+<feMerge><feMergeNode in="glow"/><feMergeNode in="p"/></feMerge></filter>`;
+  // Cheap on purpose (no blur or lighting): offsets of the silhouette make a warm rim on the lit (left) edge and a
+  // hard shadow band on the right, so redrawing it every animation frame stays light on phones.
+  return `<filter id="${u}fx" x="-6%" y="-4%" width="112%" height="108%" color-interpolation-filters="sRGB">
+<feFlood flood-color="#fff0dc" result="warm"/><feBlend in="SourceGraphic" in2="warm" mode="multiply" result="lit"/>
+<feOffset in="SourceAlpha" dx="-15" dy="-5" result="so"/><feComposite in="SourceAlpha" in2="so" operator="out" result="sb"/>
+<feFlood flood-color="#24183f" flood-opacity=".5"/><feComposite in2="sb" operator="in" result="sh"/>
+<feOffset in="SourceAlpha" dx="5" dy="1" result="o"/><feComposite in="SourceAlpha" in2="o" operator="out" result="rim"/>
+<feFlood flood-color="#ffb04a" flood-opacity=".9"/><feComposite in2="rim" operator="in" result="rimc"/>
+<feComposite in="lit" in2="SourceAlpha" operator="in" result="litc"/>
+<feMerge><feMergeNode in="litc"/><feMergeNode in="sh"/><feMergeNode in="rimc"/></feMerge></filter>`;}
+/* A rival crawler as a tarot card: etched figure, smoke, a red (psycho) or amber aura. plate = name strip at the bottom. */
+let inkUid=0;
+function inkCard(eq,o){o=o||{};const k="ik"+(++inkUid);
+  const fig=avatarSVG(Object.assign({},eq,{bare:true,style:"ink",inkc:o.psy?"#e8283c":"#ff8a1f"})).replace(/^<svg[^>]*>/,"<g>").replace(/<\/svg>$/,"</g>"); // a plain group, so page CSS aimed at "svg" can't move it
+  return `<svg class="inkcard" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+<filter id="${k}n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="${inkUid%97}"/><feColorMatrix values="0 0 0 0 .1 0 0 0 0 .1 0 0 0 0 .1 0 0 0 .35 0"/></filter>
+<filter id="${k}s" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+<pattern id="${k}h" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0 L0 5" stroke="#000" stroke-width="1.1" opacity=".2"/></pattern>
+<radialGradient id="${k}g" cx="50%" cy="38%" r="62%"><stop offset="0" stop-color="#8f8f8b"/><stop offset="1" stop-color="#d9d6cc"/></radialGradient></defs>
+<rect width="300" height="420" fill="#e4e1d8"/><rect width="300" height="420" filter="url(#${k}n)"/>
+<rect x="16" y="16" width="268" height="388" fill="url(#${k}g)" stroke="#111" stroke-width="7"/>
+<g opacity=".35" filter="url(#${k}s)" fill="#f4f2ec"><ellipse cx="70" cy="110" rx="60" ry="26"/><ellipse cx="230" cy="80" rx="64" ry="24"/><ellipse cx="150" cy="300" rx="110" ry="30"/></g>
+<rect x="16" y="16" width="268" height="388" fill="url(#${k}h)"/>
+<g transform="translate(${o.plate?26:12} ${o.plate?18:20}) scale(${o.plate?.83:.92})">${fig}</g>
+${o.plate?`<rect x="40" y="356" width="220" height="34" fill="#f3f1ea" stroke="#111" stroke-width="3"/><text x="150" y="380" text-anchor="middle" font-family="Georgia,serif" font-size="19" font-weight="700" fill="#111">${esc(o.plate)}</text>`:""}
+<path d="M16 16 l22 0 l-22 22 Z M284 16 l-22 0 l22 22 Z M16 404 l22 0 l-22 -22 Z M284 404 l-22 0 l22 -22 Z" fill="#111"/>
+<rect x="4" y="4" width="292" height="412" fill="none" stroke="#111" stroke-width="8"/></svg>`;}
 function avatarSVG(eq){
   /* Comic hero in a torchlit dungeon. Heroic proportions: big head and hands, broad shoulders,
      thick limbs drawn as outlined tubes. Starts in a ratty T-shirt, jeans and bare feet; gear layers on top. */
@@ -8388,7 +8428,7 @@ function avatarSVG(eq){
   const ln=(d,w,c)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"/>`;
   const tube=(d,w,c)=>`<path d="${d}" fill="none" stroke="${INK}" stroke-width="${w+8}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   const now=Date.now();
-  const calm=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const calm=eq.style==="ink"||typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches; // ink cards are printed: still
   // Magical items draw as their base item plus an effect; rings show on the right fist.
   const _wI=ITEMS.find(i=>i.id===eq.weapon),_aI=ITEMS.find(i=>i.id===eq.armor),_rI=ITEMS.find(i=>i.id===eq.ring);
   const MW=_wI&&_wI.magic||null,MA=_aI&&_aI.magic||null;
@@ -8399,7 +8439,7 @@ function avatarSVG(eq){
   const BWID=BODY_W[LK.body]||1,LEGT=LEG_W[LK.body]||30;
   const TEEC=pal(TEES,LK.tee),PANTS=pal(PANTSC,LK.pants),PSEAM=darker(PANTS,.62),SHOE=pal(SHOEC,LK.shoes);
   const narrow=BWID!==1?`<g transform="translate(150 0) scale(${BWID} 1) translate(-150 0)">`:`<g>`;
-  const WALL="#2b2440",BRICK="#3b3156",BRICK2="#463a63",FLOOR="#221c33",STONE="#30284a";
+  const WALL="#2b2440",BRICK="#3b3156",BRICK2="#463a63",FLOOR="#221c33",STONE="#30284a",FXON=eq.style!=="flat";
   let s=`<svg viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="--ph:-${now%6000}ms;--ph2:-${now%14000}ms"><defs>
 <pattern id="${u}a" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
 <pattern id="${u}b" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
@@ -8410,7 +8450,7 @@ function avatarSVG(eq){
 <radialGradient id="${u}v" cx="150" cy="200" r="250" gradientUnits="userSpaceOnUse"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
 <filter id="${u}bl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5"/></filter>
 <filter id="${u}bl2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
-<filter id="${u}dof" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="1.2"/></filter>
+<filter id="${u}dof" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="1.2"/></filter>${avFx(u,eq)}
 </defs><!--bg0--><rect x="0" y="0" width="300" height="420" fill="#2b2440"/><g class="dungeon" filter="url(#${u}dof)">`;
   // Stone wall: staggered bricks, a few lighter ones near the torches
   s+=`<rect x="0" y="0" width="300" height="420" fill="${WALL}"/><g stroke="${INK}" stroke-width="3" stroke-linejoin="round">`;
@@ -8439,6 +8479,7 @@ function avatarSVG(eq){
   s+=`<ellipse cx="150" cy="384" rx="82" ry="12" fill="#000" opacity=".45"/></g><!--bg1-->`;
 
   if(MA==="radiant")s+=`<ellipse class="mf-aura" cx="150" cy="220" rx="96" ry="160" fill="#ffd23f" opacity=".5" filter="url(#${u}bl2)"/>`;
+  const INKS=eq.style==="ink";if(INKS)s+=`<g filter="url(#${u}fx)">`; // ink cards are still, so the cape goes in the etching too
   // Cape behind the figure
   const CL="M110 130 Q90 260 74 376 L226 376 Q210 260 190 130 Z",CLS="M110 130 Q90 260 74 376 L110 376 Q112 260 124 136 Z";
   const wave=(a,b)=>calm?"":`<animate attributeName="d" dur="5s" begin="-${(now%5000)/1000}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .55 1;.45 0 .55 1" values="${a};${b};${a}"/>`;
@@ -8450,6 +8491,9 @@ function avatarSVG(eq){
   if(CAPE_STYLE[eq.cape])s+=capeArt(CAPE_STYLE[eq.cape],cloth,shade,u);
   s+=`</g></g>`;
   if(_cI&&_cI.tint)s=s.slice(0,capeAt)+tintStr(s.slice(capeAt),_cI.tint);
+  // The figure from here on is lit (cel) or etched (ink) by avFx. The swaying cape stays outside the filter (it has
+  // its own shading), so its animation doesn't re-run the filter every frame.
+  if(!INKS)s+=FXON?`<g filter="url(#${u}fx)">`:`<g>`;
 
   // Legs: jeans tubes, hips, belt, then bare feet or boots
   const STANCE=!!weapon&&!ONE_HANDED.has(weapon); // two-handed: feet apart, knees bent
@@ -8629,7 +8673,7 @@ function avatarSVG(eq){
   }else{
     s+=fist(210,266)+fist(90,266)+ringOn(210,266);
   }
-  s+=`</g></g></g>`;
+  s+=`</g></g></g></g>`;
   // Vignette, then the active pet at the hero's feet (in front of the shadows), then the panel border
   if(!eq.bare)s+=`<rect x="0" y="0" width="300" height="420" fill="url(#${u}v)"/>`;
   // Bare feet sit low enough for the vignette to darken them into sandal-brown; redraw them above it so they match the hands and face
@@ -10302,6 +10346,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.8.0",d:"2026-10-09",t:"New look",items:["Crawlers now stand in the torchlight: a warm glow on the lit side and shadow on the far side, on your avatar, your crewmates and the look editor.",
+    "Rival crawlers are drawn like the bosses now: etched in ink on a tarot card, with an amber aura (red for a psycho) and their name on the card in close-ups."]},
   {v:"3.7.1",d:"2026-10-09",t:"Pokes",items:["Poking a mob now does a little something: 1 damage per poke, up to 5 pokes per mob. Pokes never land the kill; a quest always finishes it. About 1 poke in 10 gets your finger nipped for 1 HP.",
     "Each family reacts its own way: your finger goes right through a ghost, Mist Stalkers can dodge into the fog, Shed Bunnies split in two, and a poked Loot Goblin bolts with its sack."]},
   {v:"3.7.0",d:"2026-10-08",t:"Brains and charm",items:["Mana now refills on its own, even while you're away: 1 an hour, plus 1 for each Intelligence level. Quests still charge it too.",
@@ -11019,7 +11065,7 @@ function zoomCrewRival(uid){
   const c=party&&party.cards[uid];if(!c||!c.rvl)return;const rv=c.rvl,g=rvGear(rv.n),i=rvIdx(rv.n),cls=(RIVALS[i]||[])[1]||"Crawler";
   const helping=player.helping&&player.helping.to===uid&&player.helping.rid===rv.id,mine=player.assist&&player.assist.rid===rv.id?player.assist.dmg||0:0;
   const fl=c.floor||1;
-  zoomCard({kind:"rival",title:rv.n,art:rvAvatar({n:rv.n}),sub:`the ${esc(cls)} · #${i+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""} · hunting <b>${esc(c.name||"your crewmate")}</b>`,
+  zoomCard({kind:"rival",title:rv.n,art:rvAvatar({n:rv.n,psy:rv.psy},true),sub:`the ${esc(cls)} · #${i+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""} · hunting <b>${esc(c.name||"your crewmate")}</b>`,
     tiles:[["HP",`${rv.hp} / ${rv.max}`],["Your help",helping||mine?`${mine.toLocaleString()} dmg`:"–"],["Hits them for",`~${Math.round((6+3*fl)*(rv.psy?1.25:1))} / quest`],["Overnight",`~${Math.round((10+4*fl)*(rv.psy?1.25:1))} HP`]],
     body:`${zbar(rv.hp/rv.max,"rvbar")}
       <div class="label">Wearing</div><div class="zgear">${Object.values(g).map(id=>{const it=itemOf(id);return it?`<span class="rar-${it.rar}">${esc(it.n)}</span>`:"";}).join(" · ")||"Rags"}</div>
@@ -11029,7 +11075,7 @@ function zoomCrewRival(uid){
 /* The rival crawler on your heels */
 function zoomRival(){
   const rv=player.rival;if(!rv)return;const g=rvGear(rv.n),it=rv.item&&itemOf(rv.item);
-  zoomCard({kind:"rival",title:rv.n,art:rvAvatar(rv),sub:`the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""}`,
+  zoomCard({kind:"rival",title:rv.n,art:rvAvatar(rv,true),sub:`the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""}`,
     tiles:[["HP",`${rv.hp} / ${rv.max}`],["Hits you for",`${rvHit()} / quest`],["Overnight",`${rvNight()} HP`],["Purse",`${rv.purse}g`]],
     body:`${zbar(rv.hp/rv.max,"rvbar")}
       <div class="label">Wearing</div><div class="zgear">${Object.entries(g).map(([s,id])=>{const i=itemOf(id);return i?`<span class="rar-${i.rar}">${esc(i.n)}</span>`:"";}).join(" · ")||"Rags"}</div>

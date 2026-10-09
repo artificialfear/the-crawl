@@ -82,3 +82,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Aim step: picking a target (or the only target) opens `spellAim(id,target,T)`, a preview of exactly what lands (mobs in order with before → after HP, rival/boss caps, fog-hidden HP) with Cast / Back / Cancel. Mana is spent only on Cast.
 
 - Rival spell limit (updated): `RV_SPELL_CASTS` (2) spell hits per rival per day, each up to `RV_SPELL_CAP` (25%) of max HP (`rvHitCap`, `rvCastsLeft`, `rvSpNote`; `player.rvSp` = {id,d,n,c}). Crewmates' hits count toward the same 2: their card `asp[rid]` carries {n,c}, the owner's card publishes `rvl.spc` (hits left), and `mateSpellRoom` also counts the caster's own sends today (`asSpDay.c`).
+
+## Art style (v3.8.0)
+- `avatarSVG(eq)` wraps the figure in a filter from `avFx(u,eq)`. The default is cel: a warm multiply tint, a hard shadow band (silhouette offset) and a warm rim on the lit edge. It deliberately avoids blur and lighting primitives, because any animation in the SVG re-runs the filter. The swaying cape sits outside the filter in cel mode. `eq.style:"flat"` = the old look.
+- Rival crawlers: `rvAvatar(rv, plate)` → `inkCard(eq,{psy,plate})`, an etched greyscale figure (`eq.style:"ink"`, accent `eq.inkc`: amber, or red for a psycho) on a tarot card. Ink cards are still: the cape is inside the filter and the animations are off. The figure is inlined as a `<g>`, not a nested `<svg>`, so page CSS like `.rv-av svg` can't move it.
