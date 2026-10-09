@@ -3980,7 +3980,7 @@ function rvGear(n){const r=srand("rvgear|"+n),s=rvStr(n);
   for(const slot of ["weapon","armor","head","boots","gloves","cape"]){if(slot!=="weapon"&&r()<.3)continue;
     const c=ITEMS.filter(i=>i.slot===slot&&pool.includes(i.rar)&&!i.base);if(c.length)out[slot]=c[Math.floor(r()*c.length)].id;}
   return out;}
-function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)}),{psy:!!(rv&&rv.psy),name:rv.n,rank:rvIdx(rv.n),plate:plate?rv.n:null});}catch(e){return "";}}
+function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)}),{psy:!!(rv&&rv.psy),name:rv.n,plate:plate?rv.n:null});}catch(e){return "";}}
 const rvHit=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((6+3*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvNight=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((10+4*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvBribe=()=>30+15*floorOf();
@@ -8381,10 +8381,9 @@ function avFx(u,eq){
 <feComposite in="lit" in2="SourceAlpha" operator="in" result="litc"/>
 <feMerge><feMergeNode in="litc"/><feMergeNode in="sh"/><feMergeNode in="rimc"/></feMerge></filter>`;}
 /* A rival crawler as a tarot card from the same deck as the bosses: card stock, seeded smoke, an ink hill with
-   splatter, the double frame and corner pieces, their board rank as a numeral, and (in close-ups) a name banner.
+   splatter, the double frame and corner pieces, and (in close-ups) a name banner. No numeral, unlike the bosses.
    Etched figure with an amber aura (red for a psycho; a psycho's card also gets darker smoke and dripping ink). */
 let inkUid=0;
-const ROMAN=n=>{let r="";for(const [v,c] of [[10,"x"],[9,"ix"],[5,"v"],[4,"iv"],[1,"i"]])while(n>=v){r+=c;n-=v;}return r;};
 function inkCard(eq,o){o=o||{};const k="ik"+(++inkUid),{INK,BONE,CARD}=TC,psy=!!o.psy;
   let h=0;for(const ch of String(o.name||"x"))h=(h*31+ch.charCodeAt(0))>>>0;const seed=1+h%89;let rs=h%233280;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
   const fig=avatarSVG(Object.assign({},eq,{bare:true,style:"ink",inkc:psy?"#e8283c":"#ff8a1f"})).replace(/^<svg[^>]*>/,"<g>").replace(/<\/svg>$/,"</g>"); // a plain group, so page CSS aimed at "svg" can't move it
@@ -8392,7 +8391,6 @@ function inkCard(eq,o){o=o||{};const k="ik"+(++inkUid),{INK,BONE,CARD}=TC,psy=!!
   let splat="";for(let i=0;i<26;i++)splat+=`<circle cx="${(100+(rnd()-.5)*160).toFixed(1)}" cy="${(gy-2+(rnd()-.5)*14).toFixed(1)}" r="${(.6+rnd()*2.4).toFixed(1)}" fill="${INK}"/>`;
   let drips="";if(psy)for(let i=0;i<7;i++){const x=20+rnd()*160,l=8+rnd()*26;drips+=`<path d="M${(x-1.6).toFixed(1)} 13 L${(x-1).toFixed(1)} ${(13+l).toFixed(1)} Q${x.toFixed(1)} ${(17+l).toFixed(1)} ${(x+1).toFixed(1)} ${(13+l).toFixed(1)} L${(x+1.6).toFixed(1)} 13 Z" fill="${INK}"/>`;}
   const corner=`<path d="M13 13 L46 13 L40 17 L24 17 Q19 17 19 22 L19 40 L13 46 Z" fill="${INK}"/><path d="M22 22 L36 22 L22 36 Z" fill="${INK}"/><path d="M46 13 L52 9 L50 15 Z M13 46 L9 52 L15 50 Z" fill="${INK}"/>`;
-  const rank=o.rank!=null&&o.rank>=0?ROMAN(o.rank+1).toUpperCase():psy?"☠":"";
   const name=o.plate?titleCase(o.plate).replace(/&/g,"&amp;").replace(/</g,"&lt;"):"";
   return `<svg class="inkcard" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
 <filter id="${k}cl" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".013 .022" numOctaves="5" seed="${seed}" result="n"/><feColorMatrix in="n" type="saturate" values="0" result="g"/><feComponentTransfer in="g"><feFuncR type="linear" slope="1.9" intercept="${psy?-.55:-.32}"/><feFuncG type="linear" slope="1.9" intercept="${psy?-.55:-.32}"/><feFuncB type="linear" slope="1.9" intercept="${psy?-.55:-.32}"/><feFuncA type="linear" slope="0" intercept="1"/></feComponentTransfer></filter>
@@ -8406,7 +8404,6 @@ function inkCard(eq,o){o=o||{};const k="ik"+(++inkUid),{INK,BONE,CARD}=TC,psy=!!
 <rect width="200" height="300" fill="url(#${k}v)"/>${drips}</g>
 <rect x="13" y="13" width="174" height="274" rx="5" fill="none" stroke="${INK}" stroke-width="3"/><rect x="17" y="17" width="166" height="266" rx="3" fill="none" stroke="${INK}" stroke-width=".9"/>
 ${corner}<g transform="translate(200 0) scale(-1 1)">${corner}</g><g transform="translate(0 300) scale(1 -1)">${corner}</g><g transform="translate(200 300) scale(-1 -1)">${corner}</g>
-${rank?`<text x="100" y="32" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="17" letter-spacing="1" fill="${INK}">${rank}</text>`:""}
 ${name?`<rect x="24" y="256" width="152" height="25" rx="3" fill="#e9e8e3" stroke="${INK}" stroke-width="2.2"/><text x="100" y="273.5" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="${name.length>22?10.5:name.length>17?12:13.5}"${name.length>22?' textLength="142" lengthAdjust="spacingAndGlyphs"':""} fill="${INK}">${name}</text>`:""}</svg>`;}
 function avatarSVG(eq){
   /* Comic hero in a torchlit dungeon. Heroic proportions: big head and hands, broad shoulders,
