@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=a79c76207b"></script>
-<script>window.CRAWL_BUILD="a79c76207b";</script>
+<script src="firebase-config.js?v=b72d65568a"></script>
+<script>window.CRAWL_BUILD="b72d65568a";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1098,7 +1098,29 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 .lk-body{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:16px;align-items:start}
 .lk-prev{border-radius:2px;overflow:hidden}
 .lk-ctl{display:flex;flex-direction:column;gap:10px}
-.lk-row .label{margin-bottom:4px}.lk-mood{font-size:12.5px;margin-top:6px;padding:6px 10px;border-radius:8px;background:rgba(255,210,63,.1);border:1px solid rgba(255,210,63,.35)}
+.lk-row .label{margin-bottom:4px}
+/* Feedback FX */
+.fxnum{position:absolute;z-index:950;pointer-events:none;transform:translate(-50%,-50%);font:900 26px/1 var(--body);letter-spacing:.02em;color:#fff;-webkit-text-stroke:1.5px #000;paint-order:stroke fill;text-shadow:0 3px 0 #000,0 0 14px rgba(0,0,0,.6);animation:fxrise 1.3s ease-out forwards;white-space:nowrap}
+.fx-boss{color:#ffd23f;font-size:30px}.fx-mob{color:#ff9a3d}.fx-rv{color:#ff5a6a}.fx-hurt{color:#ff4a4a;font-size:22px}.fx-heal{color:#7dff8a;font-size:22px}
+@keyframes fxrise{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}30%{transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-190%) scale(1)}}
+.fx-shake{animation:fxshake .45s ease-out}
+@keyframes fxshake{0%,100%{transform:none}20%{transform:translate(-5px,1px) rotate(-1.5deg)}40%{transform:translate(5px,-1px) rotate(1.5deg)}60%{transform:translate(-3px,0) rotate(-.8deg)}80%{transform:translate(2px,0)}}
+#sheet.av-hit .avatar{animation:fxshake .45s ease-out}#sheet.av-hit .avatar::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(255,40,40,.42);pointer-events:none;animation:fxflash .6s ease-out forwards}
+#sheet.av-hop .avatar .print{animation:avhop .55s ease-out}
+#sheet.av-lvl .avatar{animation:avlvl 1.5s ease-out}
+@keyframes fxflash{0%{opacity:1}100%{opacity:0}}
+@keyframes avhop{0%,100%{transform:none}35%{transform:translateY(-10px) scaleY(1.03)}65%{transform:translateY(0) scaleY(.97)}}
+@keyframes avlvl{0%{box-shadow:0 0 0 0 rgba(255,210,63,0)}30%{box-shadow:0 0 0 4px rgba(255,210,63,.9),0 0 34px 8px rgba(255,210,63,.7)}100%{box-shadow:0 0 0 0 rgba(255,210,63,0)}}
+/* Idle life: breathing and blinking on your own avatar (Hero tab, close-up, look editor). Rival cards stay still. */
+@media (prefers-reduced-motion:no-preference){
+  .avatar .print svg .breathe,.zoomdlg.z-me .zoom-art svg .breathe,.lk-prev svg .breathe{animation:breathe 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+  .avatar .print svg .eyes,.zoomdlg.z-me .zoom-art svg .eyes,.lk-prev svg .eyes,.pt-av svg .eyes{animation:blink 5.3s infinite;transform-box:fill-box;transform-origin:50% 50%}
+}
+@media (prefers-reduced-motion:reduce){.fxnum{animation:fxfade 1.3s ease-out forwards}.fx-shake,#sheet.av-hit .avatar,#sheet.av-hop .avatar .print,#sheet.av-lvl .avatar{animation:none}}
+@keyframes fxfade{0%,60%{opacity:1}100%{opacity:0}}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.008,1.014) translateY(-1px)}}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.inkcard .breathe,.inkcard .eyes{animation:none!important}.lk-mood{font-size:12.5px;margin-top:6px;padding:6px 10px;border-radius:8px;background:rgba(255,210,63,.1);border:1px solid rgba(255,210,63,.35)}
 .lk-opts{display:flex;flex-wrap:wrap;gap:6px}
 .lk-opt{padding:5px 10px;border-radius:6px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--fg);font:600 13px var(--body);cursor:pointer}
 .lk-opt.on{background:var(--gold);color:#111;border-color:var(--gold)}
@@ -4057,7 +4079,7 @@ function rivalKO(){
   return {n:rv.n,item,gold};}
 /* Damage to the rival: a quest of yours (can kill), or a crewmate's help (stops at 1 HP). */
 function rivalDown(out,t){
-  const rv=player.rival;player.rival=null;const W=rvWeek(),sc=mobScale(),s=rvStr(rv.n),kill=rv.psy;
+  const rv=player.rival;player.rival=null;ui.rvLastKO=Date.now();const W=rvWeek(),sc=mobScale(),s=rvStr(rv.n),kill=rv.psy;
   const bx=Math.round(sc.xp*.6),g=20+Math.floor(Math.random()*21)+rv.purse;player.xp+=bx;player.gold+=g;if(t)player.stats[t.stat]=(player.stats[t.stat]||0)+bx;
   const mats=[matDrop("ess",kill?3:1+Math.floor(Math.random()*3)),kill?matDrop("star",1):""].filter(Boolean);
   player.viewers=(player.viewers||0)+(kill?6000:2500);
@@ -7440,9 +7462,37 @@ function render(){
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   try{goldWatch();renderPurse();}catch(e){}
   if(loadedP&&playerExists)try{spellTick();}catch(e){console.error("spellTick",e);}
+  const fxRects=fxSnap();
   // Each panel draws independently, so a bug in one can't blank the others.
   for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderSpellbook,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker,renderHotbar]){try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
+  try{fxTick(fxRects);}catch(e){console.warn("fx",e);}
+}
+/* ---------- Feedback FX (batch 1) ----------
+   After every render, compare with the last one: damage to the boss, the mobs on you or your rival floats up off
+   their card as a number (just "Hit!" where HP is hidden: fog floors, Mist Stalkers); the boss card shakes; your
+   avatar flashes red and shakes when you lose HP, hops when you finish a quest and glows gold on a level-up.
+   Numbers are positioned from where the card was before the render, so a mob killed outright still gets one. */
+const FX_SEL={boss:"#bossPanel .bossart",mob:"#mobAlert .mobalert",rv:"#rivalAlert .rvalert",me:"#avatarBox"};
+function fxSnap(){const o={};for(const k in FX_SEL){const el=document.querySelector(FX_SEL[k]);if(el){const r=el.getBoundingClientRect();if(r.width)o[k]={x:r.left+r.width/2+scrollX,y:r.top+Math.min(r.height,160)/2+scrollY};}}return o;}
+function fxNum(at,txt,kind){if(!at)return;const d=document.createElement("div");d.className="fxnum fx-"+kind;d.textContent=txt;d.setAttribute("aria-hidden","true");
+  d.style.left=Math.max(scrollX+34,Math.min(scrollX+innerWidth-34,at.x+(Math.random()*30-15)))+"px";d.style.top=at.y+"px";document.body.appendChild(d);setTimeout(()=>d.remove(),1400);}
+function fxPulse(el,cls,ms){if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms||900);}
+function fxTick(pre){
+  if(!loadedP||!playerExists)return;const p=player,b=p.boss,live=b&&!b.defeated&&!hunting(b);
+  const cur={bk:live?b.name+"|"+b.tier:null,bh:live?bossHp(b):null,ms:Object.fromEntries((p.mobs||[]).map(m=>[m.id,m.hp])),
+    rk:p.rival?p.rival.id:null,rh:p.rival?p.rival.hp:null,hp:p.hp,lv:levelInfo(p.xp||0).L,dc:p.doneCount||0};
+  const o=ui.fxPrev;ui.fxPrev=cur;if(!o)return;
+  const at=k=>{const el=document.querySelector(FX_SEL[k]);if(el){const r=el.getBoundingClientRect();if(r.width)return {x:r.left+r.width/2+scrollX,y:r.top+Math.min(r.height,160)/2+scrollY};}return pre[k];};
+  if(o.bk&&o.bk===cur.bk&&cur.bh<o.bh){fxNum(at("boss"),themeFx(p).fog?"Hit!":"−"+(o.bh-cur.bh),"boss");fxPulse(document.querySelector(FX_SEL.boss),"fx-shake",500);}
+  let md=0,hidden=false;for(const id in o.ms){const was=o.ms[id],now=cur.ms[id];const d=now==null?was:Math.max(0,was-now);if(d>0){md+=d;const mb=(p.mobs||[]).find(m=>m.id===id);if(mb&&mobFam(mobKind(mb)).hide)hidden=true;}}
+  if(md>0)fxNum(at("mob"),hidden?"Hit!":"−"+md,"mob");
+  if(o.rk&&o.rk===cur.rk&&cur.rh<o.rh)fxNum(at("rv"),"−"+(o.rh-cur.rh),"rv");
+  else if(o.rk&&!cur.rk&&ui.rvLastKO&&Date.now()-ui.rvLastKO<5000)fxNum(pre.rv,"KO!","rv");
+  const me=document.querySelector(FX_SEL.me);
+  if(cur.hp<o.hp){fxNum(at("me"),"−"+Math.round(o.hp-cur.hp),"hurt");fxPulse($("sheet"),"av-hit",700);}
+  else if(cur.hp>o.hp+.5)fxNum(at("me"),"+"+Math.round(cur.hp-o.hp),"heal");
+  if(cur.lv>o.lv)fxPulse($("sheet"),"av-lvl",1600);else if(cur.dc>o.dc)fxPulse($("sheet"),"av-hop",700);
 }
 
 /* ---------- Avatar ---------- */
@@ -8559,7 +8609,7 @@ function avatarSVG(eq){
   const _bare=_bI?"":STANCE?bare(102,-1)+bare(200,1):bare(124,-1)+bare(176,1);
   s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):_bare;
 
-  s+=`<g class="upper"${PZ==="hurt"?` transform="rotate(-5 150 262)"`:""}>`+narrow;
+  s+=`<g class="upper"${PZ==="hurt"?` transform="rotate(-5 150 262)"`:""}><g class="breathe">`+narrow;
   // Torso
   const TORSO="M100 150 Q150 136 200 150 L194 212 Q188 240 186 262 L114 262 Q112 240 106 212 Z";
   const TORSOS="M100 150 Q118 144 130 146 Q122 200 128 262 L114 262 Q112 240 106 212 Z";
@@ -8637,12 +8687,12 @@ function avatarSVG(eq){
       angry:ln("M126 77 L145 86 M155 86 L174 77",5),raised:ln("M126 78 Q135 69 144 76 M156 76 Q165 69 174 78",3.6),worried:ln("M126 85 Q136 80 145 76 M155 76 Q164 80 174 85",4.2)}[LK.brow];
     if(FEM){
       s+=BROW||ln("M126 82 Q135 75 144 80 M156 80 Q165 75 174 82",3.2);
-      s+=eye(136,94,7.5,7,3.6*PR)+eye(164,94,7.5,7,3.6*PR);
+      s+=`<g class="eyes">`+eye(136,94,7.5,7,3.6*PR)+eye(164,94,7.5,7,3.6*PR)+`</g>`;
       s+=ln("M128 90 L124 86 M130 88 L127 83 M172 90 L176 86 M170 88 L173 83",2)+ln("M128 88 Q136 85 143 89 M157 89 Q164 85 172 88",2.4);
       s+=ln("M150 100 L147 109 L152 110",2.4);
     }else{
       s+=BROW||ln("M126 80 L144 84 M156 84 L174 78",5);
-      s+=eye(136,94,7,6,3*PR)+eye(164,94,7,6,3*PR);
+      s+=`<g class="eyes">`+eye(136,94,7,6,3*PR)+eye(164,94,7,6,3*PR)+`</g>`;
       s+=ln("M150 98 L145 110 L153 112",3);
     }
     if(LK.beard==="beard")s+=sh("M118 96 Q118 126 134 140 Q150 150 166 140 Q182 126 182 96 Q178 116 166 122 Q158 114 150 116 Q142 114 134 122 Q122 116 118 96 Z",HAIR)+sh("M140 124 Q150 120 160 124 Q150 130 140 124 Z",INK);
@@ -8725,7 +8775,7 @@ function avatarSVG(eq){
   }else{
     s+=fist(210,266)+fist(90,266)+ringOn(210,266);
   }
-  s+=`</g></g></g></g>`;
+  s+=`</g></g></g></g></g>`;
   // Vignette, then the active pet at the hero's feet (in front of the shadows), then the panel border
   if(!eq.bare)s+=`<rect x="0" y="0" width="300" height="420" fill="url(#${u}v)"/>`;
   // Bare feet sit low enough for the vignette to darken them into sandal-brown; redraw them above it so they match the hands and face
@@ -9006,6 +9056,8 @@ function bossSVG(name,slain,opts){
     s+=`<text x="100" y="32" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="17" letter-spacing="1" fill="${INK}">${num.toUpperCase()}</text>`;
     s+=`<rect x="24" y="256" width="152" height="25" rx="3" fill="#e9e8e3" stroke="${INK}" stroke-width="2.2"/><text x="100" y="273.5" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="${capName.length>22?10.5:capName.length>17?12:13.5}"${capName.length>22?' textLength="142" lengthAdjust="spacingAndGlyphs"':""} fill="${INK}">${titleCase(capName).replace(/&/g,"&amp;")}</text>`;
   }
+  // Below a quarter of its HP the card cracks
+  if(opts.crack&&!slain)s+=`<g fill="none" stroke="${INK}" stroke-linecap="round" stroke-linejoin="round" opacity=".85"><path d="M187 60 L166 82 L172 96 L150 118 L158 132 L136 156" stroke-width="2.4"/><path d="M166 82 L152 80 M150 118 L138 112 M158 132 L170 140" stroke-width="1.4"/><path d="M13 214 L34 206 L42 222 L60 216" stroke-width="2"/></g>`;
   if(slain){
     s+=`<g class="slash" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round"><path pathLength="1" d="M74 14 L86 62 L76 98 L94 140 L84 190 L104 252"/><path pathLength="1" d="M86 62 L62 74 M94 140 L120 150 M84 190 L64 206"/></g>`;
     s+=`<rect x="13" y="13" width="174" height="274" rx="5" fill="#000" opacity=".38"/>`;
@@ -9793,7 +9845,7 @@ function renderBoss(){
   if(!open){
     const sub=b.defeated?`Floor ${floor} cleared · <b>grind time</b>: mobs and rival crawlers still roam, and mobs pay +50% XP · Floor ${floor+1} (${esc(themeById(themeFor(floor+1)).n)}) opens ${fmtDue(addDays(b.week,7))}`
       :`${pips} ${LM?"":`${b.tier+1} of 6 `}· drops a <b><span class="mini-ico">${boxIconSVG(T.box)}</span>${esc(box.n)}</b> · about <b class="num">${togoTxt}</b> Elite quest${!fog&&togo===1?"":"s"} to go · stairwell closes ${closes}${b.healed?` · healed <b class="num">${b.healed}</b> by overdue quests`:""}`;
-    el.innerHTML=`<div class="boss-compact"><div class="bossart thumb zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="${esc(b.name)}: tap to see it up close">${bossSVG(b.name,b.defeated,{crop:true,tier:b.tier})}</div>
+    el.innerHTML=`<div class="boss-compact"><div class="bossart thumb zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="${esc(b.name)}: tap to see it up close">${bossSVG(b.name,b.defeated,{crop:true,tier:b.tier,crack:!fog&&!b.defeated&&hp<b.maxHp*.25})}</div>
       <div class="boss-compact-main"><div class="boss-strip"><div class="bs-title"><span class="boss-tag">${b.defeated?`Floor ${floor} cleared`:`${esc(T.n)} · Floor ${floor}`}</span><div class="bname${b.defeated?" dead":""}">${esc(b.name)}</div></div>
       <div class="hpwrap"><div class="bar boss${fog?" fog":""}" role="progressbar" aria-label="Boss health${fog?" hidden by fog":""}" aria-valuemin="0" aria-valuemax="${fog?100:b.maxHp}" aria-valuenow="${fog?100:hp}"><b style="width:${barW.toFixed(1)}%"></b></div><span class="num">${hpTxt}</span></div>
       ${toggle(false)}</div><div class="boss-sub">${sub}</div>${LM&&!b.defeated?lairFightHTML(ensureMap()):""}</div></div>${tbar}`;
@@ -9825,7 +9877,7 @@ function renderBoss(){
     <div><div class="label">Drops</div><b>${esc(box.n)}</b><span>${LM?"":b.tier<5?`Then the ${esc(TIERS[b.tier+1].n)} steps up`:"The last boss on this floor"}</span></div>${LM?`<button class="btn ghost sm" type="button" data-lretreat style="margin-left:auto">Retreat</button>`:""}</div>`;
   el.innerHTML=`<div class="boss-grid">
     <div class="boss-main">${main}${dropRow}</div>
-    <figure class="bossfig">${b.defeated?"":`<div class="bubble">${esc(BOSS_TAUNT[b.name]||"You'll never finish!")}</div>`}<div class="bossart zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="Portrait of ${esc(b.name)}, the ${esc(T.n)} on Floor ${floor}: tap to see it up close">${bossSVG(b.name,b.defeated,{tier:b.tier})}</div><figcaption class="boss-tag">${esc(T.n)}</figcaption></figure>
+    <figure class="bossfig">${b.defeated?"":`<div class="bubble">${esc(BOSS_TAUNT[b.name]||"You'll never finish!")}</div>`}<div class="bossart zoomable${b.defeated?" slain":""}" data-zboss role="button" tabindex="0" aria-label="Portrait of ${esc(b.name)}, the ${esc(T.n)} on Floor ${floor}: tap to see it up close">${bossSVG(b.name,b.defeated,{tier:b.tier,crack:!fog&&!b.defeated&&hp<b.maxHp*.25})}</div><figcaption class="boss-tag">${esc(T.n)}</figcaption></figure>
   </div>
   ${tbar}<div style="display:flex;justify-content:flex-end;margin-top:10px">${toggle(true)}</div>`;
   wire();wireBossZoom(el);wireLairBtns(el);

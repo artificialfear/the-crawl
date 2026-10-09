@@ -92,3 +92,8 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - `eq.expr` is a key of `EXPRS`, a brow + mouth preset (happy, smug, angry, determined, hurt, unhinged, shout). Unhinged also shrinks the pupils (`PR`). New look options: brow "worried", mouths "ouch" and "wild".
 - `myMood()`: victory for 10 min after bossKills/rivalKills/rivalKOs/level go up (in-memory `ui.winAt`, published on the party card as `win`, an expiry timestamp), hurt under 30% HP, no change for mobs or rivals (pose and face kept); `moodNote()` explains an override in the look editor. Used by the hero sheet, `zoomMe` and `myAvatarEq`.
 - Rivals: `rvMood(rv)` picks a stance and face from a hash of the name, unhinged for psychos, angry under 50% HP, hurt under 20%.
+
+## Feel pass, batch 1 (changelog entry comes with the last batch)
+- `render()` snapshots card positions (`fxSnap`) before drawing, then `fxTick(pre)` compares with the last state (`ui.fxPrev`): boss HP drop → floating number on `#bossPanel .bossart` plus `.fx-shake`; mob HP drop (by mob id, including mobs that died) → number on the mob alert ("Hit!" for hidden HP); rival HP drop → number, and "KO!" after `rivalDown` (`ui.rvLastKO`); your HP down/up → red/green number on the avatar and `#sheet.av-hit`; finished quest → `.av-hop`; level-up → `.av-lvl`. Numbers are `.fxnum` divs on `body`, removed after 1.4 s.
+- Idle life: avatarSVG wraps the upper body in `<g class="breathe">` (inside `.upper`, whose transform attribute the hurt pose uses) and the eyes in `<g class="eyes">`. The CSS breathes and blinks them on the Hero tab, `zoomMe` and the look editor only, and only without reduced motion.
+- Boss cards crack below 25% HP (`bossSVG` opts.crack), except on fog floors.
