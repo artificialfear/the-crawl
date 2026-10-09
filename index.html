@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=a6723d931a"></script>
-<script>window.CRAWL_BUILD="a6723d931a";</script>
+<script src="firebase-config.js?v=7bfd1496af"></script>
+<script>window.CRAWL_BUILD="7bfd1496af";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -4001,7 +4001,7 @@ function rvGear(n){const r=srand("rvgear|"+n),s=rvStr(n);
   for(const slot of ["weapon","armor","head","boots","gloves","cape"]){if(slot!=="weapon"&&r()<.3)continue;
     const c=ITEMS.filter(i=>i.slot===slot&&pool.includes(i.rar)&&!i.base);if(c.length)out[slot]=c[Math.floor(r()*c.length)].id;}
   return out;}
-function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)}),{psy:!!(rv&&rv.psy),plate:plate?rv.n:null});}catch(e){return "";}}
+function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)}),{psy:!!(rv&&rv.psy),name:rv.n,rank:rvIdx(rv.n),plate:plate?rv.n:null});}catch(e){return "";}}
 const rvHit=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((6+3*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvNight=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((10+4*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvBribe=()=>30+15*floorOf();
@@ -8401,23 +8401,34 @@ function avFx(u,eq){
 <feFlood flood-color="#ffb04a" flood-opacity=".9"/><feComposite in2="rim" operator="in" result="rimc"/>
 <feComposite in="lit" in2="SourceAlpha" operator="in" result="litc"/>
 <feMerge><feMergeNode in="litc"/><feMergeNode in="sh"/><feMergeNode in="rimc"/></feMerge></filter>`;}
-/* A rival crawler as a tarot card: etched figure, smoke, a red (psycho) or amber aura. plate = name strip at the bottom. */
+/* A rival crawler as a tarot card from the same deck as the bosses: card stock, seeded smoke, an ink hill with
+   splatter, the double frame and corner pieces, their board rank as a numeral, and (in close-ups) a name banner.
+   Etched figure with an amber aura (red for a psycho; a psycho's card also gets darker smoke and dripping ink). */
 let inkUid=0;
-function inkCard(eq,o){o=o||{};const k="ik"+(++inkUid);
-  const fig=avatarSVG(Object.assign({},eq,{bare:true,style:"ink",inkc:o.psy?"#e8283c":"#ff8a1f"})).replace(/^<svg[^>]*>/,"<g>").replace(/<\/svg>$/,"</g>"); // a plain group, so page CSS aimed at "svg" can't move it
-  return `<svg class="inkcard" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
-<filter id="${k}n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="${inkUid%97}"/><feColorMatrix values="0 0 0 0 .1 0 0 0 0 .1 0 0 0 0 .1 0 0 0 .35 0"/></filter>
-<filter id="${k}s" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
-<pattern id="${k}h" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0 L0 5" stroke="#000" stroke-width="1.1" opacity=".2"/></pattern>
-<radialGradient id="${k}g" cx="50%" cy="38%" r="62%"><stop offset="0" stop-color="#8f8f8b"/><stop offset="1" stop-color="#d9d6cc"/></radialGradient></defs>
-<rect width="300" height="420" fill="#e4e1d8"/><rect width="300" height="420" filter="url(#${k}n)"/>
-<rect x="16" y="16" width="268" height="388" fill="url(#${k}g)" stroke="#111" stroke-width="7"/>
-<g opacity=".35" filter="url(#${k}s)" fill="#f4f2ec"><ellipse cx="70" cy="110" rx="60" ry="26"/><ellipse cx="230" cy="80" rx="64" ry="24"/><ellipse cx="150" cy="300" rx="110" ry="30"/></g>
-<rect x="16" y="16" width="268" height="388" fill="url(#${k}h)"/>
-<g transform="translate(${o.plate?26:12} ${o.plate?18:20}) scale(${o.plate?.83:.92})">${fig}</g>
-${o.plate?`<rect x="40" y="356" width="220" height="34" fill="#f3f1ea" stroke="#111" stroke-width="3"/><text x="150" y="380" text-anchor="middle" font-family="Georgia,serif" font-size="19" font-weight="700" fill="#111">${esc(o.plate)}</text>`:""}
-<path d="M16 16 l22 0 l-22 22 Z M284 16 l-22 0 l22 22 Z M16 404 l22 0 l-22 -22 Z M284 404 l-22 0 l22 -22 Z" fill="#111"/>
-<rect x="4" y="4" width="292" height="412" fill="none" stroke="#111" stroke-width="8"/></svg>`;}
+const ROMAN=n=>{let r="";for(const [v,c] of [[10,"x"],[9,"ix"],[5,"v"],[4,"iv"],[1,"i"]])while(n>=v){r+=c;n-=v;}return r;};
+function inkCard(eq,o){o=o||{};const k="ik"+(++inkUid),{INK,BONE,CARD}=TC,psy=!!o.psy;
+  let h=0;for(const ch of String(o.name||"x"))h=(h*31+ch.charCodeAt(0))>>>0;const seed=1+h%89;let rs=h%233280;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+  const fig=avatarSVG(Object.assign({},eq,{bare:true,style:"ink",inkc:psy?"#e8283c":"#ff8a1f"})).replace(/^<svg[^>]*>/,"<g>").replace(/<\/svg>$/,"</g>"); // a plain group, so page CSS aimed at "svg" can't move it
+  const gy=o.plate?250:268,sc=o.plate?.6:.66,fx=(100-150*sc).toFixed(1),fy=(gy-384*sc).toFixed(1);
+  let splat="";for(let i=0;i<26;i++)splat+=`<circle cx="${(100+(rnd()-.5)*160).toFixed(1)}" cy="${(gy-2+(rnd()-.5)*14).toFixed(1)}" r="${(.6+rnd()*2.4).toFixed(1)}" fill="${INK}"/>`;
+  let drips="";if(psy)for(let i=0;i<7;i++){const x=20+rnd()*160,l=8+rnd()*26;drips+=`<path d="M${(x-1.6).toFixed(1)} 13 L${(x-1).toFixed(1)} ${(13+l).toFixed(1)} Q${x.toFixed(1)} ${(17+l).toFixed(1)} ${(x+1).toFixed(1)} ${(13+l).toFixed(1)} L${(x+1.6).toFixed(1)} 13 Z" fill="${INK}"/>`;}
+  const corner=`<path d="M13 13 L46 13 L40 17 L24 17 Q19 17 19 22 L19 40 L13 46 Z" fill="${INK}"/><path d="M22 22 L36 22 L22 36 Z" fill="${INK}"/><path d="M46 13 L52 9 L50 15 Z M13 46 L9 52 L15 50 Z" fill="${INK}"/>`;
+  const rank=o.rank!=null&&o.rank>=0?ROMAN(o.rank+1).toUpperCase():psy?"☠":"";
+  const name=o.plate?titleCase(o.plate).replace(/&/g,"&amp;").replace(/</g,"&lt;"):"";
+  return `<svg class="inkcard" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+<filter id="${k}cl" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".013 .022" numOctaves="5" seed="${seed}" result="n"/><feColorMatrix in="n" type="saturate" values="0" result="g"/><feComponentTransfer in="g"><feFuncR type="linear" slope="1.9" intercept="${psy?-.55:-.32}"/><feFuncG type="linear" slope="1.9" intercept="${psy?-.55:-.32}"/><feFuncB type="linear" slope="1.9" intercept="${psy?-.55:-.32}"/><feFuncA type="linear" slope="0" intercept="1"/></feComponentTransfer></filter>
+<filter id="${k}gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="2"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.1 .62"/></filter>
+<radialGradient id="${k}v" cx="100" cy="140" r="150" gradientUnits="userSpaceOnUse"><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".62"/></radialGradient>
+<clipPath id="${k}c"><rect x="13" y="13" width="174" height="274" rx="5"/></clipPath></defs>
+<rect width="200" height="300" fill="${CARD}"/><rect width="200" height="300" filter="url(#${k}gr)" opacity=".5"/>
+<g clip-path="url(#${k}c)"><rect width="200" height="300" fill="#9a9a96"/><rect width="200" height="300" filter="url(#${k}cl)" opacity=".85"/>
+<path d="M13 ${gy} Q100 ${gy-12} 187 ${gy} L187 300 L13 300 Z" fill="${INK}"/>${splat}
+<g transform="translate(${fx} ${fy}) scale(${sc})">${fig}</g>
+<rect width="200" height="300" fill="url(#${k}v)"/>${drips}</g>
+<rect x="13" y="13" width="174" height="274" rx="5" fill="none" stroke="${INK}" stroke-width="3"/><rect x="17" y="17" width="166" height="266" rx="3" fill="none" stroke="${INK}" stroke-width=".9"/>
+${corner}<g transform="translate(200 0) scale(-1 1)">${corner}</g><g transform="translate(0 300) scale(1 -1)">${corner}</g><g transform="translate(200 300) scale(-1 -1)">${corner}</g>
+${rank?`<text x="100" y="32" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="17" letter-spacing="1" fill="${INK}">${rank}</text>`:""}
+${name?`<rect x="24" y="256" width="152" height="25" rx="3" fill="#e9e8e3" stroke="${INK}" stroke-width="2.2"/><text x="100" y="273.5" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="${name.length>22?10.5:name.length>17?12:13.5}"${name.length>22?' textLength="142" lengthAdjust="spacingAndGlyphs"':""} fill="${INK}">${name}</text>`:""}</svg>`;}
 function avatarSVG(eq){
   /* Comic hero in a torchlit dungeon. Heroic proportions: big head and hands, broad shoulders,
      thick limbs drawn as outlined tubes. Starts in a ratty T-shirt, jeans and bare feet; gear layers on top. */
