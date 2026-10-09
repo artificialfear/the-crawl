@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=cf101f037d"></script>
-<script>window.CRAWL_BUILD="cf101f037d";</script>
+<script src="firebase-config.js?v=9a5398b3a6"></script>
+<script>window.CRAWL_BUILD="9a5398b3a6";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -356,6 +356,8 @@ form.add{display:flex;flex-direction:column;gap:14px}
 .row>.field{flex:1 1 140px}
 input[type=text],input[type=number],input[type=date],select{background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r);padding:8px 11px;width:100%;min-width:0}
 input[type=text]{font-size:17px}
+/* The quest bar's example text shrinks to fit (fitPlaceholder); typed text stays 17px so phones don't zoom in. */
+#q-title{text-overflow:ellipsis}#q-title::placeholder{font-size:var(--phfs,17px)}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg label{position:relative}
 .seg input{position:absolute;opacity:0;pointer-events:none}
@@ -6085,9 +6087,20 @@ function currentIdea(){
   if(!ideaList.length)return null;
   return ideaList[ideaIdx%ideaList.length];
 }
+/* Shrink the placeholder until it fits the box (17px down to 12px), then let it trail off with an ellipsis. */
+let phCanvas=null;
+function fitPlaceholder(inp,bare){try{
+  const cs=getComputedStyle(inp),w=inp.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-2;if(w<=0)return;
+  phCanvas=phCanvas||document.createElement("canvas");const g=phCanvas.getContext("2d");let fs=17;
+  const fits=(t,f)=>{g.font=`${cs.fontWeight} ${f}px ${cs.fontFamily}`;return g.measureText(t).width<=w;};
+  // an idea that won't fit at full size drops its "e.g." first, then shrinks
+  if(bare&&!fits(inp.placeholder,17))inp.placeholder=bare;
+  for(;fs>12;fs-=.5)if(fits(inp.placeholder,fs))break;
+  inp.style.setProperty("--phfs",fs+"px");}catch(e){}}
+addEventListener("resize",()=>{const i=$("q-title"),d=i&&$("ideaRow")&&!$("ideaRow").hidden&&currentIdea();if(i){if(d)i.placeholder="e.g. "+d.t;fitPlaceholder(i,d?d.t:null);}});
 function renderIdeas(){
   const el=$("ideaRow"),inp=$("q-title");if(!el||!inp)return;
-  if(prefs.ideas===false||!playerExists&&!tasks.length){el.hidden=true;inp.placeholder="New quest… try “call mom tomorrow 15m”";return;}
+  if(prefs.ideas===false||!playerExists&&!tasks.length){el.hidden=true;inp.placeholder="New quest… try “call mom tomorrow 15m”";fitPlaceholder(inp);return;}
   const idea=currentIdea();
   if(!idea||inp.value.trim()){el.hidden=true;return;}
   el.hidden=false;
@@ -6096,7 +6109,7 @@ function renderIdeas(){
     <button type="button" class="idea-next" id="ideaNext" aria-label="Show another idea" title="Another idea">${ideaLoading?"…":"↻"}</button>
     ${playerExists?`<select class="idea-job" id="ideaJob" aria-label="Your line of work, for quest ideas" title="Your line of work: adds job quests to the ideas"><option value="">💼 Any job</option>${Object.keys(CAREERS).map(k=>`<option value="${k}"${player.job===k?" selected":""}>${esc(CAREERS[k].n)}</option>`).join("")}</select>`:""}`;
   if($("ideaJob"))$("ideaJob").onchange=e=>{player.job=e.target.value||null;store.savePlayer(player).catch(writeFailed);ideaList=null;ideaIdx=0;if(prefs.ideaCache){prefs.ideaCache=null;savePrefs();}renderIdeas();};
-  inp.placeholder="e.g. "+idea.t;
+  inp.placeholder="e.g. "+idea.t;fitPlaceholder(inp,idea.t);
   $("ideaUse").onclick=()=>{inp.value=idea.t;inp.dispatchEvent(new Event("input",{bubbles:true}));inp.focus();try{inp.setSelectionRange(idea.t.length,idea.t.length);}catch(e){}
     markIdeaUsed(idea.t);ideaList=ideaList.filter(x=>x.t!==idea.t);
     if(idea.src==="ai"&&prefs.ideaCache){prefs.ideaCache.list=prefs.ideaCache.list.filter(x=>x!==idea.t);savePrefs();}
