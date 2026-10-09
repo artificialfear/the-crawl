@@ -40,7 +40,12 @@ self.addEventListener("message",e=>{
     for(let i=0;i<list.length;i+=4)await Promise.all(list.slice(i,i+4).map(u=>c.match(u).then(m=>m||fetch(u).then(r=>{if(r.status===200)return c.put(u,r);}).catch(()=>{}))));
   }));
 });
-// Tapping a party notification brings The Crawl forward on the chat (or opens it if it was closed).
+// A push from tools/push/send.mjs (evening reminder or party ping), shown even with The Crawl closed.
+self.addEventListener("push",e=>{
+  let d={};try{d=e.data?e.data.json():{};}catch(x){d={body:e.data&&e.data.text()};}
+  e.waitUntil(self.registration.showNotification(d.title||"The Crawl",{body:d.body||"",icon:"icon-192.png",badge:"icon-192.png",tag:d.tag||"crawl",renotify:true,data:{open:d.open||"quests"}}));
+});
+// Tapping a notification brings The Crawl forward on the right screen (or opens it if it was closed).
 self.addEventListener("notificationclick",e=>{
   e.notification.close();const open=(e.notification.data&&e.notification.data.open)||"party";
   e.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(list=>{

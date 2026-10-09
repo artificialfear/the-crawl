@@ -1893,6 +1893,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
       <input type="file" id="restoreFile" accept=".json,application/json" hidden>
     </section>
 <section class="panel" aria-label="Quest auto-sort"><h2>Quest auto-sort</h2><div class="soundctl" id="aiCtl"></div></section>
+<section class="panel" aria-label="Notifications"><h2>Notifications</h2><div class="soundctl" id="pushCtl"></div></section>
 <section class="panel" aria-label="Install the app"><h2>Install the app</h2><div class="soundctl" id="installCtl"></div></section>
 <section class="panel" aria-label="After a quest"><h2>After a quest</h2><div class="soundctl" id="showCtl"></div></section>
 <section class="panel" aria-label="Sound"><h2>Sound</h2><div class="soundctl" id="soundCtl"></div></section>
@@ -7552,6 +7553,7 @@ function render(){
   try{entrWatch();}catch(e){console.warn("entr",e);}
   try{rpTick();}catch(e){}
   try{guideTick();}catch(e){}
+  try{pushTouch();}catch(e){}
 }
 /* ---------- Feedback FX (batch 1) ----------
    After every render, compare with the last one: damage to the boss, the mobs on you or your rival floats up off
@@ -10658,6 +10660,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.15.0",d:"2026-10-09",t:"Ping",items:["Notifications that arrive with The Crawl closed (Settings → Notifications, per device): an evening heads-up at the hour you pick, only on days when something's about to hit you (overdue quests, a rival who'll strike overnight, a streak about to end), plus party messages, nudges and a ping when a crewmate starts getting hunted by a rival so you can help.",
+    "On iPhone, install The Crawl to your home screen first, then turn notifications on from the installed app. Party pings can take up to about 15 minutes to arrive."]},
   {v:"3.14.0",d:"2026-10-09",t:"Field guide",items:["New crawlers meet the game one piece at a time: the first time a mob jumps you, a rival hunts you, you learn a spell, get potion-sick and so on, a short Field guide card explains it, with More for the full entry. Cards never show during a quest's show, one at a time.",
     "Settings → Field guide lists every entry with a search box. Crawlers who've finished 25+ quests start with the cards already marked as seen; \"Show the cards again\" brings them back."]},
   {v:"3.13.1",d:"2026-10-09",t:"Out of the way",items:["On phones the potion and spell bar now sits at the bottom left, so it never covers the Complete and ⋯ buttons down the right side of your quests. If your bar gets too long to fit beside them, it wraps to two rows instead."]},
@@ -10948,6 +10952,66 @@ function renderGuide(){
   const list=GUIDE.filter(g=>!q||(g.t+" "+g.line+" "+g.more).toLowerCase().includes(q));
   $("guideList").innerHTML=list.length?list.map(g=>`<details class="guide-it" id="guide-${g.id}"><summary><b>${esc(g.t)}</b></summary><p>${esc(g.line)}</p><p class="muted">${esc(g.more)}</p></details>`).join(""):`<div class="muted">Nothing matches. The rules list below covers the numbers.</div>`;
 }
+/* ---------- Push notifications ----------
+   Notifications that arrive with The Crawl closed: an evening reminder (overdue quests, a rival who'll hit you
+   overnight, a streak about to end; only on days with something to warn about) and party pings (chat, help
+   requests). This device's subscription lives at data/users/<uid>/player/push/<deviceId>; tools/push/send.mjs,
+   run every 15 minutes by a GitHub Action, reads those and sends. config/push holds the public key to subscribe
+   with; until the Action has run once it doesn't exist, and this section says notifications aren't set up yet. */
+const PUSH={key:null,checked:false,busy:false};
+function devId(){if(!prefs.devId){prefs.devId=Math.random().toString(36).slice(2,12)+Date.now().toString(36);savePrefs();}return prefs.devId;}
+const pushRef=()=>fb&&fb.user?fb.fs.doc(`data/users/${fb.user.uid}/player/push/${devId()}`):null;
+const pushOk=()=>"serviceWorker" in navigator&&"PushManager" in window&&typeof Notification==="function";
+async function pushKey(){if(PUSH.checked)return PUSH.key;PUSH.checked=true;
+  try{const d=await fb.fs.doc("config/push").get();PUSH.key=d.exists&&d.data().vapid||null;}catch(e){PUSH.key=null;}return PUSH.key;}
+const b64uBytes=s=>{const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4));return Uint8Array.from(b,c=>c.charCodeAt(0));};
+async function pushOn(){
+  if(PUSH.busy)return;PUSH.busy=true;
+  try{
+    const key=await pushKey();if(!key){toast("Notifications aren't switched on for The Crawl yet. Ask Mat.","bad");return;}
+    const perm=Notification.permission==="granted"?"granted":await Notification.requestPermission();
+    if(perm!=="granted"){toast("Notifications are blocked for The Crawl. Allow them in your browser or phone settings, then try again.","bad");return;}
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uBytes(key)});
+    prefs.push={evening:true,party:true,hour:(prefs.push&&prefs.push.hour)||19};savePrefs();
+    await pushRef().set({sub:JSON.stringify(sub),tz:Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC",hour:prefs.push.hour,evening:true,party:true,
+      partyCode:player.party&&player.party.code||null,active:Date.now(),at:Date.now()},{merge:true});
+    toast("Notifications on for this device. You'll get an evening heads-up and party pings, even with The Crawl closed.");
+  }catch(e){console.warn("push",e);toast("Couldn't turn notifications on here. "+(isIOS()&&!isInstalled()?"On iPhone, install The Crawl to your home screen first.":"Try again in a moment."),"bad");}
+  finally{PUSH.busy=false;renderPushCtl();}
+}
+async function pushOff(){
+  try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe();}catch(e){}
+  try{const r=pushRef();if(r)await r.delete();}catch(e){}
+  prefs.push=null;savePrefs();renderPushCtl();toast("Notifications off for this device.");
+}
+function pushSet(o){prefs.push=Object.assign({},prefs.push,o);savePrefs();const r=pushRef();if(r)r.set(o,{merge:true}).catch(()=>{});renderPushCtl();}
+// Keeps the server's copy current: time zone, party, and when you last had the app open (so it doesn't ping you about
+// messages you've already seen). At most every 2 minutes, only while the app is on screen.
+let pushSeenAt=0;
+function pushTouch(){
+  if(!prefs.push||!fb||!fb.user||document.visibilityState!=="visible"||Date.now()-pushSeenAt<12e4)return;pushSeenAt=Date.now();
+  const r=pushRef();if(r)r.set({active:Date.now(),tz:Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC",partyCode:player.party&&player.party.code||null},{merge:true}).catch(()=>{});
+}
+function renderPushCtl(){
+  const el=$("pushCtl");if(!el)return;const on=!!prefs.push;
+  if(!pushOk()){el.innerHTML=`<div class="muted" style="font-size:13px">${isIOS()&&!isInstalled()?"On iPhone, notifications work once The Crawl is installed to your home screen (see Install the app below), then turn them on here from the installed app.":"This browser can't receive notifications."}</div>`;return;}
+  if(!fb||!fb.user){el.innerHTML=`<div class="muted" style="font-size:13px">Sign in to turn on notifications.</div>`;return;}
+  const h=(prefs.push&&prefs.push.hour)||19,hrs=[16,17,18,19,20,21,22];
+  el.innerHTML=on?`<div style="font-size:14px">🔔 On for this device, even with The Crawl closed.</div>
+      <label class="sndrow"><input type="checkbox" id="pushEve"${prefs.push.evening!==false?" checked":""}> Evening heads-up at <select id="pushHour" style="width:auto">${hrs.map(x=>`<option value="${x}"${x===h?" selected":""}>${x>12?x-12:x} pm</option>`).join("")}</select></label>
+      <div class="muted" style="font-size:12px">Only on days with something to warn you about: overdue quests, a rival who'll hit you overnight, a streak about to end.</div>
+      <label class="sndrow"><input type="checkbox" id="pushParty"${prefs.push.party!==false?" checked":""}> Party messages and help requests</label>
+      <div class="muted" style="font-size:12px">Can take up to about 15 minutes to arrive.</div>
+      <button class="btn ghost sm" type="button" id="pushOffBtn">Turn off on this device</button>`
+    :`<div class="muted" style="font-size:13px">Get an evening heads-up when something's about to hit you, and party pings, even with The Crawl closed.${isIOS()&&!isInstalled()?" On iPhone, install The Crawl to your home screen first.":""}</div>
+      <button class="btn gold" type="button" id="pushOnBtn">🔔 Turn on notifications</button>`;
+  const b=$("pushOnBtn");if(b)b.onclick=pushOn;const o=$("pushOffBtn");if(o)o.onclick=pushOff;
+  const e=$("pushEve");if(e)e.onchange=()=>pushSet({evening:e.checked});
+  const pp=$("pushParty");if(pp)pp.onchange=()=>pushSet({party:pp.checked});
+  const hh=$("pushHour");if(hh)hh.onchange=()=>pushSet({hour:+hh.value});
+}
 /* ---------- Install ----------
    The Crawl can already be added to a home screen (it opens full screen and works offline); this tells players so.
    Android and desktop Chrome get a real Install button; iPhone gets the Share → Add to Home Screen steps.
@@ -10984,7 +11048,7 @@ function changelogCheck(){
   if(verNum(APP_VERSION)>verNum(prefs.seenVer)&&!ui.verToasted){ui.verToasted=true;const c=CHANGELOG[0];
     setTimeout(()=>toast(`<b>Updated to v${c.v}: ${esc(c.t)}.</b> See what changed in Settings.`,"quest",()=>openGear(),"What's new"),1800);}
 }
-function openGear(){const g=$("gearWrap");if(!g)return;renderChangelog();try{renderShowCtl();renderInstallCtl();renderGuide();}catch(e){}try{if(playerExists){if(!RP.list&&!RP.loading)rpLoad();else renderBackup();}}catch(e){}g.hidden=false;const c=$("gearClose");if(c)c.focus();
+function openGear(){const g=$("gearWrap");if(!g)return;renderChangelog();try{renderShowCtl();renderInstallCtl();renderGuide();renderPushCtl();}catch(e){}try{if(playerExists){if(!RP.list&&!RP.loading)rpLoad();else renderBackup();}}catch(e){}g.hidden=false;const c=$("gearClose");if(c)c.focus();
   if(prefs.seenVer!==APP_VERSION){setTimeout(()=>{prefs.seenVer=APP_VERSION;savePrefs();const b=$("gearBtn");if(b)b.classList.remove("hasnew");},400);}}
 function closeGear(){const g=$("gearWrap");if(g)g.hidden=true;const b=$("gearBtn");if(b)b.focus();}
 
@@ -12060,7 +12124,7 @@ function partyInvite(){
 }
 /* An invite link (?join=CODE) fills the code in and opens the Party tab. */
 function partyFromLink(){
-  try{const op=new URLSearchParams(location.search).get("open");if(op){history.replaceState(null,"",location.pathname);setTimeout(()=>openPartyView(op),300);}}catch(e){}
+  try{const op=new URLSearchParams(location.search).get("open");if(op){history.replaceState(null,"",location.pathname);setTimeout(()=>{if(op==="quests"){setTab("quests");render();}else openPartyView(op);},300);}}catch(e){}
   try{const q=new URLSearchParams(location.search).get("join");if(!q)return;
     ui.ptCode=q.toUpperCase().slice(0,12);history.replaceState(null,"",location.pathname);setTab("party");}catch(e){}
 }
@@ -12437,7 +12501,7 @@ function notifyCtl(){
   const p=Notification.permission;
   if(p==="denied")return `<div class="muted" style="font-size:12px">Notifications are blocked for this site. You can allow them in your browser's site settings.</div>`;
   if(p==="granted"&&prefs.notify!==false)return `<div class="ntfy">🔔 Notifications on while The Crawl is open in the background. <button class="linkbtn" type="button" id="ntfyOff">Turn off</button></div>`;
-  return `<div class="ntfy"><button class="btn sm" type="button" id="ntfyOn">🔔 Notify me about new messages</button><span class="muted">Works while The Crawl is open in another tab or minimised.</span></div>`;
+  return `<div class="ntfy"><button class="btn sm" type="button" id="ntfyOn">🔔 Notify me about new messages</button><span class="muted">Works while The Crawl is open in another tab or minimised. For pings with it closed, see Settings → Notifications.</span></div>`;
 }
 function wireNotifyCtl(){
   const on=$("ntfyOn"),off=$("ntfyOff");
@@ -12447,7 +12511,7 @@ function wireNotifyCtl(){
       if(r==="granted")toast("Notifications on. You'll hear about new party messages while The Crawl is in the background.");}catch(e){}
     render();};
 }
-if(navigator.serviceWorker)try{navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.open)openPartyView(e.data.open);});}catch(e){}
+if(navigator.serviceWorker)try{navigator.serviceWorker.addEventListener("message",e=>{const o=e.data&&e.data.open;if(!o)return;if(o==="quests"){setTab("quests");render();}else openPartyView(o);});}catch(e){}
 
 /* ---------- UI sounds, music and the announcer ---------- */
 // The default click (sfx/ui-click.mp3) for any button, tab, box or gear cell. Skipped when the button already

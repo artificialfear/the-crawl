@@ -18,9 +18,18 @@ service cloud.firestore {
       match /backups/{pointId} {
         allow read, write: if owner(uid);
       }
+      // Push notification subscriptions, one per device. Only the owner (the sender runs with admin access).
+      match /push/{deviceId} {
+        allow read, write: if owner(uid);
+      }
     }
 
     function signedIn() { return request.auth != null; }
+
+    // Public settings the app reads, written only by admin tools (config/push holds the push public key).
+    match /config/{id} {
+      allow get: if signedIn();
+    }
     function isMember(code) {
       return signedIn() && request.auth.uid in get(/databases/$(database)/documents/parties/$(code)).data.members;
     }

@@ -1,0 +1,10 @@
+{
+  "name": "crawl-push",
+  "private": true,
+  "type": "module",
+  "description": "Sends The Crawl's push notifications. Run by .github/workflows/push.yml every 15 minutes.",
+  "dependencies": {
+    "firebase-admin": "12.7.0",
+    "web-push": "3.6.7"
+  }
+}

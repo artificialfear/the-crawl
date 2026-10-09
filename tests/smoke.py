@@ -74,7 +74,7 @@ def main():
     url = f"http://127.0.0.1:{port}/index.html"
     try:
         with sync_playwright() as p:
-            b = p.chromium.launch()
+            b = p.chromium.launch(channel="chromium")  # the full browser in headless mode (the bare headless shell refuses notifications)
             def page(w=390, h=844, **kw):
                 errs = []
                 pg = b.new_page(viewport={"width": w, "height": h}, **kw)
@@ -149,6 +149,21 @@ def main():
                 off = pg.evaluate("fetch('sfx/boss-kill.mp3').then(r=>r.status).catch(e=>'failed')")
                 check("sounds play offline", off == 200, str(off))
                 pg.context.set_offline(False)
+                # a push from the sender shows a notification (delivered through Chrome DevTools)
+                pg.context.grant_permissions(["notifications"])
+                cdp = pg.context.new_cdp_session(pg)
+                regs = []
+                cdp.on("ServiceWorker.workerRegistrationUpdated", lambda e: regs.extend(e["registrations"]))
+                cdp.send("ServiceWorker.enable"); pg.wait_for_timeout(500)
+                rid = next((r["registrationId"] for r in regs if not r.get("isDeleted")), None)
+                if rid:
+                    cdp.send("ServiceWorker.deliverPushMessage", {"origin": f"http://127.0.0.1:{port}", "registrationId": rid,
+                        "data": json.dumps({"title": "The Crawl", "body": "Pip hits you overnight", "open": "quests", "tag": "crawl-evening"})})
+                    pg.wait_for_timeout(800)
+                    shown = pg.evaluate("navigator.serviceWorker.ready.then(r=>r.getNotifications()).then(n=>n.map(x=>x.body).join('|'))")
+                    check("push message shows a notification", "Pip hits you overnight" in shown, shown)
+                else:
+                    check("push message shows a notification", False, "no registration id")
             check("service worker: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
@@ -257,6 +272,20 @@ def main():
             E(pg, "openGear();ui.guideQ='poison';renderGuide()")
             check("field guide: search finds poison", E(pg, "document.querySelectorAll('#guideList .guide-it').length") >= 1 and "Poison" in E(pg, "$('guideList').textContent"))
             check("field guide: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
+            # ---- Settings → Notifications renders in each state ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            E(pg, "openGear()")
+            t1 = E(pg, "$('pushCtl').textContent")
+            E(pg, "fb={user:{uid:'u1'},fs:{doc:p=>({get:()=>Promise.resolve({exists:false}),set:()=>Promise.resolve(),delete:()=>Promise.resolve()})}};renderPushCtl()")
+            t2 = E(pg, "$('pushCtl').textContent")
+            E(pg, "prefs.push={evening:true,party:true,hour:20};renderPushCtl()")
+            t3 = E(pg, "$('pushCtl').textContent")
+            check("notifications panel: signed out / off / on", "Sign in" in t1 and "Turn on" in t2 and "8 pm" in t3, f"{t1[:40]} | {t2[:40]} | {t3[:60]}")
+            E(pg, "fb=null;prefs.push=null")
+            check("notifications panel: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
             # ---- reduced motion still completes a quest ----
