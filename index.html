@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=444d843a15"></script>
-<script>window.CRAWL_BUILD="444d843a15";</script>
+<script src="firebase-config.js?v=9248669d73"></script>
+<script>window.CRAWL_BUILD="9248669d73";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -10676,7 +10676,8 @@ function fbDb(fs){
   const wrap=s=>({id:s.id,exists:s.exists,data:()=>de(s),metadata:s.metadata});
   const fire=(p,path)=>{p.catch(e=>writeFailed(e,path));return Promise.resolve();};
   const docRef=path=>{const r=fs.doc(path);return {path,id:r.id,
-    onSnapshot:(next,err)=>r.onSnapshot(s=>next(wrap(s)),err),
+    // accepts Firestore's optional options object first: onSnapshot(opts, next, err) or onSnapshot(next, err)
+    onSnapshot:(a,b,c)=>typeof a==="function"?r.onSnapshot(s=>a(wrap(s)),b):r.onSnapshot(a||{},s=>b(wrap(s)),c),
     set:d=>fire(r.set(ser(d)),path),
     delete:()=>fire(r.delete(),path),
     collection:c=>colRef(path+"/"+c)};};

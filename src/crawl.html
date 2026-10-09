@@ -10655,7 +10655,8 @@ function fbDb(fs){
   const wrap=s=>({id:s.id,exists:s.exists,data:()=>de(s),metadata:s.metadata});
   const fire=(p,path)=>{p.catch(e=>writeFailed(e,path));return Promise.resolve();};
   const docRef=path=>{const r=fs.doc(path);return {path,id:r.id,
-    onSnapshot:(next,err)=>r.onSnapshot(s=>next(wrap(s)),err),
+    // accepts Firestore's optional options object first: onSnapshot(opts, next, err) or onSnapshot(next, err)
+    onSnapshot:(a,b,c)=>typeof a==="function"?r.onSnapshot(s=>a(wrap(s)),b):r.onSnapshot(a||{},s=>b(wrap(s)),c),
     set:d=>fire(r.set(ser(d)),path),
     delete:()=>fire(r.delete(),path),
     collection:c=>colRef(path+"/"+c)};};
