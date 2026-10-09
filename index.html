@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=64d56a41d6"></script>
-<script>window.CRAWL_BUILD="64d56a41d6";</script>
+<script src="firebase-config.js?v=09005a9fab"></script>
+<script>window.CRAWL_BUILD="09005a9fab";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -4001,7 +4001,14 @@ function rvGear(n){const r=srand("rvgear|"+n),s=rvStr(n);
   for(const slot of ["weapon","armor","head","boots","gloves","cape"]){if(slot!=="weapon"&&r()<.3)continue;
     const c=ITEMS.filter(i=>i.slot===slot&&pool.includes(i.rar)&&!i.base);if(c.length)out[slot]=c[Math.floor(r()*c.length)].id;}
   return out;}
-function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)}),{psy:!!(rv&&rv.psy),name:rv.n,plate:plate?rv.n:null});}catch(e){return "";}}
+/* Each rival has their own stance and face (from their name); a psycho grins like a maniac. As the fight wears on
+   they get angry (under half HP), then winded (under a fifth). */
+function rvMood(rv){let h=0;for(const ch of String(rv.n||""))h=(h*31+ch.charCodeAt(0))>>>0;
+  let pose=["crossed","hips","ready","crossed","hips","ready"][h%6],expr=["smug","determined","angry","smug","happy","determined"][(h>>>3)%6];
+  if(rv.psy){pose="ready";expr="unhinged";}
+  if(rv.hp!=null&&rv.max){const f=rv.hp/rv.max;if(f<.2){pose="hurt";expr="hurt";}else if(f<.5&&!rv.psy)expr="angry";}
+  return {pose,expr};}
+function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)},rvMood(rv)),{psy:!!(rv&&rv.psy),name:rv.n,plate:plate?rv.n:null});}catch(e){return "";}}
 const rvHit=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((6+3*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvNight=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((10+4*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvBribe=()=>30+15*floorOf();
@@ -4186,7 +4193,7 @@ function rivalCrewHTML(){
   const hunted=huntedMates();
   if(!hunted.length)return "";
   return hunted.map(([u,c])=>{const on=player.helping&&player.helping.to===u&&player.helping.rid===c.rvl.id;
-    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div class="pt-hunt-in"><div class="pt-hunt-av zoomable" data-zhunt="${esc(u)}" role="button" tabindex="0" aria-label="${esc(c.rvl.n)} up close">${rvAvatar({n:c.rvl.n,psy:c.rvl.psy})}</div><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
+    return `<div class="pt-hunt${c.rvl.psy?" psy":""}"><div class="pt-hunt-in"><div class="pt-hunt-av zoomable" data-zhunt="${esc(u)}" role="button" tabindex="0" aria-label="${esc(c.rvl.n)} up close">${rvAvatar({n:c.rvl.n,psy:c.rvl.psy,hp:c.rvl.hp,max:c.rvl.max})}</div><div><div class="label">${c.rvl.psy?"☠ Psycho on the loose":"⚔ Crewmate in trouble"}</div>
       <b>${esc(c.rvl.n)}</b> is hunting <b>${esc(c.name||"your crewmate")}</b>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(c.rvl.hp/c.rvl.max*100)}%"></b></div><span class="num">${c.rvl.hp}/${c.rvl.max}</span></div>
       <div class="muted" style="font-size:12px">${on?"Each quest you finish hits them for half your damage. You can't land the final blow: that's theirs.":"Help, and each quest you finish also hits this rival for half your damage."}${knows("firebolt")||knows("chain")?" You can also cast Firebolt or Chain Lightning at them.":""}</div></div>
@@ -4359,7 +4366,16 @@ function skullIcon(x,y,r){return `<g><path d="M${x-r} ${y} Q${x-r} ${y-r*1.2} ${
 function crownIcon(){return `<path d="M0 10 L0 2 L4 6 L8 0 L12 6 L16 2 L16 10 Z" fill="#ffd23f" stroke="#15131c" stroke-width="1.2"/>`;}
 /* The hero without the dungeon set, for standing in other rooms. */
 function bareAvatar(eq){try{return avatarSVG(Object.assign({},eq,{bare:true}));}catch(e){return "";}}
-function myAvatarEq(){const a=activePet();return Object.assign({},wearing(player),player.look?{look:player.look}:{});}
+/* Your avatar reacts: a victory pose for 10 minutes after a boss kill, a rival knocked out or a level-up; winded
+   below 30% HP; weapon up and scowling while a mob or rival is on you. Otherwise your chosen pose and face. */
+function myMood(){const p=player;if(!p||!playerExists)return {};
+  const sig=C(p,"bossKills")+C(p,"rivalKills")+C(p,"rivalKOs")+levelInfo(p.xp||0).L;
+  if(ui.winSig==null)ui.winSig=sig;else if(sig>ui.winSig){ui.winSig=sig;ui.winAt=Date.now();}
+  if(ui.winAt&&Date.now()-ui.winAt<10*6e4)return {pose:"victory",expr:"happy"};
+  if(p.hp<maxHp(p)*.3)return {pose:"hurt",expr:"hurt"};
+  if((p.mobs||[]).length||p.rival)return {pose:"ready",expr:"angry"};
+  return {};}
+function myAvatarEq(){const a=activePet();return Object.assign({},wearing(player),player.look?{look:player.look}:{},myMood());}
 /* The Portal card in the Safe Room tab. */
 function qtSafeBox(){
   const q=player.quarters,n=q?Object.keys(q.up||{}).length:0,vis=qtVisitable();
@@ -5858,7 +5874,8 @@ function lookSection(t){
   if(t==="outfit")return lookRow("Shirt","tee",sw(TEES))+lookRow("Shirt print","print",PRINTS)+lookRow("Pants","pants",sw(PANTSC))
     +`<div class="muted" style="font-size:12px">Your starter outfit shows whenever no armour is equipped.</div>`;
   if(t==="extras")return lookRow("Eyewear","eyewear",EYEWEAR)+lookRow("Earrings","ears",EARS)+lookRow("Scars & marks","marks",MARKS)+lookRow("Face paint","paint",PAINTS);
-  return lookRow("Skin","skin",SKINS.map((c,i)=>[i,["Lightest","Light","Medium","Tan","Brown","Deep"][i],c]))+lookRow("Build","body",BODIES);
+  return lookRow("Skin","skin",SKINS.map((c,i)=>[i,["Lightest","Light","Medium","Tan","Brown","Deep"][i],c]))+lookRow("Build","body",BODIES)+lookRow("Pose","pose",POSES)
+    +`<div class="muted" style="font-size:12px">Your crawler strikes a victory pose after big wins, gets winded at low HP and raises their weapon when something's on them, then goes back to this pose.</div>`;
 }
 function openLook(){ui.lookDraft=Object.assign({},LOOK_DEFAULT,player.look||{});renderLook();$("lookWrap").hidden=false;}
 function closeLook(){$("lookWrap").hidden=true;ui.lookDraft=null;}
@@ -5880,7 +5897,7 @@ function renderLook(){
     const rare=(arr,p)=>Math.random()<p?pk(arr.slice(1))[0]:arr[0][0];
     Object.assign(d,{skin:Math.floor(Math.random()*SKINS.length),face,body:pk(BODIES)[0],hair:pk(HAIRS)[0],hc:Math.floor(Math.random()*HAIRC.length),
       beard:face==="f"?"none":pk(BEARDS)[0],eyes:pk(EYEC)[0],brow:pk(BROWS)[0],mouth:pk(MOUTHS)[0],tee:pk(TEES)[0],print:pk(PRINTS)[0],pants:pk(PANTSC)[0],shoes:pk(SHOEC)[0],
-      eyewear:rare(EYEWEAR,.35),ears:rare(EARS,.35),marks:rare(MARKS,.35),paint:rare(PAINTS,.2)});renderLook();};
+      eyewear:rare(EYEWEAR,.35),ears:rare(EARS,.35),marks:rare(MARKS,.35),paint:rare(PAINTS,.2),pose:pk(POSES.filter(x=>x[0]!=="hurt"))[0]});renderLook();};
   $("lookSave").onclick=()=>{player.look=Object.assign({},d);bump("looks");setTimeout(()=>checkAch(),900);pushEvent("Changed their look for the cameras");store.savePlayer(player).catch(writeFailed);closeLook();render();toast("New look saved. The makeup department is taking the rest of the day off.");};
 }
 
@@ -7440,8 +7457,13 @@ const HAIRS=[["messy","Messy"],["buzz","Buzz cut"],["long","Long"],["ponytail","
 const BODIES=[["broad","Broad"],["curvy","Curvy"],["lanky","Lanky"],["stocky","Stocky"],["muscular","Muscular"],["round","Round"]];
 const BODY_W={broad:1,curvy:.86,lanky:.84,stocky:1.1,muscular:1.07,round:1.1},LEG_W={broad:30,curvy:27,lanky:25,stocky:34,muscular:32,round:33};
 const EYEC=[["dark","#1e1b24","Dark"],["brown","#6b3e1e","Brown"],["hazel","#8a7a2e","Hazel"],["green","#2f9a55","Green"],["blue","#2f7fd8","Blue"],["gray","#8a93a6","Gray"],["amber","#e0961f","Amber"],["red","#e8283c","Red"]];
-const BROWS=[["auto","Natural"],["thick","Thick"],["thin","Thin"],["angry","Angry"],["raised","Raised"]];
-const MOUTHS=[["auto","Natural"],["grin","Grin"],["smirk","Smirk"],["scowl","Scowl"],["deadpan","Deadpan"],["shout","Battle cry"]];
+const BROWS=[["auto","Natural"],["thick","Thick"],["thin","Thin"],["angry","Angry"],["raised","Raised"],["worried","Worried"]];
+const MOUTHS=[["auto","Natural"],["grin","Grin"],["smirk","Smirk"],["scowl","Scowl"],["deadpan","Deadpan"],["shout","Battle cry"],["ouch","Ouch"],["wild","Unhinged"]];
+/* Poses (v3.9.0). "ready" is the original stance (weapon out). The rest put the weapon on the back, except victory,
+   which raises it overhead. Expressions are brow + mouth presets; "unhinged" also shrinks the pupils. */
+const POSES=[["ready","Battle ready"],["hips","Hands on hips"],["crossed","Arms crossed"],["victory","Victory"],["hurt","Winded"]];
+const EXPRS={happy:{brow:"raised",mouth:"grin"},smug:{brow:"raised",mouth:"smirk"},angry:{brow:"angry",mouth:"scowl"},
+  determined:{brow:"angry",mouth:"deadpan"},hurt:{brow:"worried",mouth:"ouch"},unhinged:{brow:"raised",mouth:"wild"},shout:{brow:"angry",mouth:"shout"}};
 const BEARDS=[["none","None"],["stubble","Stubble"],["beard","Beard"],["mustache","Mustache"],["goatee","Goatee"]];
 const TEES=[["white","#eeeae0","White"],["black","#2a2733","Black"],["red","#d8343c","Red"],["navy","#2c3f7a","Navy"],["green","#3d8a52","Green"],["yellow","#f0c93a","Yellow"],["pink","#f08ab4","Pink"],["gray","#9a9aa6","Gray"]];
 const PRINTS=[["ratty","Ratty"],["clean","Clean"],["skull","Skull"],["bolt","Lightning"],["stripes","Stripes"],["heart","Heart"]];
@@ -7451,7 +7473,7 @@ const EYEWEAR=[["none","None"],["glasses","Glasses"],["shades","Shades"],["eyepa
 const EARS=[["none","None"],["stud","Studs"],["hoop","Hoops"]];
 const MARKS=[["none","None"],["freckles","Freckles"],["eyescar","Eye scar"],["cheekscar","Cheek scar"],["bandage","Bandage"]];
 const PAINTS=[["none","None"],["war","War stripes"],["eyeblack","Eye black"],["star","Star"]];
-const LOOK_DEFAULT={skin:1,face:"m",body:"broad",hair:"messy",hc:0,beard:"stubble",eyes:"dark",brow:"auto",mouth:"auto",
+const LOOK_DEFAULT={skin:1,face:"m",body:"broad",hair:"messy",hc:0,beard:"stubble",eyes:"dark",brow:"auto",mouth:"auto",pose:"ready",
   tee:"white",print:"ratty",pants:"blue",shoes:"white",eyewear:"none",ears:"none",marks:"none",paint:"none"};
 const pal=(arr,k)=>(arr.find(x=>x[0]===k)||arr[0])[1];
 function darker(hex,f){const n=parseInt(hex.slice(1),16),c=x=>Math.max(0,Math.round(x*(f||.7)));return "#"+[c(n>>16),c((n>>8)&255),c(n&255)].map(v=>v.toString(16).padStart(2,"0")).join("");}
@@ -8443,6 +8465,7 @@ function avatarSVG(eq){
   const armor=_aI&&_aI.base||eq.armor||null,weapon=_wI&&_wI.base||eq.weapon||null,head=artOf(eq.head)||null,cape=CAPES[eq.cape]||null;
   const _hI=itemOf(eq.head),_cI=itemOf(eq.cape),_gI=itemOf(eq.gloves);
   const LK=Object.assign({},LOOK_DEFAULT,eq.look||{});
+  const PZ=eq.pose||LK.pose||"ready",EX=EXPRS[eq.expr]||null;if(EX)Object.assign(LK,EX);const PR=eq.expr==="unhinged"?.45:1;
   const SKIN=SKINS[LK.skin]||SKINS[1],HAIR=(HAIRC[LK.hc]||HAIRC[0])[0],FEM=LK.face==="f",CURVY=LK.body==="curvy";
   const BWID=BODY_W[LK.body]||1,LEGT=LEG_W[LK.body]||30;
   const TEEC=pal(TEES,LK.tee),PANTS=pal(PANTSC,LK.pants),PSEAM=darker(PANTS,.62),SHOE=pal(SHOEC,LK.shoes);
@@ -8504,7 +8527,7 @@ function avatarSVG(eq){
   if(!INKS)s+=FXON?`<g filter="url(#${u}fx)">`:`<g>`;
 
   // Legs: jeans tubes, hips, belt, then bare feet or boots
-  const STANCE=!!weapon&&!ONE_HANDED.has(weapon); // two-handed: feet apart, knees bent
+  const STANCE=PZ==="ready"&&!!weapon&&!ONE_HANDED.has(weapon); // two-handed: feet apart, knees bent
   if(STANCE){
     s+=tube("M136 280 L114 326 L106 364",LEGT,PANTS)+tube("M164 280 L190 326 L196 364",LEGT,PANTS);
     s+=ov("M118 296 L128 300 L104 360 L96 356 Z",HB)+ln("M108 326 Q114 332 121 328 M184 328 Q190 332 197 326",2,PSEAM);
@@ -8526,7 +8549,10 @@ function avatarSVG(eq){
   const _bare=_bI?"":STANCE?bare(102,-1)+bare(200,1):bare(124,-1)+bare(176,1);
   s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):_bare;
 
-  s+=`<g class="upper">`+narrow;
+  // Out of the battle pose, the weapon is slung on the back, hilt up over the right shoulder and blade down behind the body.
+  if(weapon&&PZ!=="ready"&&PZ!=="victory"){let wb=weaponUpright(weapon,MW,u);if(_wI&&_wI.tint)wb=tintStr(wb,_wI.tint);
+    s+=`<g transform="translate(206 128) rotate(205) scale(${ONE_HANDED.has(weapon)?.9:(WEAPON_SCALE[weapon]||.74)*1.05})">${wb}</g>`;}
+  s+=`<g class="upper"${PZ==="hurt"?` transform="rotate(-5 150 262)"`:""}>`+narrow;
   // Torso
   const TORSO="M100 150 Q150 136 200 150 L194 212 Q188 240 186 262 L114 262 Q112 240 106 212 Z";
   const TORSOS="M100 150 Q118 144 130 146 Q122 200 128 262 L114 262 Q112 240 106 212 Z";
@@ -8542,11 +8568,11 @@ function avatarSVG(eq){
   // blade running across in front of the body and down to the left; feet apart, knees bent.
   // a = pommel-side (right) hand, g = rotation of the upright drawing, h = distance to the left hand along the grip
   // (0 = one-handed: the left fist comes up as a guard instead), re/le = elbows, lh = left fist when one-handed.
-  const POSE=!weapon?null:ONE_HANDED.has(weapon)?{a:[190,242],g:-38,h:0,re:[212,206],one:true}
+  const POSE=!weapon||PZ!=="ready"?null:ONE_HANDED.has(weapon)?{a:[190,242],g:-38,h:0,re:[212,206],one:true}
     // Two-handed weapons: point straight down between the feet, pommel at the belly, both hands stacked on the grip.
     :weapon==="l4"?{a:[150,214],g:180,h:44,sc:.66,re:[220,208],le:[82,212]}:{a:[150,218],g:180,h:30,sc:WEAPON_SCALE[weapon]||.74,re:[220,208],le:[82,212]};
   // One-handed: relaxed stance, weapon held low in the right hand and angled across the chest, left arm at the side.
-  const ARMS=!POSE||POSE.one;
+  const ARMS=PZ==="ready"&&(!POSE||POSE.one);
   const RA=POSE&&POSE.one?"M194 162 L212 206":"M194 162 L214 212 L210 262";
   const LA="M108 162 L88 212 L90 262";
   // Arms (behind torso edge): skin tubes, then sleeves
@@ -8599,17 +8625,17 @@ function avatarSVG(eq){
     if(LK.paint==="star")s+=sh("M164 80 L167 88 L176 89 L169 95 L171 104 L164 99 L157 104 L159 95 L152 89 L161 88 Z","#ff5fa8",` stroke="${INK}" stroke-width="1.6" opacity=".9"`);
     const IRIS=pal(EYEC,LK.eyes),dark=LK.eyes==="dark"||!LK.eyes;
     const eye=(x,y,rx,ry,pr)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${BONE}"/>`+(dark?`<circle cx="${x+1.6}" cy="${y+1}" r="${pr}" fill="${INK}" stroke="none"/>`
-      :`<circle cx="${x+1.4}" cy="${y+.8}" r="${pr+1.4}" fill="${IRIS}" stroke="${INK}" stroke-width="1"/><circle cx="${x+1.6}" cy="${y+1}" r="${pr*.55}" fill="${INK}" stroke="none"/>`)+`<circle cx="${x+2.6}" cy="${y-.4}" r="1" fill="${BONE}" stroke="none"/>`;
+      :`<circle cx="${x+1.4}" cy="${y+.8}" r="${pr+1.4}" fill="${IRIS}" stroke="${INK}" stroke-width="1"/><circle cx="${x+1.6}" cy="${y+1}" r="${pr*.55}" fill="${INK}" stroke="none"/>`)+(PR<1?"":`<circle cx="${x+2.6}" cy="${y-.4}" r="1" fill="${BONE}" stroke="none"/>`);
     const BROW={thick:ln("M124 80 L144 82 M156 82 L176 80",6.5),thin:ln("M127 82 Q135 78 144 82 M156 82 Q165 78 173 82",2),
-      angry:ln("M126 77 L145 86 M155 86 L174 77",5),raised:ln("M126 78 Q135 69 144 76 M156 76 Q165 69 174 78",3.6)}[LK.brow];
+      angry:ln("M126 77 L145 86 M155 86 L174 77",5),raised:ln("M126 78 Q135 69 144 76 M156 76 Q165 69 174 78",3.6),worried:ln("M126 85 Q136 80 145 76 M155 76 Q164 80 174 85",4.2)}[LK.brow];
     if(FEM){
       s+=BROW||ln("M126 82 Q135 75 144 80 M156 80 Q165 75 174 82",3.2);
-      s+=eye(136,94,7.5,7,3.6)+eye(164,94,7.5,7,3.6);
+      s+=eye(136,94,7.5,7,3.6*PR)+eye(164,94,7.5,7,3.6*PR);
       s+=ln("M128 90 L124 86 M130 88 L127 83 M172 90 L176 86 M170 88 L173 83",2)+ln("M128 88 Q136 85 143 89 M157 89 Q164 85 172 88",2.4);
       s+=ln("M150 100 L147 109 L152 110",2.4);
     }else{
       s+=BROW||ln("M126 80 L144 84 M156 84 L174 78",5);
-      s+=eye(136,94,7,6,3)+eye(164,94,7,6,3);
+      s+=eye(136,94,7,6,3*PR)+eye(164,94,7,6,3*PR);
       s+=ln("M150 98 L145 110 L153 112",3);
     }
     if(LK.beard==="beard")s+=sh("M118 96 Q118 126 134 140 Q150 150 166 140 Q182 126 182 96 Q178 116 166 122 Q158 114 150 116 Q142 114 134 122 Q122 116 118 96 Z",HAIR)+sh("M140 124 Q150 120 160 124 Q150 130 140 124 Z",INK);
@@ -8620,6 +8646,8 @@ function avatarSVG(eq){
     else if(MO==="smirk")s+=ln("M140 123 Q154 125 165 114",3.4);
     else if(MO==="scowl")s+=ln("M137 126 Q150 117 163 126",3.4);
     else if(MO==="deadpan")s+=ln("M140 122 L160 122",3.4);
+    else if(MO==="ouch")s+=sh("M139 124 Q144 117 150 120 Q156 117 161 124 Q156 130 150 127 Q144 130 139 124 Z",LIP,` stroke-width="2.4"`)+ov("M118 66 Q114 74 118 78 Q122 74 118 66 Z","#7fd6ff");
+    else if(MO==="wild")s+=sh("M128 113 Q150 146 172 113 Q150 123 128 113 Z",BONE,` stroke-width="2.8"`)+ln("M136 118 L137 128 M143 120 L143 133 M150 121 L150 135 M157 120 L157 133 M164 118 L163 128",1.6);
     else if(MO==="shout")s+=sh("M140 116 Q150 112 160 116 Q162 132 150 136 Q138 132 140 116 Z",LIP,` stroke-width="2.6"`)+ov("M143 118 L157 118 L156 121 L144 121 Z",BONE);
     else if(FEM)s+=sh("M140 120 Q145 116 150 118 Q155 116 160 120 Q150 128 140 120 Z","#c0505a",` stroke-width="2"`);
     else if(LK.beard!=="beard")s+=ln("M138 122 Q152 128 164 118",3.4);
@@ -8665,7 +8693,16 @@ function avatarSVG(eq){
     return (it.magic?`<circle class="mf-glow" cx="${x}" cy="${y+8}" r="13" fill="${it.gem}" filter="url(#${u}bl)"/>`:"")+ln(arc,8.6)+ln(arc,4.4,bb)
       +(it.gem?`<circle${it.magic?' class="mf-gem"':""} cx="${x}" cy="${y+8.5}" r="6" fill="${it.gem}" stroke="${INK}" stroke-width="2"/><circle cx="${x-2}" cy="${y+6.5}" r="1.8" fill="#fff" opacity=".85" stroke="none"/>`
         :[-6,0,6].map(d=>`<circle cx="${x+d}" cy="${y+8.5-Math.abs(d)*.25}" r="2.4" fill="${bb}" stroke="${INK}" stroke-width="1.4"/>`).join(""));};
-  if(POSE&&POSE.one){
+  const f1=v=>v.toFixed(1),arm1=(sx,sy,[ex,ey],hx,hy)=>tube(`M${sx} ${sy} L${ex} ${ey} L${f1(hx)} ${f1(hy)}`,24,armC)+tube(`M${sx} ${sy} L${f1(sx+(ex-sx)*.42)} ${f1(sy+(ey-sy)*.42)}`,28,sleeve);
+  if(PZ!=="ready"){
+    // Arms in front of the torso for each pose; shoulder plates go over them.
+    const A={hips:{l:[[72,214],106,250],r:[[228,214],194,250]},crossed:{l:[[94,228],178,206],r:[[206,228],122,206]},
+      victory:{l:[[72,214],106,250],r:[[238,122],226,70]},hurt:{l:[[92,220],136,226],r:[[216,216],210,272]}}[PZ]||{l:[[88,212],90,262],r:[[212,212],210,262]};
+    if(PZ==="crossed"){s+=arm1(194,162,A.r[0],A.r[1],A.r[2])+fist(A.r[1],A.r[2])+ringOn(A.r[1],A.r[2])+arm1(108,162,A.l[0],A.l[1],A.l[2]);if(AS)s+=armorDetail(AS,u,MA,true);s+=fist(A.l[1],A.l[2]);}
+    else{s+=arm1(108,162,A.l[0],A.l[1],A.l[2])+arm1(194,162,A.r[0],A.r[1],A.r[2]);if(AS)s+=armorDetail(AS,u,MA,true);
+      if(PZ==="victory"&&weapon){const sc=ONE_HANDED.has(weapon)?1:weapon==="l4"?.66:(WEAPON_SCALE[weapon]||.74);s+=`<g transform="translate(${A.r[1]} ${A.r[2]}) rotate(14)${sc!==1?` scale(${sc})`:""}">${w}</g>`;}
+      s+=fist(A.l[1],A.l[2])+fist(A.r[1],A.r[2])+ringOn(A.r[1],A.r[2]);}
+  }else if(POSE&&POSE.one){
     const [ax,ay]=POSE.a;
     s+=`<g transform="translate(${ax} ${ay}) rotate(${POSE.g})">${w}</g>`;
     s+=tube(`M${POSE.re[0]} ${POSE.re[1]} L${ax} ${ay}`,24,armC)+fist(ax,ay)+fist(90,266)+ringOn(ax,ay);
@@ -9561,7 +9598,7 @@ function renderSheet(){
   const sb=Math.min(Math.max(streakLive,1)-1,5)*5;
   $("sheet").innerHTML=`
     <div class="who">
-      <div class="avatar" id="avatarBox" role="button" tabindex="0" title="See your stats" aria-label="See your character up close"><span class="avedit" aria-hidden="true">⤢</span><div class="print" id="avatar" role="img" aria-label="${esc(avatarDesc(p))}${activePet(p)?`, with ${esc(activePet(p).name)} the ${esc(PETS[activePet(p).key].n)}${petSulking(p)?" sulking":""} at their feet`:""}">${avatarSVG(Object.assign({},wear,{look:p.look},activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{}))}</div><span class="camtag" aria-hidden="true"><i>●</i> Crawler cam</span><span class="lvl num" aria-hidden="true">${li.L}</span></div>
+      <div class="avatar" id="avatarBox" role="button" tabindex="0" title="See your stats" aria-label="See your character up close"><span class="avedit" aria-hidden="true">⤢</span><div class="print" id="avatar" role="img" aria-label="${esc(avatarDesc(p))}${activePet(p)?`, with ${esc(activePet(p).name)} the ${esc(PETS[activePet(p).key].n)}${petSulking(p)?" sulking":""} at their feet`:""}">${avatarSVG(Object.assign({},wear,{look:p.look},activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{},myMood()))}</div><span class="camtag" aria-hidden="true"><i>●</i> Crawler cam</span><span class="lvl num" aria-hidden="true">${li.L}</span></div>
       <div style="min-width:0;flex:1">
         ${ui.editingName
           ?`<input class="name" id="nameInput" maxlength="40" value="${esc(p.name)}" aria-label="Character name">`
@@ -10354,6 +10391,10 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.9.0",d:"2026-10-09",t:"Strike a pose",items:["Crawlers have poses now: Battle ready, Hands on hips, Arms crossed, Victory and Winded. Pick your default on the Body tab of Change look. Out of the battle stance, your weapon is slung on your back.",
+    "Your crawler reacts to what's happening: a victory pose (weapon raised) for 10 minutes after a boss kill, a rival knockout or a level-up, winded below 30% HP, and weapon up and scowling while a mob or rival is on you. Your crew sees your victory pose too.",
+    "New faces in the look editor: Worried brows, plus Ouch and Unhinged mouths.",
+    "Rival crawlers have personalities: each has their own stance and face (smug, stern, cocky…), they get angry under half HP and winded near the end, and psychos wear an unhinged grin."]},
   {v:"3.8.0",d:"2026-10-09",t:"New look",items:["Crawlers now stand in the torchlight: a warm glow on the lit side and shadow on the far side, on your avatar, your crewmates and the look editor.",
     "Rival crawlers are drawn like the bosses now: etched in ink on a tarot card, with an amber aura (red for a psycho) and their name on the card in close-ups."]},
   {v:"3.7.1",d:"2026-10-09",t:"Pokes",items:["Poking a mob now does a little something: 1 damage per poke, up to 5 pokes per mob. Pokes never land the kill; a quest always finishes it. About 1 poke in 10 gets your finger nipped for 1 HP.",
@@ -10980,7 +11021,7 @@ function zoomMe(){
   const st=p.lastDoneDate===today()||p.lastDoneDate===addDays(today(),-1)?(p.streak||0):0;
   const stats=Object.keys(STATS).map(k=>`<div class="zstat"><span>${STATS[k].n}</span><b>Lv ${lvlOf(p,k)}</b>${zbar(statProg((p.stats||{})[k]||0))}</div>`).join("");
   const bon=[gx.xp?`+${Math.round(gx.xp*100)}% XP`:"",gx.dmg?`+${Math.round(gx.dmg*100)}% boss damage`:"",armorCut(p)?`overdue damage −${Math.round(armorCut(p)*100)}%`:"",gx.hp?`+${gx.hp} max HP`:"",gx.spd?`${Math.round(gx.spd*100)}% faster movement`:""].filter(Boolean);
-  zoomCard({kind:"me",title:p.name,titleHTML:esc(p.name)+skullsOf(mySkulls()),art:avatarSVG(Object.assign({},wearing(p),p.look?{look:p.look}:{},a?{pet:a.key,petSulk:petSulking()}:{})),
+  zoomCard({kind:"me",title:p.name,titleHTML:esc(p.name)+skullsOf(mySkulls()),art:avatarSVG(Object.assign({},wearing(p),p.look?{look:p.look}:{},a?{pet:a.key,petSulk:petSulking()}:{},myMood())),
     sub:`${esc(titleFor(li.L))} · Level ${li.L}${R||K?` · ${[R,K].filter(Boolean).map(x=>esc(x.n)).join(" ")}`:""}`,
     tiles:[["HP",`${Math.round(p.hp)} / ${mx}`],["XP to next",`${li.need-li.into}`],["Gold",(p.gold||0).toLocaleString()],["Streak",st?`🔥 ${st} day${st===1?"":"s"}`:"–"],
       ["Floor",floorOf()],["Quests done",(p.doneCount||0).toLocaleString()],["Bosses slain",C(p,"bossKills")],["Crawler kills",`${C(p,"rivalKills")} ☠ · ${C(p,"rivalKOs")} 💫`]],
@@ -11073,7 +11114,7 @@ function zoomCrewRival(uid){
   const c=party&&party.cards[uid];if(!c||!c.rvl)return;const rv=c.rvl,g=rvGear(rv.n),i=rvIdx(rv.n),cls=(RIVALS[i]||[])[1]||"Crawler";
   const helping=player.helping&&player.helping.to===uid&&player.helping.rid===rv.id,mine=player.assist&&player.assist.rid===rv.id?player.assist.dmg||0:0;
   const fl=c.floor||1;
-  zoomCard({kind:"rival",title:rv.n,art:rvAvatar({n:rv.n,psy:rv.psy},true),sub:`the ${esc(cls)} · #${i+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""} · hunting <b>${esc(c.name||"your crewmate")}</b>`,
+  zoomCard({kind:"rival",title:rv.n,art:rvAvatar({n:rv.n,psy:rv.psy,hp:rv.hp,max:rv.max},true),sub:`the ${esc(cls)} · #${i+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""} · hunting <b>${esc(c.name||"your crewmate")}</b>`,
     tiles:[["HP",`${rv.hp} / ${rv.max}`],["Your help",helping||mine?`${mine.toLocaleString()} dmg`:"–"],["Hits them for",`~${Math.round((6+3*fl)*(rv.psy?1.25:1))} / quest`],["Overnight",`~${Math.round((10+4*fl)*(rv.psy?1.25:1))} HP`]],
     body:`${zbar(rv.hp/rv.max,"rvbar")}
       <div class="label">Wearing</div><div class="zgear">${Object.values(g).map(id=>{const it=itemOf(id);return it?`<span class="rar-${it.rar}">${esc(it.n)}</span>`:"";}).join(" · ")||"Rags"}</div>
@@ -11150,7 +11191,7 @@ function myCard(){
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
     wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy,sp:rvSpellRoom(player.rival),spc:rvCastsLeft(player.rival)}:null,asp:player.asSp||null,
-    rvDone:player.rvDone||null,as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,ch:player.chant===today()?today():null,mm:player.mm&&Date.now()-player.mm.at<3*864e5?player.mm:null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
+    rvDone:player.rvDone||null,win:(()=>{myMood();return ui.winAt&&Date.now()-ui.winAt<10*6e4?ui.winAt+10*6e4:null;})(),as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,ch:player.chant===today()?today():null,mm:player.mm&&Date.now()-player.mm.at<3*864e5?player.mm:null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
@@ -11515,7 +11556,7 @@ function partyFromLink(){
 /* ---------- Drawing ---------- */
 function ago(ms){const m=Math.round((Date.now()-ms)/6e4);return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":Math.round(m/1440)+"d ago";}
 function miniAvatar(c){
-  const eq=Object.assign({},c.wear||{},c.look?{look:c.look}:{},c.pet&&PETS[c.pet]?{pet:c.pet}:{});
+  const eq=Object.assign({},c.wear||{},c.look?{look:c.look}:{},c.pet&&PETS[c.pet]?{pet:c.pet}:{},c.win&&c.win>Date.now()?{pose:"victory",expr:"happy"}:{});
   const k=JSON.stringify(eq);let v=avCache.get(k);
   if(!v){try{v=avatarSVG(eq);}catch(e){v="";}avCache.set(k,v);if(avCache.size>40)avCache.delete(avCache.keys().next().value);}
   return v;
