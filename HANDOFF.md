@@ -140,3 +140,8 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - fbDb: `docRef.trySet/tryDelete` (no error toast), `colRef.list()` (get). `remoteStore` api has `backups:{put,list,del}` and sets `RP.uid`.
 - Save status: `fire()` calls `syncTrack(p)`; `SYNCQ.n` counts unacknowledged writes; after 1.5 s pending `syncShow` sets class `saving` (gold pulsing dot, "Saving…"/"Offline…"); only overrides the ok/saving states. `setSync` sets `data-short`, shown as `::after` on phones when not ok. Tapping #sync → `syncInfo()` toast with the last-saved time.
 - **Rules:** `firestore.rules` gained `match /backups/{pointId}` under the player doc. Mat must paste the rules into the Firebase console for account copies; device copies work without it.
+
+## Install + sounds on device (v3.13.0)
+- `sw.js` (src/site-build): sfx/ and vo/ mp3s are cache-first in `crawl-media-v1`, re-checked in the background once per SW lifetime, and answered as 206 byte ranges (`ranged()`) from the stored whole file (Audio sends Range). Shell stays network-first (`crawl-shell-v1`, only 200s cached). A `{precache:[...]}` message stores missing sounds 4 at a time.
+- build.py writes `sfx` (file list) into version.json; `checkForUpdate` (also 15 s after load) calls `sfxPrecache(j)` once per build when there's no update and no Save-Data.
+- Install: `beforeinstallprompt` is captured into `installEvt`; Settings → Install the app (`renderInstallCtl`) shows the button, iPhone Share steps, or "installed"; `installNudge()` (45 s after load) toasts once per 14 days, max 3, phones in a browser with ≥3 quests done.

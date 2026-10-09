@@ -130,6 +130,28 @@ def main():
             check("restore points: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- service worker: sounds stored on the device and served as byte ranges ----
+            pg, errs = page()
+            E(pg, "navigator.serviceWorker.register('sw.js')"); pg.wait_for_timeout(1500)
+            pg.reload(); pg.wait_for_timeout(1500)
+            ctl = pg.evaluate("!!navigator.serviceWorker.controller")
+            check("service worker controls the page", ctl)
+            if ctl:
+                r1 = pg.evaluate("fetch('sfx/gold.mp3',{headers:{Range:'bytes=0-99'}}).then(r=>r.arrayBuffer().then(b=>[r.status,b.byteLength]))")
+                r2 = pg.evaluate("fetch('sfx/gold.mp3',{headers:{Range:'bytes=0-99'}}).then(r=>r.arrayBuffer().then(b=>[r.status,b.byteLength,r.headers.get('content-range')]))")
+                check("sound served as a byte range from the device", r2[0] == 206 and r2[1] == 100, str((r1, r2)))
+                n = len(json.load(open(os.path.join(ROOT, "version.json"))).get("sfx", []))
+                pg.evaluate("fetch('version.json').then(r=>r.json()).then(j=>navigator.serviceWorker.controller.postMessage({precache:j.sfx.map(f=>'sfx/'+f)}))")
+                pg.wait_for_timeout(4000)
+                got = pg.evaluate("caches.open('crawl-media-v1').then(c=>c.keys()).then(k=>k.length)")
+                check("every sound stored for offline", n > 0 and got >= n, f"{got} of {n}")
+                pg.context.set_offline(True)
+                off = pg.evaluate("fetch('sfx/boss-kill.mp3').then(r=>r.status).catch(e=>'failed')")
+                check("sounds play offline", off == 200, str(off))
+                pg.context.set_offline(False)
+            check("service worker: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- finishing a quest from low on the board ----
             pg, errs = page()
             pg.evaluate(SETUP)

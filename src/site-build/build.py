@@ -24,7 +24,8 @@ app=open(SRC).read()
 ver=hashlib.sha1(app.encode()).hexdigest()[:10]
 import re
 m=re.search(r'const CHANGELOG=\[\s*\{v:"([^"]+)",d:"([^"]+)",t:"([^"]+)"',app)
-json.dump({"build":ver,"v":m.group(1) if m else None,"t":m.group(3) if m else None},open(f"{out}/version.json","w"))
+sfx=sorted(f for f in os.listdir(f"{out}/sfx") if f.endswith(".mp3")) if os.path.isdir(f"{out}/sfx") else []
+json.dump({"build":ver,"v":m.group(1) if m else None,"t":m.group(3) if m else None,"sfx":sfx},open(f"{out}/version.json","w"))
 emu_js='<script>window.CRAWL_EMU={auth:"http://127.0.0.1:9099",host:"127.0.0.1",port:8080};</script>' if emu else ""
 head=f'''<!doctype html>
 <html lang="en"><head>

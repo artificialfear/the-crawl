@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=cc6f802bb9"></script>
-<script>window.CRAWL_BUILD="cc6f802bb9";</script>
+<script src="firebase-config.js?v=d3a0b28be2"></script>
+<script>window.CRAWL_BUILD="d3a0b28be2";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1906,6 +1906,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
       <input type="file" id="restoreFile" accept=".json,application/json" hidden>
     </section>
 <section class="panel" aria-label="Quest auto-sort"><h2>Quest auto-sort</h2><div class="soundctl" id="aiCtl"></div></section>
+<section class="panel" aria-label="Install the app"><h2>Install the app</h2><div class="soundctl" id="installCtl"></div></section>
 <section class="panel" aria-label="After a quest"><h2>After a quest</h2><div class="soundctl" id="showCtl"></div></section>
 <section class="panel" aria-label="Sound"><h2>Sound</h2><div class="soundctl" id="soundCtl"></div></section>
 <section class="panel" aria-label="How the show works"><details open>
@@ -10667,6 +10668,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.13.0",d:"2026-10-09",t:"Home screen",items:["The Crawl can live on your home screen like an app: full screen, no browser bar, faster to open and it works with no signal. Settings → Install the app has an Install button (Android and computers) or the exact steps (iPhone), and phones get one reminder after a few quests.",
+    "Every sound is now stored on your device the first time you open a new version, so sounds play instantly and work offline."]},
   {v:"3.12.0",d:"2026-10-09",t:"Safety net",items:["Restore points: once a day, and right before any restore, the game keeps a copy of your whole save (crawler and quests) for the last week. Settings → Backup lists them; pick one to see what it holds before replacing your save, and you can always switch back.",
     "The save light now means it: it turns gold and says Saving… until the server confirms your change, and Offline when it's waiting for a connection. On phones the word shows next to the light when it isn't green, and tapping the light tells you when you last saved."]},
   {v:"3.11.0",d:"2026-10-09",t:"Less waiting, more crawling",items:["New setting, After a quest (in Settings): Big moments only (the default), Every quest, or Quick. With Big moments only, the glide up, crawler cam and full quest report are saved for when a boss, rival or mob goes down, you level up or something new turns up. Ordinary quests get a slim summary just above the hotbar that tucks itself away after a few seconds (tap it to put it away sooner).",
@@ -10876,8 +10879,16 @@ async function checkForUpdate(){
   if(!window.CRAWL_BUILD||updShown||typeof fetch!=="function")return;
   if(prefs.updSnooze&&Date.now()<prefs.updSnooze)return;
   try{const r=await fetch(`version.json?t=${Date.now()}`,{cache:"no-store"});if(!r.ok)return;const j=await r.json();
-    if(j&&j.build&&j.build!==window.CRAWL_BUILD)showUpdate(j);}catch(e){}
+    if(j&&j.build&&j.build!==window.CRAWL_BUILD)showUpdate(j);else if(j&&Array.isArray(j.sfx))sfxPrecache(j);}catch(e){}
 }
+/* Once per version, hand the service worker the sound list so every sound is stored on this device: they play
+   instantly from then on, and offline. Skipped when the phone asks to save data. */
+function sfxPrecache(j){
+  try{if(prefs.sfxPre===j.build||!navigator.serviceWorker||!navigator.serviceWorker.controller)return;
+    if(navigator.connection&&navigator.connection.saveData)return;
+    navigator.serviceWorker.controller.postMessage({precache:j.sfx.map(f=>"sfx/"+f)});prefs.sfxPre=j.build;savePrefs();}catch(e){}
+}
+setTimeout(checkForUpdate,15000);
 function showUpdate(j){
   if(updShown)return;updShown=true;
   const newer=j.v&&verNum(j.v)>verNum(APP_VERSION);
@@ -10892,13 +10903,43 @@ function showUpdate(j){
 }
 setInterval(()=>{if(document.visibilityState==="visible")checkForUpdate();},4*6e4);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkForUpdate();});
+/* ---------- Install ----------
+   The Crawl can already be added to a home screen (it opens full screen and works offline); this tells players so.
+   Android and desktop Chrome get a real Install button; iPhone gets the Share → Add to Home Screen steps.
+   Phones in a browser get one gentle nudge (after a few quests, at most three times, two weeks apart). */
+let installEvt=null;
+const isInstalled=()=>{try{return matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;}catch(e){return false;}};
+const isIOS=()=>/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;renderInstallCtl();});
+addEventListener("appinstalled",()=>{installEvt=null;prefs.installed=Date.now();savePrefs();renderInstallCtl();toast("The Crawl is on your home screen. Open it from there for the full-screen version.");});
+function doInstall(){
+  if(installEvt){const e=installEvt;installEvt=null;e.prompt();e.userChoice.then(()=>renderInstallCtl()).catch(()=>{});return;}
+  openGear();setTimeout(()=>{const c=$("installCtl");if(c&&c.scrollIntoView)c.scrollIntoView({behavior:"smooth",block:"center"});},150);
+}
+function installSteps(){return isIOS()?`In Safari, tap the <b>Share</b> button (the square with an arrow), then <b>Add to Home Screen</b>, then <b>Add</b>. (In Chrome on iPhone: the Share button at the top right, then Add to Home Screen.)`
+  :`Open your browser's menu (⋮ or ⋯) and choose <b>Install app</b> or <b>Add to Home screen</b>.`;}
+function renderInstallCtl(){
+  const el=$("installCtl");if(!el)return;
+  if(isInstalled()){el.innerHTML=`<div class="muted" style="font-size:14px">✔ You're using the installed app.</div>`;return;}
+  el.innerHTML=`<div class="muted" style="font-size:13px">Put The Crawl on your home screen: it opens full screen with no browser bar, starts faster and works with no signal. Your save is the same either way.</div>
+    ${installEvt?`<button class="btn gold" type="button" id="installBtn">Install The Crawl</button>`:`<div style="font-size:14px">${installSteps()}</div>`}`;
+  const b=$("installBtn");if(b)b.onclick=doInstall;
+}
+function installNudge(){
+  if(isInstalled()||innerWidth>860||!playerExists||(player.doneCount||0)<3)return;
+  const n=prefs.installAsks||0;if(n>=3||(prefs.installAsk&&Date.now()-prefs.installAsk<14*864e5))return;
+  if(REP.el||SHOWQ.busy||document.querySelector(".victory,.toast"))return;
+  prefs.installAsks=n+1;prefs.installAsk=Date.now();savePrefs();
+  toastH(`<b>Play it like an app</b> Add The Crawl to your home screen: full screen, faster, works with no signal.`,"",doInstall,installEvt?"Install":"Show me");
+}
+setTimeout(()=>{try{installNudge();}catch(e){}},45000);
 /* Returning players hear about a new version once; first-timers just start on the current one. */
 function changelogCheck(){
   if(!prefs.seenVer){prefs.seenVer=APP_VERSION;savePrefs();return;}
   if(verNum(APP_VERSION)>verNum(prefs.seenVer)&&!ui.verToasted){ui.verToasted=true;const c=CHANGELOG[0];
     setTimeout(()=>toast(`<b>Updated to v${c.v}: ${esc(c.t)}.</b> See what changed in Settings.`,"quest",()=>openGear(),"What's new"),1800);}
 }
-function openGear(){const g=$("gearWrap");if(!g)return;renderChangelog();try{if(playerExists){if(!RP.list&&!RP.loading)rpLoad();else renderBackup();}}catch(e){}g.hidden=false;const c=$("gearClose");if(c)c.focus();
+function openGear(){const g=$("gearWrap");if(!g)return;renderChangelog();try{renderShowCtl();renderInstallCtl();}catch(e){}try{if(playerExists){if(!RP.list&&!RP.loading)rpLoad();else renderBackup();}}catch(e){}g.hidden=false;const c=$("gearClose");if(c)c.focus();
   if(prefs.seenVer!==APP_VERSION){setTimeout(()=>{prefs.seenVer=APP_VERSION;savePrefs();const b=$("gearBtn");if(b)b.classList.remove("hasnew");},400);}}
 function closeGear(){const g=$("gearWrap");if(g)g.hidden=true;const b=$("gearBtn");if(b)b.focus();}
 
@@ -12646,7 +12687,7 @@ async function boot(){
     $("lookWrap").addEventListener("click",e=>{if(e.target.id==="lookWrap")closeLook();});
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("lookWrap").hidden)closeLook();});
     $("sndBtn").onclick=()=>{prefs.sound=prefs.sound===false;savePrefs();renderSound();if(prefs.sound)SFX.play("coin");else if(player&&!C(player,"mutes")){bump("mutes");checkAch();}};
-    renderSound();renderAiCtl();renderShowCtl();renderIdeas();$("gearClose").onclick=closeGear;
+    renderSound();renderAiCtl();renderShowCtl();renderInstallCtl();renderIdeas();$("gearClose").onclick=closeGear;
     $("gearWrap").addEventListener("click",e=>{if(e.target.id==="gearWrap")closeGear();});
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("gearWrap").hidden)closeGear();});
   }catch(e){console.error(e);}
