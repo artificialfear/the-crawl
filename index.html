@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=8c83a90b56"></script>
-<script>window.CRAWL_BUILD="8c83a90b56";</script>
+<script src="firebase-config.js?v=2be53fbfbd"></script>
+<script>window.CRAWL_BUILD="2be53fbfbd";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5428,20 +5428,24 @@ function castDone(id,msg,loot){
   store.savePlayer(player).catch(writeFailed);if(S.party)partyPublish(true);render();
   spellAnim(id,()=>{toastH(`<b>${esc(S.n)}</b> ${msg}`);if(loot)setTimeout(()=>lootToast(loot),300);});
   checkAch();}
-function castSpell(id){
+/* Every cast asks first, so a stray tap never spends mana: attack spells always open the target picker (even with
+   one target), Time Warp opens its quest picker, and the rest show a Cast / Cancel card. */
+function spellConfirm(id){const S=SPELLS[id];
+  zoomCard({kind:"item",title:`Cast ${S.n}?`,art:spellIcon(id),sub:`${S.cost} mana · you have ${player.mp||0}`,
+    body:`<div class="muted" style="font-size:13px;text-align:center">${esc(S.d)}.</div>`,
+    acts:[{label:`Cast ${S.n}`,gold:true,fn:()=>castSpell(id,true)},{label:"Cancel",fn:()=>{}}]});}
+function castSpell(id,ok){
   const S=SPELLS[id];if(!S||!knows(id))return;
   if((player.mp||0)<S.cost){payMana(id);return;}
+  if(!ok&&!["firebolt","chain","warp"].includes(id))return spellConfirm(id);
   const td=today(),H=maxHp(player);
   const no=m=>{toast(m,"bad");return;};
   switch(id){
     case "firebolt":case "chain":{
       const T=spellTargets(id),ok=T.filter(x=>!x.err);
       if(!ok.length)return no(T.length?T[T.length-1].err:"There's nothing to hit right now.");
-      // never send it to the boss without asking while something else is on you (even if that one can't be hit now)
-      if(ok.length>1||ok[0].k.startsWith("mate:")||(ok[0].k==="boss"&&T.length>1))return spellPick(id,T);
-      if(ok[0].k!=="boss")return spellStrike(id,ok[0].k);
-      const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err)return no(r0.err);payMana(id);
-      castDone(id,r0.hunt?`Your spell crackles into your stored Charge: +${r0.dmg}. It lands when you find the boss.`:`${id==="chain"?"Lightning arcs":"A bolt of fire slams"} into ${esc(player.boss.name||"the boss")} for <b>${r0.dmg}</b> damage.`,r0.loot&&r0.loot.kills&&r0.loot.kills.length?r0.loot:null);return;}
+      // always pick (or confirm) the target, even with only one, so a stray tap never fires
+      return spellPick(id,T);}
     case "charm":{
       if((player.mobs||[]).length&&player.mobs.every(mb=>mobFam(mobKind(mb)).noPhys))return no("The dead don't care for Charm. Try Firebolt, Chain Lightning or Ward, or wait for dawn.");
       if((player.mobs||[]).length){const lead=player.mobs.find(mb=>!mobFam(mobKind(mb)).noPhys);payMana(id);const out=mobFight(0,null,{charm:true});castDone(id,`The ${esc(lead.n)} lays down its weapons. ${out.map(esc).join(" ")}`);return;}
@@ -5498,7 +5502,7 @@ function spellPick(id,T){const S=SPELLS[id];
   const off=T.filter(x=>x.err);
   zoomCard({kind:"item",title:`Cast ${S.n} at…`,art:spellIcon(id),sub:`${S.cost} mana · pick a target`,
     body:`<div class="muted" style="font-size:13px">${T.filter(x=>!x.err).map(x=>`<b>${esc(x.label)}</b>: ${esc(x.note)}`).join("<br>")}${off.length?`<br>${off.map(x=>esc(x.err)).join("<br>")}`:""}</div>`,
-    acts:T.filter(x=>!x.err).map((x,i)=>({label:x.btn||(x.k==="mob"?"The mob":x.k==="rival"?"Your rival":"The boss"),gold:i===0,fn:()=>x.k==="boss"?castBoss(id):spellStrike(id,x.k)}))});}
+    acts:T.filter(x=>!x.err).map((x,i)=>({label:x.btn||(x.k==="mob"?"The mob":x.k==="rival"?"Your rival":"The boss"),gold:i===0,fn:()=>x.k==="boss"?castBoss(id):spellStrike(id,x.k)})).concat([{label:"Cancel",fn:()=>{}}])});}
 function castBoss(id){const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err){toast(r0.err,"bad");return;}payMana(id);
   castDone(id,r0.hunt?`Your spell crackles into your stored Charge: +${r0.dmg}. It lands when you find the boss.`:`${id==="chain"?"Lightning arcs":"A bolt of fire slams"} into ${esc(player.boss.name||"the boss")} for <b>${r0.dmg}</b> damage.`,r0.loot&&r0.loot.kills&&r0.loot.kills.length?r0.loot:null);}
 /* What's left of a crewmate's rival's daily spell cap from where you stand: their card's shared room (sp),
