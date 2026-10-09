@@ -79,3 +79,4 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 
 ## Pokes (v3.7.1)
 - `pokeHit(lead)` runs on every poke: 1 damage, at most `POKE_MAX` (5) per mob (`mb.pk`), never below 1 HP, and a `POKE_NIP` (10%) chance of −1 HP to you. Family reactions: noPhys (ghost) is untouchable, miss (stalker) can dodge, flee+box (loot goblin) bolts and is removed, split (bunny) splits. The result shows in the close-up as `.poke-res` (passed via `ui.pokeNote`); a goblin that bolts shows a toast instead.
+- Aim step: picking a target (or the only target) opens `spellAim(id,target,T)`, a preview of exactly what lands (mobs in order with before → after HP, rival/boss caps, fog-hidden HP) with Cast / Back / Cancel. Mana is spent only on Cast.

@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2be53fbfbd"></script>
-<script>window.CRAWL_BUILD="2be53fbfbd";</script>
+<script src="firebase-config.js?v=cf101f037d"></script>
+<script>window.CRAWL_BUILD="cf101f037d";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1186,7 +1186,7 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .lairchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .mobalert.zoomable{cursor:pointer}.mobalert.poked .mobscene{animation:mpoke .45s ease-out}
 @keyframes mpoke{0%{transform:none}20%{transform:translate(-6px,2px) scale(1.04)}40%{transform:translate(5px,-2px) scale(1.06)}60%{transform:translate(-3px,1px) scale(1.03)}100%{transform:none}}
-.zoomdlg.z-mob .zoom-art{width:100%;border-radius:8px}.poke-res{font-size:13.5px;font-weight:600;padding:6px 10px;border-radius:8px;background:rgba(255,210,63,.1);border:1px solid rgba(255,210,63,.35)}.mobbub{margin:8px 0;font-style:italic}
+.zoomdlg.z-mob .zoom-art{width:100%;border-radius:8px}.aim{font-size:14px;line-height:1.6;text-align:center}.poke-res{font-size:13.5px;font-weight:600;padding:6px 10px;border-radius:8px;background:rgba(255,210,63,.1);border:1px solid rgba(255,210,63,.35)}.mobbub{margin:8px 0;font-style:italic}
 @media (prefers-reduced-motion:reduce){.mobalert.poked .mobscene{animation:none}}
 .bstlist{display:flex;flex-direction:column;gap:8px}.bst{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;border:1px solid var(--line-2);border-radius:10px;padding:8px;background:var(--panel-2)}
 .bst-art{border-radius:6px;overflow:hidden;line-height:0;border:2px solid #000}.bst-art svg{width:100%;height:auto;display:block}.bst.unseen{opacity:.6}
@@ -5444,8 +5444,8 @@ function castSpell(id,ok){
     case "firebolt":case "chain":{
       const T=spellTargets(id),ok=T.filter(x=>!x.err);
       if(!ok.length)return no(T.length?T[T.length-1].err:"There's nothing to hit right now.");
-      // always pick (or confirm) the target, even with only one, so a stray tap never fires
-      return spellPick(id,T);}
+      // always confirm: one target goes straight to its aim card, several open the picker first
+      return ok.length===1?spellAim(id,ok[0],T):spellPick(id,T);}
     case "charm":{
       if((player.mobs||[]).length&&player.mobs.every(mb=>mobFam(mobKind(mb)).noPhys))return no("The dead don't care for Charm. Try Firebolt, Chain Lightning or Ward, or wait for dawn.");
       if((player.mobs||[]).length){const lead=player.mobs.find(mb=>!mobFam(mobKind(mb)).noPhys);payMana(id);const out=mobFight(0,null,{charm:true});castDone(id,`The ${esc(lead.n)} lays down its weapons. ${out.map(esc).join(" ")}`);return;}
@@ -5502,7 +5502,26 @@ function spellPick(id,T){const S=SPELLS[id];
   const off=T.filter(x=>x.err);
   zoomCard({kind:"item",title:`Cast ${S.n} at…`,art:spellIcon(id),sub:`${S.cost} mana · pick a target`,
     body:`<div class="muted" style="font-size:13px">${T.filter(x=>!x.err).map(x=>`<b>${esc(x.label)}</b>: ${esc(x.note)}`).join("<br>")}${off.length?`<br>${off.map(x=>esc(x.err)).join("<br>")}`:""}</div>`,
-    acts:T.filter(x=>!x.err).map((x,i)=>({label:x.btn||(x.k==="mob"?"The mob":x.k==="rival"?"Your rival":"The boss"),gold:i===0,fn:()=>x.k==="boss"?castBoss(id):spellStrike(id,x.k)})).concat([{label:"Cancel",fn:()=>{}}])});}
+    acts:T.filter(x=>!x.err).map((x,i)=>({label:x.btn||(x.k==="mob"?"The mob":x.k==="rival"?"Your rival":"The boss"),gold:i===0,fn:()=>spellAim(id,x,T)})).concat([{label:"Cancel",fn:()=>{}}])});}
+/* Second step: the chosen target, what the spell will do to it, and a last Cast / Back / Cancel. */
+function spellAim(id,x,T){const S=SPELLS[id],dmg=spellDmg(id),many=T.filter(t=>!t.err).length>1;let lines=[];
+  const hpTo=(n,a,b,mx)=>`<b>${esc(n)}</b>: ${a} → <b>${b}</b>${mx?` / ${mx}`:""} HP`;
+  if(x.k==="mob"){let pool=dmg;for(const mb of player.mobs||[]){if(pool<=0)break;const K=mobFam(mobKind(mb)),d=Math.min(pool,mb.hp);pool-=d;
+      lines.push(K.hide?`<b>${esc(mb.n)}</b>: takes up to ${d} (its HP is hidden in the fog)`:mb.hp-d<=0?`<b>${esc(mb.n)}</b>: ${mb.hp} HP → <b>defeated</b>`:hpTo(mb.n,mb.hp,mb.hp-d,mb.max));}
+    if(pool>0&&lines.length)lines.push(`<span class="muted">${pool} damage left over is wasted.</span>`);}
+  else if(x.k==="rival"){const rv=player.rival,d=Math.min(dmg,rvSpellRoom(rv),rv.hp);
+    lines.push(rv.hp-d<=0?`<b>${esc(rv.n)}</b>: ${rv.hp} HP → <b>knocked out</b>`:hpTo(rv.n,rv.hp,rv.hp-d,rv.max));
+    if(d<dmg&&rv.hp-d>0)lines.push(`<span class="muted">Only ${d} of your ${dmg} lands: that's all the spell damage ${esc(rv.n)} will take today.</span>`);}
+  else if(x.k.startsWith("mate:")){const c=party.cards[x.k.slice(5)],R=c.rvl,d=Math.min(dmg,mateSpellRoom(R));
+    lines.push(hpTo(R.n,R.hp,R.hp-d,R.max));lines.push(`<span class="muted">${d<dmg?`Only ${d} of your ${dmg} lands (today's spell cap, and the last HP is theirs). `:""}It reaches ${esc(c.name||"your crewmate")}'s game the next time it syncs.</span>`);}
+  else{const b=player.boss,r0=spellBossHit(id==="chain"?1.5:1,true);if(r0.err){toast(r0.err,"bad");return;}
+    if(r0.hunt)lines.push(`<b>Your Charge</b>: +${r0.dmg}, landing when you find the boss`);
+    else if(themeFx(player).fog)lines.push(`<b>${esc(b.name||"The boss")}</b>: takes ${r0.dmg} (its HP is hidden in the fog)`);
+    else{const h=bossHp(b);lines.push(h-r0.dmg<=0?`<b>${esc(b.name||"The boss")}</b>: ${h} HP → <b>defeated</b>`:hpTo(b.name||"The boss",h,h-r0.dmg,b.maxHp));}
+    if(r0.dmg<dmg)lines.push(`<span class="muted">Only ${r0.dmg} of your ${dmg} lands: that's all the spell damage it will take.</span>`);}
+  zoomCard({kind:"item",title:`${S.n} → ${x.btn||(x.k==="mob"?"the mob":x.k==="rival"?"your rival":"the boss")}`,art:spellIcon(id),sub:`${S.cost} mana · you have ${player.mp||0} · ${dmg} damage`,
+    body:`<div class="aim">${lines.join("<br>")}</div>`,
+    acts:[{label:`Cast ${S.n}`,gold:true,fn:()=>x.k==="boss"?castBoss(id):spellStrike(id,x.k)}].concat(many?[{label:"Back",fn:()=>spellPick(id,spellTargets(id))}]:[],[{label:"Cancel",fn:()=>{}}])});}
 function castBoss(id){const r0=spellBossHit(id==="chain"?1.5:1);if(r0.err){toast(r0.err,"bad");return;}payMana(id);
   castDone(id,r0.hunt?`Your spell crackles into your stored Charge: +${r0.dmg}. It lands when you find the boss.`:`${id==="chain"?"Lightning arcs":"A bolt of fire slams"} into ${esc(player.boss.name||"the boss")} for <b>${r0.dmg}</b> damage.`,r0.loot&&r0.loot.kills&&r0.loot.kills.length?r0.loot:null);}
 /* What's left of a crewmate's rival's daily spell cap from where you stand: their card's shared room (sp),
