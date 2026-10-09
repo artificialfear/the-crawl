@@ -104,3 +104,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Pets: `.pet-cheer` (victory), `.pet-cower` (hurt) and `.pet-hiss` with a red "!" when `myMood()` returns `threat` (a mob or rival on you), plus a ♪ when cheering.
 - Mob deaths: `fxDeath(at, kind)`, with a style per family from `FX_DEATH` (dust, drops, wisps, gears, coins, confetti, pages, fluff), fired from `fxTick` when a mob id disappears (`ui.fxKinds` remembers the kinds).
 - Map markers: `headToken(eq,cx,cy,r,ring,id)` = the bare flat avatar cropped to the head in a ring (cached in `headCache`), used for you on the floor map and for everyone on the raid floor.
+
+## Feel pass, batch 3 (v3.10.0 entry covers batches 1–3)
+- Per-part shading (cel only, `SHON`): `tube()` adds a `SHADE` band on the lower-left of every limb or sleeve 18 px or wider (offset (−.16w, +.16w), width .42w, so it stays inside the outline, caps included), plus shade over the torso's left side, the face's left side, a chin shadow on the neck and a brim shadow under hats. The cel filter now lights from the right (rim on the right, shadow band on the left), matching the line art's existing left-side hatching.
+- Fonts: the Google Fonts link now also loads IM Fell English, the engraved face that bossSVG and inkCard ask for (before this they fell back to Georgia). Headings stay Bungee. Test browsers can't reach Google Fonts; for accurate screenshots, `npm pack @fontsource/<font>` and inject @font-face rules.

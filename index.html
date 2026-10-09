@@ -14,15 +14,15 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=642d376ded"></script>
-<script>window.CRAWL_BUILD="642d376ded";</script>
+<script src="firebase-config.js?v=073736f351"></script>
+<script>window.CRAWL_BUILD="073736f351";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
 <title>The Crawl</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Bungee&family=Chakra+Petch:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Bungee&family=Chakra+Petch:wght@400;500;600;700&family=IM+Fell+English&display=swap">
 <style>
 /* Layout: a live dungeon game-show broadcast. Crawler cam and stats on the left, the floor boss and quest board
    on the right, a news ticker pinned to the bottom. Deliberately single dark theme: stage-black ground, hot pink,
@@ -8511,13 +8511,13 @@ function avFx(u,eq){
 <feMorphology in="SourceAlpha" operator="dilate" radius="5" result="d"/><feGaussianBlur in="d" stdDeviation="5" result="db"/>
 <feFlood flood-color="${eq.inkc||"#e8283c"}" flood-opacity=".8"/><feComposite in2="db" operator="in" result="glow"/>
 <feMerge><feMergeNode in="glow"/><feMergeNode in="p"/></feMerge></filter>`;
-  // Cheap on purpose (no blur or lighting): offsets of the silhouette make a warm rim on the lit (left) edge and a
-  // hard shadow band on the right, so redrawing it every animation frame stays light on phones.
+  // Cheap on purpose (no blur or lighting): offsets of the silhouette make a warm rim on the lit (right) edge and a
+  // hard shadow band on the left (the side the line art already hatches), so redrawing it every animation frame stays light on phones.
   return `<filter id="${u}fx" x="-6%" y="-4%" width="112%" height="108%" color-interpolation-filters="sRGB">
 <feFlood flood-color="#fff0dc" result="warm"/><feBlend in="SourceGraphic" in2="warm" mode="multiply" result="lit"/>
-<feOffset in="SourceAlpha" dx="-15" dy="-5" result="so"/><feComposite in="SourceAlpha" in2="so" operator="out" result="sb"/>
+<feOffset in="SourceAlpha" dx="15" dy="-5" result="so"/><feComposite in="SourceAlpha" in2="so" operator="out" result="sb"/>
 <feFlood flood-color="#24183f" flood-opacity=".5"/><feComposite in2="sb" operator="in" result="sh"/>
-<feOffset in="SourceAlpha" dx="5" dy="1" result="o"/><feComposite in="SourceAlpha" in2="o" operator="out" result="rim"/>
+<feOffset in="SourceAlpha" dx="-5" dy="1" result="o"/><feComposite in="SourceAlpha" in2="o" operator="out" result="rim"/>
 <feFlood flood-color="#ffb04a" flood-opacity=".9"/><feComposite in2="rim" operator="in" result="rimc"/>
 <feComposite in="lit" in2="SourceAlpha" operator="in" result="litc"/>
 <feMerge><feMergeNode in="litc"/><feMergeNode in="sh"/><feMergeNode in="rimc"/></feMerge></filter>`;}
@@ -8579,7 +8579,8 @@ function avatarSVG(eq){
   const sh=(d,f,extra)=>`<path d="${d}" fill="${f}"${extra||""}/>`;
   const ov=(d,f)=>`<path d="${d}" fill="${f}" stroke="none"/>`;
   const ln=(d,w,c)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"/>`;
-  const tube=(d,w,c)=>`<path d="${d}" fill="none" stroke="${INK}" stroke-width="${w+8}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const SHADE="rgba(26,12,52,.26)",SHON=eq.style!=="flat";
+  const tube=(d,w,c)=>`<path d="${d}" fill="none" stroke="${INK}" stroke-width="${w+8}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`+(SHON&&w>=18?`<path d="${d}" transform="translate(${(-w*.16).toFixed(1)} ${(w*.16).toFixed(1)})" fill="none" stroke="${SHADE}" stroke-width="${(w*.42).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"/>`:"")+``;
   const now=Date.now();
   const calm=eq.style==="ink"||typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches; // ink cards are printed: still
   // Magical items draw as their base item plus an effect; rings show on the right fist.
@@ -8714,7 +8715,7 @@ function avatarSVG(eq){
   // Shirt or armor
   if(!armor||(AS&&AS.tee)){
     const TEEL=darker(TEEC,.55),hem=LK.print==="ratty";
-    s+=sh(hem?TORSO.replace("L186 262 L114 262","L186 262 L178 258 L170 266 L162 259 L150 267 L140 259 L130 266 L122 258 L114 262"):TORSO,TEEC)+ov(TORSOS,HB);
+    s+=sh(hem?TORSO.replace("L186 262 L114 262","L186 262 L178 258 L170 266 L162 259 L150 267 L140 259 L130 266 L122 258 L114 262"):TORSO,TEEC)+ov(TORSOS,HB)+(SHON?ov(TORSOS,SHADE):"");
     s+=sh("M132 146 Q150 166 168 146",TEEC)+ln("M130 146 Q150 170 170 146",4);
     if(LK.body==="round")s+=sh("M110 202 Q94 236 114 263 L186 263 Q206 236 190 202 Q150 222 110 202 Z",TEEC)+ov("M110 202 Q94 236 114 263 L126 263 Q112 236 118 206 Z",HB)+ln("M148 246 Q150 250 152 246",1.8,TEEL);
     // Pecs and a hint of abs under the tee (stronger on a muscular build)
@@ -8740,6 +8741,7 @@ function avatarSVG(eq){
   if(LK.hair==="ponytail"&&showHair)s+=sh("M174 50 Q210 58 204 112 Q200 136 188 146 Q196 112 182 74 Z",HAIR)+`<rect x="176" y="52" width="10" height="10" rx="2" fill="${RED}" transform="rotate(30 181 57)"/>`;
   // Neck and head: a big comic head, square-jawed or soft-featured
   s+=sh("M134 120 L166 120 L170 150 L130 150 Z",SKIN)+ov("M134 120 L146 120 L144 150 L130 150 Z",HB);
+  if(SHON)s+=`<ellipse cx="150" cy="140" rx="20" ry="8" fill="${SHADE}" stroke="none"/>`; // the chin's shadow on the neck
   if(head!=="h1"){
     s+=`<ellipse cx="114" cy="94" rx="8" ry="12" fill="${SKIN}"/><ellipse cx="186" cy="94" rx="8" ry="12" fill="${SKIN}"/>`;
     if(LK.ears==="stud")s+=`<circle cx="113" cy="105" r="3.2" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/><circle cx="187" cy="105" r="3.2" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/>`;
@@ -8747,6 +8749,7 @@ function avatarSVG(eq){
     const HEAD=FEM?"M118 86 Q116 44 150 40 Q184 44 182 86 Q180 110 166 126 Q156 136 150 136 Q144 136 134 126 Q120 110 118 86 Z":"M116 88 Q114 44 150 40 Q186 44 184 88 Q184 114 172 128 Q162 138 150 138 Q138 138 128 128 Q116 114 116 88 Z";
     s+=sh(HEAD,SKIN);
     s+=ov(FEM?"M118 86 Q116 44 150 40 Q128 52 128 92 Q132 118 150 136 Q144 136 134 126 Q120 110 118 86 Z":"M116 88 Q114 44 150 40 Q128 52 128 92 Q130 120 150 138 Q138 138 128 128 Q116 114 116 88 Z",HB);
+    if(SHON)s+=ov(FEM?"M118 86 Q116 44 150 40 Q128 52 128 92 Q132 118 150 136 Q144 136 134 126 Q120 110 118 86 Z":"M116 88 Q114 44 150 40 Q128 52 128 92 Q130 120 150 138 Q138 138 128 128 Q116 114 116 88 Z",SHADE);
     if(LK.beard==="stubble")s+=ov("M126 112 Q150 142 174 112 Q172 126 162 134 Q150 140 138 134 Q128 126 126 112 Z","rgba(30,27,36,.28)");
     // Freckles and face paint sit on the skin, under the eyes
     if(LK.marks==="freckles")s+=[[126,106],[131,110],[124,111],[134,105],[166,105],[171,110],[176,106],[169,111]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.4" fill="#9a5a3a" stroke="none"/>`).join("");
@@ -8809,6 +8812,7 @@ function avatarSVG(eq){
   if(LK.eyewear==="goggles"&&!head)s+=ln("M114 66 Q150 52 186 66",7)+ln("M114 66 Q150 52 186 66",3.4,"#7a4a26")+`<circle cx="136" cy="60" r="11" fill="#7fd6ff" stroke="${INK}" stroke-width="3.4"/><circle cx="164" cy="60" r="11" fill="#7fd6ff" stroke="${INK}" stroke-width="3.4"/><circle cx="133" cy="57" r="3" fill="#fff" stroke="none"/><circle cx="161" cy="57" r="3" fill="#fff" stroke="none"/>`;
   // Headgear: the shop's drawings, scaled up to fit the bigger head
   const hg=d=>`<g transform="translate(150 86) scale(1.45) translate(-150 -84)">${d}</g>`;const headAt=s.length;
+  if(SHON&&HEAD_CENTER[head]&&!HIDES_HAIR.has(head))s+=`<ellipse cx="150" cy="62" rx="33" ry="8" fill="${SHADE}" stroke="none"/>`; // brim shadow on the brow
   if(HEAD_CENTER[head])s+=headArt(head,u);
   if(_hI&&_hI.tint)s=s.slice(0,headAt)+tintStr(s.slice(headAt),_hI.tint);
   // Weapon, forearms and fists. Each weapon is drawn upright around its grip (origin, blade toward -y),
@@ -10529,6 +10533,13 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.10.0",d:"2026-10-09",t:"It's alive",items:["Hits land: damage floats off the boss, mobs and rivals as numbers (\"Hit!\" where HP is hidden), boss cards shake when hit and crack below a quarter of their HP, and you get a red flash when you're hurt and a green number when you heal.",
+    "Your crawler breathes and blinks, hops when you finish a quest and glows gold on a level-up. Legendary gear gives you a gold aura and twinkles, epic gear purple twinkles.",
+    "The dungeon behind your crawler matches the floor: water on the Flooded Floor, green ghost-fire in the Haunted Halls, lanterns at the Night Market, sand in the Arena, and more.",
+    "Your pet reacts: it hisses at mobs and rivals, cheers when you win and cowers when you're winded.",
+    "Mobs die in style: scuttlers burst into gears, oozes splat, ghosts dissolve, mascots pop into confetti, imps and Loot Goblins spill coins.",
+    "Your face marks your spot on the floor map, and the raid floor shows every crewmate's face.",
+    "Shading on every arm, leg, torso and face, lit from the right to match the line art. Boss and rival cards now use their engraved lettering as intended."]},
   {v:"3.9.0",d:"2026-10-09",t:"Strike a pose",items:["Crawlers have poses now: Battle ready, Hands on hips, Arms crossed, Victory and Winded. Pick your default on the Body tab of Change look. Out of the battle stance, your weapon is slung on your back.",
     "Your crawler reacts to what's happening: a victory pose for 10 minutes after a boss kill, a rival knockout or a level-up, and winded below 30% HP. Your crew sees your victory pose too.",
     "New faces in the look editor: Worried brows, plus Ouch and Unhinged mouths.",
