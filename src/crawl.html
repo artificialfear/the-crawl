@@ -2095,7 +2095,7 @@ const CONSUMABLES = {
   focus:{n:"Potion of Focus",    price:70, w:3, d:"Doubles the XP (and boss damage) of your next finished quest"},
   scroll:{n:"Scroll of Extension",price:45, w:4, d:"Pushes one quest's due date back 2 days with no penalty. Overdue quests move to 2 days from today"},
   smoke:{n:"Smoke Bomb",          price:40, w:3, d:"Skips one occurrence of a repeating quest. Its chain stays intact"},
-  mana:{n:"Mana Potion",          price:150,w:2, d:"Restores 40 mana. Causes potion sickness"},
+  mana:{n:"Mana Potion",          price:100,w:2, d:"Restores 40 mana. Causes potion sickness"},
   antidote:{n:"Poison Antidote",  price:60, w:2, d:"Cures poison. Never causes potion sickness"}};
 const bagN=k=>((player.bag||{})[k]||0);
 function addBag(k,n){player.bag=Object.assign({},player.bag||{});player.bag[k]=(player.bag[k]||0)+n;}
@@ -9910,7 +9910,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
-  {v:"3.5.0",d:"2026-10-08",t:"Potion sickness",items:["New: the Mana Potion (+40 mana, 150 gold) and the Poison Antidote (60 gold), both in the Safe room shop, in loot boxes and on your belt.",
+  {v:"3.5.0",d:"2026-10-08",t:"Potion sickness",items:["New: the Mana Potion (+40 mana, 100 gold) and the Poison Antidote (60 gold), both in the Safe room shop, in loot boxes and on your belt.",
     "Potion sickness: drinking a healing, mana or Focus potion starts a cooldown of 30 minutes, 3 minutes shorter for each Constitution level above 1 (never under 10). Your belt shows the countdown and won't pour another until it passes.",
     "Drink one anyway from your bag or another button, and you're Poisoned: 2 HP every 15 minutes per stack, until you drink a Poison Antidote. Healing won't cure it, and it never drops you below 1 HP."]},
   {v:"3.4.1",d:"2026-10-08",t:"Spell effects",items:["Every spell now has its own animation and sound when you cast it: a Firebolt slams into the boss, Chain Lightning forks across the room, a Ward of golden hexes snaps into place, Blink steps you through a portal, and so on. Tap to skip; the result appears right after."]},

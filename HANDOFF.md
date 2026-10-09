@@ -50,4 +50,4 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Belt during sickness: refuses with a countdown. Anything else: drinks and adds a poison stack (`player.poison={n,at}`).
 - `sickMins()` = max(10, 30 − 3×(CON lvl − 1)); stored as `player.sickUntil`.
 - `poisonTick()` takes 2 HP × stacks per 15 min since `poison.at` (floored at 1 HP); runs on load and in a 30 s interval. Only `drinkAntidote()` clears it.
-- New consumables: `mana` (150g, +40 MP, needs a known spell) and `antidote` (60g). Both are in BELT_KEYS, the shop, box drops and the inventory tooltip.
+- New consumables: `mana` (100g, +40 MP, needs a known spell) and `antidote` (60g). Both are in BELT_KEYS, the shop, box drops and the inventory tooltip.
