@@ -58,3 +58,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Art: `MOB_ART[k](eye,K)`, called from `mobCreature`. Scene colors: `K.col = [glow, dark, eye glint, alert border]`.
 - Ghosts: `mb.exp` = next 6 a.m.; `mobUpkeep()` drops expired ones (in mobFight and on load). Firebolt/Chain call `mobFight(0,null,{spell:true,raw:dmg})` when `hasGhost()`. Ward banishes the first ghost. Charm skips ghosts.
 - Arrival and poke sounds: `sfx/mob-<kind>.mp3` if present; ghosts fall back to the synth `SFX.wail`, the rest to `hurt`.
+
+## Hotbar layout
+- One row by default: spells (`.hb-sp`), a divider, then the belt row (`.hb-bt`). `hbFit()` measures the unclamped width after each render and resize; if it's wider than the screen minus 16px, it adds `.two` to the hotbar (spells stack on top) and `has-sp` to the body (extra bottom padding).
+- With spells prepared, the belt button (`.hb-belt.mp`) is also the mana gauge: a conic ring via `--mp`, with the number in `.hb-mp`. The old `.hb-mana` circle is gone (its CSS is unused).
