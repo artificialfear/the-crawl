@@ -1096,6 +1096,26 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
   .avatar .print svg .eyes,.zoomdlg.z-me .zoom-art svg .eyes,.lk-prev svg .eyes,.pt-av svg .eyes{animation:blink 5.3s infinite;transform-box:fill-box;transform-origin:50% 50%}
 }
 @media (prefers-reduced-motion:reduce){.fxnum{animation:fxfade 1.3s ease-out forwards}.fx-shake,#sheet.av-hit .avatar,#sheet.av-hop .avatar .print,#sheet.av-lvl .avatar{animation:none}}
+.fxdeath{position:absolute;z-index:949;pointer-events:none;width:0;height:0}
+.fd-puff{position:absolute;left:-70px;top:-70px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,var(--c) 0,transparent 68%);opacity:.85;animation:fdpuff .7s ease-out forwards}
+.fd-p{position:absolute;left:0;top:0;transform:translate(-50%,-50%);font:900 24px/1 sans-serif;-webkit-text-stroke:1.4px #000;animation:fdfly 1.1s cubic-bezier(.2,.7,.4,1) forwards}
+.fd-wisp .fd-p{font-size:34px;-webkit-text-stroke:0;opacity:.8}.fd-gear .fd-p{font-size:30px;-webkit-text-stroke:.5px #000}.fd-fluff .fd-p{-webkit-text-stroke:0}
+@keyframes fdpuff{0%{transform:scale(.3);opacity:.85}100%{transform:scale(1.8);opacity:0}}
+@keyframes fdfly{0%{transform:translate(-50%,-50%) rotate(0);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){.fd-p{animation:fxfade 1s ease-out forwards}}
+/* Legendary/epic gear twinkles; pet reactions */
+@media (prefers-reduced-motion:no-preference){
+  .print svg .twinkle{animation:twinkle 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+  .print svg .legaura{animation:mpulse 3.2s ease-in-out infinite}
+  .print svg .pet-cheer .critter{animation:petcheer .6s ease-in-out infinite alternate}
+  .print svg .pet-cower .critter{animation:petcower .18s linear infinite alternate}
+  .print svg .pet-hiss .critter{animation:pethiss .9s ease-in-out infinite}
+}
+.print svg .pet-cower .critter{transform-box:fill-box;transform-origin:50% 100%}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.5)}50%{opacity:1;transform:scale(1.1) rotate(20deg)}}
+@keyframes petcheer{0%{transform:translateY(0)}100%{transform:translateY(-9px)}}
+@keyframes petcower{0%{transform:scale(.92,.86) translateX(-1px)}100%{transform:scale(.92,.86) translateX(1px)}}
+@keyframes pethiss{0%,100%{transform:none}10%{transform:translateX(-2px)}20%{transform:translateX(2px)}30%{transform:none}}
 @keyframes fxfade{0%,60%{opacity:1}100%{opacity:0}}
 @keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.008,1.014) translateY(-1px)}}
 @keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
@@ -4366,6 +4386,14 @@ function quartersSVG(up,av,tr,showEmpty){
 function skullIcon(x,y,r){return `<g><path d="M${x-r} ${y} Q${x-r} ${y-r*1.2} ${x} ${y-r*1.2} Q${x+r} ${y-r*1.2} ${x+r} ${y} L${x+r*.6} ${y+r*.5} L${x+r*.6} ${y+r} L${x-r*.6} ${y+r} L${x-r*.6} ${y+r*.5} Z" fill="#f4f2f8" stroke="#15131c" stroke-width="1.2"/><circle cx="${x-r*.38}" cy="${y-r*.1}" r="${r*.26}" fill="#15131c"/><circle cx="${x+r*.38}" cy="${y-r*.1}" r="${r*.26}" fill="#15131c"/></g>`;}
 function crownIcon(){return `<path d="M0 10 L0 2 L4 6 L8 0 L12 6 L16 2 L16 10 Z" fill="#ffd23f" stroke="#15131c" stroke-width="1.2"/>`;}
 /* The hero without the dungeon set, for standing in other rooms. */
+/* A crawler's face in a coin-sized ring, for map markers: the bare avatar cropped to the head (flat style, no
+   lighting, so a map full of them stays cheap). Cached per look. */
+const headCache=new Map();
+function headToken(eq,cx,cy,r,ring,id){let art=headCache.get(JSON.stringify(eq));
+  if(art==null){try{art=avatarSVG(Object.assign({},eq,{bare:true,style:"flat",pose:"ready"})).replace(/^<svg[^>]*>/,"").replace(/<\/svg>$/,"");}catch(e){art="";}headCache.set(JSON.stringify(eq),art);if(headCache.size>30)headCache.delete(headCache.keys().next().value);}
+  const k="ht"+id,sc=(2*r/104).toFixed(4);
+  return `<defs><clipPath id="${k}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs><circle cx="${cx}" cy="${cy}" r="${r+2.6}" fill="${ring}" stroke="#111" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="#2b2440"/>
+<g clip-path="url(#${k})"><g transform="translate(${cx-r} ${cy-r}) scale(${sc}) translate(-98 -30)">${art}</g></g><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#111" stroke-width="1.6"/>`;}
 function bareAvatar(eq){try{return avatarSVG(Object.assign({},eq,{bare:true}));}catch(e){return "";}}
 /* Your avatar reacts: a victory pose for 10 minutes after a boss kill, a rival knocked out or a level-up; winded
    below 30% HP. Otherwise (mobs and rivals included) your chosen pose and face; the look editor says when a
@@ -4375,6 +4403,7 @@ function myMood(){const p=player;if(!p||!playerExists)return {};
   if(ui.winSig==null)ui.winSig=sig;else if(sig>ui.winSig){ui.winSig=sig;ui.winAt=Date.now();}
   if(ui.winAt&&Date.now()-ui.winAt<10*6e4)return {pose:"victory",expr:"happy"};
   if(p.hp<maxHp(p)*.3)return {pose:"hurt",expr:"hurt"};
+  if((p.mobs||[]).length||p.rival)return {threat:true}; // only your pet reacts: it hisses at whatever's on you
   return {};}
 function moodNote(){const m=myMood();if(m.pose==="victory")return "You're celebrating a big win, so your Hero tab shows the victory pose and a grin for a few more minutes. Your pose and face come back after that.";
   if(m.pose==="hurt")return "You're below 30% HP, so your Hero tab shows you winded with a worried face until you heal. Your pose and face come back after that.";return "";}
@@ -4960,7 +4989,7 @@ function mapSVG(m){
       +(bossDead?`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`:"")+(rm.t==="merchant"&&rm.sold?`<path d="M${x-12} ${y+12} L${x+12} ${y-12}" stroke="#e8283c" stroke-width="3"/>`:"")+`</g>`;
     if(i<=far+1)s+=`<rect class="maproom" data-maproom="${i}" x="${x-23}" y="${y-23}" width="46" height="46" rx="7" fill="transparent" stroke="none"><title>${i<=far?(i===m.pos?"You are here":"Walk back to room "+(i+1)):"Head forward"}</title></rect>`;
     if(m.tgt!=null&&i===m.tgt&&i!==m.pos)s+=`<rect x="${x-25}" y="${y-25}" width="50" height="50" rx="8" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="6 4" pointer-events="none"/>`;
-    if(here)s+=`<g class="mapme"><circle cx="${x+16}" cy="${y-16}" r="8" fill="#e8283c" stroke="${K}" stroke-width="2"/><circle cx="${x+16}" cy="${y-17}" r="2.6" fill="#fff"/></g>`;});
+    if(here)s+=`<g class="mapme">${headToken(Object.assign({},wearing(player),player.look?{look:player.look}:{}),x+16,y-16,12,"#e8283c","mm"+i)}</g>`;});
   (m.secrets||[]).forEach(se=>{if(!se.found&&!se.located)return;const [x,y]=c(se.x,se.y);
     if(se.found)s+=`<rect x="${x-19}" y="${y-19}" width="38" height="38" rx="6" fill="#fff3c4" stroke="${K}" stroke-width="2.4" stroke-dasharray="5 3"/>${mapIcon("secret",x,y)}`;
     else{const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y);if(se.link<=far)s+=`<rect class="maproom" data-maproom="${se.link}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>Walk to its door in room ${se.link+1}</title></rect>`;s+=`<g class="${se.fresh&&Date.now()-se.fresh<6000?"mapnew":""}"><path d="M${a} ${b} L${x} ${y}" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="3 4"/><rect x="${x-17}" y="${y-17}" width="34" height="34" rx="6" fill="#e2cfa2" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x-8} ${y-8} L${x+8} ${y+8} M${x+8} ${y-8} L${x-8} ${y+8}" stroke="#e8283c" stroke-width="3.4" stroke-linecap="round"/></g>`;}});
@@ -7456,9 +7485,22 @@ const FX_SEL={boss:"#bossPanel .bossart",mob:"#mobAlert .mobalert",rv:"#rivalAle
 function fxSnap(){const o={};for(const k in FX_SEL){const el=document.querySelector(FX_SEL[k]);if(el){const r=el.getBoundingClientRect();if(r.width)o[k]={x:r.left+r.width/2+scrollX,y:r.top+Math.min(r.height,160)/2+scrollY};}}return o;}
 function fxNum(at,txt,kind){if(!at)return;const d=document.createElement("div");d.className="fxnum fx-"+kind;d.textContent=txt;d.setAttribute("aria-hidden","true");
   d.style.left=Math.max(scrollX+34,Math.min(scrollX+innerWidth-34,at.x+(Math.random()*30-15)))+"px";d.style.top=at.y+"px";document.body.appendChild(d);setTimeout(()=>d.remove(),1400);}
+/* A mob dies in its own way: rats and goblins vanish in a dust cloud, oozes and leeches splat, ghosts and stalkers
+   dissolve into wisps, scuttlers fall apart into gears, imps and loot goblins drop coins, mascots burst into confetti,
+   pit fighters kick up sand, shushers scatter pages, bunnies go up in fluff. */
+const FX_DEATH={rat:["dust","#9a8a7a"],goblin:["dust","#8aa83a"],ooze:["drop","#6bbf3a"],leech:["drop","#3fb4e0"],ghost:["wisp","#e8e2ff"],stalker:["wisp","#c9d2dc"],
+  scuttler:["gear","#d8a03a"],imp:["coin","#ffd23f"],lootgob:["coin","#ffd23f"],mascot:["confetti","#ff8a1f"],pitfighter:["dust","#c9a46a"],shusher:["page","#f4ead0"],bunny:["fluff","#e8dccb"]};
+function fxDeath(at,kind){if(!at)return;const [t,c]=FX_DEATH[kind]||FX_DEATH.rat;const box=document.createElement("div");box.className="fxdeath fd-"+t;box.setAttribute("aria-hidden","true");
+  box.style.left=at.x+"px";box.style.top=at.y+"px";box.style.setProperty("--c",c);
+  const glyph={gear:"⚙",coin:"●",page:"▭",confetti:"■",fluff:"✺",drop:"●",wisp:"~",dust:"●"}[t];
+  let h=`<span class="fd-puff"></span>`;for(let i=0;i<12;i++){const a=i/12*Math.PI*2+Math.random()*.4,d=70+Math.random()*70;
+    const col=t==="confetti"?["#ff3a8a","#ffd23f","#3fe0ff","#7dff6a"][i%4]:c;
+    h+=`<span class="fd-p" style="--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d-(t==="coin"||t==="drop"?-20:20)).toFixed(0)}px;--r:${Math.round(Math.random()*540-270)}deg;color:${col};animation-delay:${(Math.random()*.08).toFixed(2)}s">${glyph}</span>`;}
+  box.innerHTML=h;document.body.appendChild(box);setTimeout(()=>box.remove(),1300);}
 function fxPulse(el,cls,ms){if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms||900);}
 function fxTick(pre){
   if(!loadedP||!playerExists)return;const p=player,b=p.boss,live=b&&!b.defeated&&!hunting(b);
+  if(!ui.fxKinds)ui.fxKinds=Object.fromEntries((p.mobs||[]).map(m=>[m.id,mobKind(m)]));
   const cur={bk:live?b.name+"|"+b.tier:null,bh:live?bossHp(b):null,ms:Object.fromEntries((p.mobs||[]).map(m=>[m.id,m.hp])),
     rk:p.rival?p.rival.id:null,rh:p.rival?p.rival.hp:null,hp:p.hp,lv:levelInfo(p.xp||0).L,dc:p.doneCount||0};
   const o=ui.fxPrev;ui.fxPrev=cur;if(!o)return;
@@ -7466,6 +7508,8 @@ function fxTick(pre){
   if(o.bk&&o.bk===cur.bk&&cur.bh<o.bh){fxNum(at("boss"),themeFx(p).fog?"Hit!":"−"+(o.bh-cur.bh),"boss");fxPulse(document.querySelector(FX_SEL.boss),"fx-shake",500);}
   let md=0,hidden=false;for(const id in o.ms){const was=o.ms[id],now=cur.ms[id];const d=now==null?was:Math.max(0,was-now);if(d>0){md+=d;const mb=(p.mobs||[]).find(m=>m.id===id);if(mb&&mobFam(mobKind(mb)).hide)hidden=true;}}
   if(md>0)fxNum(at("mob"),hidden?"Hit!":"−"+md,"mob");
+  for(const id in o.ms)if(cur.ms[id]==null&&ui.fxKinds&&ui.fxKinds[id])fxDeath(pre.mob||at("mob"),ui.fxKinds[id]);
+  ui.fxKinds=Object.fromEntries((p.mobs||[]).map(m=>[m.id,mobKind(m)]));
   if(o.rk&&o.rk===cur.rk&&cur.rh<o.rh)fxNum(at("rv"),"−"+(o.rh-cur.rh),"rv");
   else if(o.rk&&!cur.rk&&ui.rvLastKO&&Date.now()-ui.rvLastKO<5000)fxNum(pre.rv,"KO!","rv");
   const me=document.querySelector(FX_SEL.me);
@@ -8481,6 +8525,31 @@ function inkCard(eq,o){o=o||{};const k="ik"+(++inkUid),{INK,BONE,CARD}=TC,psy=!!
 <rect x="13" y="13" width="174" height="274" rx="5" fill="none" stroke="${INK}" stroke-width="3"/><rect x="17" y="17" width="166" height="266" rx="3" fill="none" stroke="${INK}" stroke-width=".9"/>
 ${corner}<g transform="translate(200 0) scale(-1 1)">${corner}</g><g transform="translate(0 300) scale(1 -1)">${corner}</g><g transform="translate(200 300) scale(-1 -1)">${corner}</g>
 ${name?`<rect x="24" y="256" width="152" height="25" rx="3" fill="#e9e8e3" stroke="${INK}" stroke-width="2.2"/><text x="100" y="273.5" text-anchor="middle" font-family="'IM Fell English',Georgia,'Times New Roman',serif" font-weight="700" font-size="${name.length>22?10.5:name.length>17?12:13.5}"${name.length>22?' textLength="142" lengthAdjust="spacingAndGlyphs"':""} fill="${INK}">${name}</text>`:""}</svg>`;}
+/* Avatar backdrops per floor theme: wall/brick/floor colours, flame colours [outer, mid, core], torch glow, bokeh,
+   and an optional overlay drawn over the floor (water, fog, sand, moss, a spotlight, paw prints…). */
+const AV_SCENE={
+  _:       {wall:"#2b2440",brick:"#3b3156",brick2:"#463a63",floor:"#221c33",stone:"#30284a",fl:["#ff8a1f","#ffd23f","#fff6c8"],gl:["#ffb54a","#ff7a1f"],bk:"#ffc46a"},
+  flooded: {wall:"#18303d",brick:"#22434f",brick2:"#2b5464",floor:"#10232c",stone:"#1b3844",fl:["#3fd0ff","#a8f0ff","#ffffff"],gl:["#7fe0ff","#2a9ad8"],bk:"#9fe8ff",
+    ov:`<path d="M0 360 Q40 352 80 360 T160 360 T240 360 T300 358 L300 420 L0 420 Z" fill="#3fb4e0" opacity=".38"/><path d="M20 374 q14 -6 28 0 M120 382 q16 -6 32 0 M220 372 q14 -6 28 0 M70 398 q12 -5 24 0 M190 402 q14 -5 28 0" fill="none" stroke="#c8f4ff" stroke-width="2" opacity=".6"/>`},
+  market:  {wall:"#3a1f17",brick:"#4c291c",brick2:"#5e3322",floor:"#2a160e",stone:"#3a2014",fl:["#ff6a1f","#ffb23f","#fff0b0"],gl:["#ffb23f","#e8443c"],bk:"#ffb070",
+    ov:`<g stroke="#111" stroke-width="2"><path d="M0 40 Q75 64 150 40 Q225 64 300 40" fill="none"/>${[40,95,150,205,260].map((x,i)=>`<rect x="${x-7}" y="${46+(i%2)*6}" width="14" height="18" rx="5" fill="${["#e8283c","#ffb23f","#e8283c","#ffb23f","#e8283c"][i]}"/>`).join("")}</g>`},
+  fog:     {wall:"#2c3036",brick:"#383d44",brick2:"#434952",floor:"#1e2126",stone:"#2b2f35",fl:["#e8eef6","#ffffff","#ffffff"],gl:["#c9d6e4","#7a8a9c"],bk:"#dfe8f2",
+    ov:`<g fill="#c9d2dc" opacity=".22"><ellipse cx="60" cy="330" rx="90" ry="26"/><ellipse cx="240" cy="320" rx="100" ry="30"/><ellipse cx="150" cy="364" rx="150" ry="24"/></g>`},
+  speed:   {wall:"#26282e",brick:"#33363e",brick2:"#3d4049",floor:"#1a1b20",stone:"#2a2c33",fl:["#ff3a2a","#ffb23f","#ffffff"],gl:["#ff7a4a","#ff3a2a"],bk:"#ff9a7a",
+    ov:`<g transform="translate(150 44)"><circle r="22" fill="#e9e8e3" stroke="#111" stroke-width="3"/><path d="M0 0 L0 -14 M0 0 L10 6" stroke="#111" stroke-width="3" stroke-linecap="round"/></g>`},
+  goblins: {wall:"#212d1c",brick:"#2c3c24",brick2:"#36492c",floor:"#18200f",stone:"#24301c",fl:["#ff8a1f","#ffd23f","#fff6c8"],gl:["#ffb54a","#ff7a1f"],bk:"#d8ff8a",
+    ov:`<g fill="#5a8a2a" opacity=".55">${[[24,64],[210,30],[268,250],[84,212],[160,10]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="16" ry="6"/>`).join("")}</g><g fill="#ffd23f" stroke="#111" stroke-width="1.4">${[[30,404],[262,398],[276,410]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="6" ry="3"/>`).join("")}</g>`},
+  haunted: {wall:"#1c1630",brick:"#271f40",brick2:"#30274f",floor:"#120e20",stone:"#1e1832",fl:["#7dff6a","#d8ffb0","#ffffff"],gl:["#9bff8a","#5ad04a"],bk:"#c8b0ff",
+    ov:`<g fill="#e8e2ff" opacity=".12"><path d="M64 70 Q74 52 84 70 L84 92 L79 87 L74 93 L69 87 L64 92 Z"/><path d="M222 44 Q234 24 246 44 L246 70 L240 64 L234 71 L228 64 L222 70 Z"/></g>`},
+  showcase:{wall:"#2a1d38",brick:"#38274b",brick2:"#44305c",floor:"#1a1224",stone:"#2a1e38",fl:["#ff5fa8","#ffd23f","#ffffff"],gl:["#ff8ac8","#ff3a8a"],bk:"#ffb0e0",
+    ov:`<path d="M120 0 L180 0 L250 352 L50 352 Z" fill="#fff6dc" opacity=".09"/>`},
+  arena:   {wall:"#4a3822",brick:"#5a462e",brick2:"#6a5338",floor:"#7a6240",stone:"#8a7048",fl:["#ff8a1f","#ffd23f","#fff6c8"],gl:["#ffb54a","#ff7a1f"],bk:"#ffd08a",
+    ov:`<path d="M0 352 L300 352 L300 420 L0 420 Z" fill="#c9a46a" opacity=".55"/><g fill="#8a6a3a" opacity=".6">${[[40,380],[120,396],[210,384],[270,404],[80,410]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="10" ry="2.4"/>`).join("")}</g>`},
+  library: {wall:"#2c1f15",brick:"#3a291c",brick2:"#463223",floor:"#1f150e",stone:"#2c1e14",fl:["#ffb23f","#ffe08a","#ffffff"],gl:["#ffd08a","#e8943c"],bk:"#ffe0a0",
+    ov:`<g stroke="#111" stroke-width="2">${[0,1,2,3,4,5,6,7].map(i=>`<rect x="${100+i*13}" y="${20+(i%3)*2}" width="11" height="${30-(i%3)*2}" fill="${["#7a2a2a","#2a4a7a","#3a6a3a","#8a6a2a"][i%4]}"/>`).join("")}<path d="M96 52 L206 52" stroke-width="4"/></g>`},
+  petday:  {wall:"#33263a",brick:"#44324d",brick2:"#503c5a",floor:"#241a2a",stone:"#32263a",fl:["#ff8a1f","#ffd23f","#fff6c8"],gl:["#ffb54a","#ff7a1f"],bk:"#ffc0e0",
+    ov:`<g fill="#d8cfc0" opacity=".5">${[[60,372],[78,388],[230,380],[246,396],[150,408]].map(([x,y])=>`<g transform="translate(${x} ${y})"><ellipse rx="5" ry="4"/><circle cx="-5" cy="-6" r="2"/><circle cx="0" cy="-8" r="2"/><circle cx="5" cy="-6" r="2"/></g>`).join("")}</g>`}};
+function avScene(){try{const th=player&&player.boss&&themeOf(player);return th&&AV_SCENE[th.id]?th.id:"_";}catch(e){return "_";}}
 function avatarSVG(eq){
   /* Comic hero in a torchlit dungeon. Heroic proportions: big head and hands, broad shoulders,
      thick limbs drawn as outlined tubes. Starts in a ratty T-shirt, jeans and bare feet; gear layers on top. */
@@ -8503,14 +8572,17 @@ function avatarSVG(eq){
   const BWID=BODY_W[LK.body]||1,LEGT=LEG_W[LK.body]||30;
   const TEEC=pal(TEES,LK.tee),PANTS=pal(PANTSC,LK.pants),PSEAM=darker(PANTS,.62),SHOE=pal(SHOEC,LK.shoes);
   const narrow=BWID!==1?`<g transform="translate(150 0) scale(${BWID} 1) translate(-150 0)">`:`<g>`;
-  const WALL="#2b2440",BRICK="#3b3156",BRICK2="#463a63",FLOOR="#221c33",STONE="#30284a",FXON=eq.style!=="flat";
+  // The dungeon behind the crawler matches the floor theme (walls, floor, torch flames, a little set dressing).
+  const SCN=AV_SCENE[eq.scene!==undefined?eq.scene:avScene()]||AV_SCENE._;
+  const WALL=SCN.wall,BRICK=SCN.brick,BRICK2=SCN.brick2,FLOOR=SCN.floor,STONE=SCN.stone,FXON=eq.style!=="flat";
   let s=`<svg viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="--ph:-${now%6000}ms;--ph2:-${now%14000}ms"><defs>
 <pattern id="${u}a" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
 <pattern id="${u}b" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
 <pattern id="${u}d" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"></pattern>
 <pattern id="${u}m" width="8" height="7" patternUnits="userSpaceOnUse"><rect width="8" height="7" fill="#c3c9d4"/><path d="M0 3.5 Q4 -1 8 3.5 M-4 7 Q0 2.5 4 7 M4 7 Q8 2.5 12 7" fill="none" stroke="${INK}" stroke-width="1.2"/></pattern>
-<radialGradient id="${u}gl" cx="46" cy="150" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffb54a" stop-opacity=".75"/><stop offset=".35" stop-color="#ff7a1f" stop-opacity=".32"/><stop offset="1" stop-color="#ff7a1f" stop-opacity="0"/></radialGradient>
-<radialGradient id="${u}gr" cx="254" cy="150" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffb54a" stop-opacity=".75"/><stop offset=".35" stop-color="#ff7a1f" stop-opacity=".32"/><stop offset="1" stop-color="#ff7a1f" stop-opacity="0"/></radialGradient>
+<radialGradient id="${u}gl" cx="46" cy="150" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${SCN.gl[0]}" stop-opacity=".75"/><stop offset=".35" stop-color="${SCN.gl[1]}" stop-opacity=".32"/><stop offset="1" stop-color="#ff7a1f" stop-opacity="0"/></radialGradient>
+<radialGradient id="${u}gr" cx="254" cy="150" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${SCN.gl[0]}" stop-opacity=".75"/><stop offset=".35" stop-color="${SCN.gl[1]}" stop-opacity=".32"/><stop offset="1" stop-color="#ff7a1f" stop-opacity="0"/></radialGradient>
+<radialGradient id="${u}la" cx="150" cy="220" r="170" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffd23f" stop-opacity=".32"/><stop offset="1" stop-color="#ffd23f" stop-opacity="0"/></radialGradient>
 <radialGradient id="${u}v" cx="150" cy="200" r="250" gradientUnits="userSpaceOnUse"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
 <filter id="${u}bl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5"/></filter>
 <filter id="${u}bl2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
@@ -8536,12 +8608,13 @@ function avatarSVG(eq){
   s+=`<g class="torchglow"><rect x="0" y="0" width="300" height="420" fill="url(#${u}gl)"/><rect x="0" y="0" width="300" height="420" fill="url(#${u}gr)"/></g>`;
   // Torches in iron sconces
   const torch=(x)=>`<g stroke="${INK}" stroke-width="3" stroke-linejoin="round">${sh(`M${x-4} 160 L${x+4} 160 L${x+3} 206 L${x-3} 206 Z`,"#7a4a26")}${sh(`M${x-12} 150 L${x+12} 150 L${x+8} 164 L${x-8} 164 Z`,"#5b5f6e")}${sh(`M${x-16} 196 L${x+16} 196 L${x+16} 202 L${x-16} 202 Z`,"#5b5f6e")}</g>
-    <g class="flame" style="transform-origin:${x}px 150px">${sh(`M${x} 102 Q${x+18} 124 ${x+13} 140 Q${x+10} 152 ${x} 152 Q${x-10} 152 ${x-13} 140 Q${x-16} 122 ${x} 102 Z`,"#ff8a1f",` stroke="${INK}" stroke-width="3"`)}${ov(`M${x} 118 Q${x+9} 132 ${x+6} 142 Q${x} 150 ${x-6} 142 Q${x-8} 132 ${x} 118 Z`,"#ffd23f")}${ov(`M${x} 132 Q${x+4} 140 ${x} 147 Q${x-4} 140 ${x} 132 Z`,"#fff6c8")}</g>`;
+    <g class="flame" style="transform-origin:${x}px 150px">${sh(`M${x} 102 Q${x+18} 124 ${x+13} 140 Q${x+10} 152 ${x} 152 Q${x-10} 152 ${x-13} 140 Q${x-16} 122 ${x} 102 Z`,SCN.fl[0],` stroke="${INK}" stroke-width="3"`)}${ov(`M${x} 118 Q${x+9} 132 ${x+6} 142 Q${x} 150 ${x-6} 142 Q${x-8} 132 ${x} 118 Z`,SCN.fl[1])}${ov(`M${x} 132 Q${x+4} 140 ${x} 147 Q${x-4} 140 ${x} 132 Z`,SCN.fl[2])}</g>`;
   s+=torch(46)+torch(254);
   // Out-of-focus torchlight: soft bokeh discs drifting in the blurred background
-  s+=[[30,118,10,.35],[62,176,7,.25],[268,112,11,.35],[236,182,6,.22],[46,226,5,.18],[256,238,8,.2],[150,60,6,.12],[96,86,4,.15],[206,80,5,.15]].map(([x,y,r,o],i)=>`<circle class="bokeh" style="animation-delay:-${(i*.7).toFixed(1)}s" cx="${x}" cy="${y}" r="${r}" fill="#ffc46a" opacity="${o}"/>`).join("");
-  s+=`<ellipse cx="150" cy="384" rx="82" ry="12" fill="#000" opacity=".45"/></g><!--bg1-->`;
+  s+=[[30,118,10,.35],[62,176,7,.25],[268,112,11,.35],[236,182,6,.22],[46,226,5,.18],[256,238,8,.2],[150,60,6,.12],[96,86,4,.15],[206,80,5,.15]].map(([x,y,r,o],i)=>`<circle class="bokeh" style="animation-delay:-${(i*.7).toFixed(1)}s" cx="${x}" cy="${y}" r="${r}" fill="${SCN.bk}" opacity="${o}"/>`).join("");
+  s+=(SCN.ov||"")+`<ellipse cx="150" cy="384" rx="82" ry="12" fill="#000" opacity=".45"/></g><!--bg1-->`;
 
+  if(eq.style!=="ink"&&["weapon","armor","head","cape","gloves","boots","ring","trinket","belt"].some(k=>{const i=itemOf(eq[k]);return i&&i.rar==="legendary";}))s+=`<ellipse class="legaura" cx="150" cy="220" rx="150" ry="190" fill="url(#${u}la)"/>`;
   if(MA==="radiant")s+=`<ellipse class="mf-aura" cx="150" cy="220" rx="96" ry="160" fill="#ffd23f" opacity=".5" filter="url(#${u}bl2)"/>`;
   const INKS=eq.style==="ink";if(INKS)s+=`<g filter="url(#${u}fx)">`; // ink cards are still, so the cape goes in the etching too
   // Cape behind the figure
@@ -8755,13 +8828,19 @@ function avatarSVG(eq){
     s+=fist(210,266)+fist(90,266)+ringOn(210,266);
   }
   s+=`</g></g></g></g></g>`;
+  // Your best gear shows: legendary items give the crawler a gold aura and twinkles, epic ones purple twinkles.
+  if(eq.style!=="ink"){const rars=["weapon","armor","head","cape","gloves","boots","ring","trinket","belt"].map(k=>itemOf(eq[k])).filter(Boolean).map(i=>i.rar);
+    const top=rars.includes("legendary")?"legendary":rars.includes("epic")?"epic":null;
+    if(top){const c=top==="legendary"?"#ffd23f":"#c27aff",tw=(x,y,r,d)=>`<path class="twinkle" style="animation-delay:-${d}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z" fill="${c}" stroke="#fff" stroke-width=".8"/>`;
+      s+=`<g class="gearglow" aria-hidden="true">`+(top==="legendary"?[[66,118,9,0],[236,92,11,.9],[92,300,7,1.7],[222,246,8,2.4],[150,30,7,1.2],[52,220,6,2.9]]:[[70,130,8,.3],[230,100,9,1.4],[218,256,7,2.2]]).map(a=>tw(...a)).join("")+`</g>`;}}
   // Vignette, then the active pet at the hero's feet (in front of the shadows), then the panel border
   if(!eq.bare)s+=`<rect x="0" y="0" width="300" height="420" fill="url(#${u}v)"/>`;
   // Bare feet sit low enough for the vignette to darken them into sandal-brown; redraw them above it so they match the hands and face
   if(_bare)s+=`<g stroke="${INK}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${_bare}</g>`;
   if(eq.pet&&PETS[eq.pet]){
     s+=petSVG(eq.pet,{trinket:eq.trinket}).replace(/<rect (?:x="0" y="0" )?width="100" height="100"[^>]*\/>/g,"")
-      .replace('<svg viewBox="0 0 100 100"',`<svg x="2" y="280" width="112" height="112" viewBox="0 0 100 100" class="petinframe${eq.petSulk?" pet-sulk":""}"`);
+      .replace('<svg viewBox="0 0 100 100"',`<svg x="2" y="280" width="112" height="112" viewBox="0 0 100 100" class="petinframe${eq.petSulk?" pet-sulk":PZ==="victory"?" pet-cheer":PZ==="hurt"?" pet-cower":eq.threat?" pet-hiss":""}"`)
+      .replace(/<\/svg>\s*$/,(PZ!=="victory"&&PZ!=="hurt"&&eq.threat&&!eq.petSulk?`<g class="hissmark"><circle cx="82" cy="18" r="11" fill="#e8283c" stroke="#111" stroke-width="2.4"/><text x="82" y="24" text-anchor="middle" font-size="17" font-weight="900" fill="#fff" font-family="sans-serif">!</text></g>`:PZ==="victory"&&!eq.petSulk?`<g class="hissmark"><text x="80" y="22" text-anchor="middle" font-size="20" fill="#ffd23f" stroke="#111" stroke-width="1">♪</text></g>`:"")+"</svg>");
   }
   // bare: just the hero and a floor shadow, for standing in other scenes
   if(eq.bare)return s.replace(/<!--bg0-->[\s\S]*?<!--bg1-->/,`<ellipse cx="150" cy="384" rx="70" ry="10" fill="#000" opacity=".35"/>`)+`</svg>`;
@@ -11594,7 +11673,7 @@ function partyFromLink(){
 /* ---------- Drawing ---------- */
 function ago(ms){const m=Math.round((Date.now()-ms)/6e4);return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":Math.round(m/1440)+"d ago";}
 function miniAvatar(c){
-  const eq=Object.assign({},c.wear||{},c.look?{look:c.look}:{},c.pet&&PETS[c.pet]?{pet:c.pet}:{},c.win&&c.win>Date.now()?{pose:"victory",expr:"happy"}:{});
+  const eq=Object.assign({scene:avScene()},c.wear||{},c.look?{look:c.look}:{},c.pet&&PETS[c.pet]?{pet:c.pet}:{},c.win&&c.win>Date.now()?{pose:"victory",expr:"happy"}:{});
   const k=JSON.stringify(eq);let v=avCache.get(k);
   if(!v){try{v=avatarSVG(eq);}catch(e){v="";}avCache.set(k,v);if(avCache.size>40)avCache.delete(avCache.keys().next().value);}
   return v;
@@ -11827,7 +11906,8 @@ function raidFloorHTML(){
   if(rally){const [x,y]=cxy(rally.cell);s+=`<g pointer-events="none"><path d="M${x+6} ${y-18} L${x+6} ${y-2}" stroke="${K}" stroke-width="2"/><path d="M${x+6} ${y-18} L${x+17} ${y-14} L${x+6} ${y-10} Z" fill="#ffd23f" stroke="${K}" stroke-width="1.4"/></g>`;}
   const at={};[{uid:me,pos:r.pos,name:partyName()}].concat(crew).forEach(c=>{(at[c.pos]=at[c.pos]||[]).push(c);});
   for(const [cell,list] of Object.entries(at)){const [x,y]=cxy(+cell);list.forEach((c,j)=>{const ox=(j-(list.length-1)/2)*11,oy=list.length>1?5:3;
-    s+=`<g pointer-events="none"><circle cx="${x+ox}" cy="${y+oy}" r="8" fill="${rfColor(c.uid)}" stroke="${K}" stroke-width="${c.uid===me?3:2}"/><text x="${x+ox}" y="${y+oy+3.6}" text-anchor="middle" font-size="10" font-weight="700" fill="#111" font-family="sans-serif">${esc((c.uid===me?"You":c.name).trim().charAt(0).toUpperCase())}</text></g>`;});}
+    const cd=c.uid===me?{wear:wearing(player),look:player.look}:(party&&party.cards&&party.cards[c.uid])||{};
+    s+=`<g pointer-events="none">${headToken(Object.assign({},cd.wear||{},cd.look?{look:cd.look}:{}),x+ox,y+oy,c.uid===me?10:9,rfColor(c.uid),"rf"+cell+"_"+j)}</g>`;});}
   s+=`</svg>`;
   const steps=path?path.length-1:null,mates=rfRoommates(),au=auraFx();
   const near=crew.map(c=>({c,d:(rfPath(adj,r.pos,c.pos)||[]).length-1})).filter(x=>x.d>0).sort((a,b)=>a.d-b.d)[0];
