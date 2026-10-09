@@ -145,3 +145,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - `sw.js` (src/site-build): sfx/ and vo/ mp3s are cache-first in `crawl-media-v1`, re-checked in the background once per SW lifetime, and answered as 206 byte ranges (`ranged()`) from the stored whole file (Audio sends Range). Shell stays network-first (`crawl-shell-v1`, only 200s cached). A `{precache:[...]}` message stores missing sounds 4 at a time.
 - build.py writes `sfx` (file list) into version.json; `checkForUpdate` (also 15 s after load) calls `sfxPrecache(j)` once per build when there's no update and no Save-Data.
 - Install: `beforeinstallprompt` is captured into `installEvt`; Settings → Install the app (`renderInstallCtl`) shows the button, iPhone Share steps, or "installed"; `installNudge()` (45 s after load) toasts once per 14 days, max 3, phones in a browser with ≥3 quests done.
+
+## Phone hotbar placement (v3.13.1)
+- Phones: `.hotbar` is left-aligned (`left:max(8px,safe-area)`, no transform) so the right-hand quest buttons stay clear; `hbFit` wraps to `.two` when the one-row width exceeds `innerWidth-110` on phones (16 on desktop).
+- tests/smoke.py now also checks that no quest's Complete/⋯ button center sits under the hotbar at any scroll position.

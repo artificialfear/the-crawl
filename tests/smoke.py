@@ -233,6 +233,15 @@ def main():
                 check(f"{w}px tabs: no page errors", not errs, "; ".join(errs[:2]))
                 pg.close()
 
+            # ---- phone: the hotbar never sits over a quest's Complete or ⋯ button ----
+            pg, errs = page(360, 740)
+            pg.evaluate(SETUP)
+            E(pg, "setTab('quests');render()")
+            under = pg.evaluate("""()=>{const hb=document.getElementById('hotbar');if(!hb||hb.hidden)return 'no hotbar';const h=hb.getBoundingClientRect(),bad=[];
+              document.querySelectorAll('#board .quest [data-done],#board .quest [data-menu]').forEach(b=>{const r=b.getBoundingClientRect(),x=r.left+r.width/2;if(x>h.left&&x<h.right)bad.push(b.getAttribute('aria-label'));});return bad.join(', ');}""")
+            check("360px: hotbar clear of quest buttons", not under, under)
+            pg.close()
+
             # ---- reduced motion still completes a quest ----
             pg, errs = page(reduced_motion="reduce")
             pg.evaluate(SETUP)

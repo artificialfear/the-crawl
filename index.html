@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=d3a0b28be2"></script>
-<script>window.CRAWL_BUILD="d3a0b28be2";</script>
+<script src="firebase-config.js?v=6addcc5ca5"></script>
+<script>window.CRAWL_BUILD="6addcc5ca5";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -186,6 +186,8 @@ body.has-hb.has-sp .toasts{bottom:calc(166px + env(safe-area-inset-bottom,0px))}
 body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 @media (max-width:860px){
   .hotbar{bottom:calc(42px + var(--tbh,64px) + env(safe-area-inset-bottom,0px));gap:5px;padding:5px 6px}
+  /* Phones: the bar sits at the left so the Complete and ⋯ buttons down the right side of the board are never under it */
+  .hotbar{left:max(8px,env(safe-area-inset-left,0px));transform:none}
   .hb-slot{width:44px;height:44px}.hb-belt{width:36px;height:36px}
   body.has-hb{padding-bottom:calc(206px + env(safe-area-inset-bottom,0px))}
   body.has-hb .toasts{bottom:calc(172px + env(safe-area-inset-bottom,0px))}
@@ -5435,7 +5437,8 @@ function renderHotbar(){
   hbFit(el,!!spl.length);}
 /* One row whenever spells and belt fit side by side; the spells stack on top only when they don't. */
 function hbFit(el,sp){el.classList.remove("two");let two=false;
-  if(sp){const mw=el.style.maxWidth;el.style.maxWidth="none";const w=el.offsetWidth;el.style.maxWidth=mw;two=w>innerWidth-16;}
+  // on phones, keep the right-hand strip (quest buttons) clear: wrap to two rows rather than run under them
+  if(sp){const mw=el.style.maxWidth;el.style.maxWidth="none";const w=el.offsetWidth;el.style.maxWidth=mw;two=w>innerWidth-(innerWidth<=860?110:16);}
   el.classList.toggle("two",two);document.body.classList.toggle("has-sp",two);}
 /* Number keys 1-6 use belt slots, unless you're typing or a dialog is open. */
 document.addEventListener("keydown",e=>{
@@ -10668,6 +10671,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.13.1",d:"2026-10-09",t:"Out of the way",items:["On phones the potion and spell bar now sits at the bottom left, so it never covers the Complete and ⋯ buttons down the right side of your quests. If your bar gets too long to fit beside them, it wraps to two rows instead."]},
   {v:"3.13.0",d:"2026-10-09",t:"Home screen",items:["The Crawl can live on your home screen like an app: full screen, no browser bar, faster to open and it works with no signal. Settings → Install the app has an Install button (Android and computers) or the exact steps (iPhone), and phones get one reminder after a few quests.",
     "Every sound is now stored on your device the first time you open a new version, so sounds play instantly and work offline."]},
   {v:"3.12.0",d:"2026-10-09",t:"Safety net",items:["Restore points: once a day, and right before any restore, the game keeps a copy of your whole save (crawler and quests) for the last week. Settings → Backup lists them; pick one to see what it holds before replacing your save, and you can always switch back.",
