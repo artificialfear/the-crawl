@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2ad9378fbb"></script>
-<script>window.CRAWL_BUILD="2ad9378fbb";</script>
+<script src="firebase-config.js?v=bab0f6c6f9"></script>
+<script>window.CRAWL_BUILD="bab0f6c6f9";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5869,6 +5869,7 @@ function castSpell(id,ok){
     case "blink":{const m=ensureMap(),hb=player.boss;if(!m)return no("You don't have a map yet.");
       if(hb&&hb.hunt&&hb.engaged&&!hb.defeated)return no("You can't blink out of a boss fight.");
       if(m.pos>=mapLen(m)-1)return no("There's nowhere further to go on this floor.");
+      if(m.tgt!=null&&m.tgt===m.pos)return no("You're holding in this room. Tap a room on the map (or Head forward) first, then blink.");
       const nx=m.rooms[m.pos+1];if(m.tgt==null&&m.pos>=farOf(m)&&nx&&nx.t==="door"&&!nx.open)return no("A sealed door blocks the way. Blink can't pass it.");
       payMana(id);const out=mapStep({effort:1,stat:"DEX",title:""},true);castDone(id,`You blink to room ${m.pos+1}.${out.length?" "+out.map(esc).join(" "):""}`);return;}
     case "haste":{if((player.haste||0)>=3)return no("Haste is already on you.");payMana(id);player.haste=3;castDone(id,"Your next 3 quests each carry you 2 rooms on the map.");return;}
@@ -7463,8 +7464,13 @@ function completeQuest(id,actual,touched){
   player.rush={n:player.rush&&Date.now()-player.rush.at<18e5?Math.min(5,player.rush.n+1):1,at:Date.now()};
   const goals=progressGoals(t,{late:wasBoss,onTarget:!!r.onTarget});evs.push(...goals.evs);
   let mapMsgs=[];try{mapMsgs=mapStep(t);
-    const spd=gearFx(player).spd||0;if(spd&&Math.random()<spd){const more=mapStep(Object.assign({},t,{effort:1}),true);mapMsgs.push("Faster movement speed! Your boots carry you an extra room.",...more);bump("dashes");}
-    if((player.haste||0)>0){player.haste--;const more=mapStep(Object.assign({},t,{effort:1}),true);mapMsgs.push(`Haste carries you an extra room${player.haste?` (${player.haste} more)`:""}.`,...more);}}catch(e){console.error("map",e);}
+    // Extra rooms only count when they move you: boots that proc with nowhere to go bank a spare step, and Haste keeps its charge.
+    const posNow=()=>player.map?player.map.pos+"|"+(player.map.lock||0)+"|"+(player.map.secrets||[]).filter(x=>x.found).length:""; // moved, worked a lock or opened a secret
+    const spd=gearFx(player).spd||0;if(spd&&Math.random()<spd){const a=posNow(),more=mapStep(Object.assign({},t,{effort:1}),true);
+      if(posNow()!==a){mapMsgs.push("Faster movement speed! Your boots carry you an extra room.",...more);bump("dashes");}
+      else{const n0=+player.spSteps||0,o=[];spareBank(o);mapMsgs.push(...more);if((+player.spSteps||0)>n0)mapMsgs.push(`Faster movement speed! Nowhere to go, so your boots bank a spare step (${player.spSteps} of ${SPARE_MAX}).`);}}
+    if((player.haste||0)>0){const a=posNow(),more=mapStep(Object.assign({},t,{effort:1}),true);
+      if(posNow()!==a){player.haste--;mapMsgs.push(`Haste carries you an extra room${player.haste?` (${player.haste} more)`:""}.`,...more);}else mapMsgs.push(...more);}}catch(e){console.error("map",e);}
   if(ui.ambushLoot){loot={kills:((loot&&loot.kills)||[]).concat(ui.ambushLoot.kills)};ui.ambushLoot=null;}
   let mobMsgs=[];try{mobMsgs=mobFight(fx,t);}catch(e){console.error("mobs",e);}
   let rvMsgs=[];try{rvMsgs=rivalStep(fx,t);const a=rivalAssist(fx);if(a)rvMsgs.push(a);}catch(e){console.error("rival",e);}
