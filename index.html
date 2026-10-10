@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=8d12387ed0"></script>
-<script>window.CRAWL_BUILD="8d12387ed0";</script>
+<script src="firebase-config.js?v=2154eafb46"></script>
+<script>window.CRAWL_BUILD="2154eafb46";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -8950,7 +8950,7 @@ function avatarSVG(eq){
   // Bare feet sit low enough for the vignette to darken them into sandal-brown; redraw them above it so they match the hands and face
   if(_bare)s+=`<g stroke="${INK}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${_bare}</g>`;
   if(eq.pet&&PETS[eq.pet]){
-    s+=petSVG(eq.pet,{trinket:eq.trinket}).replace(/<rect (?:x="0" y="0" )?width="100" height="100"[^>]*\/>/g,"")
+    s+=petSVG(eq.pet,{trinket:eq.trinket}).replace(/<rect (?:x="0" y="0" )?width="100" height="100"[^>]*\/>/g,"").replace(/<g class="petden">[\s\S]*?<\/g>/,"")
       .replace('<svg viewBox="0 0 100 100"',`<svg x="2" y="280" width="112" height="112" viewBox="0 0 100 100" class="petinframe${eq.petSulk?" pet-sulk":PZ==="victory"?" pet-cheer":PZ==="hurt"?" pet-cower":eq.threat?" pet-hiss":""}"`)
       .replace(/<\/svg>\s*$/,(PZ!=="victory"&&PZ!=="hurt"&&eq.threat&&!eq.petSulk?`<g class="hissmark"><circle cx="82" cy="18" r="11" fill="#e8283c" stroke="#111" stroke-width="2.4"/><text x="82" y="24" text-anchor="middle" font-size="17" font-weight="900" fill="#fff" font-family="sans-serif">!</text></g>`:PZ==="victory"&&!eq.petSulk?`<g class="hissmark"><text x="80" y="22" text-anchor="middle" font-size="20" fill="#ffd23f" stroke="#111" stroke-width="1">♪</text></g>`:"")+"</svg>");
   }
@@ -9342,89 +9342,226 @@ function trinketArt(look,neck,head){
       +`<circle cx="-11" cy="-13.6" r="1.4" fill="#f4f2f8" stroke="${K}" stroke-width=".5"/><circle cx="0" cy="-16.6" r="1.4" fill="#f4f2f8" stroke="${K}" stroke-width=".5"/><circle cx="11" cy="-13.6" r="1.4" fill="#f4f2f8" stroke="${K}" stroke-width=".5"/><circle cx="-5.4" cy="-1.3" r="1.6" fill="#e8283c" stroke="none"/><path d="M0 -3.6 l1.6 2.3 -1.6 2.3 -1.6 -2.3 Z" fill="#3fae5a" stroke="none"/><circle cx="5.4" cy="-1.3" r="1.6" fill="#2f78d0" stroke="none"/></g>`;}
   return s;
 }
+/* Pets, cel-shaded to match the crawlers: the same silhouettes as before (so trinkets still sit right), lit from the
+   right like the avatar (a warm rim light on the right edge, a shadow band down the left from the same cheap filter),
+   plus per-part shading and detail: feathers, fur, scales, scutes, stone cracks, glossy eyes with catchlights.
+   Glows (lantern, spots, slime sheen, wisp light) sit above the filtered body so they stay clean.
+   The card backdrop is a dusky den; inside the avatar frame the den (backdrop and floor line) is stripped so the
+   pet stands in the crawler's own scene. */
 function petSVG(k,opts){
-  opts=opts||{};const u="pt"+(++avUid),HA=`url(#${u}a)`,HB=`url(#${u}b)`;
-  const P=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,O=(d,f)=>`<path d="${d}" fill="${f}" stroke="none"/>`,L=(d,w,c)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"/>`;
-  const C=(x,y,r,f,x2)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}"${x2||""}/>`;
-  const GOLD="#ffd23f";
-  // Colour pass: each species gets its own body colours so they sit naturally next to the hero.
-  const SKINT="#86cf6e",SHELL="#3f9a58",OWL="#b07a45",OWLB="#f0d7a6",RAC="#8e95a5",RACH="#b9bfcb",WOOD="#a0602c",BATW="#5b3a8c",BATH="#8a6bbf",EGG="#f6ecd2";
-  let s=`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${woodDefs(u)}<rect width="100" height="100" fill="${PAPER}"/>`;
-  s+=`<ellipse cx="50" cy="88" rx="30" ry="5" fill="${INK}" opacity=".5"/><g class="critter" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">`;
-  const eyes=(x1,x2,y,r)=>C(x1,y,r,BONE)+C(x2,y,r,BONE)+C(x1+.8,y+.6,r*.45,INK,' stroke="none"')+C(x2+.8,y+.6,r*.45,INK,' stroke="none"');
+  opts=opts||{};const u="pt"+(++avUid);
+  const P=(d,f,x)=>`<path d="${d}" fill="${f}"${x||""}/>`,O=(d,f,x)=>`<path d="${d}" fill="${f}" stroke="none"${x||""}/>`,L=(d,w,c,x)=>`<path d="${d}" fill="none" stroke="${c||INK}" stroke-width="${w}"${x||""}/>`;
+  const C=(x,y,r,f,x2)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}"${x2||""}/>`,E=(x,y,rx,ry,f,x2)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${f}"${x2||""}/>`;
+  const GOLD="#ffd23f",NS=' stroke="none"',op=v=>` opacity="${v}"`,HI="#fff";
+  let s=`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+<radialGradient id="${u}bg" cx="58%" cy="40%" r="75%"><stop offset="0" stop-color="#5a3b78"/><stop offset=".55" stop-color="#2c1d48"/><stop offset="1" stop-color="#140c24"/></radialGradient>
+<radialGradient id="${u}sh" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<filter id="${u}fx" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+<feFlood flood-color="#fff0dc" result="warm"/><feBlend in="SourceGraphic" in2="warm" mode="multiply" result="lit"/>
+<feOffset in="SourceAlpha" dx="5" dy="-1.6" result="so"/><feComposite in="SourceAlpha" in2="so" operator="out" result="sb"/>
+<feFlood flood-color="#24183f" flood-opacity=".42"/><feComposite in2="sb" operator="in" result="shd"/>
+<feOffset in="SourceAlpha" dx="-1.7" dy=".4" result="o"/><feComposite in="SourceAlpha" in2="o" operator="out" result="rim"/>
+<feFlood flood-color="#ffb04a" flood-opacity=".9"/><feComposite in2="rim" operator="in" result="rimc"/>
+<feComposite in="lit" in2="SourceAlpha" operator="in" result="litc"/>
+<feMerge><feMergeNode in="litc"/><feMergeNode in="shd"/><feMergeNode in="rimc"/></feMerge></filter></defs>
+<rect width="100" height="100" fill="url(#${u}bg)"/><g class="petden"><path d="M0 86.5 L100 86.5" stroke="#3d2a5c" stroke-width="1.2" fill="none" opacity=".8"/></g>`;
+  s+=E(50,88,32,5.5,`url(#${u}sh)`);
+  // G: glows over the body (lantern, spots, gloss); U: halos behind it (slime, wisp, egg)
+  let glow="",under="";const G=x=>{glow+=x;},U=x=>{under+=x;};
+  s+=`<g class="critter">@@UNDER@@<g filter="url(#${u}fx)" stroke="${INK}" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round">`;
+  // a glossy eye: white (or an iris colour), pupil, big catchlight top right and a small one bottom left
+  const eye=(x,y,r,iris,ring)=>C(x,y,r,iris?iris:BONE)+(iris?C(x,y,r*.82,ring||"#ffd75a",NS)+O(`M${x-r*.82} ${y} A${r*.82} ${r*.82} 0 0 1 ${x+r*.82} ${y} Z`,"#ffef9e",op(.8)):"")
+    +C(x+.4,y+.6,r*(iris?.48:.46),INK,NS)+C(x+r*.3,y-r*.32,r*.18,HI,NS)+C(x-r*.25,y+r*.3,r*.08,HI,NS+op(.8));
+  const scallops=(rows,c,w)=>rows.map(([y,xs])=>xs.map(x=>L(`M${x-2.6} ${y} Q${x} ${y+3} ${x+2.6} ${y}`,w||1.4,c)).join("")).join("");
   switch(k){
-    case "tortoise":
-      s+=P("M20 80 L16 88 L26 88 L28 80 Z",SKINT)+P("M66 80 L64 88 L74 88 L74 80 Z",SKINT);
-      s+=P("M70 66 Q86 60 90 70 Q92 80 82 82 Q74 82 70 76 Z",SKINT)+C(84,70,2.6,INK,' stroke="none"')+L("M80 77 Q84 79 87 76",1.6);
-      s+=P("M12 80 Q12 42 46 40 Q78 42 78 80 Z",SHELL)+O("M12 80 Q12 42 46 40 Q30 50 28 80 Z",HA);
-      s+=L("M24 62 L34 52 L50 52 L60 62 L50 72 L34 72 Z M34 52 L30 44 M50 52 L54 44 M60 62 L74 62 M24 62 L14 62 M34 72 L32 80 M50 72 L52 80",1.8);
-      s+=P("M24 62 L34 52 L50 52 L60 62 L50 72 L34 72 Z","#7cc48a")+P("M10 80 L80 80 L80 84 L10 84 Z","#e0a43a");break;
-    case "owl":
-      s+=P("M28 32 L22 14 L40 26 Z",OWL)+P("M72 32 L78 14 L60 26 Z",OWL);
-      s+=P("M50 22 Q80 24 80 56 Q80 86 50 86 Q20 86 20 56 Q20 24 50 22 Z",OWL)+P("M50 54 Q68 56 68 70 Q68 84 50 84 Q32 84 32 70 Q32 56 50 54 Z",OWLB,' stroke="none"')+O("M50 22 Q24 26 22 56 Q22 84 42 86 Q32 70 34 50 Q36 30 50 22 Z",HB);
-      s+=L("M30 62 Q34 74 42 80 M70 62 Q66 74 58 80",1.8)+L("M44 70 l3 3 l3 -3 M50 76 l3 3 l3 -3",1.4);
-      s+=C(38,44,11,"#ffe58a")+C(62,44,11,"#ffe58a")+C(38,45,5,INK,' stroke="none"')+C(62,45,5,INK,' stroke="none"')+C(40,43,1.6,BONE,' stroke="none"')+C(64,43,1.6,BONE,' stroke="none"');
-      s+=P("M46 52 L54 52 L50 60 Z",GOLD)+P("M36 86 l-4 6 M44 86 l0 6 M56 86 l0 6 M64 86 l4 6",INK);
-      s+=C(50,12,4,GOLD,' stroke="none" opacity=".9"');break;
-    case "raccoon":
-      s+=P("M70 78 Q94 70 90 46 Q88 36 80 40 Q86 56 66 66 Z",RACH)+L("M86 44 L80 50 M90 54 L80 58 M88 64 L76 66",3.4);
-      s+=P("M26 84 Q22 58 50 56 Q76 58 72 84 Z",RAC)+O("M26 84 Q22 58 50 56 Q36 64 38 84 Z",HB);
-      s+=P("M26 32 L22 14 L38 24 Z",RAC)+P("M74 32 L78 14 L62 24 Z",RAC);
-      s+=P("M50 20 Q78 22 80 44 Q76 62 50 64 Q24 62 20 44 Q22 22 50 20 Z",RACH);
-      s+=P("M20 40 Q34 32 46 40 Q50 42 54 40 Q66 32 80 40 Q78 50 64 50 Q54 50 50 46 Q46 50 36 50 Q22 50 20 40 Z",INK);
-      s+=C(36,43,4,BONE,' stroke="none"')+C(64,43,4,BONE,' stroke="none"')+C(36,43.5,2,INK,' stroke="none"')+C(64,43.5,2,INK,' stroke="none"');
-      s+=P("M40 52 Q50 46 60 52 Q60 62 50 63 Q40 62 40 52 Z",BONE)+P("M46 54 Q50 50 54 54 Q50 58 46 54 Z",INK)+L("M44 60 Q50 64 56 60",1.6);break;
-    case "mimic":
-      s+=P("M18 54 L82 54 L82 86 L18 86 Z",WOOD)+O("M18 54 L32 54 L32 86 L18 86 Z",HA)+P("M18 60 L82 60 L82 66 L18 66 Z",GOLD)+P("M44 66 L56 66 L56 76 L44 76 Z",GOLD);
-      s+=P("M22 56 L28 64 L34 56 L40 64 L46 56 L52 64 L58 56 L64 64 L70 56 L76 64 L80 56 Z",BONE);
-      s+=P("M34 56 Q50 70 66 56",RED);
-      s+=P("M16 50 L22 18 L78 18 L84 50 Z",WOOD)+O("M16 50 L22 18 L34 18 L30 50 Z",HA)+P("M18 42 L82 42 L83 50 L17 50 Z",GOLD);
+    case "tortoise":{
+      const SK="#86cf6e",SKD="#5ea34c",SH="#3f9a58",SHD="#2c7442",SC="#7cc48a",SCD="#5fae70",RIMC="#e0a43a";
+      // feet with toenails
+      s+=P("M20 80 L16 88 L26 88 L28 80 Z",SK)+P("M66 80 L64 88 L74 88 L74 80 Z",SK)+L("M18 88 l0 -2 M21.5 88 l0 -2 M66 88 l0 -2 M69.5 88 l0 -2",1.2,"#f4f0dc");
+      // head: domed, with a wrinkled neck, a beaky mouth and a sleepy, satisfied eye
+      s+=P("M70 66 Q86 60 90 70 Q92 80 82 82 Q74 82 70 76 Z",SK)+O("M70 72 Q74 81 82 82 Q76 78 73 70 Z",SKD,op(.8));
+      s+=L("M72 68 Q74 72 72 76 M75 67 Q77 71 75 76",1.1,SKD)+C(84,70,2.8,INK,NS)+C(84.9,69.1,.9,HI,NS)+L("M81 66.5 Q84 65 87 67",1.4)+L("M80 77 Q84 79.5 88 76.5",1.6);
+      s+=E(86.5,74.5,1.6,1,"#ff8ab0",NS+op(.6));
+      // shell: dome, shade side, scutes with growth rings, and a gold rim plate
+      s+=P("M12 80 Q12 42 46 40 Q78 42 78 80 Z",SH)+O("M12 80 Q12 44 40 41 Q26 52 26 80 Z",SHD,op(.75));
+      s+=P("M24 62 L34 52 L50 52 L60 62 L50 72 L34 72 Z",SC)+O("M24 62 L34 52 L36 54 L28 62 L36 70 L34 72 Z",SCD);
+      s+=L("M24 62 L34 52 L50 52 L60 62 L50 72 L34 72 Z M34 52 L30 44 M50 52 L54 44 M60 62 L74 62 M24 62 L14 62 M34 72 L32 80 M50 72 L52 80",2.2);
+      s+=L("M30 62 L36 56 L48 56 L54 62 L48 68 L36 68 Z",1,SCD)+L("M18 54 Q24 50 30 47 M64 47 Q70 51 74 56 M18 72 L24 74 M66 74 L72 72",1,SHD);
+      s+=L("M56 46 Q66 50 72 58",1.8,HI,op(.35));
+      s+=P("M10 80 L80 80 L80 84 L10 84 Z",RIMC)+L("M20 80 L20 84 M32 80 L32 84 M44 80 L44 84 M56 80 L56 84 M68 80 L68 84",1,"#a8741e");
+      break;}
+    case "owl":{
+      const OW="#b07a45",OWD="#7e5230",OWL2="#d29a5e",BEL="#f0d7a6",BELD="#d8b47c";
+      s+=P("M28 32 L22 13 L33 21 L40 26 Z",OW)+P("M72 32 L78 13 L67 21 L60 26 Z",OW)+L("M27 24 L31 27 M73 24 L69 27",1.2,OWD);
+      s+=P("M50 22 Q80 24 80 56 Q80 86 50 86 Q20 86 20 56 Q20 24 50 22 Z",OW);
+      s+=O("M30 30 Q21 42 21 58 Q21 82 40 86 Q28 70 28 54 Q28 40 34 32 Z",OWD,op(.55));
+      s+=P("M22 50 Q18 70 30 84 L34 82 Q26 70 28 52 Z",OWD)+P("M78 50 Q82 70 70 84 L66 82 Q74 70 72 52 Z",OW);
+      s+=L("M24 60 Q24 70 30 78 M26 56 Q26 68 32 80 M76 60 Q76 70 70 78 M74 56 Q74 68 68 80",1.1,OWD);
+      s+=P("M50 54 Q68 56 68 70 Q68 84 50 84 Q32 84 32 70 Q32 56 50 54 Z",BEL,NS)+O("M34 64 Q33 76 42 83 Q36 74 38 62 Z",BELD,op(.8));
+      s+=scallops([[62,[42,48,54,60]],[68,[39,45,51,57,63]],[74,[42,48,54,60]],[80,[45,51,57]]],"#b98a52");
+      s+=P("M50 30 Q36 28 28 36 Q24 46 30 54 Q40 60 50 54 Q60 60 70 54 Q76 46 72 36 Q64 28 50 30 Z",OWL2,NS);
+      s+=L("M30 54 Q24 46 28 36 Q36 28 50 30 Q64 28 72 36 Q76 46 70 54",1.4,OWD);
+      s+=L("M33 35 L35 38 M30 41 L33 42 M31 48 L34 47 M67 35 L65 38 M70 41 L67 42 M69 48 L66 47",1,"#8a5a32");
+      s+=eye(38,44,10.5,"#f2b13a")+eye(62,44,10.5,"#f2b13a")+L("M28 33 Q37 30 45 36 M72 33 Q63 30 55 36",2.2);
+      s+=P("M45.5 51 L54.5 51 L50 61 Z",GOLD)+O("M50 51 L54.5 51 L50 61 Z","#e0a420")+L("M47.5 52.5 L49.5 52.5",1,HI);
+      s+=L("M37 86 l-3 5 M41 86 l-1 6 M45 86 l1 5 M55 86 l-1 5 M59 86 l1 6 M63 86 l3 5",2.2,"#e0a420");
+      s+=L("M62 26 Q73 30 77 42",1.8,HI,op(.35));
+      G(C(50,11,10,"#ffe58a",NS+op(.3))+C(50,11,4.6,GOLD,' stroke="#111" stroke-width="2.4"')+C(51.4,9.6,1.4,HI,NS));
+      break;}
+    case "raccoon":{
+      const RC="#8e95a5",RCD="#646b7c",RCL="#b9bfcb",RCLD="#959cab";
+      // tail: ringed, bushy, with fur tips
+      s+=P("M70 78 Q94 70 90 46 Q88 36 80 40 Q86 56 66 66 Z",RCL)+O("M70 78 Q82 72 84 60 Q80 70 68 72 Z",RCLD,op(.8));
+      s+=L("M86 44 L80 50 M90 54 L80 58 M88 64 L76 66",4.2)+L("M90 46 l2 -2 M91 52 l2 0 M89 60 l2 1",1.2);
+      // body with chest fur and little hands holding a stolen coin
+      s+=P("M26 84 Q22 58 50 56 Q76 58 72 84 Z",RC)+O("M26 84 Q22 60 44 57 Q34 66 36 84 Z",RCD,op(.8));
+      s+=P("M40 84 Q38 68 50 66 Q62 68 60 84 Z",RCL,NS)+L("M44 72 l2 3 l2 -3 M50 76 l2 3 l2 -3 M47 80 l2 3 l2 -3",1.1,RCLD);
+      // little paws clutching a stolen coin to its chest
+      G(C(50,73.4,4,GOLD,' stroke="#111" stroke-width="1.6"')+L("M48.4 71.8 L50.6 71.8",1,HI)+`<path d="M43.4 72 Q41 76 44.6 78 Q47.4 78 47.6 74.6 Q47 72 45 71.6 Z M56.6 72 Q59 76 55.4 78 Q52.6 78 52.4 74.6 Q53 72 55 71.6 Z" fill="${RCD}" stroke="#111" stroke-width="1.6"/>`
+        +`<path d="M44.4 75 l1.4 .4 M44.6 76.6 l1.4 .2 M55.6 75 l-1.4 .4 M55.4 76.6 l-1.4 .2" stroke="#111" stroke-width=".8"/>`);
+      // ears with pink insides
+      s+=P("M26 32 L22 14 L38 24 Z",RC)+P("M74 32 L78 14 L62 24 Z",RC)+O("M27 28 L25 19 L33 25 Z","#d8a0b4")+O("M73 28 L75 19 L67 25 Z","#d8a0b4");
+      // head, mask, cheek fluff
+      s+=P("M50 20 Q78 22 80 44 Q76 62 50 64 Q24 62 20 44 Q22 22 50 20 Z",RCL)+O("M22 40 Q22 24 46 21 Q30 28 28 46 Q28 56 36 62 Q24 58 22 40 Z",RCLD,op(.7));
+      s+=L("M21 48 l-3 2 M22 52 l-3 3 M79 48 l3 2 M78 52 l3 3",1.4,RCLD);
+      s+=P("M20 40 Q34 32 46 40 Q50 42 54 40 Q66 32 80 40 Q78 50 64 50 Q54 50 50 46 Q46 50 36 50 Q22 50 20 40 Z","#22252f");
+      s+=L("M40 30 Q46 27 50 30 Q54 27 60 30",1.4,RCD);
+      s+=eye(36,43,4.4)+eye(64,43,4.4);
+      // muzzle, nose with a shine, a smug grin
+      s+=P("M40 52 Q50 46 60 52 Q60 62 50 63 Q40 62 40 52 Z",BONE)+O("M41 54 Q42 61 50 63 Q44 60 43 53 Z","#ddd6c8");
+      s+=P("M46 54 Q50 50 54 54 Q50 58 46 54 Z",INK)+C(51.4,53,.9,HI,NS)+L("M44 59.5 Q50 63.5 56 59.5",1.6)+L("M50 57 L50 59.5",1.2);
+      s+=L("M60 26 Q70 28 76 36",1.8,HI,op(.35));
+      break;}
+    case "slime":{
+      const SL="#5fd0a0",SLD="#3da57c",SLL="#9cf0c8";
+      U(`<ellipse class="mf-glow" cx="50" cy="62" rx="40" ry="29" fill="#7fe8b8" opacity=".35" stroke="none"/>`);
+      s+=P("M16 84 Q12 56 30 44 Q38 22 58 26 Q82 32 84 60 Q88 80 82 84 Z",SL)+O("M18 84 Q15 60 30 48 Q26 64 30 84 Z",SLD,op(.85));
+      s+=P("M80 84 Q84 90 82 94 Q78 90 80 84 Z",SL)+O("M24 84 Q22 72 30 67 Q28 76 34 84 Z",SLD,op(.7));
+      // things it ate, floating inside: a key, a coin, a bubble or two
+      s+=`<g opacity=".75" stroke-width="1.6"><circle cx="64" cy="71" r="4.6" fill="${GOLD}"/><path d="M62.6 69.6 L64.6 69.6" stroke="#fff" stroke-width="1"/>`
+        +`<g transform="rotate(-20 39 72)"><rect x="30" y="70" width="12" height="4" rx="1" fill="#c9cdd6"/><circle cx="29" cy="72" r="3.4" fill="none" stroke="#c9cdd6" stroke-width="2"/><path d="M38 74 l0 2.4 M40.5 74 l0 1.6" stroke="#c9cdd6" stroke-width="1.6"/></g></g>`;
+      s+=C(70,52,2,"none",' stroke="#bff7dc" stroke-width="1"')+C(30,64,1.6,"none",' stroke="#bff7dc" stroke-width="1"');
+      s+=eye(44,50,6.4)+eye(62,50,6.4)+L("M44 62 Q53 69 62 62",2.2)+O("M48 64.4 Q53 67.8 58 64.4 Q53 66 48 64.4 Z","#2b6e52");
+      s+=E(38,58,3,1.8,"#ff8ab0",NS+op(.5))+E(68,58,3,1.8,"#ff8ab0",NS+op(.5));
+      // wet highlights: a big gloss on the lit shoulder and a rim of shine
+      G(`<ellipse cx="66" cy="38" rx="5.4" ry="8.4" fill="#fff" opacity=".55" transform="rotate(30 66 38)"/><ellipse cx="72" cy="48" rx="1.8" ry="2.6" fill="#fff" opacity=".5"/>`
+        +`<path d="M58 28 Q76 32 82 52" fill="none" stroke="${SLL}" stroke-width="1.6" opacity=".7"/>`);
+      break;}
+    case "ferret":{
+      const FR="#e8cc9a",FRD="#c9a874",MK="#6b4a2a",TL="#7a5232";
+      // tail and feet in the dark points colour
+      s+=P("M8 72 Q2 60 12 52 Q16 62 26 66 Z",TL)+L("M7 60 l-2 -1 M9 56 l-2 -2",1.1,"#4e3420");
+      s+=P("M18 80 Q14 62 34 60 Q54 56 70 58 Q82 60 80 74 Q78 84 62 84 L30 84 Q18 84 18 80 Z",FR)+O("M18 80 Q16 66 30 62 Q28 74 32 84 L28 84 Q18 84 18 80 Z",FRD,op(.85));
+      s+=O("M30 82 Q46 76 64 82 L62 84 L30 84 Z","#f6e6c4",op(.8))+L("M36 64 Q44 62 52 63 M40 70 Q50 68 58 70",1.1,FRD);
+      s+=P("M28 82 L26 90 L34 90 L34 82 Z M62 82 L62 90 L70 90 L70 82 Z",TL)+L("M27.6 90 l0 -1.6 M30.4 90 l0 -1.6 M63.6 90 l0 -1.6 M66.4 90 l0 -1.6",1,"#f4f0dc");
+      // head with round ears, the bandit mask, whiskers and a pink nose
+      s+=P("M62 52 Q64 32 80 32 Q96 34 94 50 Q92 62 78 62 Q64 62 62 52 Z",FR)+O("M63 52 Q63 36 74 33 Q68 42 70 60 Q64 58 63 52 Z",FRD,op(.8));
+      s+=C(68,35,5,FR)+C(90,35,5,FR)+C(68,35.5,2.4,"#d8a0b4",NS)+C(90,35.5,2.4,"#d8a0b4",NS);
+      s+=P("M66 46 Q78 38 92 46 Q92 53 86 53 Q79 48 72 53 Q66 53 66 46 Z",MK);
+      s+=eye(73,48,2.9)+eye(86,48,2.9);
+      s+=O("M78 54 Q86 54 92 56 Q90 61 82 61 Q78 60 78 54 Z","#f6e6c4");
+      s+=C(94,52,2.7,"#ff8ab0")+C(94.8,51.2,.8,HI,NS)+L("M84 58 Q88 60.5 92 57.5",1.4);
+      s+=L("M90 55 L99 53 M90 57 L99 58 M88 56 L80 55",.8,"#4e3420",op(.8));
+      s+=L("M78 34 Q88 34 92 42",1.6,HI,op(.4));
+      break;}
+    case "gargoyle":{
+      const ST="#9aa0ad",STD="#757b89",STL="#c3c8d2",WG="#6b6f7c",WGD="#4f5360";
+      // wings: membrane panels between bony fingers
+      s+=P("M34 54 Q14 34 4 46 Q12 50 10 58 Q18 56 22 64 Q28 60 34 66 Z",WGD)+P("M66 54 Q86 34 96 46 Q88 50 90 58 Q82 56 78 64 Q72 60 66 66 Z",WG);
+      s+=L("M34 56 L8 47 M33 60 L14 56 M34 63 L22 62 M66 56 L92 47 M67 60 L86 56 M66 63 L78 62",1.2,"#3a3d48");
+      // body: carved stone with chips and cracks, crouched on its plinth
+      s+=P("M28 86 Q24 60 50 56 Q76 60 72 86 Z",ST)+O("M28 86 Q24 62 44 57 Q36 66 36 86 Z",STD,op(.85));
+      s+=L("M42 66 L46 72 L44 78 M58 64 L62 70",1.1,"#5a5f6c")+L("M50 62 L50 84",1,STD);
+      s+=P("M30 86 L30 80 L40 80 L40 86 Z M60 86 L60 80 L70 80 L70 86 Z","#7d8597")+L("M31 80 l-1.6 -2 M34 80 l0 -2.4 M37 80 l1.6 -2 M61 80 l-1.6 -2 M64 80 l0 -2.4 M67 80 l1.6 -2",1.2);
+      // horns, ridged
+      s+=P("M36 28 L30 12 L42 22 Z",WG)+P("M64 28 L70 12 L58 22 Z",WG)+L("M33 20 L37 21 M35 24 L39 25 M67 20 L63 21 M65 24 L61 25",1,"#3a3d48");
+      // head: heavy brow, chipped cheek, glowing eyes, fanged scowl
+      s+=P("M50 20 Q72 22 72 42 Q70 60 50 60 Q30 60 28 42 Q28 22 50 20 Z",ST)+O("M30 42 Q29 26 44 21 Q34 30 35 44 Q36 54 42 59 Q31 56 30 42 Z",STD,op(.8));
+      s+=L("M58 26 L54 34 L58 38 M34 50 L40 54",1.4,"#5a5f6c")+P("M32 34 Q40 30 47 35 L46 37 Q40 34 33 37 Z M68 34 Q60 30 53 35 L54 37 Q60 34 67 37 Z",STD,' stroke-width="1.6"');
+      s+=P("M36 38 L46 42 L36 46 Z","#ff8a1f")+P("M64 38 L54 42 L64 46 Z","#ff8a1f");
+      G(`<path d="M36 38 L46 42 L36 46 Z M64 38 L54 42 L64 46 Z" fill="#ffd23f" opacity=".55"/><circle cx="41" cy="42" r="6" fill="#ff8a1f" opacity=".18"/><circle cx="59" cy="42" r="6" fill="#ff8a1f" opacity=".18"/>`);
+      s+=P("M40 52 Q50 58 60 52 L58 56 Q50 60 42 56 Z",INK)+P("M43 53 L45 57 L47 54 Z M57 53 L55 57 L53 54 Z",BONE,NS);
+      s+=L("M58 22 Q68 26 70 36",1.6,HI,op(.4))+C(66,30,.8,"#5a5f6c",NS)+C(44,28,.7,"#5a5f6c",NS)+C(62,50,.7,"#5a5f6c",NS);
+      break;}
+    case "wisp":{
+      U(`<circle class="mf-glow" cx="50" cy="52" r="42" fill="#9ad8ff" opacity=".4" stroke="none"/>`);
+      s+=P("M50 12 Q76 28 74 54 Q72 76 60 84 Q56 74 50 86 Q44 74 40 84 Q28 76 26 54 Q24 28 50 12 Z","#bfe9ff");
+      s+=O("M50 14 Q30 30 28 54 Q28 72 38 82 Q34 64 36 48 Q38 30 50 14 Z","#8fc8ec",op(.8));
+      s+=O("M50 22 Q66 34 64 54 Q62 70 50 76 Q38 70 36 54 Q34 34 50 22 Z","#eaf8ff");
+      // wavy inner currents, like a candle flame seen up close
+      s+=L("M44 30 Q40 40 44 50 M56 32 Q60 42 56 52",1.1,"#9fd6f5",op(.8));
+      s+=`<ellipse cx="42" cy="50" rx="4.4" ry="6.4" fill="${INK}"/><ellipse cx="58" cy="50" rx="4.4" ry="6.4" fill="${INK}"/>`
+        +C(43.4,47.6,1.6,HI,NS)+C(59.4,47.6,1.6,HI,NS)+C(41,52.6,.6,HI,NS+op(.8))+C(57,52.6,.6,HI,NS+op(.8))+L("M45 62 Q50 66.5 55 62",1.9);
+      s+=E(37,58,2.6,1.6,"#ffb0d0",NS+op(.55))+E(63,58,2.6,1.6,"#ffb0d0",NS+op(.55));
+      G(`<path d="M50 24 Q60 32 62 44" fill="none" stroke="#fff" stroke-width="2.4" opacity=".7" stroke-linecap="round"/>`
+        +`<g class="mf-frost" fill="#fff6c8" stroke="none"><path class="st" d="M16 30 l1.4 4 4 1.4 -4 1.4 -1.4 4 -1.4 -4 -4 -1.4 4 -1.4 Z"/><path class="st" style="animation-delay:.7s" d="M84 70 l1.2 3.4 3.4 1.2 -3.4 1.2 -1.2 3.4 -1.2 -3.4 -3.4 -1.2 3.4 -1.2 Z"/><path class="st" style="animation-delay:1.3s" d="M82 22 l.9 2.6 2.6 .9 -2.6 .9 -.9 2.6 -.9 -2.6 -2.6 -.9 2.6 -.9 Z"/></g>`);
+      break;}
+    case "mimic":{
+      const WD="#a0602c",WDD="#784418",WDL="#c27e44",GD="#e0a420";
+      // lower chest: planks with grain, gold bands and a lock plate
+      s+=P("M18 54 L82 54 L82 86 L18 86 Z",WD)+O("M18 54 L30 54 L30 86 L18 86 Z",WDD,op(.85));
+      s+=L("M18 74 L82 74 M40 66 L40 86 M62 66 L62 86",1.2,WDD)+L("M24 78 Q30 76 34 79 M46 80 Q52 78 56 81 M68 78 Q74 76 78 79",.9,"#6a3c14");
+      s+=P("M18 60 L82 60 L82 66 L18 66 Z",GOLD)+O("M18 60 L28 60 L28 66 L18 66 Z",GD)+[24,40,60,76].map(x=>C(x,63,1,"#a8741e",NS)).join("");
+      s+=P("M44 66 L56 66 L56 77 L44 77 Z",GOLD)+O("M44 66 L48 66 L48 77 L44 77 Z",GD)+P("M50 70 m-1.6 0 a1.6 1.6 0 1 0 3.2 0 a1.6 1.6 0 1 0 -3.2 0 M49.2 71 L49.2 74 L50.8 74 L50.8 71 Z",INK,NS);
+      // the mouth: lower teeth, a long tongue lolling out
+      s+=P("M22 56 L28 64 L34 56 L40 64 L46 56 L52 64 L58 56 L64 64 L70 56 L76 64 L80 56 Z",BONE)+O("M22 56 L28 64 L30 61 L26 56 Z","#ddd6c8");
+      s+=P("M34 56 Q50 72 66 56",RED)+P("M44 60 Q46 74 52 76 Q58 74 56 62 Z","#ff6a8a")+L("M50 62 L50 72",1,"#c23a5a");
+      // lid: curved planks, gold trim and corner caps
+      s+=P("M16 50 L22 18 L78 18 L84 50 Z",WD)+O("M16 50 L22 18 L32 18 L28 50 Z",WDD,op(.85))+L("M19 34 L81 34",1.2,WDD)+L("M30 26 Q38 24 44 27 M56 26 Q64 24 70 27",.9,"#6a3c14");
+      s+=P("M18 42 L82 42 L83 50 L17 50 Z",GOLD)+O("M18 42 L28 42 L27 50 L17 50 Z",GD);
+      s+=P("M22 18 L30 18 L28 26 L20 28 Z M78 18 L70 18 L72 26 L80 28 Z",GOLD,' stroke-width="2"');
       s+=P("M22 50 L28 42 L34 50 L40 42 L46 50 L52 42 L58 50 L64 42 L70 50 L76 42 L80 50",BONE);
-      s+=eyes(38,62,30,6);break;
-    case "salamander":
-      s+=L("M20 70 Q10 62 18 54 Q30 46 46 56 Q62 66 76 58 Q88 50 86 40",15);
-      s+=L("M20 70 Q10 62 18 54 Q30 46 46 56 Q62 66 76 58 Q88 50 86 40",11,RED);
-      s+=C(30,56,2.6,GOLD,' stroke="none"')+C(48,60,2.6,GOLD,' stroke="none"')+C(64,62,2.6,GOLD,' stroke="none"')+C(78,52,2.2,GOLD,' stroke="none"');
-      s+=P("M86 40 Q80 26 88 18 Q90 28 96 26 Q94 36 86 40 Z",GOLD)+P("M88 34 Q86 28 89 24 Q92 30 88 34 Z",BONE,' stroke="none"');
-      s+=P("M8 72 Q6 60 20 60 Q34 62 30 74 Q24 82 8 72 Z",RED)+C(22,65,4,BONE)+C(23,65.5,2,INK,' stroke="none"')+L("M10 72 Q18 76 26 72",1.6);
-      s+=L("M36 64 L32 76 M44 66 L44 78 M60 68 L58 80 M70 64 L74 76",3);break;
-    case "bat":
-      s+=P("M50 50 Q30 26 6 34 Q14 40 12 48 Q20 46 24 54 Q30 50 36 58 Q42 54 50 60 Z",BATW)+P("M50 50 Q70 26 94 34 Q86 40 88 48 Q80 46 76 54 Q70 50 64 58 Q58 54 50 60 Z",BATW);
-      s+=L("M50 52 Q32 34 12 36 M50 52 Q68 34 88 36",1.6,INK);
-      s+=P("M38 34 L36 18 L46 28 Z",BATH)+P("M62 34 L64 18 L54 28 Z",BATH);
-      s+=P("M50 28 Q64 30 64 48 Q64 66 50 68 Q36 66 36 48 Q36 30 50 28 Z",BATH)+O("M50 28 Q38 32 38 48 Q38 62 46 68 Q42 54 44 44 Q46 32 50 28 Z",HB);
-      s+=C(44,44,3.6,RED)+C(56,44,3.6,RED)+P("M45 56 L47 61 L49 56 Z M51 56 L53 61 L55 56 Z",BONE)+L("M44 55 Q50 58 56 55",1.6);break;
-    case "slime":
-      s+=`<ellipse class="mf-glow" cx="50" cy="62" rx="36" ry="26" fill="#7fe8b8" opacity=".35" stroke="none"/>`;
-      s+=P("M16 84 Q12 56 30 44 Q38 22 58 26 Q82 32 84 60 Q88 80 82 84 Z","#5fd0a0")+P("M24 84 Q22 70 30 66 Q28 76 34 84 Z","#4ab88a",' stroke="none"');
-      s+=`<circle cx="64" cy="70" r="5" fill="${GOLD}" opacity=".7"/><rect x="34" y="70" width="10" height="4" rx="1" fill="#c9cdd6" opacity=".7" transform="rotate(-20 39 72)"/>`;
-      s+=`<ellipse cx="38" cy="40" rx="6" ry="9" fill="#fff" opacity=".6" stroke="none"/>`+eyes(44,62,50,6)+L("M44 62 Q53 68 62 62",2)+P("M80 84 Q84 90 82 94 Q78 90 80 84 Z","#5fd0a0");break;
-    case "ferret":
-      s+=P("M8 72 Q2 60 12 52 Q16 62 26 66 Z","#7a5232");
-      s+=P("M18 80 Q14 62 34 60 Q54 56 70 58 Q82 60 80 74 Q78 84 62 84 L30 84 Q18 84 18 80 Z","#e8cc9a")+O("M18 80 Q16 66 30 62 Q28 74 32 84 L28 84 Q18 84 18 80 Z",HB);
-      s+=P("M28 82 L26 90 L34 90 L34 82 Z M62 82 L62 90 L70 90 L70 82 Z","#7a5232");
-      s+=P("M62 52 Q64 32 80 32 Q96 34 94 50 Q92 62 78 62 Q64 62 62 52 Z","#e8cc9a")+C(68,35,5,"#e8cc9a")+C(90,35,5,"#e8cc9a");
-      s+=P("M66 46 Q78 38 92 46 Q92 53 86 53 Q79 48 72 53 Q66 53 66 46 Z","#6b4a2a")+C(73,48,2.6,BONE,' stroke="none"')+C(86,48,2.6,BONE,' stroke="none"')+C(73.6,48.4,1.3,INK,' stroke="none"')+C(86.6,48.4,1.3,INK,' stroke="none"');
-      s+=C(94,52,2.6,"#ff8ab0")+L("M84 58 Q88 60 92 57",1.4);break;
-    case "gargoyle":
-      s+=P("M34 54 Q14 34 4 46 Q12 50 10 58 Q18 56 22 64 Q28 60 34 66 Z","#6b6f7c")+P("M66 54 Q86 34 96 46 Q88 50 90 58 Q82 56 78 64 Q72 60 66 66 Z","#6b6f7c");
-      s+=P("M28 86 Q24 60 50 56 Q76 60 72 86 Z","#9aa0ad")+O("M28 86 Q24 60 50 56 Q38 64 38 86 Z",HB)+P("M30 86 L30 80 L40 80 L40 86 Z M60 86 L60 80 L70 80 L70 86 Z","#7d8597");
-      s+=P("M36 28 L30 12 L42 22 Z","#6b6f7c")+P("M64 28 L70 12 L58 22 Z","#6b6f7c");
-      s+=P("M50 20 Q72 22 72 42 Q70 60 50 60 Q30 60 28 42 Q28 22 50 20 Z","#9aa0ad")+L("M58 26 L54 34 L58 38 M34 50 L40 54",1.4);
-      s+=P("M36 38 L46 42 L36 46 Z","#ff8a1f")+P("M64 38 L54 42 L64 46 Z","#ff8a1f")+P("M40 52 Q50 58 60 52 L58 56 Q50 60 42 56 Z",INK)+P("M43 53 L45 57 L47 54 Z M57 53 L55 57 L53 54 Z",BONE,' stroke="none"');break;
-    case "wisp":
-      s+=`<circle class="mf-glow" cx="50" cy="52" r="38" fill="#9ad8ff" opacity=".45" stroke="none"/>`;
-      s+=P("M50 12 Q76 28 74 54 Q72 76 60 84 Q56 74 50 86 Q44 74 40 84 Q28 76 26 54 Q24 28 50 12 Z","#bfe9ff")+O("M50 22 Q66 34 64 54 Q62 70 50 76 Q38 70 36 54 Q34 34 50 22 Z","#eaf8ff");
-      s+=`<ellipse cx="42" cy="50" rx="4" ry="6" fill="${INK}"/><ellipse cx="58" cy="50" rx="4" ry="6" fill="${INK}"/><circle cx="43" cy="48" r="1.4" fill="#fff" stroke="none"/><circle cx="59" cy="48" r="1.4" fill="#fff" stroke="none"/>`+L("M45 62 Q50 66 55 62",1.8);
-      s+=`<g class="mf-frost" fill="#fff6c8" stroke="none"><path class="st" d="M16 30 l1.4 4 4 1.4 -4 1.4 -1.4 4 -1.4 -4 -4 -1.4 4 -1.4 Z"/><path class="st" style="animation-delay:.7s" d="M84 70 l1.2 3.4 3.4 1.2 -3.4 1.2 -1.2 3.4 -1.2 -3.4 -3.4 -1.2 3.4 -1.2 Z"/></g>`;break;
-    case "egg": default:
-      s+=P("M50 12 Q78 14 80 54 Q80 86 50 88 Q20 86 20 54 Q22 14 50 12 Z",EGG)+O("M50 12 Q26 18 24 54 Q24 82 42 88 Q32 70 34 50 Q36 24 50 12 Z",HB);
-      s+=C(40,36,5,RED)+C(62,52,7,RED)+C(44,68,4,RED)+C(60,26,3,RED);
-      s+=L("M24 54 L34 48 L40 56 L50 46 L58 56 L66 48 L78 54",2);
+      s+=eye(38,30,6.4)+eye(62,30,6.4)+L("M30 22 Q38 20 44 25 M70 22 Q62 20 56 25",2);
+      s+=L("M60 21 Q74 22 80 32",1.6,HI,op(.4))+L("M66 62 Q76 62 80 68",1.2,HI,op(.3));
+      break;}
+    case "salamander":{
+      const R="#e8283c",RD="#a3172a",RL="#ff6a5a";
+      const spine="M20 70 Q10 62 18 54 Q30 46 46 56 Q62 66 76 58 Q88 50 86 40";
+      const leg=(x,y,dx,c)=>L(`M${x} ${y} Q${x+dx*.4-1} ${y+6} ${x+dx} ${y+11}`,8.4)+L(`M${x} ${y} Q${x+dx*.4-1} ${y+6} ${x+dx} ${y+11}`,4.8,c||RD)
+        +P(`M${x+dx-5} ${y+14} Q${x+dx-4} ${y+10} ${x+dx} ${y+10} Q${x+dx+4} ${y+10} ${x+dx+5} ${y+14} Z`,c||RD,' stroke-width="1.8"')+L(`M${x+dx-2} ${y+14} l-.6 -2 M${x+dx+2} ${y+14} l.6 -2`,1);
+      s+=leg(36,64,-4)+leg(60,68,-2);
+      s+=L(spine,17)+L(spine,11.6,R)+L("M20 72 Q12 64 18 57 Q30 50 46 60 Q62 70 76 62 Q86 55 85 44",4,RD,op(.9));
+      s+=L("M22 66 Q16 60 22 55 Q32 49 46 54 Q62 63 74 56 Q84 50 84 42",2.4,RL,op(.9));
+      s+=[[24,62],[38,57],[56,64],[70,60],[82,47]].map(([x,y])=>L(`M${x-2} ${y} q2 2 4 0 M${x+3} ${y+2} q2 2 4 0`,.9,RD)).join("");
+      for(const [x,y,r] of [[30,55,2.8],[48,59,2.8],[64,61,2.8],[78,51,2.4]])G(C(x,y,r+2.4,GOLD,NS+op(.28))+C(x,y,r,GOLD,' stroke="#111" stroke-width="1.4"')+C(x+.6,y-.6,r*.4,"#fff8d0",NS));
+      s+=P("M86 40 Q78 26 88 16 Q88 24 93 22 Q91 28 97 27 Q95 37 86 40 Z","#ff8a1f")+P("M87 37 Q82 28 88 21 Q89 27 92 26 Q92 33 87 37 Z",GOLD,NS)+O("M88 34 Q86 29 89 25 Q91 30 88 34 Z","#fff6c8");
+      s+=leg(44,66,0,R)+leg(70,64,3,R);
+      s+=P("M8 72 Q5 59 20 59 Q35 61 31 74 Q25 83 8 72 Z",R)+O("M9 72 Q12 80 24 79 Q30 77 31 73 Q22 77 9 72 Z",RD,op(.85));
+      s+=O("M20 61 Q30 62 30 70 Q26 64 20 62 Z",RL,op(.9))+C(13,72,1.1,INK,NS)+C(27,71,2.2,"#ff8ab0",NS+op(.7));
+      s+=eye(21,65,4.6)+L("M10 73 Q17 77 25 73",1.5)+L("M17 60 Q21 58 26 61",1.6);
+      break;}
+    case "bat":{
+      const BW="#5b3a8c",BWD="#3e2566",BH="#8a6bbf",BHD="#6a4c9c";
+      // wings: membrane between finger bones, a darker underside on the shade side
+      s+=P("M50 50 Q30 26 6 34 Q14 40 12 48 Q20 46 24 54 Q30 50 36 58 Q42 54 50 60 Z",BWD)+P("M50 50 Q70 26 94 34 Q86 40 88 48 Q80 46 76 54 Q70 50 64 58 Q58 54 50 60 Z",BW);
+      s+=L("M48 50 L12 36 M48 52 L14 47 M48 54 L25 53 M52 50 L88 36 M52 52 L86 47 M52 54 L75 53",1.1,"#2a1848");
+      s+=L("M60 38 Q74 32 88 35",1.4,"#b9a0e0",op(.5))+C(12,36,1,"#d8c8f0",NS)+C(88,36,1,"#d8c8f0",NS);
+      // ears with pink insides
+      s+=P("M38 34 L36 18 L46 28 Z",BH)+P("M62 34 L64 18 L54 28 Z",BH)+O("M39 30 L38 22 L43 28 Z","#d8a0c8")+O("M61 30 L62 22 L57 28 Z","#d8a0c8");
+      // fuzzy body: fur tufts on the chest, little feet
+      s+=P("M50 28 Q64 30 64 48 Q64 66 50 68 Q36 66 36 48 Q36 30 50 28 Z",BH)+O("M50 28 Q38 32 38 48 Q38 62 46 68 Q42 54 44 44 Q46 32 50 28 Z",BHD,op(.85));
+      s+=L("M46 60 l2 2 l2 -2 l2 2 l2 -2 M44 64 l2 2 l2 -2 l2 2 l2 -2 l2 2",1.1,BHD)+L("M45 68 l-1.6 3 M55 68 l1.6 3",1.6);
+      // big red eyes (a gleam each), a squashed nose, two fangs
+      s+=eye(44,44,3.9,"#e8283c","#ff5a6a")+eye(56,44,3.9,"#e8283c","#ff5a6a");
+      s+=P("M48 50 L52 50 L50 52.4 Z",INK,NS)+P("M45 56 L47 61 L49 56 Z M51 56 L53 61 L55 56 Z",BONE,' stroke-width="1.6"')+L("M44 55 Q50 58 56 55",1.6);
+      s+=L("M56 31 Q63 35 63 44",1.4,HI,op(.35));
+      break;}
+    case "egg": default:{
+      const EG="#f6ecd2",EGD="#d8c8a2";
+      U(`<ellipse class="mf-glow" cx="50" cy="52" rx="38" ry="44" fill="#7dff8a" opacity=".22" stroke="none"/>`);
+      s+=P("M50 12 Q78 14 80 54 Q80 86 50 88 Q20 86 20 54 Q22 14 50 12 Z",EG)+O("M50 12 Q26 18 24 54 Q24 82 42 88 Q32 70 34 50 Q36 24 50 12 Z",EGD,op(.85));
+      // speckles, the jagged crack where something's getting out, and a peek of green light inside
+      const sw=' stroke-width="1.6"';
+      s+=C(40,36,5,RED,sw)+C(62,52,7,RED,sw)+C(44,68,4,RED,sw)+C(60,26,3,RED,sw)+C(30,52,2,"#c23a2a",NS)+C(70,70,2.4,"#c23a2a",NS)+C(54,78,1.6,"#c23a2a",NS);
+      s+=C(60.8,49.6,2,"#ff8a7a",NS)+C(41.2,34.4,1.4,"#ff8a7a",NS);
+      s+=L("M24 54 L34 48 L40 56 L50 46 L58 56 L66 48 L78 54",2.4);
+      G(`<path d="M34 48 L40 56 L50 46 L58 56 L66 48" fill="none" stroke="#9dff9a" stroke-width="1.4" opacity=".8"/>`);
+      s+=L("M60 18 Q74 26 77 42",2,HI,op(.5));
+      break;}
   }
   if(opts.trinket&&TRINKET_AT[k]){const ti=ITEMS.find(i=>i.id===opts.trinket);if(ti)s+=trinketArt(ti.look,TRINKET_AT[k].neck,TRINKET_AT[k].head);}
-  s+=`</g><rect x="0" y="0" width="100" height="100" fill="none" stroke="${INK}" stroke-width="5"/></svg>`;
-  return s;
+  s+=`</g>${glow}</g><rect x="0" y="0" width="100" height="100" fill="none" stroke="${INK}" stroke-width="5"/></svg>`;
+  return s.replace("@@UNDER@@",under);
 }
 
 /* A loot box: a cube in the tier's colour, tied with a ribbon. */
@@ -9464,7 +9601,7 @@ function comicize(svg,kind){
   avatarSVG=(...a)=>A(...a); // drawn comic-native: torchlit dungeon, no recolour needed
   bossSVG=(...a)=>B(...a); // tarot cards are drawn in their own ink style
   lootIconSVG=(...a)=>comicize(Lt(...a),"loot");
-  petSVG=(...a)=>comicize(Pt(...a),"pet");
+  petSVG=(...a)=>Pt(...a); // pets are drawn cel-shaded in their own den, like the crawlers
   boxIconSVG=(...a)=>X(...a); // the crate art matches the opening scene, so no comic recolour
 }
 /* Speech bubbles: every boss trash-talks. All lines original. */
@@ -10687,6 +10824,8 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.16.0",d:"2026-10-09",t:"Pet glow-up",items:["Every pet (and the Mystery Egg) is redrawn in the same cel-shaded style as the crawlers: lit from the right with a warm rim light and a shadow side, plus real detail, like the owl's breast feathers and facial disc, the tortoise's shell rings, the gargoyle's cracked stone and glowing eyes, the salamander's scales and burning spots, the slime's swallowed key and the raccoon clutching a stolen coin.",
+    "Pets sit in a dusky den on their cards, and stand right in your crawler's scene at your feet. Same shapes as before, so collars, bandanas and other trinkets still fit."]},
   {v:"3.15.0",d:"2026-10-09",t:"Ping",items:["Notifications that arrive with The Crawl closed (Settings → Notifications, per device): an evening heads-up at the hour you pick, only on days when something's about to hit you (overdue quests, a rival who'll strike overnight, a streak about to end), plus party messages, nudges and a ping when a crewmate starts getting hunted by a rival so you can help.",
     "On iPhone, install The Crawl to your home screen first, then turn notifications on from the installed app. Party pings can take up to about 15 minutes to arrive."]},
   {v:"3.14.0",d:"2026-10-09",t:"Field guide",items:["New crawlers meet the game one piece at a time: the first time a mob jumps you, a rival hunts you, you learn a spell, get potion-sick and so on, a short Field guide card explains it, with More for the full entry. Cards never show during a quest's show, one at a time.",
