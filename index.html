@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2154eafb46"></script>
-<script>window.CRAWL_BUILD="2154eafb46";</script>
+<script src="firebase-config.js?v=e87c615580"></script>
+<script>window.CRAWL_BUILD="e87c615580";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -788,6 +788,16 @@ details summary::-webkit-details-marker{display:none}
 .petpic svg .critter,.petcam svg .critter{animation:bob 2.2s ease-in-out infinite}
 .petpic.sulk svg .critter,.petcam.sulk svg .critter{animation:none}
 @keyframes bob{50%{transform:translateY(-3px)}}
+/* Pets that don't fly stay on the floor: a breath that keeps the feet planted (bottom-anchored), a jiggle for the
+   slime, a little rock for the egg. Celebrating, cowering, hissing and sulking still take over at the feet of a crawler. */
+.petpic:not(.sulk) svg .critter.grounded,.petcam:not(.sulk) svg .critter.grounded,
+.print svg .petinframe:not(.pet-cheer):not(.pet-cower):not(.pet-hiss):not(.pet-sulk) .critter.grounded{animation:petbreathe 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.petpic:not(.sulk) svg .critter.jiggle,.petcam:not(.sulk) svg .critter.jiggle,
+.print svg .petinframe:not(.pet-cheer):not(.pet-cower):not(.pet-hiss):not(.pet-sulk) .critter.jiggle{animation:petjiggle 1.8s ease-in-out infinite}
+.petpic:not(.sulk) svg .critter.rock,.petcam:not(.sulk) svg .critter.rock,.bico svg .critter.rock,.boxstage .bico svg .critter.rock{animation:petrock 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes petbreathe{0%,100%{transform:none}50%{transform:scale(1.018,.985)}}
+@keyframes petjiggle{0%,100%{transform:none}30%{transform:scale(1.05,.95)}60%{transform:scale(.97,1.03)}}
+@keyframes petrock{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
 [hidden]{display:none!important}
 .epbanner{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--r);background:linear-gradient(90deg,var(--blood-dk),var(--panel) 70%);border:1px solid var(--blood);box-shadow:0 0 18px rgba(255,46,110,.25);flex-wrap:wrap}
 .epbanner .what{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -1160,9 +1170,9 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 @media (prefers-reduced-motion:no-preference){
   .print svg .twinkle{animation:twinkle 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
   .print svg .legaura{animation:mpulse 3.2s ease-in-out infinite}
-  .print svg .pet-cheer .critter{animation:petcheer .6s ease-in-out infinite alternate}
-  .print svg .pet-cower .critter{animation:petcower .18s linear infinite alternate}
-  .print svg .pet-hiss .critter{animation:pethiss .9s ease-in-out infinite}
+  .print svg .petinframe.pet-cheer .critter{animation:petcheer .6s ease-in-out infinite alternate}
+  .print svg .petinframe.pet-cower .critter{animation:petcower .18s linear infinite alternate}
+  .print svg .petinframe.pet-hiss .critter{animation:pethiss .9s ease-in-out infinite}
 }
 .print svg .pet-cower .critter{transform-box:fill-box;transform-origin:50% 100%}
 @keyframes twinkle{0%,100%{opacity:.15;transform:scale(.5)}50%{opacity:1;transform:scale(1.1) rotate(20deg)}}
@@ -9368,7 +9378,9 @@ function petSVG(k,opts){
   s+=E(50,88,32,5.5,`url(#${u}sh)`);
   // G: glows over the body (lantern, spots, gloss); U: halos behind it (slime, wisp, egg)
   let glow="",under="";const G=x=>{glow+=x;},U=x=>{under+=x;};
-  s+=`<g class="critter">@@UNDER@@<g filter="url(#${u}fx)" stroke="${INK}" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round">`;
+  // fliers (wisp, bat) float; everything else stands on the floor and breathes, the slime jiggles, the egg rocks
+  const idle=k==="wisp"||k==="bat"?"":k==="slime"?" grounded jiggle":k==="egg"||!PETS[k]?" grounded rock":" grounded";
+  s+=`<g class="critter${idle}">@@UNDER@@<g filter="url(#${u}fx)" stroke="${INK}" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round">`;
   // a glossy eye: white (or an iris colour), pupil, big catchlight top right and a small one bottom left
   const eye=(x,y,r,iris,ring)=>C(x,y,r,iris?iris:BONE)+(iris?C(x,y,r*.82,ring||"#ffd75a",NS)+O(`M${x-r*.82} ${y} A${r*.82} ${r*.82} 0 0 1 ${x+r*.82} ${y} Z`,"#ffef9e",op(.8)):"")
     +C(x+.4,y+.6,r*(iris?.48:.46),INK,NS)+C(x+r*.3,y-r*.32,r*.18,HI,NS)+C(x-r*.25,y+r*.3,r*.08,HI,NS+op(.8));
