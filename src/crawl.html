@@ -7730,10 +7730,13 @@ function gloveIcon(G){
 }
 /* Boots on the avatar: a shaft over the shin and a foot shaped like the sneaker it replaces.
    x = shoe anchor, dir = which way the toe points, B = the boot item. */
-function bootArt(x,dir,B,u){
+/* sk: in the wide battle stance the shins slant outward, so the whole boot is skewed (about the ankle) to follow the
+   shin, and a tall shaft stops just under the bent knee instead of standing straight up beside the leg. */
+function bootArt(x,dir,B,u,sk){
+  if(sk){const lx0=x-4*dir;return `<g transform="translate(${lx0} 376) skewX(${sk}) translate(${-lx0} -376)">${bootArt(x,dir,Object.assign({},B,{_knee:1}),u)}</g>`;}
   const c=B.c||"#7a4a26",dk=darker(c,.6),lx=x-4*dir,f=v=>(+v).toFixed(1);
   const sh=(d,fill,ex)=>`<path d="${d}" fill="${fill}"${ex||""}/>`,ln=(d,w,col)=>`<path d="${d}" fill="none" stroke="${col||INK}" stroke-width="${w}"/>`;
-  const L=B.look,top={flip:376,sneaker:358,slipper:350,roller:344,work:334,hiker:330,ranger:316,greave:314,seven:304,shadow:312,ember:318,frost:314}[L]||330;
+  const L=B.look,top=Math.max(B._knee?324:0,{flip:376,sneaker:358,slipper:350,roller:344,work:334,hiker:330,ranger:316,greave:314,seven:304,shadow:312,ember:318,frost:314}[L]||330);
   const foot=`M${x-22*dir} 372 Q${x-24*dir} 356 ${x-8*dir} 354 L${x+10*dir} 356 Q${x+30*dir} 364 ${x+30*dir} 376 L${x-22*dir} 376 Z`;
   let s="";
   if(B.magic==="fire")s+=`<ellipse class="mf-glow" cx="${lx}" cy="352" rx="30" ry="34" fill="#ff7a1f" opacity=".5" filter="url(#${u}bl)"/>`;
@@ -8714,12 +8717,12 @@ function avatarSVG(eq){
   // its own shading), so its animation doesn't re-run the filter every frame.
   if(!INKS)s+=FXON?`<g filter="url(#${u}fx)">`:`<g>`;
 
-  // Out of the battle pose, the weapon goes behind the whole body (drawn before the legs, so nothing passes in front of
-  // them): slung on the back with the hilt over the right shoulder, or, for a two-handed weapon in the victory pose,
-  // resting on the right shoulder in the right hand while the left fist goes up.
-  if(weapon&&PZ!=="ready"){let wb=weaponUpright(weapon,MW,u);if(_wI&&_wI.tint)wb=tintStr(wb,_wI.tint);const sc2=weapon==="l4"?.66:(WEAPON_SCALE[weapon]||.74);
-    if(PZ!=="victory")s+=`<g transform="translate(206 128) rotate(205) scale(${ONE_HANDED.has(weapon)?.9:sc2*1.05})">${wb}</g>`;
-    else if(!ONE_HANDED.has(weapon))s+=`<g transform="translate(198 204) rotate(24) scale(${sc2})">${wb}</g>`;}
+  // Out of the battle pose, a weapon that isn't in hand goes behind the whole body (drawn before the legs, so nothing
+  // passes in front of them): slung on the back with the hilt over the right shoulder. (A two-handed weapon in the
+  // victory pose is in hand, resting on the right shoulder: it's drawn with the arms, in front, under the fist.)
+  const shoulderW=()=>{let wb=weaponUpright(weapon,MW,u);if(_wI&&_wI.tint)wb=tintStr(wb,_wI.tint);return {wb,sc2:weapon==="l4"?.66:(WEAPON_SCALE[weapon]||.74)};};
+  if(weapon&&PZ!=="ready"&&PZ!=="victory"){const {wb,sc2}=shoulderW();
+    s+=`<g transform="translate(206 128) rotate(205) scale(${ONE_HANDED.has(weapon)?.9:sc2*1.05})">${wb}</g>`;}
   // Legs: jeans tubes, hips, belt, then bare feet or boots
   const STANCE=PZ==="ready"&&!!weapon&&!ONE_HANDED.has(weapon); // two-handed: feet apart, knees bent
   if(STANCE){
@@ -8741,7 +8744,8 @@ function avatarSVG(eq){
     +ln(`M${x-14*dir} 378 Q${x-6*dir} 380 ${x+2*dir} 378`,1.6,SKD);};
   const _bI=itemOf(eq.boots);
   const _bare=_bI?"":STANCE?bare(102,-1)+bare(200,1):bare(124,-1)+bare(176,1);
-  s+=_bI?(STANCE?bootArt(102,-1,_bI,u)+bootArt(200,1,_bI,u):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):_bare;
+  // stance shins run knee (114,326)→ankle (106,364) and (190,326)→(196,364): skew the boots to match
+  s+=_bI?(STANCE?bootArt(102,-1,_bI,u,-11.9)+bootArt(200,1,_bI,u,9):bootArt(124,-1,_bI,u)+bootArt(176,1,_bI,u)):_bare;
 
   s+=`<g class="upper"${PZ==="hurt"?` transform="rotate(-5 150 262)"`:""}><g class="breathe">`+narrow;
   // Torso
@@ -8894,7 +8898,8 @@ function avatarSVG(eq){
       victory:weapon&&!ONE_HANDED.has(weapon)?{l:[[62,122],76,70],r:[[232,214],198,204]}:{l:[[72,214],106,250],r:[[238,122],226,70]},hurt:{l:[[92,220],136,226],r:[[216,216],210,272]}}[PZ]||{l:[[88,212],90,262],r:[[212,212],210,262]};
     if(PZ==="crossed"){s+=arm1(194,162,A.r[0],A.r[1],A.r[2])+fist(A.r[1],A.r[2])+ringOn(A.r[1],A.r[2])+arm1(108,162,A.l[0],A.l[1],A.l[2]);if(AS)s+=armorDetail(AS,u,MA,true);s+=fist(A.l[1],A.l[2]);}
     else{s+=arm1(108,162,A.l[0],A.l[1],A.l[2])+arm1(194,162,A.r[0],A.r[1],A.r[2]);if(AS)s+=armorDetail(AS,u,MA,true);
-      if(PZ==="victory"&&weapon&&ONE_HANDED.has(weapon))s+=`<g transform="translate(${A.r[1]} ${A.r[2]}) rotate(14)">${w}</g>`; // two-handed ones are drawn behind the body
+      if(PZ==="victory"&&weapon&&ONE_HANDED.has(weapon))s+=`<g transform="translate(${A.r[1]} ${A.r[2]}) rotate(14)">${w}</g>`;
+      else if(PZ==="victory"&&weapon){const {wb,sc2}=shoulderW();s+=`<g transform="translate(198 204) rotate(24) scale(${sc2})">${wb}</g>`;} // in the right hand, over the shoulder
       s+=fist(A.l[1],A.l[2])+fist(A.r[1],A.r[2])+ringOn(A.r[1],A.r[2]);}
   }else if(POSE&&POSE.one){
     const [ax,ay]=POSE.a;
