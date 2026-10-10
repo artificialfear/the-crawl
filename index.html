@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=c19c1b5f59"></script>
-<script>window.CRAWL_BUILD="c19c1b5f59";</script>
+<script src="firebase-config.js?v=7e4a00628a"></script>
+<script>window.CRAWL_BUILD="7e4a00628a";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -4038,6 +4038,9 @@ function spawnMob(kind,room){
   ui.mobSnd=k;bump("ms_"+k);
   const mb={id:newId(),n,k,a:pack?"The":/^[AEIOU]/.test(n)?"An":"A",pack,hp,max:hp,room:room==null?null:room};if(K.fade)mb.exp=nextDawn();return mb;
 }
+/* A mob turning up during a quest gets its entrance (the card slams in with its cry), so the report skips the
+   "…jumps you!" line then. Quick mode has no entrances, and walking the map by hand isn't a quest, so those keep it. */
+const mobEntrance=()=>!!STAGE.on&&prefs.showMode!=="quick";
 /* One quest's hit against everything on you, in the order they showed up. Returns toast lines. */
 function mobFight(fx,t,o){
   o=o||{};const out=[];if(!player.mobs)player.mobs=[];
@@ -4045,7 +4048,7 @@ function mobFight(fx,t,o){
   // Grinding: once a floor's bosses are all down, the leftovers come out of the walls until the stairwell opens
   const G=grinding(),wr=G?GRIND_MOB:(player.boss&&player.boss.hunt?MOB_WANDER*2:MOB_WANDER);
   if(t&&!player.mobs.length&&Math.random()<wr){const pk=G&&Math.random()<.35,w=spawnMob(pk?"pack":"mob",null);player.mobs.push(w);bump(G?"grindMobs":"wanderers");
-    out.push(pk?`A pack of leftovers crawls out of the walls: ${w.n}!`:`${w.a} wandering ${w.n} jumps you!`);}
+    if(!mobEntrance())out.push(pk?`A pack of leftovers crawls out of the walls: ${w.n}!`:`${w.a} wandering ${w.n} jumps you!`);}
   if(!player.mobs.length)return out;
   // Charm: the first mob that isn't a ghost lays down its weapons (the dead don't care). A waiting Charm keeps waiting.
   if(player.charm||o.charm){const lead=player.mobs.find(mb=>!mobFam(mobKind(mb)).noPhys);
@@ -5059,7 +5062,8 @@ function mapStep(t,dash){
     else{const r=spawnRival({from:"ambush"});out.push(mapLog(m,r?`Room ${m.pos+1}: ambush! ${rvIntro(r)}`:`Room ${m.pos+1}: an empty crawler camp. Its owner must be dead on the board.`));}}
   if((rm.t==="mob"||rm.t==="pack"||(rm.t==="chest"&&rm.guard))&&!rm.cleared){
     const mb=spawnMob(rm.t==="pack"?"pack":"mob",m.pos);player.mobs=(player.mobs||[]).concat(mb);
-    out.push(mapLog(m,rm.t==="chest"?`Room ${m.pos+1}: ${mb.a} ${mb.n} was guarding the chest!`:`Room ${m.pos+1}: ${mb.a} ${mb.n}${rm.t==="pack"?" (a whole pack of them)":""}!`));}
+    const ml=mapLog(m,rm.t==="chest"?`Room ${m.pos+1}: ${mb.a} ${mb.n} was guarding the chest!`:`Room ${m.pos+1}: ${mb.a} ${mb.n}${rm.t==="pack"?" (a whole pack of them)":""}!`);
+    if(rm.t==="chest"||!mobEntrance())out.push(ml);} // the map's own log always keeps it
   if(rm.t==="lair"){const d=Math.min(player.hp-1,4+floor);player.hp-=Math.max(0,d);giveBox("bronze","A monster lair on the map");out.push(mapLog(m,`Room ${m.pos+1}: a monster lair. You lost ${d} HP and took their Bronze Box.`));}
   if(rm.t==="merchant"){const it=ITEMS.find(i=>i.id===rm.item);out.push(mapLog(m,`Room ${m.pos+1}: a wandering merchant is selling ${it?it.n:"something"}. Check the map.`));}
   if(rm.t==="door")out.push(mapLog(m,`Room ${m.pos+1}: through the door.`));
@@ -5095,7 +5099,7 @@ function revisit(m,out){const rm=m.rooms[m.pos],td=today(),H=maxHp(player);
   if(rm.t==="shrine"&&rm.shr!==td){rm.shr=td;const h=Math.min(H-player.hp,Math.round(H*.15));player.hp+=h;out.push(mapLog(m,`Room ${m.pos+1}: the shrine flickers back to life. ${h?`+${h} HP.`:"You were already healthy."}`));}
   if(rm.t==="shrine")rivalSanctuary(m,out);
   if((rm.t==="mob"||rm.t==="pack"||rm.t==="lair")&&!(player.mobs||[]).length&&rm.rsp!==td&&Math.random()<.2){rm.rsp=td;
-    const mb=spawnMob("mob",null);player.mobs=[mb];bump("wanderers");out.push(mapLog(m,`Room ${m.pos+1}: something moved back in. ${mb.a} ${mb.n} jumps you!`));}
+    const mb=spawnMob("mob",null);player.mobs=[mb];bump("wanderers");const ml=mapLog(m,`Room ${m.pos+1}: something moved back in. ${mb.a} ${mb.n} jumps you!`);out.push(mobEntrance()?`Room ${m.pos+1}: something moved back in.`:ml);}
   crackCheck(m,out);secretDoor(m,out);}
 /* Tap a room on the map: walk back to a visited room, or (frontier or beyond) head forward again. */
 function mapGo(i){const m=player.map;if(!m)return;const far=farOf(m);
