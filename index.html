@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=7d9627765a"></script>
-<script>window.CRAWL_BUILD="7d9627765a";</script>
+<script src="firebase-config.js?v=8d12387ed0"></script>
+<script>window.CRAWL_BUILD="8d12387ed0";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1143,7 +1143,9 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 @keyframes avlvl{0%{box-shadow:0 0 0 0 rgba(255,210,63,0)}30%{box-shadow:0 0 0 4px rgba(255,210,63,.9),0 0 34px 8px rgba(255,210,63,.7)}100%{box-shadow:0 0 0 0 rgba(255,210,63,0)}}
 /* Idle life: breathing and blinking on your own avatar (Hero tab, close-up, look editor). Rival cards stay still. */
 @media (prefers-reduced-motion:no-preference){
-  .avatar .print svg .breathe,.zoomdlg.z-me .zoom-art svg .breathe,.lk-prev svg .breathe{animation:breathe 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+  .avatar .print svg .breathe,.zoomdlg.z-me .zoom-art svg .breathe,.lk-prev svg .breathe{animation:avbreathe 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+  /* the cape breathes with the body: anchored at the hem, its top rises and falls with the shoulders, in step */
+  .avatar .print svg .capebr,.zoomdlg.z-me .zoom-art svg .capebr,.lk-prev svg .capebr{animation:capebr 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
   .avatar .print svg .eyes,.zoomdlg.z-me .zoom-art svg .eyes,.lk-prev svg .eyes,.pt-av svg .eyes{animation:blink 5.3s infinite;transform-box:fill-box;transform-origin:50% 50%}
 }
 @media (prefers-reduced-motion:reduce){.fxnum{animation:fxfade 1.3s ease-out forwards}.fx-shake,#sheet.av-hit .avatar,#sheet.av-hop .avatar .print,#sheet.av-lvl .avatar,#crawlCam .cc-av,#crawlCam .print{animation:none}.crawlcam{transition:none}.entr-in{animation:none}}
@@ -1168,7 +1170,8 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 @keyframes petcower{0%{transform:scale(.92,.86) translateX(-1px)}100%{transform:scale(.92,.86) translateX(1px)}}
 @keyframes pethiss{0%,100%{transform:none}10%{transform:translateX(-2px)}20%{transform:translateX(2px)}30%{transform:none}}
 @keyframes fxfade{0%,60%{opacity:1}100%{opacity:0}}
-@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.008,1.014) translateY(-1px)}}
+@keyframes avbreathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.008,1.014) translateY(-1px)}}
+@keyframes capebr{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.016)}}
 @keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
 .inkcard .breathe,.inkcard .eyes{animation:none!important}.lk-mood{font-size:12.5px;margin-top:6px;padding:6px 10px;border-radius:8px;background:rgba(255,210,63,.1);border:1px solid rgba(255,210,63,.35)}
 .lk-opts{display:flex;flex-wrap:wrap;gap:6px}
@@ -1204,7 +1207,6 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 body::before{content:"";position:fixed;inset:-24px;z-index:-1;pointer-events:none;background-image:var(--hatch);animation:drift 8s linear infinite}
 body{position:relative;z-index:0} /* lets the drifting hatch sit between the page colour and the content */
 @keyframes drift{to{transform:translate(0,4px)}}
-.print svg .upper{animation:breathe 6s ease-in-out infinite;animation-delay:var(--ph)}
 .print svg .cape{transform-box:fill-box;transform-origin:50% 0;animation:sway 5s ease-in-out infinite;animation-delay:var(--ph)}
 .print svg .plume{transform-box:fill-box;transform-origin:100% 100%;animation:flutter 2.4s ease-in-out infinite;animation-delay:var(--ph)}
 .print svg .rune{animation:glow 3s ease-in-out infinite;animation-delay:var(--ph)}
@@ -1216,7 +1218,6 @@ body{position:relative;z-index:0} /* lets the drifting hatch sit between the pag
 .print svg .torchglow{animation:glowflick 2.1s ease-in-out infinite;animation-delay:var(--ph2)}
 @keyframes flicker{0%,100%{transform:scale(1,1) skewX(0)}25%{transform:scale(.94,1.06) skewX(-3deg)}50%{transform:scale(1.05,.95) skewX(2deg)}75%{transform:scale(.97,1.08) skewX(-1deg)}}
 @keyframes glowflick{0%,100%{opacity:1}30%{opacity:.82}55%{opacity:.95}80%{opacity:.86}}
-@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 @keyframes sway{0%,100%{transform:skewX(-1.5deg)}50%{transform:skewX(2.5deg)}}
 @keyframes flutter{0%,100%{transform:rotate(2deg)}50%{transform:rotate(-10deg)}}
 @keyframes glow{0%,100%{opacity:1}50%{opacity:.25}}
@@ -8730,9 +8731,9 @@ function avatarSVG(eq){
   const CLSA="M110 130 Q82 262 62 371 L102 377 Q110 262 124 136 Z",CLSB="M110 130 Q96 258 84 381 L118 375 Q114 258 124 136 Z";
   const cloth=(f)=>`<path d="${CL}" fill="${f}">${wave(CLA,CLB)}</path>`, shade=()=>`<path d="${CLS}" fill="${HA}" stroke="none">${wave(CLSA,CLSB)}</path>`;
   const capeAt=s.length;
-  s+=`<g stroke="${INK}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><g transform="translate(150 22) scale(1.22 .76) translate(-150 41)"><g class="cape">`;
+  s+=`<g stroke="${INK}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><g transform="translate(150 22) scale(1.22 .76) translate(-150 41)"><g class="capebr"><g class="cape">`;
   if(CAPE_STYLE[eq.cape])s+=capeArt(CAPE_STYLE[eq.cape],cloth,shade,u);
-  s+=`</g></g>`;
+  s+=`</g></g></g>`;
   if(_cI&&_cI.tint)s=s.slice(0,capeAt)+tintStr(s.slice(capeAt),_cI.tint);
   // The figure from here on is lit (cel) or etched (ink) by avFx. The swaying cape stays outside the filter (it has
   // its own shading), so its animation doesn't re-run the filter every frame.
