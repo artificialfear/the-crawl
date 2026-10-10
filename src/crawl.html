@@ -2922,7 +2922,7 @@ function recLabel(rec){
 const NEW_CRAWLER="Crawler #"+(1+Math.floor(Math.random()*100000)).toLocaleString("en-US");
 const isDefaultName=n=>!n||n==="Crawler"||/^Crawler #[\d,]+$/.test(n);
 function defaultPlayer(){return {name:NEW_CRAWLER,pets:{},pet:null,eggs:[],boxes:[],ach:{},viewers:0,doneCount:0,onTargetCount:0,opened:0,xp:0,gold:0,hp:BASE_HP,streak:0,lastDoneDate:null,lastTick:today(),owned:[],potions:0,stats:{STR:0,INT:0,CON:0,DEX:0,CHA:0},events:[],rewards:[],samples:[],boss:null,bossCount:0,weekHist:[]};}
-function normPlayer(d){const p=Object.assign(defaultPlayer(),d||{});if(p.show&&p.show.pledge&&p.show.pledge.box==="celestial")p.show.pledge.box="gold";if(!p.name||p.name==="Crawler")p.name=NEW_CRAWLER;p.stats=Object.assign({STR:0,INT:0,CON:0,DEX:0,CHA:0},p.stats||{});if(p.stats.WIS){p.stats.CON+=p.stats.WIS;}delete p.stats.WIS;p.owned=Array.isArray(p.owned)?p.owned:[];p.events=Array.isArray(p.events)?p.events:[];p.rewards=Array.isArray(p.rewards)?p.rewards:[];p.samples=Array.isArray(p.samples)?p.samples:[];p.weekHist=Array.isArray(p.weekHist)?p.weekHist:[];p.boxes=Array.isArray(p.boxes)?p.boxes:[];p.ach=p.ach&&typeof p.ach==="object"?p.ach:{};p.pets=p.pets&&typeof p.pets==="object"?p.pets:{};p.eggs=Array.isArray(p.eggs)?p.eggs:[];if(p.pet&&!p.pets[p.pet])p.pet=null;return p;}
+function normPlayer(d){const p=Object.assign(defaultPlayer(),d||{});if(p.show&&p.show.pledge&&p.show.pledge.box==="celestial")p.show.pledge.box="gold";if(!p.name||p.name==="Crawler")p.name=NEW_CRAWLER;p.stats=Object.assign({STR:0,INT:0,CON:0,DEX:0,CHA:0},p.stats||{});if(p.stats.WIS){p.stats.CON+=p.stats.WIS;}delete p.stats.WIS;p.owned=Array.isArray(p.owned)?p.owned:[];p.events=Array.isArray(p.events)?p.events:[];p.rewards=Array.isArray(p.rewards)?p.rewards:[];p.samples=Array.isArray(p.samples)?p.samples:[];p.weekHist=Array.isArray(p.weekHist)?p.weekHist:[];p.boxes=Array.isArray(p.boxes)?p.boxes:[];p.ach=p.ach&&typeof p.ach==="object"?p.ach:{};p.pets=p.pets&&typeof p.pets==="object"?p.pets:{};p.eggs=Array.isArray(p.eggs)?p.eggs:[];if(p.pet&&!p.pets[p.pet])p.pet=null;if(p.spare!=null&&(typeof p.spare!=="object"||Array.isArray(p.spare))){p.spare={};p.spareFix=1;}return p;}
 let player=defaultPlayer(), playerExists=false, tasks=[], loadedP=false, loadedT=false, ticked=false;
 let store=null; // backend
 let ui={claiming:null, confirmDel:null, editingName:false, editing:null, addStep:null, menu:null, news:[]};
@@ -5088,19 +5088,19 @@ function mapWalkOne(m,out){
    banks its step instead, up to SPARE_MAX. Spend them from the map to walk through rooms you've already explored,
    no quest needed. They never explore: every new room still takes a quest. */
 const SPARE_MAX=3;
-function spareBank(out){const n=player.spare||0;if(n>=SPARE_MAX)return;player.spare=n+1;
-  out.push(`No room to move, so you bank a spare step (${player.spare} of ${SPARE_MAX}). Spend it on the map to walk through rooms you've explored.`);}
+function spareBank(out){const n=+player.spSteps||0;if(n>=SPARE_MAX)return;player.spSteps=n+1;
+  out.push(`No room to move, so you bank a spare step (${player.spSteps} of ${SPARE_MAX}). Spend it on the map to walk through rooms you've explored.`);}
 function spareDest(m){if(!m)return null;const d=m.tgt!=null?Math.min(m.tgt,farOf(m)):farOf(m);return d===m.pos?null:d;}
 function spareNeed(m){const d=spareDest(m);if(d==null)return 0;const p=mapPath(m,m.pos,d);return p?p.length-1:Math.abs(d-m.pos);}
 function spareWalk(){
-  const m=ensureMap(),hb=player.boss;if(!m||!(player.spare>0))return;
+  const m=ensureMap(),hb=player.boss;if(!m||!(player.spSteps>0))return;
   if(hb&&hb.hunt&&hb.engaged&&!hb.defeated){toast("You can't walk away mid-fight. Beat it or retreat first.");return;}
   const out=[],mobs0=(player.mobs||[]).length;let n=0;
-  while(player.spare>0&&spareDest(m)!=null&&n<20){mapWalkOne(m,out);player.spare--;n++;if((player.mobs||[]).length>mobs0)break;} // a mob jumping you stops the walk
+  while(player.spSteps>0&&spareDest(m)!=null&&n<20){mapWalkOne(m,out);player.spSteps--;n++;if((player.mobs||[]).length>mobs0)break;} // a mob jumping you stops the walk
   if(!n)return;
   const li=ui.lairFound;ui.lairFound=null;
   store.savePlayer(player).catch(writeFailed);render();
-  toast(`You spend ${n} spare step${n===1?"":"s"}${player.spare?` (${player.spare} left)`:""}.${out.length?" "+out.join(" "):""}`);
+  toast(`You spend ${n} spare step${n===1?"":"s"}${player.spSteps?` (${player.spSteps} left)`:""}.${out.length?" "+out.join(" "):""}`);
   if(li!=null&&lairDoor(m,li)===m.pos)setTimeout(()=>lairPrompt(li),500);
 }
 /* Arriving in a room: any lair whose door opens off it is found (the Floor boss waits at the stairwell). */
@@ -5351,7 +5351,7 @@ function renderMap(){
   const bt=m.tgt!=null?`<div class="mapbt"><span>${away?`Walking back to <b>room ${m.tgt+1}</b>: ${away} quest${away===1?"":"s"} away.`:`Holding at <b>room ${m.pos+1}</b>.`}${doorHere?" A marked secret room opens off this room: finish a quest here to pry it open.":""}</span>
       <button class="btn gold sm" type="button" id="mapFwd">Head forward</button></div>`
     :far>0?`<div class="muted mapbt-hint">Tap any room you've explored to walk back to it.${(m.links||[]).some(([i,j])=>i<=far&&j<=far)?" Green dotted passages are shortcuts you can cut through.":""}${(m.secrets||[]).some(s=>!s.found&&s.located&&s.link<=far)?" Tap a marked secret room to walk to its door.":""}</div>`:"";
-  const sp=player.spare||0,need=spareNeed(m),fight=!!(player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated);
+  const sp=+player.spSteps||0,need=spareNeed(m),fight=!!(player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated);
   const spare=sp||need?`<div class="mapspare"><span class="sp-pips" title="Spare steps: ${sp} of ${SPARE_MAX}">${Array.from({length:SPARE_MAX},(_,i)=>`<i class="${i<sp?"on":""}"></i>`).join("")}</span><span>${sp?`<b>${sp} spare step${sp===1?"":"s"}</b>`:"No spare steps"}${!sp?". A quest that can't move you (holding, or stuck in a fight) banks one.":need&&!fight?"":". Spend them to walk through rooms you've explored, no quest needed."}</span>
       ${sp&&need&&!fight?`<button class="btn sm" type="button" id="spareGo">${need<=sp?`Walk there now (${need})`:`Walk ${sp} of ${need} rooms now`}</button>`:""}</div>`:"";
   if(merch){const it=ITEMS.find(i=>i.id===merch.item),price=priceOf(MERCH_PRICE[it.rar]||200),own=player.owned.includes(it.id);
@@ -10093,8 +10093,23 @@ async function rpSave(pre){
 // Called after every render: the day's first restore point, once this device holds the server's real copy.
 function rpTick(){
   if(!playerExists||!loadedP||!loadedT||!store||(store.isFresh&&!store.isFresh()))return;
+  if(player.spareFix&&!RP.fixing)spareRescue();
   const k="rp:"+(RP.uid||"local");if(prefs[k]===today())return;prefs[k]=today();savePrefs();
   setTimeout(()=>rpSave(false),3000);
+}
+/* v3.17.0 briefly kept the spare-step count in player.spare, which already holds your spare gear copies, so banking
+   a step wiped them. normPlayer flags a wiped save (spareFix); this puts the copies back from the newest restore point
+   (this device or the account) that still has them. */
+async function spareRescue(){
+  RP.fixing=true;const pts=[];
+  try{(await rpTx("readonly",st=>st.getAll())||[]).filter(x=>(x.uid||null)===(RP.uid||null)).forEach(x=>{try{pts.push({at:x.at,p:JSON.parse(x.j).player});}catch(e){}});}catch(e){}
+  if(store&&store.backups){try{(await store.backups.list()).forEach(x=>{if(x.data&&x.data.player)pts.push({at:typeof x.at==="number"?x.at:0,p:x.data.player});});}catch(e){}}
+  const ok=pts.filter(x=>x.p&&x.p.spare&&typeof x.p.spare==="object"&&!Array.isArray(x.p.spare)).sort((a,b)=>b.at-a.at)[0];
+  delete player.spareFix;
+  if(ok){const sp={};for(const [k,v] of Object.entries(ok.p.spare))if(+v>0)sp[k]=Math.max(+v,spareN(k));player.spare=Object.assign({},player.spare,sp);
+    const n=Object.values(sp).reduce((a,b)=>a+b,0);
+    if(n)toast(`A bug in the last update wiped your spare gear copies. ${n} ${n===1?"copy is":"copies are"} back, from your restore point of ${new Date(ok.at).toLocaleDateString()}.`);}
+  store.savePlayer(player).catch(writeFailed);render();RP.fixing=false;
 }
 async function rpLoad(){
   if(RP.loading)return;RP.loading=true;const out=[];
@@ -11453,7 +11468,7 @@ const GUIDE=[
     more:"Tap ✓ to finish a quest at your estimate, or ⋯ → Complete with time taken to enter how long it really took (close guesses earn a +15% accuracy bonus). Quests hit the boss on your floor, mobs that are on you and any rival crawler hunting you. Overdue quests wound you each morning, more for bigger quests and the longer they rot."},
   {id:"boss",t:"Bosses and floors",when:p=>!!p.boss,line:"Each week is a floor with bosses hidden in lairs. Find them on the Floor map as you finish quests, beat them for loot boxes, and reach the stairwell before it closes.",
     more:"Bosses have HP; your quests' damage takes it down. Every finished quest also moves you a room on the Floor map, where you find lairs, chests, traps and ambushes. The stairwell closes at the end of the week, and any bosses left behind just stay there, with no penalty beyond the loot you missed."},
-  {id:"spare",t:"Spare steps",when:p=>(p.spare||0)>0,line:"A finished quest that couldn't move you on the Floor map banked a spare step. Spend spare steps from the map to walk through rooms you've already explored, no quest needed.",
+  {id:"spare",t:"Spare steps",when:p=>(+p.spSteps||0)>0,line:"A finished quest that couldn't move you on the Floor map banked a spare step. Spend spare steps from the map to walk through rooms you've already explored, no quest needed.",
     more:"You bank a spare step when a quest can't move you: you're holding in a room you picked, you're stuck in a boss fight, or there's nowhere left to go. You can hold up to 3. Tap a room you've explored, then Walk there now. Spare steps never explore: every new room still takes a finished quest, and a mob that jumps you on the way stops the walk."},
   {id:"mob",t:"Mobs",when:p=>(p.mobs||[]).length>0,line:"A mob is on you. Your next quests hit it first, and until it's gone it nips you for HP each quest. Tap its card to poke it for a little damage.",
     more:"Mobs come in families, and each family has a twist that its card explains: ghosts can only be hurt by spells and fade at dawn, some hide their HP, some steal, some split. You can poke a mob a few times a day for tiny damage. Mobs give XP when they go down, and a few drop loot."},
