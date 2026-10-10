@@ -4458,68 +4458,121 @@ function qtGuest(uid){const q=player.quarters;if(!q)return;const g=new Set(q.gue
 /* What goes on the party card: just enough for a guest's visit. */
 function qtCard(){const q=player.quarters;if(!q)return null;
   return {up:Object.keys(q.up||{}),g:(q.guests||[]).slice(0,6),cj:!!q.cj,tr:{k:C(player,"rivalKills"),ko:C(player,"rivalKOs"),b:C(player,"bossKills"),r:player.bestRank||null}};}
-/* The room, drawn. up = installed upgrades; av = avatar markup (the hero without the dungeon); tr = trophies. */
+/* The room, drawn. up = installed upgrades; av = avatar markup (the hero without the dungeon); tr = trophies.
+   Cel-shaded like the crawlers: the furniture goes through one cheap cel filter (a shadow band on the left, a warm
+   rim on the right, lit by the sconce and the window), with its detail drawn in (wood grain, quilting, rivets,
+   stitches, carved runes). Anything that moves (portal swirl, steam, bubbles, the screen, the gem, the flame) sits
+   outside the filter, so the room doesn't re-light itself every frame. Same layout as before, so the empty-slot
+   outlines and the hall crowd still line up. */
 function quartersSVG(up,av,tr,showEmpty){
-  const K="#15131c",has=k=>up.includes(k),u="qt"+(++avUid);
-  const P=(d,f,x)=>`<path d="${d}" fill="${f}" stroke="${K}" stroke-width="2.4" stroke-linejoin="round"${x||""}/>`;
+  const K="#15131c",has=k=>up.includes(k),u="qt"+(++avUid),f=v=>(+v).toFixed(1);
+  const P=(d,c,x)=>`<path d="${d}" fill="${c}" stroke="${K}" stroke-width="2.4" stroke-linejoin="round"${x||""}/>`;
+  const O=(d,c,x)=>`<path d="${d}" fill="${c}" stroke="none"${x||""}/>`,L=(d,w,c,x)=>`<path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w}" stroke-linecap="round"${x||""}/>`;
   const empty=(x,y,w,h,k)=>{const U=QT_UP.find(z=>z.k===k);return showEmpty?`<g class="qt-empty"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="rgba(127,232,255,.07)" stroke="#7fe8ff" stroke-width="1.6" stroke-dasharray="5 4"/><text x="${x+w/2}" y="${y+h/2-2}" text-anchor="middle" font-size="10" font-weight="700" fill="#bff4ff">${U.n}</text><text x="${x+w/2}" y="${y+h/2+11}" text-anchor="middle" font-size="9" fill="#7fe8ff">${U.price}g</text></g>`:"";};
+  const grain=(x1,x2,ys,c)=>ys.map(y=>L(`M${x1} ${y} Q${f((x1+x2)/2)} ${y-1.4} ${x2} ${y+.6}`,1,c,' opacity=".55"')).join("");
   let s=`<svg class="qtroom" viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
-<radialGradient id="${u}p" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#e6fbff"/><stop offset=".35" stop-color="#7fe8ff"/><stop offset=".75" stop-color="#7a3ff0"/><stop offset="1" stop-color="#2a1458"/></radialGradient>
-<radialGradient id="${u}l" cx="50%" cy="20%" r="80%"><stop offset="0" stop-color="#ffcf7a" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
-<linearGradient id="${u}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#103a52"/><stop offset="1" stop-color="#072030"/></linearGradient></defs>`;
-  // Walls, wainscot and floorboards
-  s+=`<rect width="400" height="250" fill="#2d2440"/><rect width="400" height="150" fill="#3b2f55"/>`;
-  for(let x=12;x<400;x+=26)s+=`<path d="M${x} 0 L${x} 118" stroke="#45386a" stroke-width="2"/>`;
-  s+=`<rect x="0" y="118" width="400" height="34" fill="#5a3b26" stroke="${K}" stroke-width="2.4"/><path d="M0 126 L400 126" stroke="#7a5236" stroke-width="2"/>`;
-  s+=`<path d="M0 152 L400 152 L400 250 L0 250 Z" fill="#7a5232" stroke="${K}" stroke-width="2.4"/>`;
-  for(const x of [-160,-80,0,80,160,240,320,400,480,560])s+=`<path d="M${200+(x-200)*.45} 152 L${x} 250" stroke="#5e3d24" stroke-width="2"/>`;
-  s+=`<path d="M0 186 L400 186 M0 222 L400 222" stroke="#5e3d24" stroke-width="1.6"/>`;
-  s+=`<ellipse cx="196" cy="212" rx="92" ry="22" fill="#8a2e4a" stroke="${K}" stroke-width="2.4"/><ellipse cx="196" cy="212" rx="74" ry="15" fill="none" stroke="#ffd23f" stroke-width="1.6" stroke-dasharray="4 4"/>`;
-  s+=`<rect width="400" height="250" fill="url(#${u}l)"/>`;
-  // The portal home (always here)
-  s+=P("M14 150 L14 70 Q14 34 43 34 Q72 34 72 70 L72 150 Z","#6b7383")+`<ellipse class="qt-portal" cx="43" cy="96" rx="20" ry="46" fill="url(#${u}p)" stroke="${K}" stroke-width="2"/>`
-    +`<path class="qt-swirl" d="M43 62 Q60 80 43 96 Q26 112 43 130" fill="none" stroke="#fff" stroke-width="2" opacity=".6"/>`;
-  // Quest Screen
-  if(has("screen"))s+=P("M148 14 L252 14 L252 82 L148 82 Z","#2a2733")+`<rect x="154" y="20" width="92" height="56" fill="url(#${u}s)"/><g class="qt-screen"><circle cx="164" cy="30" r="3.4" fill="#e8283c"/><text x="172" y="33" font-size="9" font-weight="700" fill="#fff">LIVE</text>
-      <path d="M160 64 L176 50 L190 58 L206 42 L222 52 L240 36" fill="none" stroke="#3fe0ff" stroke-width="2.4"/><rect x="160" y="68" width="${30+Math.round((tr&&tr.b||0)%5)*10}" height="4" fill="#ffd23f"/></g>`
-      +P("M192 82 L208 82 L212 94 L188 94 Z","#2a2733");
+<radialGradient id="${u}p" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#e6fbff"/><stop offset=".35" stop-color="#7fe8ff"/><stop offset=".75" stop-color="#7a3ff0"/><stop offset="1" stop-color="#2a0f5a"/></radialGradient>
+<radialGradient id="${u}l" cx="68%" cy="12%" r="75%"><stop offset="0" stop-color="#ffcf7a" stop-opacity=".42"/><stop offset=".5" stop-color="#ffb04a" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<radialGradient id="${u}w" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#7fe8ff" stop-opacity=".35"/><stop offset="1" stop-color="#7fe8ff" stop-opacity="0"/></radialGradient>
+<radialGradient id="${u}v" cx="50%" cy="45%" r="75%"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient>
+<linearGradient id="${u}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#103a52"/><stop offset="1" stop-color="#072030"/></linearGradient>
+<linearGradient id="${u}wl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f2547"/><stop offset="1" stop-color="#43365f"/></linearGradient>
+<linearGradient id="${u}fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5e3d24"/><stop offset="1" stop-color="#8a5c36"/></linearGradient>
+<filter id="${u}fx" x="-2%" y="-2%" width="104%" height="104%" color-interpolation-filters="sRGB">
+<feFlood flood-color="#fff0dc" result="warm"/><feBlend in="SourceGraphic" in2="warm" mode="multiply" result="lit"/>
+<feOffset in="SourceAlpha" dx="6" dy="-2" result="so"/><feComposite in="SourceAlpha" in2="so" operator="out" result="sb"/>
+<feFlood flood-color="#1a1030" flood-opacity=".42"/><feComposite in2="sb" operator="in" result="shd"/>
+<feOffset in="SourceAlpha" dx="-2" dy=".6" result="o"/><feComposite in="SourceAlpha" in2="o" operator="out" result="rim"/>
+<feFlood flood-color="#ffb04a" flood-opacity=".85"/><feComposite in2="rim" operator="in" result="rimc"/>
+<feComposite in="lit" in2="SourceAlpha" operator="in" result="litc"/>
+<feMerge><feMergeNode in="litc"/><feMergeNode in="shd"/><feMergeNode in="rimc"/></feMerge></filter></defs>`;
+  // Walls: plaster panels with stone trim, a dark wainscot with a carved rail, floorboards with grain and nails
+  s+=`<rect width="400" height="250" fill="#2d2440"/><rect width="400" height="150" fill="url(#${u}wl)"/>`;
+  for(let x=12;x<400;x+=52)s+=`<rect x="${x}" y="8" width="44" height="98" rx="2" fill="none" stroke="#4d3f70" stroke-width="2"/><path d="M${x+2} 10 L${x+42} 10" stroke="#5a4b80" stroke-width="1.2" opacity=".8"/>`;
+  s+=`<rect x="0" y="0" width="400" height="6" fill="#241c36"/>`;
+  s+=`<rect x="0" y="116" width="400" height="36" fill="#4e3220" stroke="${K}" stroke-width="2.4"/><path d="M0 121 L400 121" stroke="#7a5236" stroke-width="2.4"/><path d="M0 124 L400 124" stroke="#2e1c10" stroke-width="1.2"/>`;
+  for(let x=20;x<400;x+=40)s+=`<rect x="${x}" y="129" width="30" height="18" rx="2" fill="none" stroke="#3a2416" stroke-width="1.4"/><path d="M${x+2} 130 L${x+28} 130" stroke="#6a4a2e" stroke-width="1" opacity=".8"/>`;
+  s+=`<path d="M0 152 L400 152 L400 250 L0 250 Z" fill="url(#${u}fl)" stroke="${K}" stroke-width="2.4"/>`;
+  for(const x of [-160,-80,0,80,160,240,320,400,480,560])s+=`<path d="M${200+(x-200)*.45} 152 L${x} 250" stroke="#4a2f1a" stroke-width="2"/>`;
+  s+=`<path d="M0 186 L400 186 M0 222 L400 222" stroke="#4a2f1a" stroke-width="1.6"/>`;
+  s+=[[60,168],[140,170],[220,168],[300,170],[34,204],[118,206],[278,206],[366,204],[90,238],[310,238]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.1" fill="#2e1c10"/>`).join("");
+  s+=[[30,176,70],[150,198,60],[250,176,70],[330,232,50]].map(([x,y,w])=>L(`M${x} ${y} Q${x+w/2} ${y-2} ${x+w} ${y+1}`,1,"#a8744a",' opacity=".45"')).join("");
+  // A round window onto the pocket dimension, and a sconce between the screen and the trophies
+  s+=`<circle cx="112" cy="46" r="24" fill="url(#${u}w)"/><circle cx="112" cy="46" r="17" fill="#120a2e" stroke="${K}" stroke-width="2.4"/>`
+    +[[104,40,1.2],[118,36,.9],[114,52,1.4],[106,54,.8],[121,47,.7]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff6c8"/>`).join("")
+    +`<path d="M100 50 Q112 40 124 46" fill="none" stroke="#7a3ff0" stroke-width="3" opacity=".6"/>`
+    +`<circle cx="112" cy="46" r="17" fill="none" stroke="#8a7aa8" stroke-width="3"/><path d="M95 46 L129 46 M112 29 L112 63" stroke="#8a7aa8" stroke-width="2"/>`;
+  // ---- furniture, lit by the cel filter ----
+  let fx="",live="";
+  // The portal home (always here): a stone arch with carved runes
+  fx+=P("M14 150 L14 70 Q14 34 43 34 Q72 34 72 70 L72 150 Z","#6b7383")+O("M14 150 L14 70 Q14 38 36 35 Q22 46 22 70 L22 150 Z","#565d6c");
+  fx+=L("M18 70 Q18 40 43 38 Q68 40 68 70",1.2,"#8a92a4")+[[19,90],[19,112],[19,134],[67,90],[67,112],[67,134],[30,44],[56,44]].map(([x,y])=>`<path d="M${x-2} ${y-3} L${x} ${y+3} L${x+2} ${y-3} M${x-1.6} ${y} L${x+1.6} ${y}" fill="none" stroke="#3a3f4c" stroke-width="1.1"/>`).join("");
+  fx+=P("M10 150 L76 150 L76 156 L10 156 Z","#565d6c")+P("M38 30 L43 24 L48 30 L43 36 Z","#7fe8ff",' stroke-width="1.6"');
+  live+=`<ellipse class="qt-portal" cx="43" cy="96" rx="20" ry="46" fill="url(#${u}p)" stroke="${K}" stroke-width="2"/>`
+    +`<path class="qt-swirl" d="M43 62 Q60 80 43 96 Q26 112 43 130" fill="none" stroke="#fff" stroke-width="2" opacity=".6"/><path class="qt-swirl" d="M43 72 Q54 84 43 96 Q32 108 43 120" fill="none" stroke="#e6fbff" stroke-width="1.2" opacity=".45"/>`;
+  // Quest Screen: a bezel with a LIVE light, the chart, a glare across the glass
+  if(has("screen")){fx+=P("M146 12 L254 12 L254 84 L146 84 Z","#2a2733")+L("M150 16 L250 16",1.2,"#4a4658")+P("M192 84 L208 84 L213 96 L187 96 Z","#2a2733")+`<circle cx="246" cy="79" r="1.6" fill="#7dff8a"/>`;
+    live+=`<rect x="154" y="20" width="92" height="56" fill="url(#${u}s)"/><g class="qt-screen"><circle cx="164" cy="30" r="3.4" fill="#e8283c"/><text x="171" y="33.4" font-size="9" font-weight="800" fill="#fff">LIVE</text>
+      <path d="M160 64 L176 50 L190 58 L206 42 L222 52 L240 36" fill="none" stroke="#3fe0ff" stroke-width="2.4"/><circle cx="240" cy="36" r="2.4" fill="#3fe0ff"/><rect x="160" y="68" width="${30+Math.round((tr&&tr.b||0)%5)*10}" height="4" fill="#ffd23f"/></g>
+      <path d="M158 22 L178 22 L160 46 Z" fill="#fff" opacity=".1"/>`;}
   else s+=empty(150,16,100,66,"screen");
-  // Trophy Wall
-  s+=`<g transform="translate(0 -10)">`;
-  if(has("trophy")){s+=P("M284 18 L388 18 L388 80 L284 80 Z","#6b4426")+`<path d="M288 22 L384 22 L384 76 L288 76 Z" fill="none" stroke="#a87a4a" stroke-width="1.6"/>`;
-    const k=Math.min(5,tr&&tr.k||0);for(let i=0;i<k;i++)s+=skullIcon(300+i*15,38,6);
-    if(!k)s+=`<text x="336" y="42" text-anchor="middle" font-size="8" fill="#f4e8c8" opacity=".75">no kills yet</text>`;
-    s+=`<g transform="translate(298 64)">${crownIcon()}</g><text x="314" y="68" font-size="9" font-weight="700" fill="#ffe07a">${tr&&tr.r?"#"+tr.r:"–"}</text>`
-      +`<rect x="338" y="56" width="16" height="14" rx="2" fill="#c9cdd6" stroke="${K}" stroke-width="1.4"/><text x="346" y="66" text-anchor="middle" font-size="8" font-weight="700" fill="${K}">B</text><text x="358" y="68" font-size="9" font-weight="700" fill="#f4e8c8">×${tr&&tr.b||0}</text>`;}
-  else s+=empty(284,18,104,62,"trophy");
-  s+=`</g>`;
-  // Crafting Studio
-  if(has("craft"))s+=P("M80 112 L144 112 L144 120 L80 120 Z","#8a5a32")+P("M84 120 L90 120 L90 158 L84 158 Z","#5a3b26")+P("M134 120 L140 120 L140 158 L134 158 Z","#5a3b26")
-      +P("M96 100 L124 100 L120 106 L128 112 L92 112 L100 106 Z","#5b5f6e")+P("M128 88 L132 84 L142 94 L138 98 Z","#c9cdd6")+P("M126 98 L136 90 L139 93 L129 101 Z","#7a4a26")
-      +`<circle class="qt-gem" cx="88" cy="106" r="5" fill="#ff5fa8" stroke="${K}" stroke-width="1.6"/>`;
+  // Trophy Wall: a framed plaque with mounted skulls, the crown and a brass nameplate
+  if(has("trophy")){fx+=`<g transform="translate(0 -10)">`+P("M284 18 L388 18 L388 80 L284 80 Z","#6b4426")+O("M284 18 L292 18 L292 80 L284 80 Z","#4e3018")+`<path d="M288 22 L384 22 L384 76 L288 76 Z" fill="#5a3a20" stroke="#a87a4a" stroke-width="1.6"/>`
+      +grain(290,382,[30,44,58,70],"#7a5232");
+    const k=Math.min(5,tr&&tr.k||0);for(let i=0;i<k;i++)fx+=`<path d="M${294+i*15} 44 L${306+i*15} 44 L${304+i*15} 48 L${296+i*15} 48 Z" fill="#7a5232" stroke="${K}" stroke-width="1"/>`+skullIcon(300+i*15,38,6);
+    if(!k)fx+=`<text x="336" y="42" text-anchor="middle" font-size="8" fill="#f4e8c8" opacity=".75">no kills yet</text>`;
+    fx+=`<g transform="translate(298 64)">${crownIcon()}</g><text x="314" y="68" font-size="9" font-weight="700" fill="#ffe07a">${tr&&tr.r?"#"+tr.r:"–"}</text>`
+      +`<rect x="338" y="56" width="16" height="14" rx="2" fill="#c9cdd6" stroke="${K}" stroke-width="1.4"/><text x="346" y="66" text-anchor="middle" font-size="8" font-weight="700" fill="${K}">B</text><text x="358" y="66" font-size="9" font-weight="700" fill="#f4e8c8">×${tr&&tr.b||0}</text>`
+      +[[288,22],[384,22],[288,76],[384,76]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.4" fill="#d8b04a"/>`).join("")+`</g>`;}
+  else s+=`<g transform="translate(0 -10)">${empty(284,18,104,62,"trophy")}</g>`;
+  // Crafting Studio: a grained workbench, an anvil and hammer, tongs on the wall, a glowing gem
+  if(has("craft")){fx+=P("M78 112 L146 112 L146 121 L78 121 Z","#8a5a32")+grain(80,144,[116],"#5e3d24")+P("M84 121 L90 121 L90 158 L84 158 Z","#5a3b26")+P("M134 121 L140 121 L140 158 L134 158 Z","#5a3b26")+L("M87 140 L137 140",2.4,"#5a3b26");
+    fx+=P("M96 100 L124 100 L120 106 L128 112 L92 112 L100 106 Z","#5b5f6e")+O("M96 100 L104 100 L102 106 L96 112 L92 112 L100 106 Z","#454956")+L("M100 101.6 L122 101.6",1,"#9aa0ad");
+    fx+=P("M128 88 L132 84 L142 94 L138 98 Z","#c9cdd6")+P("M126 98 L136 90 L139 93 L129 101 Z","#7a4a26")+L("M130 86.6 L139 95.6",.9,"#fff",' opacity=".7"');
+    fx+=P("M106 134 L120 134 L120 140 L106 140 Z","#a0702e");
+    live+=`<circle class="qt-gem" cx="88" cy="106" r="8" fill="#ff5fa8" opacity=".25"/><circle class="qt-gem" cx="88" cy="106" r="5" fill="#ff5fa8" stroke="${K}" stroke-width="1.6"/><circle cx="86.6" cy="104.4" r="1.4" fill="#fff"/>`;}
   else s+=empty(78,88,68,70,"craft");
-  // Kitchen
-  if(has("kitchen"))s+=P("M282 104 L394 104 L394 158 L282 158 Z","#b8863a")+`<path d="M282 112 L394 112" stroke="${K}" stroke-width="2"/>`
-      +P("M290 118 L332 118 L332 152 L290 152 Z","#a0702e")+P("M340 118 L386 118 L386 152 L340 152 Z","#a0702e")+`<circle cx="327" cy="135" r="2" fill="${K}"/><circle cx="345" cy="135" r="2" fill="${K}"/>`
-      +P("M300 104 L300 96 L338 96 L338 104 Z","#2a2733")+P("M308 96 Q308 80 320 80 Q332 80 332 96 Z","#5b5f6e")+`<g class="qt-steam" fill="none" stroke="#f4f2f8" stroke-width="2" stroke-linecap="round" opacity=".7"><path d="M315 78 Q312 73 316 68"/><path style="animation-delay:-.8s" d="M324 78 Q327 73 323 68"/></g>`
-      +P("M352 94 L370 94 L368 104 L354 104 Z","#d8343c");
+  // Kitchen: panelled cabinets with brass pulls, a stove with a steaming pot, a red pan, jars on the counter
+  if(has("kitchen")){fx+=P("M282 104 L394 104 L394 158 L282 158 Z","#b8863a")+O("M282 104 L290 104 L290 158 L282 158 Z","#9a6e2c")+P("M280 100 L396 100 L396 106 L280 106 Z","#d8c8a8")+`<path d="M282 112 L394 112" stroke="${K}" stroke-width="2"/>`;
+    fx+=P("M290 118 L332 118 L332 152 L290 152 Z","#a0702e")+P("M340 118 L386 118 L386 152 L340 152 Z","#a0702e")+`<rect x="294" y="122" width="34" height="26" rx="2" fill="none" stroke="#7a5222" stroke-width="1.4"/><rect x="344" y="122" width="38" height="26" rx="2" fill="none" stroke="#7a5222" stroke-width="1.4"/>`
+      +`<circle cx="327" cy="135" r="2.2" fill="#ffd23f" stroke="${K}" stroke-width="1"/><circle cx="345" cy="135" r="2.2" fill="#ffd23f" stroke="${K}" stroke-width="1"/>`;
+    fx+=P("M300 100 L300 94 L338 94 L338 100 Z","#2a2733")+P("M308 94 Q308 80 320 80 Q332 80 332 94 Z","#5b5f6e")+P("M316 80 L324 80 L322 76 L318 76 Z","#3a3f4c")+L("M312 88 Q320 84 328 88",1,"#9aa0ad")+`<path d="M304 94 L306 92 M334 94 L332 92" stroke="#ff8a1f" stroke-width="1.6"/>`;
+    fx+=P("M352 92 L370 92 L368 100 L354 100 Z","#d8343c")+L("M370 95 L386 93",2.4,"#3a2416")+P("M374 100 L378 86 L384 86 L388 100 Z","#e8f0f4")+P("M384 100 L386 90 L392 90 L394 100 Z","#c9e8a0");
+    live+=`<g class="qt-steam" fill="none" stroke="#f4f2f8" stroke-width="2" stroke-linecap="round"><path d="M314 74 Q310 66 316 60"/><path style="animation-delay:-.8s" d="M320 72 Q324 64 318 56"/><path style="animation-delay:-1.6s" d="M326 74 Q330 66 324 60"/></g>`;}
   else s+=empty(282,86,112,72,"kitchen");
-  // Training dummy
-  if(has("train"))s+=P("M266 222 L272 222 L272 150 L266 150 Z","#7a4a26")+P("M256 226 L282 226 L282 232 L256 232 Z","#5a3b26")+P("M252 156 L286 156 L282 200 L256 200 Z","#e8c25a")
-      +`<path d="M256 168 L282 168 M257 184 L281 184" stroke="#a8862a" stroke-width="2"/>`+P("M240 160 L298 160 L298 168 L240 168 Z","#7a4a26")
-      +`<circle cx="269" cy="140" r="14" fill="#e8c25a" stroke="${K}" stroke-width="2.4"/><circle cx="269" cy="178" r="8" fill="none" stroke="#e8283c" stroke-width="2.4"/><circle cx="269" cy="178" r="2.6" fill="#e8283c"/><path d="M263 136 l5 5 m0 -5 l-5 5 M271 136 l5 5 m0 -5 l-5 5" stroke="${K}" stroke-width="1.8"/>`;
+  // Training dummy: burlap with stitches, a straw tuft, a painted target, a nicked post
+  if(has("train")){fx+=P("M266 222 L272 222 L272 150 L266 150 Z","#7a4a26")+L("M268 200 l3 2 M268 212 l3 -2",1,"#4e2e16")+P("M254 226 L284 226 L284 233 L254 233 Z","#5a3b26");
+    fx+=P("M252 156 L286 156 L282 200 L256 200 Z","#e8c25a")+O("M252 156 L260 156 L262 200 L256 200 Z","#c9a040")+`<path d="M256 168 L282 168 M257 184 L281 184" stroke="#a8862a" stroke-width="2"/>`
+      +L("M262 160 l2 3 l2 -3 l2 3 l2 -3 M266 192 l2 3 l2 -3 l2 3",1,"#7a5a1a")+P("M240 160 L298 160 L298 168 L240 168 Z","#7a4a26")+L("M244 164 L294 164",1,"#4e2e16");
+    fx+=`<circle cx="269" cy="140" r="14" fill="#e8c25a" stroke="${K}" stroke-width="2.4"/>`+L("M262 136 L266 140 M266 136 L262 140 M272 136 L276 140 M276 136 L272 140",1.8)+L("M263 147 Q269 150 275 147",1.4)
+      +L("M260 128 Q262 122 266 126 M270 126 Q273 120 276 126",1.6,"#c9a040")+L("M262 132 Q264 129 268 131",1,"#fff",' opacity=".4"');
+    fx+=`<circle cx="269" cy="178" r="8" fill="none" stroke="#e8283c" stroke-width="2.4"/><circle cx="269" cy="178" r="3" fill="#e8283c"/>`;}
   else s+=empty(244,124,52,104,"train");
-  // Bed
-  if(has("bed"))s+=P("M6 176 L22 176 L22 236 L6 236 Z","#5a3b26")+P("M14 196 L124 196 L124 230 L14 230 Z","#7a4a26")+P("M18 186 L122 186 L122 204 L18 204 Z","#f4f2f8")
-      +P("M22 180 Q22 172 32 172 L52 172 Q60 172 60 180 L60 192 L22 192 Z","#ffffff")+P("M54 188 L124 188 Q128 200 124 212 L54 212 Q50 200 54 188 Z","#6b4aa8")
-      +`<path d="M66 194 L116 194 M66 204 L116 204" stroke="#8a6ac8" stroke-width="1.6"/>`+P("M116 230 L124 230 L124 240 L116 240 Z","#5a3b26");
+  // Bed: a carved headboard, a quilted blanket, a plump pillow, little feet
+  if(has("bed")){fx+=P("M4 168 L24 168 L24 238 L4 238 Z","#5a3b26")+O("M4 168 L10 168 L10 238 L4 238 Z","#3e2818")+P("M6 164 Q14 156 22 164 Z","#7a4a26")+L("M8 180 L20 180 M8 216 L20 216",1.2,"#7a5236");
+    fx+=P("M14 196 L124 196 L124 230 L14 230 Z","#7a4a26")+grain(18,122,[206,220],"#5a3b26")+P("M18 186 L122 186 L122 204 L18 204 Z","#f4f2f8");
+    fx+=P("M22 180 Q22 170 33 170 L52 170 Q61 170 61 180 L61 192 L22 192 Z","#ffffff")+L("M28 178 Q40 174 54 178",1,"#c9cdd6");
+    fx+=P("M54 186 L124 186 Q128 200 124 214 L54 214 Q50 200 54 186 Z","#6b4aa8")+O("M54 206 L124 206 Q126 210 124 214 L54 214 Q52 210 54 206 Z","#4e3488");
+    fx+=`<path d="M70 186 L70 214 M88 186 L88 214 M106 186 L106 214 M54 196 L124 196" stroke="#8a6ac8" stroke-width="1.4"/>`+[[62,191],[79,191],[97,191],[115,191],[62,205],[79,205],[97,205],[115,205]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.2" fill="#ffd23f"/>`).join("");
+    fx+=P("M116 230 L124 230 L124 240 L116 240 Z","#5a3b26")+P("M14 230 L22 230 L22 240 L14 240 Z","#5a3b26");}
   else s+=empty(8,168,118,70,"bed");
-  // Bath
-  if(has("bath"))s+=P("M298 198 L394 198 Q396 236 352 238 L340 238 Q296 236 298 198 Z","#f4f2f8")+P("M296 194 L396 194 L396 200 L296 200 Z","#d5d9e2")
-      +P("M306 236 L312 236 L310 244 L304 244 Z","#ffd23f")+P("M382 236 L388 236 L390 244 L384 244 Z","#ffd23f")
-      +`<g class="qt-bub">${[[312,188,6],[326,184,8],[342,188,6],[358,183,9],[376,188,6],[334,176,4],[366,174,3]].map(([x,y,r],i)=>`<circle style="animation-delay:-${i*.4}s" cx="${x}" cy="${y}" r="${r}" fill="#e6fbff" stroke="#7fbbe0" stroke-width="1.2"/>`).join("")}</g>`
-      +P("M386 186 L390 168 L398 168 L396 186 Z","#c9cdd6");
+  // Bath: a clawfoot tub with a rolled rim, brass taps and a towel
+  if(has("bath")){fx+=P("M298 198 L394 198 Q396 236 352 238 L340 238 Q296 236 298 198 Z","#f4f2f8")+O("M300 202 Q300 230 330 236 Q310 226 308 202 Z","#d5d9e2")+P("M296 194 L396 194 L396 200 L296 200 Z","#e6e9f0");
+    fx+=P("M306 236 L312 236 L310 245 L303 245 Z","#ffd23f")+P("M382 236 L388 236 L391 245 L384 245 Z","#ffd23f");
+    fx+=P("M386 186 L390 168 L398 168 L396 186 Z","#c9cdd6")+P("M376 192 L380 178 L386 178 L384 192 Z","#ffd23f")+P("M300 200 L314 200 L314 222 Q307 226 300 222 Z","#e8283c")+L("M302 206 L312 206 M302 212 L312 212",1,"#fff");
+    fx+=L("M372 204 Q380 214 376 228",2,"#fff",' opacity=".6"');
+    live+=`<g class="qt-bub">${[[312,188,6],[326,184,8],[342,188,6],[358,183,9],[376,188,6],[334,176,4],[366,174,3]].map(([x,y,r],i)=>`<circle style="animation-delay:-${i*.4}s" cx="${x}" cy="${y}" r="${r}" fill="#e8f6ff" stroke="${K}" stroke-width="1.6"/>`).join("")}</g>`
+      +[[310,186],[324,181],[356,180]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.4" fill="#fff"/>`).join("");}
   else s+=empty(296,170,100,72,"bath");
+  // The rug the owner stands on: patterned, with a border and tassels
+  s+=`<ellipse cx="196" cy="212" rx="96" ry="23" fill="#2a1420" opacity=".5"/>`;
+  const rug=`<ellipse cx="196" cy="212" rx="92" ry="22" fill="#8a2e4a" stroke="${K}" stroke-width="2.4"/><ellipse cx="196" cy="212" rx="74" ry="15" fill="none" stroke="#ffd23f" stroke-width="1.6" stroke-dasharray="4 3"/>`
+    +`<ellipse cx="196" cy="212" rx="50" ry="9" fill="#6a1e38" stroke="#d8b04a" stroke-width="1.2"/><path d="M180 212 L196 207 L212 212 L196 217 Z" fill="#d8b04a" opacity=".85"/>`
+    +[-1,1].map(d=>[0,1,2,3,4].map(i=>L(`M${196+d*92} ${208+i*2} l${d*5} 0`,1.2,"#d8b04a")).join("")).join("");
+  s+=`<g filter="url(#${u}fx)">${rug}${fx}</g>${live}`;
+  // the sconce: an iron bracket, a candle and a flickering flame, with its light falling across the room
+  s+=P("M264 40 L272 40 L272 48 L264 48 Z","#3a3f4c")+P("M266 30 L270 30 L270 40 L266 40 Z","#f4ead0")+`<path class="qt-gem" d="M268 21 Q264 26 268 30 Q272 26 268 21 Z" fill="#ffb04a" stroke="${K}" stroke-width="1"/>`;
+  s+=`<rect width="400" height="250" fill="url(#${u}l)"/>`;
   // The owner, standing on the rug
   const avs=Array.isArray(av)?av.filter(Boolean):av?[av]:[];
   // One owner stands on the rug; a hall crowd fans out between the bed and the dummy, in two rows past three
@@ -4527,7 +4580,7 @@ function quartersSVG(up,av,tr,showEmpty){
   rows.forEach((row,ri)=>{const back=n>3&&ri===0,w=n===1?98:n<=3?84:back?64:76,feet=n===1?219:n<=3?229:back?210:238,h=w*1.4;
     row.forEach((a,i)=>{const c=n===1?194:row.length===1?186:(back?148:140)+i*((back?224:232)-(back?148:140))/(row.length-1);
       s+=a.replace(/^<svg viewBox="0 0 300 420"/,`<svg x="${(c-w/2).toFixed(1)}" y="${(feet-h*.93).toFixed(1)}" width="${w}" height="${h.toFixed(1)}" viewBox="0 0 300 420"`);});});
-  return s+`</svg>`;
+  return s+`<rect width="400" height="250" fill="url(#${u}v)" pointer-events="none"/></svg>`;
 }
 function skullIcon(x,y,r){return `<g><path d="M${x-r} ${y} Q${x-r} ${y-r*1.2} ${x} ${y-r*1.2} Q${x+r} ${y-r*1.2} ${x+r} ${y} L${x+r*.6} ${y+r*.5} L${x+r*.6} ${y+r} L${x-r*.6} ${y+r} L${x-r*.6} ${y+r*.5} Z" fill="#f4f2f8" stroke="#15131c" stroke-width="1.2"/><circle cx="${x-r*.38}" cy="${y-r*.1}" r="${r*.26}" fill="#15131c"/><circle cx="${x+r*.38}" cy="${y-r*.1}" r="${r*.26}" fill="#15131c"/></g>`;}
 function crownIcon(){return `<path d="M0 10 L0 2 L4 6 L8 0 L12 6 L16 2 L16 10 Z" fill="#ffd23f" stroke="#15131c" stroke-width="1.2"/>`;}
@@ -5896,12 +5949,77 @@ function spellIcon(id){
   const S=SPELLS[id],c=SPELL_COL[S&&S.school]||"#3fe0ff",g="sp"+(++avUid);
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs><radialGradient id="${g}" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="${shadeHex(c,.45)}"/><stop offset=".6" stop-color="${c}"/><stop offset="1" stop-color="${shadeHex(c,-.45)}"/></radialGradient></defs>`
     +`<circle cx="50" cy="50" r="46" fill="url(#${g})" stroke="${INK}" stroke-width="4"/><circle cx="50" cy="50" r="38" fill="none" stroke="#fff" stroke-width="1.6" opacity=".35"/>${spellGlyph(id)}</svg>`;}
+/* Consumables, cel-shaded like the gear and pets: glass with a liquid line and a curved glint, corks and wax,
+   parchment with a seal, a fused bomb, on a dark teal tile (the consumables' colour in the backpack) with a soft glow
+   in the item's colour behind it. Drawn at final stroke weight, so they skip the comic outline pass. */
+const CONS_ICON={potion:1,focus:1,mana:1,antidote:1,scroll:1,smoke:1};
+const celDefs=(u,dx)=>`<filter id="${u}fx" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+<feFlood flood-color="#fff0dc" result="warm"/><feBlend in="SourceGraphic" in2="warm" mode="multiply" result="lit"/>
+<feOffset in="SourceAlpha" dx="${dx||5}" dy="-1.6" result="so"/><feComposite in="SourceAlpha" in2="so" operator="out" result="sb"/>
+<feFlood flood-color="#1a1030" flood-opacity=".4"/><feComposite in2="sb" operator="in" result="shd"/>
+<feOffset in="SourceAlpha" dx="-1.7" dy=".4" result="o"/><feComposite in="SourceAlpha" in2="o" operator="out" result="rim"/>
+<feFlood flood-color="#ffb04a" flood-opacity=".9"/><feComposite in2="rim" operator="in" result="rimc"/>
+<feComposite in="lit" in2="SourceAlpha" operator="in" result="litc"/>
+<feMerge><feMergeNode in="litc"/><feMergeNode in="shd"/><feMergeNode in="rimc"/></feMerge></filter>`;
+function consIcon(k){
+  const u="ci"+(++avUid),K=INK;
+  const P=(d,c,x)=>`<path d="${d}" fill="${c}" stroke="${K}" stroke-width="3.2" stroke-linejoin="round"${x||""}/>`,O=(d,c,x)=>`<path d="${d}" fill="${c}" stroke="none"${x||""}/>`;
+  const L=(d,w,c,x)=>`<path d="${d}" fill="none" stroke="${c||K}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${x||""}/>`;
+  const glowC={potion:"#ff3a4a",focus:"#ffb21f",mana:"#3f8aff",antidote:"#5fd06a",scroll:"#ffd78a",smoke:"#ff8a1f"}[k];
+  let s=`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>${celDefs(u)}
+<radialGradient id="${u}bg" cx="50%" cy="42%" r="72%"><stop offset="0" stop-color="#2f6f78"/><stop offset="1" stop-color="#0f2228"/></radialGradient>
+<radialGradient id="${u}g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${glowC}" stop-opacity=".55"/><stop offset="1" stop-color="${glowC}" stop-opacity="0"/></radialGradient></defs>
+<rect width="100" height="100" fill="url(#${u}bg)"/><circle cx="50" cy="58" r="40" fill="url(#${u}g)"/><ellipse cx="50" cy="90" rx="26" ry="4" fill="#000" opacity=".4"/>`;
+  let b="",top="";
+  // a round flask: neck, cork, glass, liquid with a lighter surface, bubbles, and a curved glint
+  const flask=(liq,liqL,liqD,cork)=>P("M44 26 L56 26 L56 38 Q78 46 78 64 Q78 88 50 88 Q22 88 22 64 Q22 46 44 38 Z","#e8f4f8")
+    +P("M25 60 Q50 53 75 60 Q76 86 50 86 Q24 86 25 60 Z",liq,' stroke-width="2"')+O("M26 66 Q28 84 46 86 Q32 80 30 66 Z",liqD,' opacity=".85"')
+    +O("M26 60 Q50 54 74 60 Q50 64 26 60 Z",liqL)+P(`M41 14 L59 14 L58 26 L42 26 Z`,cork||"#c98a3c",' stroke-width="2.6"')+L("M44 18 L56 18 M44 22 L56 22",1,"#8a5a24")
+    +L("M41 26 L59 26",3.4);
+  const glint=`<path d="M30 54 Q28 64 32 74" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" opacity=".75"/><circle cx="34" cy="48" r="2" fill="#fff" opacity=".8"/><path d="M56 30 L56 36" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".6"/>`;
+  const bubbles=(c)=>`<circle cx="58" cy="74" r="2.4" fill="none" stroke="${c}" stroke-width="1.4"/><circle cx="48" cy="80" r="1.6" fill="none" stroke="${c}" stroke-width="1.2"/><circle cx="64" cy="68" r="1.2" fill="${c}"/>`;
+  switch(k){
+    case "potion": b=flask("#e8283c","#ff6a6a","#a3172a")+P("M44 70 Q44 64 50 68 Q56 64 56 70 Q56 75 50 79 Q44 75 44 70 Z","#fff4f4",' stroke-width="1.8"');top=glint+bubbles("#ffb0b0");break;
+    case "focus": b=flask("#ff9a1f","#ffd23f","#c46a10")+P("M50 62 L53.4 69 L61 69.6 L55.2 74.6 L57 82 L50 78 L43 82 L44.8 74.6 L39 69.6 L46.6 69 Z","#fff6c8",' stroke-width="1.8"');top=glint+bubbles("#fff0a0");break;
+    case "mana": b=flask("#2f78d0","#7fb8ff","#1a4a8a","#7a5a9a")+L("M36 74 Q44 66 52 72 Q60 78 66 70",2,"#bfe0ff");top=glint+`<path d="M60 76 l1 2.6 2.6 1 -2.6 1 -1 2.6 -1 -2.6 -2.6 -1 2.6 -1 Z" fill="#fff"/><path d="M40 70 l.7 1.8 1.8 .7 -1.8 .7 -.7 1.8 -.7 -1.8 -1.8 -.7 1.8 -.7 Z" fill="#fff"/>`;break;
+    case "antidote":
+      b=P("M43 24 L57 24 L57 34 L66 40 L66 84 Q66 90 60 90 L40 90 Q34 90 34 84 L34 40 L43 34 Z","#e8f4f8")+P("M36 54 L64 54 L64 84 Q64 88 59 88 L41 88 Q36 88 36 84 Z","#5fd06a",' stroke-width="2"')
+        +O("M36 58 L44 58 L44 88 L41 88 Q36 88 36 84 Z","#3a9a46")+O("M36 54 L64 54 L64 58 L36 58 Z","#9af0a0")
+        +P("M42 12 L58 12 L58 24 L42 24 Z","#7a4a26",' stroke-width="2.6"')+O("M42 20 Q46 26 50 21 Q54 26 58 20 L58 24 L42 24 Z","#c0392b")
+        +P("M38 62 L62 62 L62 78 L38 78 Z","#f4ead0",' stroke-width="1.8"')+P("M50 64 Q57 68 50 76 Q43 68 50 64 Z","#3a9a46",' stroke-width="1.4"')+L("M50 66 L50 75",1,"#f4ead0");
+      top=`<path d="M38 44 L38 52" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M40 82 L40 86" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".5"/>`;break;
+    case "scroll":
+      b=P("M24 24 L76 24 L76 76 L24 76 Z","#f4ead0")+O("M24 24 L34 24 L34 76 L24 76 Z","#d8c8a2")
+        +`<ellipse cx="24" cy="50" rx="8" ry="27" fill="#e8dcb8" stroke="${K}" stroke-width="3"/><ellipse cx="76" cy="50" rx="8" ry="27" fill="#e8dcb8" stroke="${K}" stroke-width="3"/><ellipse cx="76" cy="50" rx="3" ry="22" fill="#c9b88e"/>`
+        +L("M38 34 L66 34 M38 41 L68 41 M38 48 L62 48 M38 55 L66 55 M38 62 L56 62",1.8,"#8a7a5a")
+        +L("M50 76 L44 92 M54 76 L60 92",4,"#c0392b")+`<circle cx="52" cy="72" r="8" fill="#c0392b" stroke="${K}" stroke-width="2.4"/><path d="M48 70 L52 76 L56 70" fill="none" stroke="#7a1a12" stroke-width="1.6"/>`;
+      top=`<path d="M70 30 L70 68" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".5"/><circle cx="54" cy="69" r="1.6" fill="#ff8a7a"/>`;break;
+    case "smoke":
+      b=`<circle cx="46" cy="62" r="26" fill="#2a2733" stroke="${K}" stroke-width="3.2"/>`+O("M24 66 Q26 84 44 88 Q30 80 30 64 Z","#15131c")
+        +L("M30 70 Q46 76 62 70",1.4,"#4a4658")+P("M39 32 L55 32 L55 40 L39 40 Z","#9aa0ad",' stroke-width="2.4"')+L("M42 34 L42 38 M47 34 L47 38 M52 34 L52 38",1,"#5b5f6e")
+        +L("M53 32 Q60 20 70 22",3.4)+L("M53 32 Q60 20 70 22",1.6,"#c9a46a");
+      top=`<circle cx="73" cy="20" r="9" fill="#ff8a1f" opacity=".35"/><path d="M73 12 L75.4 17.6 L81 18.4 L76.6 22.2 L78 28 L73 25 L68 28 L69.4 22.2 L65 18.4 L70.6 17.6 Z" fill="#ffd23f" stroke="${K}" stroke-width="1.4"/>`
+        +`<path d="M34 48 Q40 42 48 42" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"/><circle cx="32" cy="56" r="1.8" fill="#fff" opacity=".6"/>`;break;
+  }
+  return s+`<g filter="url(#${u}fx)">${b}</g>${top}<rect x="0" y="0" width="100" height="100" fill="none" stroke="${K}" stroke-width="5"/></svg>`;
+}
+/* A spell tome: leather over boards in the school's colour, gilt corner caps, a clasp, page edges, and the school's
+   glyph glowing on the cover. The tile behind it keeps the tome's rarity colour. */
 function tomeIcon(id){
-  const S=SPELLS[id],c=SPELL_COL[S&&S.school]||"#3fe0ff",cd=shadeHex(c,-.45);
-  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect width="100" height="100" fill="${RAR_BG[S.rar]||PAPER}"/>`
-    +`<path d="M24 16 L74 16 Q80 16 80 22 L80 82 Q80 88 74 88 L24 88 Z" fill="#f4ead0" stroke="${INK}" stroke-width="3.4"/><path d="M20 14 L70 14 Q76 14 76 20 L76 80 Q76 86 70 86 L20 86 Z" fill="${cd}" stroke="${INK}" stroke-width="3.4"/>`
-    +`<path d="M26 14 L26 86" stroke="${INK}" stroke-width="2.4"/><path d="M30 20 L70 20 L70 80 L30 80 Z" fill="none" stroke="#ffd23f" stroke-width="2" opacity=".85"/>`
-    +`<g transform="translate(50 50) scale(.42) translate(-50 -50)">${spellGlyph(id)}</g><circle cx="76" cy="50" r="3.4" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/></svg>`;}
+  const S=SPELLS[id],c=SPELL_COL[S&&S.school]||"#3fe0ff",cd=shadeHex(c,-.45),cdd=shadeHex(c,-.65),u="tm"+(++avUid),K=INK;
+  const P=(d,f,x)=>`<path d="${d}" fill="${f}" stroke="${K}" stroke-width="3.2" stroke-linejoin="round"${x||""}/>`;
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>${celDefs(u)}
+<radialGradient id="${u}g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${c}" stop-opacity=".9"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient></defs>
+<rect width="100" height="100" fill="${RAR_BG[S.rar]||PAPER}"/><rect width="100" height="100" fill="#000" opacity=".25"/><ellipse cx="52" cy="92" rx="30" ry="4" fill="#000" opacity=".4"/>
+<g filter="url(#${u}fx)">`
+    +P("M24 16 L76 16 Q82 16 82 22 L82 84 Q82 90 76 90 L24 90 Z","#f4ead0")+`<path d="M78 22 L78 86 M74 20 L74 88" stroke="#c9b88e" stroke-width="1.2"/>`
+    +P("M18 13 L70 13 Q77 13 77 20 L77 81 Q77 88 70 88 L18 88 Z",cd)+`<path d="M18 13 L28 13 L28 88 L18 88 Z" fill="${cdd}" stroke="${K}" stroke-width="2.4"/>`
+    +`<path d="M20 26 L26 26 M20 52 L26 52 M20 76 L26 76" stroke="${c}" stroke-width="2.4" opacity=".8"/>`
+    +`<path d="M33 20 L71 20 L71 81 L33 81 Z" fill="none" stroke="#ffd23f" stroke-width="2" opacity=".9"/><path d="M36 23 L68 23 L68 78 L36 78 Z" fill="none" stroke="#ffd23f" stroke-width=".9" opacity=".6"/>`
+    +[[71,13,-1,1],[71,88,-1,-1]].map(([x,y,dx,dy])=>`<path d="M${x} ${y} L${x+6} ${y} Q${x+6+0*dx} ${y} ${x+6} ${y+6*dy} L${x+6} ${y+10*dy} Z" fill="#d8b04a" stroke="${K}" stroke-width="2"/>`).join("")
+    +`<path d="M74 44 L84 44 L84 56 L74 56 Z" fill="#d8b04a" stroke="${K}" stroke-width="2.2"/><circle cx="80" cy="50" r="1.8" fill="${K}"/>`
+    +`</g><circle cx="52" cy="50" r="20" fill="url(#${u}g)" opacity=".7"/><g transform="translate(52 50) scale(.42) translate(-50 -50)">${spellGlyph(id)}</g>`
+    +`<path d="M24 18 L66 18" stroke="#fff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/><rect x="0" y="0" width="100" height="100" fill="none" stroke="${K}" stroke-width="5"/></svg>`;}
 function renderSpellbook(){
   const sec=$("spellPanel"),el=$("spellbook");if(!sec||!el)return;
   const known=player.spells||[],tomes=player.tomes||[];sec.hidden=!known.length&&!tomes.length;if(sec.hidden)return;
@@ -9726,7 +9844,7 @@ function comicize(svg,kind){
   const A=avatarSVG,B=bossSVG,Lt=lootIconSVG,Pt=petSVG,X=boxIconSVG;
   avatarSVG=(...a)=>A(...a); // drawn comic-native: torchlit dungeon, no recolour needed
   bossSVG=(...a)=>B(...a); // tarot cards are drawn in their own ink style
-  lootIconSVG=(...a)=>comicize(Lt(...a),"loot");
+  lootIconSVG=(id,raw)=>CONS_ICON[id]&&!raw?consIcon(id):comicize(Lt(id,raw),"loot"); // consumables have their own cel-shaded art
   petSVG=(...a)=>Pt(...a); // pets are drawn cel-shaded in their own den, like the crawlers
   boxIconSVG=(...a)=>X(...a); // the crate art matches the opening scene, so no comic recolour
 }
