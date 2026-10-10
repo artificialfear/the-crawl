@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=f48c6691f5"></script>
-<script>window.CRAWL_BUILD="f48c6691f5";</script>
+<script src="firebase-config.js?v=075bad58fd"></script>
+<script>window.CRAWL_BUILD="075bad58fd";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -10951,7 +10951,7 @@ const SFX=(()=>{
     gong:()=>{tone(73,2.2,"sine",.6,0,68);tone(146,1.6,"sine",.18,0);noise(.6,.1,"lowpass",500);},
     tick:()=>{noise(.012,.06,"highpass",5000);},
     // UI: a soft click for buttons and tabs, a rounder pop for tapping gear, a metal clink for putting gear on
-    click:()=>{noise(.018,.07,"bandpass",2400,0,null,2.5);tone(1800,.02,"sine",.025,0);},
+    click:g=>{g=g||1;noise(.018,.07*g,"bandpass",2400,0,null,2.5);tone(1800,.02,"sine",.025*g,0);},
     spell:id=>{const T=(n,d,ty,v,dl,g)=>tone(NOTE(n),d,ty,v,dl||0,g!=null?NOTE(g):undefined);
       switch(id){
         case "firebolt":noise(.45,.22,"bandpass",600,0,2600,2);tone(90,.5,"sine",.4,.62,40);noise(.35,.3,"lowpass",700,.62,null,1);break;
@@ -10970,7 +10970,7 @@ const SFX=(()=>{
         case "beacon":T(60,.9,"sine",.14,0,84);T(84,.8,"triangle",.1,.45);T(91,.6,"sine",.06,.55);break;
         default:[64,71,76,83].forEach((n,i)=>T(n,.22,"sine",.12,i*.05,n+12));}},
     cast:()=>{[64,71,76,83].forEach((n,i)=>tone(NOTE(n),.22,"sine",.12,i*.05,NOTE(n+12)));noise(.35,.05,"highpass",4500,.12,null,2);},
-    pop:()=>{tone(520,.06,"sine",.18,0,880);noise(.02,.05,"bandpass",3000,0,null,3);},
+    pop:g=>{g=g||1;tone(520,.06,"sine",.18*g,0,880);noise(.02,.05*g,"bandpass",3000,0,null,3);},
     equip:()=>{tone(2093,.22,"triangle",.07,0);tone(3136,.16,"sine",.05,.012);tone(4699,.08,"sine",.025,.02);noise(.03,.12,"highpass",6000);tone(1568,.18,"triangle",.05,.07);tone(2637,.12,"sine",.03,.08);},
   };
   /* Background music: two short loops built from the same oscillators, scheduled a little ahead of time.
@@ -13107,7 +13107,7 @@ document.addEventListener("click",e=>{
   if(prefs.sound===false)return;
   const t=e.target.closest&&e.target.closest("button,[role=tab],summary,a,label,.invcell,.rfcell,[role=button]");if(!t||t.disabled)return;
   const gear=t.matches(".invcell,[data-inv],[data-insp],[data-cons],[data-invslot]");
-  const before=SFX.lastAt,t0=Date.now();setTimeout(()=>{if(SFX.lastAt!==before||clipAt>=t0)return;if(!clip("ui-click",.5))SFX.play(gear?"pop":"click");},0);
+  const before=SFX.lastAt,t0=Date.now();setTimeout(()=>{if(SFX.lastAt!==before||clipAt>=t0)return;if(!clip("ui-click",.25))SFX.play(gear?"pop":"click",.5);},0); // half the old volume (2026-10-10)
 },true);
 // Music follows what's on screen: the recap loop during episode replays, the lounge loop during the talk show.
 setInterval(()=>{
