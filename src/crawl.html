@@ -1681,19 +1681,19 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .mapbt-hint{font-size:12px}
 #mapTok{will-change:transform}
 .mrx{transform-box:fill-box;transform-origin:50% 60%}
-.mrx-hop{animation:mrhop .7s cubic-bezier(.3,1.6,.5,1) both}
-.mrx-shake{animation:mrshake .55s ease-out both}
-.mrx-swing{animation:mrswing .6s ease-out both}
-.mrx-pulse{animation:mrpulse .8s ease-out both}
-@keyframes mrhop{0%,100%{transform:none}35%{transform:translateY(-7px) scale(1.18)}70%{transform:translateY(1px) scale(.96)}}
-@keyframes mrshake{0%,100%{transform:none}15%{transform:translateX(-3px) rotate(-6deg)}35%{transform:translateX(3px) rotate(5deg)}55%{transform:translateX(-2px) rotate(-3deg)}75%{transform:translateX(1px)}}
+.mrx-hop{animation:mrhop 1.05s cubic-bezier(.3,1.6,.5,1) both}
+.mrx-shake{animation:mrshake .9s ease-out both}
+.mrx-swing{animation:mrswing 1s ease-out both}
+.mrx-pulse{animation:mrpulse 1.1s ease-out both}
+@keyframes mrhop{0%,100%{transform:none}30%{transform:translateY(-9px) scale(1.3)}60%{transform:translateY(1px) scale(.95)}80%{transform:translateY(-2px) scale(1.04)}}
+@keyframes mrshake{0%,100%{transform:none}10%{transform:translateX(-4px) rotate(-8deg) scale(1.1)}25%{transform:translateX(4px) rotate(7deg) scale(1.1)}40%{transform:translateX(-3px) rotate(-5deg)}55%{transform:translateX(2px) rotate(3deg)}70%{transform:translateX(-1px)}}
 @keyframes mrswing{0%,100%{transform:none}40%{transform:scaleX(.2)}}
-@keyframes mrpulse{0%,100%{transform:none}40%{transform:scale(1.25)}}
+@keyframes mrpulse{0%,100%{transform:none}35%{transform:scale(1.35)}}
 .mrxp>*{transform-box:fill-box;transform-origin:center;opacity:0}
-.mrp-fly{animation:mrfly .9s cubic-bezier(.2,.7,.4,1) both}
-.mrp-ring{animation:mrring .7s ease-out both}
-.mrp-puff{animation:mrpuff .8s ease-out both}
-.mrp-snap{transform-origin:50% 100%;animation:mrsnap .9s ease-out both}
+.mrp-fly{animation:mrfly 1.4s cubic-bezier(.2,.7,.4,1) both}
+.mrp-ring{animation:mrring 1.1s ease-out both}
+.mrp-puff{animation:mrpuff 1.2s ease-out both}
+.mrp-snap{transform-origin:50% 100%;animation:mrsnap 1.4s ease-out both}
 @keyframes mrfly{0%{opacity:0;transform:scale(.4)}12%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1)}}
 @keyframes mrring{0%{opacity:.95;transform:scale(.35)}100%{opacity:0;transform:scale(1.7)}}
 @keyframes mrpuff{0%{opacity:.8;transform:scale(.4)}100%{opacity:0;transform:translateY(-5px) scale(1.6)}}
@@ -5240,7 +5240,7 @@ function mwCheck(){
   const pops=[...document.querySelectorAll("#toasts .toast,#crawlCam")].map(t=>t.getBoundingClientRect()).filter(q=>q.height);
   if(at.some(([x,y])=>pops.some(q=>x>q.left-pad&&x<q.right+pad&&y>q.top-pad&&y<q.bottom+pad)))return; // a popup over the walk
   w.at=Date.now();renderMap();
-  setTimeout(()=>{if(MWALK.w===w)MWALK.w=null;},mwDur(w)+1500);
+  setTimeout(()=>{if(MWALK.w===w)MWALK.w=null;},mwDur(w)+2000);
 }
 // After the map is drawn: park the token at the start of an unplayed walk, or run (or resume) the walk.
 function mwApply(m){
@@ -5254,7 +5254,7 @@ function mwApply(m){
 }
 // Reactions for the rooms on a walk that's playing: {room: [kind, ms until it plays (negative once it has started)]}
 function mwReacts(m){const w=MWALK.w,o={};if(!w||!w.at||!m||w.key!==m.week+"|"+m.floor)return o;const t=Date.now()-w.at;
-  w.pts.forEach((i,k)=>{if(k&&w.kinds[k]&&MW_LEAD+k*MW_STEP-t>-1400)o[i]=[w.kinds[k],Math.round(MW_LEAD+k*MW_STEP-t)];});return o;}
+  w.pts.forEach((i,k)=>{if(k&&w.kinds[k]&&MW_LEAD+k*MW_STEP-t>-1900)o[i]=[w.kinds[k],Math.round(MW_LEAD+k*MW_STEP-t)];});return o;}
 const MW_ICON={chest:"mrx-hop",merchant:"mrx-hop",trap:"mrx-shake",mob:"mrx-shake",door:"mrx-swing",shrine:"mrx-pulse",stairs:"mrx-pulse"};
 function mwFx(kind,x,y,d){
   const D=v=>` style="animation-delay:${d+(v||0)}ms`,q=[];
@@ -5278,7 +5278,7 @@ function mwFx(kind,x,y,d){
     for(let i=0;i<6;i++){const a=i/6*Math.PI*2+.3;q.push(fly(`<path d="M${x+Math.cos(a)*12} ${y+Math.sin(a)*12} L${x+Math.cos(a+.18)*18} ${y+Math.sin(a+.18)*18} L${x+Math.cos(a)*22} ${y+Math.sin(a)*22}" fill="none" stroke="#2a1c10" stroke-width="2.2" stroke-linejoin="round"/>`,Math.cos(a)*6,Math.sin(a)*6,i*25));}}
   else if(kind==="door")q.push(dust(),puff(x-16,y+8,3,180),puff(x+16,y+8,3,200));
   else q.push(dust()); // empty rooms, and rooms you walk back through
-  return `<g class="mrxp" pointer-events="none">${q.join("")}</g>`;
+  return `<g class="mrxp" pointer-events="none" transform="translate(${x} ${y}) scale(1.3) translate(${-x} ${-y})">${q.join("")}</g>`; // 30% larger than drawn
 }
 function mapSVG(m){
   const S=58,P=10,W=MAP_W*S+P*2,H=MAP_H*S+P*2,K="#2a1c10",c=(x,y)=>[P+x*S+S/2,P+y*S+S/2];
