@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=7e4a00628a"></script>
-<script>window.CRAWL_BUILD="7e4a00628a";</script>
+<script src="firebase-config.js?v=62b30729ee"></script>
+<script>window.CRAWL_BUILD="62b30729ee";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -965,8 +965,8 @@ details summary::-webkit-details-marker{display:none}
 .themebar .boon{color:var(--leaf)}
 .themechip.strag{background:#555a6e}
 .themebar .bane{color:var(--blood)}
-.bar.boss.fog b{background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 8px,rgba(255,255,255,.18) 8px 16px);animation:fogdrift 4s linear infinite}
-@keyframes fogdrift{to{background-position:32px 0}}
+.bar.boss.fog b{background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 8px,rgba(255,255,255,.18) 8px 16px);animation:fogbar 4s linear infinite}
+@keyframes fogbar{to{background-position:32px 0}}
 s.was{color:var(--muted);font-size:12px;margin-right:4px}
 .ep-theme{display:flex;flex-direction:column;font-size:13px;color:var(--muted)}
 .ep-theme b{color:var(--mana)}
@@ -1700,6 +1700,28 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .maproom{cursor:pointer}.maproom:hover{fill:rgba(232,40,60,.08)}
 .mapbt{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px;padding:6px 8px;border:1px dashed #e8283c;border-radius:8px}
 .mapbt-hint{font-size:12px}
+#mapTok{will-change:transform}
+.mrx{transform-box:fill-box;transform-origin:50% 60%}
+.mrx-hop{animation:mrhop .7s cubic-bezier(.3,1.6,.5,1) both}
+.mrx-shake{animation:mrshake .55s ease-out both}
+.mrx-swing{animation:mrswing .6s ease-out both}
+.mrx-pulse{animation:mrpulse .8s ease-out both}
+@keyframes mrhop{0%,100%{transform:none}35%{transform:translateY(-7px) scale(1.18)}70%{transform:translateY(1px) scale(.96)}}
+@keyframes mrshake{0%,100%{transform:none}15%{transform:translateX(-3px) rotate(-6deg)}35%{transform:translateX(3px) rotate(5deg)}55%{transform:translateX(-2px) rotate(-3deg)}75%{transform:translateX(1px)}}
+@keyframes mrswing{0%,100%{transform:none}40%{transform:scaleX(.2)}}
+@keyframes mrpulse{0%,100%{transform:none}40%{transform:scale(1.25)}}
+.mrxp>*{transform-box:fill-box;transform-origin:center;opacity:0}
+.mrp-fly{animation:mrfly .9s cubic-bezier(.2,.7,.4,1) both}
+.mrp-ring{animation:mrring .7s ease-out both}
+.mrp-puff{animation:mrpuff .8s ease-out both}
+.mrp-snap{transform-origin:50% 100%;animation:mrsnap .9s ease-out both}
+@keyframes mrfly{0%{opacity:0;transform:scale(.4)}12%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1)}}
+@keyframes mrring{0%{opacity:.95;transform:scale(.35)}100%{opacity:0;transform:scale(1.7)}}
+@keyframes mrpuff{0%{opacity:.8;transform:scale(.4)}100%{opacity:0;transform:translateY(-5px) scale(1.6)}}
+@keyframes mrsnap{0%{opacity:0;transform:scaleY(0)}20%{opacity:1;transform:scaleY(1.25)}35%{transform:scaleY(1)}75%{opacity:1}100%{opacity:0;transform:scaleY(1)}}
+.mapspare{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px;padding:6px 8px;border:1px dashed #9fd0a0;border-radius:8px}
+.sp-pips{display:inline-flex;gap:4px}.sp-pips i{width:10px;height:10px;border-radius:50%;border:2px solid #9fd0a0;display:block}.sp-pips i.on{background:#9fd0a0;box-shadow:0 0 6px #9fd0a0aa}
+
 .undobar{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:9500;display:flex;align-items:center;gap:10px;
   max-width:calc(100vw - 24px);padding:8px 8px 8px 14px;border-radius:999px;background:#1e1533;border:2px solid var(--gold);box-shadow:0 0 0 2px #000,0 8px 24px rgba(0,0,0,.6);overflow:hidden;animation:updin .25s ease-out}
 .undobar .ub-txt{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56vw}
@@ -5027,21 +5049,16 @@ function mapStep(t,dash){
   }
   }
   const hb=player.boss;
-  if(hb&&hb.hunt&&hb.engaged&&!hb.defeated)return out; // in a fight: you stay put until it falls or you retreat
+  if(hb&&hb.hunt&&hb.engaged&&!hb.defeated){if(!dash)spareBank(out);return out;} // in a fight: you stay put until it falls or you retreat (the step is banked)
   if(lairMode(hb)&&!hb.defeated&&hb.cur==null&&farOf(m)>=3){const ri=hb.lairs.findIndex(l=>l.roam&&!l.dead&&!l.found);
     if(ri>=0&&Math.random()<.1){const L=hb.lairs[ri],res=engageLair(ri);if(res){ui.ambush={name:L.n,tier:L.t,charge:res.charge,roam:true};if(res.loot)ui.ambushLoot=res.loot;
       out.push(mapLog(m,`${L.n} doesn't keep a lair. It roams, and it just found you!`));return out;}}}
   // Walking on rooms you've already explored: back toward a target, or forward again to the frontier.
   if(m.tgt!=null&&m.tgt>farOf(m))m.tgt=null;
-  if(m.tgt!=null&&m.tgt===m.pos){secretDoor(m,out);return out;}             // holding position
-  if(m.tgt!=null||m.pos<farOf(m)){
-    const p=mapPath(m,m.pos,m.tgt!=null?m.tgt:farOf(m))||[m.pos,m.pos+(m.tgt!=null&&m.tgt<m.pos?-1:1)];
-    const from=m.pos;m.pos=p[1];if(Math.abs(m.pos-from)>1)out.push(mapLog(m,`You duck through the shortcut from room ${from+1} to room ${m.pos+1}.`));revisit(m,out);lairCheck(m,out);
-    if(m.tgt===m.pos)out.push(mapLog(m,`You're back at room ${m.pos+1}. You'll hold here until you pick somewhere else.`));
-    if(m.tgt==null&&m.pos===farOf(m))out.push(mapLog(m,`Back at the frontier: room ${m.pos+1}. Onward.`));
-    return out;}
+  if(m.tgt!=null&&m.tgt===m.pos){if(!secretDoor(m,out)&&!dash)spareBank(out);return out;} // holding position (a step that opens nothing is banked)
+  if(m.tgt!=null||m.pos<farOf(m)){mapWalkOne(m,out);return out;}
   if(hb&&hb.hunt&&hb.engaged&&!hb.defeated)return out; // the boss you found blocks the corridor
-  if(m.pos>=mapLen(m)-1)return out;
+  if(m.pos>=mapLen(m)-1){if(!dash)spareBank(out);return out;}
   const next=m.rooms[m.pos+1];
   if(next.t==="door"&&!next.open){
     if(t.effort>=3){next.open=true;out.push(mapLog(m,"You shoulder the sealed door open."));}
@@ -5076,7 +5093,36 @@ function mapStep(t,dash){
   if(rm.t==="empty"&&Math.random()<.3)out.push(mapLog(m,`Room ${m.pos+1}: ${spick(srand("e"+m.pos+m.week),["just a corridor. A rat waves.","nothing here but a suspicious puddle.","an empty room with excellent acoustics.","a hallway lined with other crawlers' abandoned to-do lists."])}`));
   lairCheck(m,out);
   if(rm.t==="stairs"){if(!m.drops)bump("fogwar");giveBox("gold","Explored the whole floor");player.viewers=(player.viewers||0)+15000;bump("explored");out.push(mapLog(m,`You mapped the whole floor and found the stairwell! +a Gold Box and 15K viewers.`));}
+  mapTrail(m,m.pos-1,hb&&hb.hunt&&hb.engaged&&!hb.defeated?"mob":({chest:"chest",trap:"trap",shrine:"shrine",merchant:"merchant",door:"door",stairs:"stairs",mob:"mob",pack:"mob",ambush:"mob",lair:"mob",empty:"empty"})[rm.t]||"step");
   return out;
+}
+/* One step through rooms you've already explored: toward the room you picked, or back up to the frontier. */
+let RK=null; // what the room you just walked back into did (for its reaction on the map)
+function mapWalkOne(m,out){
+  const p=mapPath(m,m.pos,m.tgt!=null?m.tgt:farOf(m))||[m.pos,m.pos+(m.tgt!=null&&m.tgt<m.pos?-1:1)];
+  const from=m.pos;m.pos=p[1];RK=null;if(Math.abs(m.pos-from)>1)out.push(mapLog(m,`You duck through the shortcut from room ${from+1} to room ${m.pos+1}.`));revisit(m,out);lairCheck(m,out);
+  if(m.tgt===m.pos)out.push(mapLog(m,`You're back at room ${m.pos+1}. You'll hold here until you pick somewhere else.`));
+  if(m.tgt==null&&m.pos===farOf(m))out.push(mapLog(m,`Back at the frontier: room ${m.pos+1}. Onward.`));
+  mapTrail(m,from,RK||"step");
+}
+/* Spare steps: a finished quest that can't move you (holding in a room, stuck in a boss fight, nowhere left to go)
+   banks its step instead, up to SPARE_MAX. Spend them from the map to walk through rooms you've already explored,
+   no quest needed. They never explore: every new room still takes a quest. */
+const SPARE_MAX=3;
+function spareBank(out){const n=player.spare||0;if(n>=SPARE_MAX)return;player.spare=n+1;
+  out.push(`No room to move, so you bank a spare step (${player.spare} of ${SPARE_MAX}). Spend it on the map to walk through rooms you've explored.`);}
+function spareDest(m){if(!m)return null;const d=m.tgt!=null?Math.min(m.tgt,farOf(m)):farOf(m);return d===m.pos?null:d;}
+function spareNeed(m){const d=spareDest(m);if(d==null)return 0;const p=mapPath(m,m.pos,d);return p?p.length-1:Math.abs(d-m.pos);}
+function spareWalk(){
+  const m=ensureMap(),hb=player.boss;if(!m||!(player.spare>0))return;
+  if(hb&&hb.hunt&&hb.engaged&&!hb.defeated){toast("You can't walk away mid-fight. Beat it or retreat first.");return;}
+  const out=[],mobs0=(player.mobs||[]).length;let n=0;
+  while(player.spare>0&&spareDest(m)!=null&&n<20){mapWalkOne(m,out);player.spare--;n++;if((player.mobs||[]).length>mobs0)break;} // a mob jumping you stops the walk
+  if(!n)return;
+  const li=ui.lairFound;ui.lairFound=null;
+  store.savePlayer(player).catch(writeFailed);render();
+  toast(`You spend ${n} spare step${n===1?"":"s"}${player.spare?` (${player.spare} left)`:""}.${out.length?" "+out.join(" "):""}`);
+  if(li!=null&&lairDoor(m,li)===m.pos)setTimeout(()=>lairPrompt(li),500);
 }
 /* Arriving in a room: any lair whose door opens off it is found (the Floor boss waits at the stairwell). */
 function lairCheck(m,out){
@@ -5090,16 +5136,16 @@ function openSecret(m,s,out){s.found=true;bump("secrets");const roll=Math.random
   out.push(mapLog(m,`Secret room found! A hidden stash held a ${BOXES[tier].n}.`));
   if(Math.random()<.15){const tm=tomeDrop("a secret room");if(tm)out.push(`On a dusty lectern: ${tm}.`);}}
 /* Standing in the room a marked secret hangs off: any quest pries it open. */
-function secretDoor(m,out){const s=(m.secrets||[]).find(s=>!s.found&&s.located&&s.link===m.pos);if(s)openSecret(m,s,out);}
+function secretDoor(m,out){const s=(m.secrets||[]).find(s=>!s.found&&s.located&&s.link===m.pos);if(s){openSecret(m,s,out);RK="chest";}return !!s;}
 /* Arriving in a room: maybe notice a cracked wall hiding a secret. */
 function crackCheck(m,out){for(const s of (m.secrets||[]))if(!s.found&&!s.located&&s.link===m.pos&&Math.random()<.25){s.located=true;s.fresh=Date.now();
   out.push(mapLog(m,`Room ${m.pos+1}: a draft from a cracked wall. A secret room is marked on your map. Finish a quest here to pry it open.`));}}
 /* Back in a room you've explored: shrines heal again once a day, cleared mob rooms sometimes get a new tenant. */
 function revisit(m,out){const rm=m.rooms[m.pos],td=today(),H=maxHp(player);
-  if(rm.t==="shrine"&&rm.shr!==td){rm.shr=td;const h=Math.min(H-player.hp,Math.round(H*.15));player.hp+=h;out.push(mapLog(m,`Room ${m.pos+1}: the shrine flickers back to life. ${h?`+${h} HP.`:"You were already healthy."}`));}
+  if(rm.t==="shrine"&&rm.shr!==td){rm.shr=td;RK="shrine";const h=Math.min(H-player.hp,Math.round(H*.15));player.hp+=h;out.push(mapLog(m,`Room ${m.pos+1}: the shrine flickers back to life. ${h?`+${h} HP.`:"You were already healthy."}`));}
   if(rm.t==="shrine")rivalSanctuary(m,out);
   if((rm.t==="mob"||rm.t==="pack"||rm.t==="lair")&&!(player.mobs||[]).length&&rm.rsp!==td&&Math.random()<.2){rm.rsp=td;
-    const mb=spawnMob("mob",null);player.mobs=[mb];bump("wanderers");const ml=mapLog(m,`Room ${m.pos+1}: something moved back in. ${mb.a} ${mb.n} jumps you!`);out.push(mobEntrance()?`Room ${m.pos+1}: something moved back in.`:ml);}
+    const mb=spawnMob("mob",null);player.mobs=[mb];bump("wanderers");RK="mob";const ml=mapLog(m,`Room ${m.pos+1}: something moved back in. ${mb.a} ${mb.n} jumps you!`);out.push(mobEntrance()?`Room ${m.pos+1}: something moved back in.`:ml);}
   crackCheck(m,out);secretDoor(m,out);}
 /* Tap a room on the map: walk back to a visited room, or (frontier or beyond) head forward again. */
 function mapGo(i){const m=player.map;if(!m)return;const far=farOf(m);
@@ -5184,11 +5230,83 @@ function mapIcon(t,cx,cy){
     +`<path d="M${x+8} ${y-10} l.8 1.8 1.8 .8 -1.8 .8 -.8 1.8 -.8 -1.8 -1.8 -.8 1.8 -.8 Z" fill="#fff" stroke="none"/>`;
   return "";
 }
+/* ---------- Map walk ----------
+   Each move on the Floor map is added to a trail. The next time the map is on screen with nothing else showing
+   (no report, victory card or entrance), your head token walks the trail room by room, with a little hop along
+   each corridor or shortcut, and every room it reaches plays a short reaction on its icon: a chest pops and
+   spits coins, a trap snaps, a shrine flares, a door swings, a mob room bursts. Kept in memory only (a reload just
+   shows where you are). Quick mode and reduced motion skip it. Rendering is time-based, so a redraw mid-walk
+   carries on from the same moment. */
+const MWALK={w:null,timer:null},MW_STEP=430,MW_LEAD=280,MW_KEEP=7;
+function mapTrail(m,from,kind){
+  if(calmMotion()||prefs.showMode==="quick"||from===m.pos)return;
+  const key=m.week+"|"+m.floor;let w=MWALK.w;
+  if(!w||w.key!==key||w.at||w.pts[w.pts.length-1]!==from)w=MWALK.w={key,pts:[from],kinds:[null],at:0};
+  w.pts.push(m.pos);w.kinds.push(kind);
+  if(w.pts.length>MW_KEEP){w.pts=w.pts.slice(-MW_KEEP);w.kinds=w.kinds.slice(-MW_KEEP);w.kinds[0]=null;}
+  if(!MWALK.timer)MWALK.timer=setInterval(mwCheck,400);
+}
+function mwLive(m){const w=MWALK.w;if(!w)return null;
+  if(!m||w.key!==m.week+"|"+m.floor||w.pts[w.pts.length-1]!==m.pos){MWALK.w=null;return null;}return w;} // undone, or a new floor
+const mwDur=w=>MW_LEAD+(w.pts.length-1)*MW_STEP;
+const mwXY=(m,i)=>[10+m.rooms[i].x*58+29,10+m.rooms[i].y*58+29]; // room centres, as mapSVG lays them out
+function mwCheck(){
+  const w=MWALK.w;if(!w){clearInterval(MWALK.timer);MWALK.timer=null;return;}
+  if(w.at)return;const m=player&&player.map;if(!mwLive(m))return;
+  if(document.hidden||showBusy()||SHOWQ.busy||ENTR.going||ENTR.wait.size||document.querySelector("#zoomWrap"))return;
+  const svg=document.querySelector("#mapBox .mapwrap svg");if(!svg)return;const r=svg.getBoundingClientRect();if(!r.height)return;
+  const vb=svg.viewBox.baseVal,{head,bottom}=viewBand();
+  const at=w.pts.map(i=>{const [x,y]=mwXY(m,i);return [r.left+x/vb.width*r.width,r.top+y/vb.height*r.height];}),pad=r.width/vb.width*30;
+  if(!at.every(([x,y])=>y>head+10&&y<bottom-10))return; // every room on the walk is in view
+  const pops=[...document.querySelectorAll("#toasts .toast,#crawlCam")].map(t=>t.getBoundingClientRect()).filter(q=>q.height);
+  if(at.some(([x,y])=>pops.some(q=>x>q.left-pad&&x<q.right+pad&&y>q.top-pad&&y<q.bottom+pad)))return; // a popup over the walk
+  w.at=Date.now();renderMap();
+  setTimeout(()=>{if(MWALK.w===w)MWALK.w=null;},mwDur(w)+1500);
+}
+// After the map is drawn: park the token at the start of an unplayed walk, or run (or resume) the walk.
+function mwApply(m){
+  const w=mwLive(m),tok=document.getElementById("mapTok");if(!tok||!w)return;
+  const e=mwXY(m,m.pos),off=w.pts.map(i=>{const p=mwXY(m,i);return [p[0]-e[0],p[1]-e[1]];}),T=([x,y],h)=>`translate(${x}px,${y-(h||0)}px)`;
+  if(!w.at){tok.style.transform=T(off[0]);return;}
+  const dur=mwDur(w),kf=[{transform:T(off[0]),offset:0},{transform:T(off[0]),offset:MW_LEAD/dur,easing:"ease-in-out"}];
+  for(let k=1;k<off.length;k++){const a=off[k-1],b=off[k],t0=MW_LEAD+(k-1)*MW_STEP;
+    kf.push({transform:T([(a[0]+b[0])/2,(a[1]+b[1])/2],7),offset:(t0+MW_STEP*.5)/dur,easing:"ease-in"},{transform:T(b),offset:(t0+MW_STEP)/dur,easing:"ease-out"});}
+  try{const an=tok.animate(kf,{duration:dur,fill:"backwards"});an.currentTime=Math.min(dur,Date.now()-w.at);}catch(err){}
+}
+// Reactions for the rooms on a walk that's playing: {room: [kind, ms until it plays (negative once it has started)]}
+function mwReacts(m){const w=MWALK.w,o={};if(!w||!w.at||!m||w.key!==m.week+"|"+m.floor)return o;const t=Date.now()-w.at;
+  w.pts.forEach((i,k)=>{if(k&&w.kinds[k]&&MW_LEAD+k*MW_STEP-t>-1400)o[i]=[w.kinds[k],Math.round(MW_LEAD+k*MW_STEP-t)];});return o;}
+const MW_ICON={chest:"mrx-hop",merchant:"mrx-hop",trap:"mrx-shake",mob:"mrx-shake",door:"mrx-swing",shrine:"mrx-pulse",stairs:"mrx-pulse"};
+function mwFx(kind,x,y,d){
+  const D=v=>` style="animation-delay:${d+(v||0)}ms`,q=[];
+  const fly=(el,dx,dy,v)=>`<g class="mrp-fly"${D(v)};--dx:${dx}px;--dy:${dy}px">${el}</g>`;
+  const ring=(c,r,w,v)=>`<circle class="mrp-ring"${D(v)}" cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+  const puff=(px,py,r,v)=>`<circle class="mrp-puff"${D(v)}" cx="${px}" cy="${py}" r="${r}" fill="#cbb48a" stroke="#6a5440" stroke-width="1"/>`;
+  const coin=(r)=>`<circle cx="${x}" cy="${y-4}" r="${r}" fill="#ffd23f" stroke="#2a1c10" stroke-width="1.1"/><circle cx="${x-.8}" cy="${y-4.8}" r="${r*.35}" fill="#fff6c8"/>`;
+  const star=(px,py,r)=>`<path d="M${px} ${py-r} L${px+r*.28} ${py-r*.28} L${px+r} ${py} L${px+r*.28} ${py+r*.28} L${px} ${py+r} L${px-r*.28} ${py+r*.28} L${px-r} ${py} L${px-r*.28} ${py-r*.28} Z" fill="#fff" stroke="none"/>`;
+  const dust=()=>puff(x-12,y+15,4)+puff(x+12,y+15,4,60)+puff(x,y+17,3.4,120);
+  if(kind==="chest"||kind==="merchant"){q.push(ring("#ffd23f",14,2.4));
+    const n=kind==="chest"?7:4;for(let i=0;i<n;i++){const a=-Math.PI*(.12+.76*i/(n-1));q.push(fly(coin(kind==="chest"?3:2.4),Math.cos(a)*24,Math.sin(a)*24-6,40+i*35));}
+    q.push(fly(star(x+10,y-12,4.5),4,-8,120),fly(star(x-11,y-8,3.4),-4,-8,220));}
+  else if(kind==="trap"){q.push(ring("#e8283c",15,3));
+    for(const dx of [-10,0,10])q.push(`<path class="mrp-snap"${D(Math.abs(dx)*6)}" d="M${x+dx-4} ${y+18} L${x+dx} ${y+5} L${x+dx+4} ${y+18} Z" fill="#c9bca6" stroke="#2a1c10" stroke-width="1.3"/>`);
+    for(const a of [-2.4,-1.57,-.7])q.push(fly(`<path d="M${x} ${y} l${Math.cos(a)*5} ${Math.sin(a)*5}" stroke="#e8283c" stroke-width="2.6" stroke-linecap="round"/>`,Math.cos(a)*20,Math.sin(a)*20,60));}
+  else if(kind==="shrine"){q.push(ring("#ffd23f",13,3),ring("#9fe8a0",9,2,160));
+    [[-9,0],[2,120],[10,240]].forEach(([dx,v])=>q.push(fly(`<path d="M${x+dx} ${y-2} l0 -7 M${x+dx-3.5} ${y-5.5} l7 0" stroke="#7fe08a" stroke-width="2.4" stroke-linecap="round"/>`,0,-18,v)));}
+  else if(kind==="stairs"){q.push(ring("#ffd23f",15,3));
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2;q.push(fly(`<path d="M${x+Math.cos(a)*10} ${y+Math.sin(a)*10} l${Math.cos(a)*6} ${Math.sin(a)*6}" stroke="#ffd23f" stroke-width="2.4" stroke-linecap="round"/>`,Math.cos(a)*12,Math.sin(a)*12,i*20));}}
+  else if(kind==="mob"){q.push(ring("#e8283c",15,3));
+    for(let i=0;i<6;i++){const a=i/6*Math.PI*2+.3;q.push(fly(`<path d="M${x+Math.cos(a)*12} ${y+Math.sin(a)*12} L${x+Math.cos(a+.18)*18} ${y+Math.sin(a+.18)*18} L${x+Math.cos(a)*22} ${y+Math.sin(a)*22}" fill="none" stroke="#2a1c10" stroke-width="2.2" stroke-linejoin="round"/>`,Math.cos(a)*6,Math.sin(a)*6,i*25));}}
+  else if(kind==="door")q.push(dust(),puff(x-16,y+8,3,180),puff(x+16,y+8,3,200));
+  else q.push(dust()); // empty rooms, and rooms you walk back through
+  return `<g class="mrxp" pointer-events="none">${q.join("")}</g>`;
+}
 function mapSVG(m){
   const S=58,P=10,W=MAP_W*S+P*2,H=MAP_H*S+P*2,K="#2a1c10",c=(x,y)=>[P+x*S+S/2,P+y*S+S/2];
   let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor ${m.floor} map, room ${m.pos+1} of ${mapLen(m)}"><defs><pattern id="mapgrid" width="${S}" height="${S}" patternUnits="userSpaceOnUse" x="${P}" y="${P}"><path d="M${S} 0 L0 0 0 ${S}" fill="none" stroke="#a88a5a" stroke-width=".8" stroke-dasharray="2 3"/></pattern>${MAP_HATCH("mp")}</defs>`;
   s+=mapParchment(W,H,"mp","map"+m.week+"-"+m.floor)+`<rect x="${P}" y="${P}" width="${MAP_W*S}" height="${MAP_H*S}" fill="url(#mapgrid)" opacity=".7"/>`;
   const tilt=mapRand("tilt"+m.week+m.floor),ang=m.rooms.map(()=>((tilt()*2-1)*2.2).toFixed(1));
+  const RX=mwReacts(m);let tok="";
   const far=farOf(m),rev=new Set(m.rev||[]),visible=i=>i<=far||rev.has(i),fresh=m.fresh&&Date.now()-m.fresh.at<6000?new Set(m.fresh.rooms):new Set();
   // corridors (secret links only once found)
   m.rooms.forEach((rm,i)=>{if(!i||!visible(i)||!visible(i-1))return;const [a,b]=c(m.rooms[i-1].x,m.rooms[i-1].y),[x,y]=c(rm.x,rm.y);
@@ -5207,13 +5325,15 @@ function mapSVG(m){
   m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos,past=i<=far&&!here,nw=fresh.has(i);
     s+=`<g${nw?' class="mapnew"':""}><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="${here?"#fff3c4":past?"#f2e4c2":"#dcc596"}" stroke="${here?"#e8283c":K}" stroke-width="${here?4:2.4}" ${!past&&!here?'stroke-dasharray="5 3"':""} transform="rotate(${ang[i]} ${x} ${y})"/>`;
     const bossDead=(rm.boss!=null&&player.boss&&player.boss.week===m.week&&(player.boss.defeated||player.boss.tier>rm.boss))||((rm.t==="mob"||rm.t==="pack")&&rm.cleared);
-    s+=`<g opacity="${(past&&rm.t!=="merchant")||bossDead?.55:1}">${mapIcon(rm.t==="door"&&rm.open?"entrance":rm.t,x,y)}</g>`
+    const rx=RX[i],rxc=rx&&MW_ICON[rx[0]];
+    s+=`<g opacity="${(past&&rm.t!=="merchant")||bossDead?.55:1}"${rxc?` class="mrx ${rxc}" style="animation-delay:${rx[1]}ms"`:""}>${mapIcon(rm.t==="door"&&rm.open?"entrance":rm.t,x,y)}</g>`
       +(rm.t==="stairs"&&rm.boss!=null&&!bossDead?`<g transform="translate(${x+12} ${y+12}) scale(.55)">${mapIcon("boss",0,0)}</g>`:"")
       +(rm.t==="chest"&&rm.guard&&!rm.cleared&&i>far?`<g transform="translate(${x+13} ${y-13})">${mobIcon(0,0,.7,false)}</g>`:"")
       +(bossDead?`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`:"")+(rm.t==="merchant"&&rm.sold?`<path d="M${x-12} ${y+12} L${x+12} ${y-12}" stroke="#e8283c" stroke-width="3"/>`:"")+`</g>`;
     if(i<=far+1)s+=`<rect class="maproom" data-maproom="${i}" x="${x-23}" y="${y-23}" width="46" height="46" rx="7" fill="transparent" stroke="none"><title>${i<=far?(i===m.pos?"You are here":"Walk back to room "+(i+1)):"Head forward"}</title></rect>`;
     if(m.tgt!=null&&i===m.tgt&&i!==m.pos)s+=`<rect x="${x-25}" y="${y-25}" width="50" height="50" rx="8" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="6 4" pointer-events="none"/>`;
-    if(here)s+=`<g class="mapme">${headToken(Object.assign({},wearing(player),player.look?{look:player.look}:{}),x+16,y-16,12,"#e8283c","mm"+i)}</g>`;});
+    if(rx)s+=mwFx(rx[0],x,y,rx[1]);
+    if(here)tok=`<g id="mapTok" pointer-events="none"><g class="mapme">${headToken(Object.assign({},wearing(player),player.look?{look:player.look}:{}),x+16,y-16,12,"#e8283c","mm"+i)}</g></g>`;});
   (m.secrets||[]).forEach(se=>{if(!se.found&&!se.located)return;const [x,y]=c(se.x,se.y);
     if(se.found)s+=`<rect x="${x-19}" y="${y-19}" width="38" height="38" rx="6" fill="#fff3c4" stroke="${K}" stroke-width="2.4" stroke-dasharray="5 3"/>${mapIcon("secret",x,y)}`;
     else{const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y);if(se.link<=far)s+=`<rect class="maproom" data-maproom="${se.link}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>Walk to its door in room ${se.link+1}</title></rect>`;s+=`<g class="${se.fresh&&Date.now()-se.fresh<6000?"mapnew":""}"><path d="M${a} ${b} L${x} ${y}" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="3 4"/><rect x="${x-17}" y="${y-17}" width="34" height="34" rx="6" fill="#e2cfa2" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x-8} ${y-8} L${x+8} ${y+8} M${x+8} ${y-8} L${x-8} ${y+8}" stroke="#e8283c" stroke-width="3.4" stroke-linecap="round"/></g>`;}});
@@ -5227,7 +5347,7 @@ function mapSVG(m){
     if(L.found&&!L.dead)s+=`<rect class="maproom" data-lair="${lc.li}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>${esc(L.n)}: tap for the fight</title></rect>`;});
    if(LM){const f=b.lairs.find(l=>l.t===5),st=m.rooms[mapLen(m)-1];if(f&&f.found&&visible(mapLen(m)-1)){const [x,y]=c(st.x,st.y);
      s+=f.dead?`<path d="M${x-12} ${y-12} L${x+12} ${y+12} M${x+12} ${y-12} L${x-12} ${y+12}" stroke="#e8283c" stroke-width="3"/>`:`<g transform="translate(${x+12} ${y+12}) scale(.55)">${mapIcon("boss",0,0)}</g><rect class="maproom" data-lair="${b.lairs.indexOf(f)}" x="${x+2}" y="${y+2}" width="20" height="20" fill="transparent" stroke="none"><title>${esc(f.n)}: tap for the fight</title></rect>`;}}}
-  s+=`<text x="${W-P-4}" y="${H-5}" text-anchor="end" font-size="10.5" font-style="italic" fill="#5a3a18" font-family="Georgia,serif">Floor ${m.floor}</text>`;
+  s+=tok+`<text x="${W-P-4}" y="${H-5}" text-anchor="end" font-size="10.5" font-style="italic" fill="#5a3a18" font-family="Georgia,serif">Floor ${m.floor}</text>`;
   return s+`</svg>`;
 }
 /* Lair buttons under the map / in the boss window: the doorway you're standing at, or the fight you're in. */
@@ -5252,12 +5372,15 @@ function renderMap(){
   const bt=m.tgt!=null?`<div class="mapbt"><span>${away?`Walking back to <b>room ${m.tgt+1}</b>: ${away} quest${away===1?"":"s"} away.`:`Holding at <b>room ${m.pos+1}</b>.`}${doorHere?" A marked secret room opens off this room: finish a quest here to pry it open.":""}</span>
       <button class="btn gold sm" type="button" id="mapFwd">Head forward</button></div>`
     :far>0?`<div class="muted mapbt-hint">Tap any room you've explored to walk back to it.${(m.links||[]).some(([i,j])=>i<=far&&j<=far)?" Green dotted passages are shortcuts you can cut through.":""}${(m.secrets||[]).some(s=>!s.found&&s.located&&s.link<=far)?" Tap a marked secret room to walk to its door.":""}</div>`:"";
+  const sp=player.spare||0,need=spareNeed(m),fight=!!(player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated);
+  const spare=sp||need?`<div class="mapspare"><span class="sp-pips" title="Spare steps: ${sp} of ${SPARE_MAX}">${Array.from({length:SPARE_MAX},(_,i)=>`<i class="${i<sp?"on":""}"></i>`).join("")}</span><span>${sp?`<b>${sp} spare step${sp===1?"":"s"}</b>`:"No spare steps"}${!sp?". A quest that can't move you (holding, or stuck in a fight) banks one.":need&&!fight?"":". Spend them to walk through rooms you've explored, no quest needed."}</span>
+      ${sp&&need&&!fight?`<button class="btn sm" type="button" id="spareGo">${need<=sp?`Walk there now (${need})`:`Walk ${sp} of ${need} rooms now`}</button>`:""}</div>`:"";
   if(merch){const it=ITEMS.find(i=>i.id===merch.item),price=priceOf(MERCH_PRICE[it.rar]||200),own=player.owned.includes(it.id);
     mh=`<div class="merch"><span class="mini-ico">${lootIconSVG(it.id)}</span><div class="what"><b class="rar-${it.rar}">${esc(it.n)}</b><span>${RARITY[it.rar].n} · ${esc(it.d)}</span></div>
       <button class="btn gold sm" type="button" id="buyMerch" ${own||player.gold<price?"disabled":""}>${own?"Owned":price+" gold"}</button></div>`;}
   el.innerHTML=`<div class="mapwrap">${mapSVG(m)}</div>
     <div class="mapinfo"><div><b>Room ${m.pos+1} of ${mapLen(m)}</b> · ${esc(ROOM[cur.t].n)}${far>=mapLen(m)-1?" · floor fully mapped":""}</div>${bt}
-      ${lairFightHTML(m)}
+      ${spare}${lairFightHTML(m)}
       <div class="muted">${player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?`You're in ${esc(player.boss.name)}'s lair. Every quest hits it until it falls, or you retreat.`:`${esc(player.boss.name)} blocks the way. Beat it to keep exploring.`)
         :m.tgt!=null||m.pos<far?"":far>=mapLen(m)-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · one is marked with a red X: walk to the room it hangs off and finish any quest there, or finish an Elite quest anywhere":""}. Maps this floor: ${m.drops||0}.</div>
       ${(m.log||[]).length?`<ul class="maplog">${m.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>${mh}
@@ -5266,6 +5389,8 @@ function renderMap(){
   el.querySelectorAll("[data-maproom],[data-lair]").forEach(r=>r.addEventListener("click",()=>{if(r.dataset.lair!=null)lairPrompt(+r.dataset.lair);else mapGo(+r.dataset.maproom);}));
   wireLairBtns(el);
   const mf=$("mapFwd");if(mf)mf.onclick=()=>mapGo(9999);
+  const sg=$("spareGo");if(sg)sg.onclick=spareWalk;
+  mwApply(m);
 }
 
 /* ---------- Rival crawlers ----------
@@ -11093,6 +11218,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.17.0",d:"2026-10-10",t:"On the move",items:["Your crawler now walks the Floor map. When you look at the map after a quest, your token hops along the corridor (or through a shortcut) to the room you reached, instead of just appearing there.",
+    "Each room reacts as you arrive: a chest pops and spits coins, a trap snaps its spikes, a shrine flares, a door swings open, a mob room bursts, the stairwell shines, and empty rooms kick up dust. Quick mode and reduced motion skip it.",
+    "Spare steps: a quest that can't move you (holding in a room, stuck in a boss fight, or nowhere left to go) banks a spare step, up to 3. Spend them from the map to walk through rooms you've already explored without finishing a quest. New rooms still take a quest each."]},
   {v:"3.16.1",d:"2026-10-09",t:"Power circle",items:["Your best gear now shows as a glowing sigil on the floor under your crawler that slowly turns, with a ring of runes turning the other way, and motes rising out of it. Epic gear gets a violet ring, Legendary the full gold sigil and a column of light, and Unique gear (which had no aura before) the full sigil in its element: embers for fire, flakes for frost, sparks for storm, smoke for shadow, bubbles for venom, starlight for the rest."]},
   {v:"3.16.0",d:"2026-10-09",t:"Pet glow-up",items:["Every pet (and the Mystery Egg) is redrawn in the same cel-shaded style as the crawlers: lit from the right with a warm rim light and a shadow side, plus real detail, like the owl's breast feathers and facial disc, the tortoise's shell rings, the gargoyle's cracked stone and glowing eyes, the salamander's scales and burning spots, the slime's swallowed key and the raccoon clutching a stolen coin.",
     "Pets sit in a dusky den on their cards, and stand right in your crawler's scene at your feet. Same shapes as before, so collars, bandanas and other trinkets still fit."]},
@@ -11346,6 +11474,8 @@ const GUIDE=[
     more:"Tap ✓ to finish a quest at your estimate, or ⋯ → Complete with time taken to enter how long it really took (close guesses earn a +15% accuracy bonus). Quests hit the boss on your floor, mobs that are on you and any rival crawler hunting you. Overdue quests wound you each morning, more for bigger quests and the longer they rot."},
   {id:"boss",t:"Bosses and floors",when:p=>!!p.boss,line:"Each week is a floor with bosses hidden in lairs. Find them on the Floor map as you finish quests, beat them for loot boxes, and reach the stairwell before it closes.",
     more:"Bosses have HP; your quests' damage takes it down. Every finished quest also moves you a room on the Floor map, where you find lairs, chests, traps and ambushes. The stairwell closes at the end of the week, and any bosses left behind just stay there, with no penalty beyond the loot you missed."},
+  {id:"spare",t:"Spare steps",when:p=>(p.spare||0)>0,line:"A finished quest that couldn't move you on the Floor map banked a spare step. Spend spare steps from the map to walk through rooms you've already explored, no quest needed.",
+    more:"You bank a spare step when a quest can't move you: you're holding in a room you picked, you're stuck in a boss fight, or there's nowhere left to go. You can hold up to 3. Tap a room you've explored, then Walk there now. Spare steps never explore: every new room still takes a finished quest, and a mob that jumps you on the way stops the walk."},
   {id:"mob",t:"Mobs",when:p=>(p.mobs||[]).length>0,line:"A mob is on you. Your next quests hit it first, and until it's gone it nips you for HP each quest. Tap its card to poke it for a little damage.",
     more:"Mobs come in families, and each family has a twist that its card explains: ghosts can only be hurt by spells and fade at dawn, some hide their HP, some steal, some split. You can poke a mob a few times a day for tiny damage. Mobs give XP when they go down, and a few drop loot."},
   {id:"rival",t:"Rival crawlers",when:p=>!!p.rival,line:"A rival crawler is hunting you. Every quest hits them and they hit back, but they can't knock you out overnight. Bribe them, run, or beat them for their loot.",

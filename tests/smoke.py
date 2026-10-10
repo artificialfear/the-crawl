@@ -288,6 +288,26 @@ def main():
             check("notifications panel: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- map walk: a step is replayed when the map comes on screen; spare steps bank and spend ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            E(pg, "$('toasts').style.display='none';player.mobs=[];player.rival=null;ensureMap();player.map.rooms.forEach((r,i)=>{if(i>=1&&i<=2){r.t='empty';r.guard=0;}});render()")
+            E(pg, "mapStep({effort:1,stat:'DEX',title:''});mapStep({effort:1,stat:'DEX',title:''},true);render()")
+            trail = E(pg, "MWALK.w&&MWALK.w.pts.join(',')")
+            E(pg, "$('mapBox').scrollIntoView({block:'center'})"); pg.wait_for_timeout(900)
+            started = E(pg, "!!(MWALK.w&&MWALK.w.at)&&document.getAnimations().some(a=>a.effect&&a.effect.target&&a.effect.target.id==='mapTok')")
+            check("map walk: trail recorded and plays on screen", trail == "0,1,2" and started, f"{trail} {started}")
+            pg.wait_for_timeout(2600)
+            check("map walk: clears after playing", E(pg, "MWALK.w===null"))
+            E(pg, "player.map.tgt=player.map.pos;player.spare=0;mapStep({effort:1});mapStep({effort:1});mapGo(0)")
+            sp = E(pg, "player.spare")
+            E(pg, "$('spareGo').click()")
+            check("spare steps: bank 2, spend them walking back", sp == 2 and E(pg, "player.map.pos===0&&player.spare===0"), f"{sp} pos {E(pg,'player.map.pos')}")
+            E(pg, "player.map.tgt=null;player.spare=0;player.map.pos=farOf(player.map);mapStep({effort:1,stat:'DEX',title:''})")
+            check("spare steps: never spent exploring", E(pg, "spareNeed(player.map)===0"))
+            check("map walk / spare steps: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- reduced motion still completes a quest ----
             pg, errs = page(reduced_motion="reduce")
             pg.evaluate(SETUP)
