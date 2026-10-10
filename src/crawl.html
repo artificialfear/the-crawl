@@ -1147,14 +1147,20 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 @media (prefers-reduced-motion:reduce){.fd-p{animation:fxfade 1s ease-out forwards}}
 /* Legendary/epic gear twinkles; pet reactions */
 @media (prefers-reduced-motion:no-preference){
-  .print svg .twinkle{animation:twinkle 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
-  .print svg .legaura{animation:mpulse 3.2s ease-in-out infinite}
+  .print svg .gspin,.zoomdlg.z-me .zoom-art svg .gspin,.lk-prev svg .gspin{animation:gspin 26s linear infinite;transform-box:fill-box;transform-origin:center}
+  .print svg .gspin-r,.zoomdlg.z-me .zoom-art svg .gspin-r,.lk-prev svg .gspin-r{animation:gspin 40s linear infinite reverse;transform-box:fill-box;transform-origin:center}
+  .print svg .gglow,.print svg .gpillar,.zoomdlg.z-me .zoom-art svg .gglow,.zoomdlg.z-me .zoom-art svg .gpillar,.lk-prev svg .gglow,.lk-prev svg .gpillar{animation:gpulse 3.2s ease-in-out infinite}
+  .print svg .gmote,.zoomdlg.z-me .zoom-art svg .gmote,.lk-prev svg .gmote{animation:gmote 3s linear infinite}
+  .print svg .gblink,.zoomdlg.z-me .zoom-art svg .gblink,.lk-prev svg .gblink{animation-name:gmote,gblink;animation-timing-function:linear,steps(1)}
   .print svg .petinframe.pet-cheer .critter{animation:petcheer .6s ease-in-out infinite alternate}
   .print svg .petinframe.pet-cower .critter{animation:petcower .18s linear infinite alternate}
   .print svg .petinframe.pet-hiss .critter{animation:pethiss .9s ease-in-out infinite}
 }
 .print svg .pet-cower .critter{transform-box:fill-box;transform-origin:50% 100%}
-@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.5)}50%{opacity:1;transform:scale(1.1) rotate(20deg)}}
+@keyframes gspin{to{transform:rotate(360deg)}}
+@keyframes gpulse{0%,100%{opacity:.75}50%{opacity:1}}
+@keyframes gmote{0%{transform:translate(0,0) scale(.6);opacity:0}15%{opacity:1}70%{opacity:.9}100%{transform:translate(4px,-110px) scale(1);opacity:0}}
+@keyframes gblink{0%,40%,60%,100%{visibility:visible}45%,55%{visibility:hidden}}
 @keyframes petcheer{0%{transform:translateY(0)}100%{transform:translateY(-9px)}}
 @keyframes petcower{0%{transform:scale(.92,.86) translateX(-1px)}100%{transform:scale(.92,.86) translateX(1px)}}
 @keyframes pethiss{0%,100%{transform:none}10%{transform:translateX(-2px)}20%{transform:translateX(2px)}30%{transform:none}}
@@ -8651,6 +8657,63 @@ ${bg&&bg!=="none"?`<rect width="${W}" height="${H}" fill="${bg}"/>`:""}<rect wid
 /* Art style (v3.8.0). Crawlers you dress up (you, crewmates, the look editor) are cel-shaded: torchlight from the
    left on a blurred height map, posterised into hard bands, plus a warm rim on the lit edge. Rival crawlers are
    etched in ink on tarot cards like the bosses (eq.style "ink", accent eq.inkc). eq.style "flat" = the old look. */
+/* ---------- Gear auras ----------
+   Your best gear shows as a glowing sigil on the floor under your crawler, flattened into perspective and turning
+   slowly, with a ring of runes counter-turning around it, and motes rising out of it in front of you.
+   Epic gear: a simple violet ring and a few sparks. Legendary: the full gold sigil, runes and a soft column of light.
+   Unique (magical) gear: the full sigil in its element's colours with that element's motes (embers, frost flakes,
+   storm sparks, shadow smoke, venom bubbles, starlight). The weapon's element wins; otherwise the first magical item's.
+   The runes are invented shapes. Only the crawler's own animated views move (Hero tab, close-up, look editor). */
+const AURA_EL={fire:["#ff7a1f","#ffd23f","ember"],ember:["#ff5a1f","#ffb21f","ember"],frost:["#7fd8ff","#e6fbff","flake"],storm:["#8ab8ff","#fff36a","spark"],
+  shadow:["#9b6bff","#3a1d6a","smoke"],arcane:["#c26bff","#ffb8ff","star"],radiant:["#ffe58a","#fff8d8","star"],stars:["#b8a0ff","#fff6c8","star"],venom:["#7dff6a","#d8ff8a","bubble"]};
+function gearAura(eq){
+  const its=["weapon","armor","head","cape","gloves","boots","ring","trinket","belt"].map(k=>itemOf(eq[k])).filter(Boolean);
+  const mg=its.filter(i=>i.rar==="magical");
+  if(mg.length){const m=(mg.find(i=>i.slot==="weapon")||mg.find(i=>i.magic)||mg[0]).magic;const e=AURA_EL[m]||AURA_EL.arcane;return {tier:3,c:e[0],c2:e[1],kind:e[2]};}
+  if(its.some(i=>i.rar==="legendary"))return {tier:2,c:"#ffd23f",c2:"#fff3b0",kind:"star"};
+  if(its.some(i=>i.rar==="epic"))return {tier:1,c:"#c27aff",c2:"#f0d8ff",kind:"star"};
+  return null;
+}
+function auraFloor(A,u){
+  const {c,c2,tier}=A,f=v=>v.toFixed(1);
+  // invented rune shapes, each about 8 tall, drawn upright then placed around the ring
+  const R=["M-3 -4 L0 4 L3 -4 M-2 0 L2 0","M-3 -4 L-3 4 M-3 0 L3 -4 M-3 0 L3 4","M0 -4 L0 4 M-3 -2 L3 2","M-3 4 L0 -4 L3 4 M0 -4 L0 1","M-3 -4 Q3 -2 -3 1 Q3 3 -3 4","M-3 -4 L3 -4 L-3 4 L3 4","M0 -4 L-3 0 L0 4 L3 0 Z","M-3 -4 L-3 4 L3 4 M0 -1 L3 -4"];
+  const runes=n=>Array.from({length:n},(_,i)=>{const a=i/n*360;return `<path d="${R[i%R.length]}" transform="rotate(${a.toFixed(1)}) translate(0 -84)"/>`;}).join("");
+  const ticks=n=>Array.from({length:n},(_,i)=>{const a=i/n*Math.PI*2;return `M${f(Math.cos(a)*64)} ${f(Math.sin(a)*64)} L${f(Math.cos(a)*72)} ${f(Math.sin(a)*72)}`;}).join(" ");
+  const star=(k,r)=>{let d="";for(let i=0;i<=k*2;i+=2){const a=(i%(k*2))/k*Math.PI-Math.PI/2;d+=`${i?"L":"M"}${f(Math.cos(a)*r)} ${f(Math.sin(a)*r)} `;}return d;};
+  const poly=(k,r,step)=>{let d="";for(let i=0;i<k;i++){const a=(i*step%k)/k*Math.PI*2-Math.PI/2;d+=`${i?"L":"M"}${f(Math.cos(a)*r)} ${f(Math.sin(a)*r)} `;}return d+"Z";};
+  let s=`<defs><radialGradient id="${u}ag" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${c}" stop-opacity=".7"/><stop offset=".6" stop-color="${c}" stop-opacity=".25"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${u}ap" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c}" stop-opacity=".45"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs><g class="gaura" aria-hidden="true">`;
+  if(tier>=2)s+=`<path class="gpillar" d="M66 384 L96 60 L204 60 L234 384 Z" fill="url(#${u}ap)"/>`;
+  s+=`<ellipse class="gglow" cx="150" cy="382" rx="${tier>=2?140:118}" ry="${tier>=2?42:34}" fill="url(#${u}ag)"/>`;
+  s+=`<g transform="translate(150 382) scale(1.3 .34)" fill="none" stroke-linecap="round" stroke-linejoin="round">`;
+  // each line drawn twice: a wide faint stroke for the glow, then the bright core
+  const glowLine=(d,w,col,cls)=>`<g${cls?` class="${cls}"`:""}><path d="${d}" stroke="${col}" stroke-width="${(w*6).toFixed(1)}" opacity=".35"/><path d="${d}" stroke="${col}" stroke-width="${(w*1.9).toFixed(1)}"/><path d="${d}" stroke="#fff" stroke-width="${(w*.6).toFixed(1)}" opacity=".7"/></g>`;
+  const circ=r=>`M${-r} 0 A${r} ${r} 0 1 0 ${r} 0 A${r} ${r} 0 1 0 ${-r} 0`;
+  if(tier===1){s+=glowLine(circ(80),2.4,c)+`<g class="gspin">${glowLine(ticks(12),2,c2)}</g>`+glowLine(circ(58),1.6,c);}
+  else{
+    s+=glowLine(circ(92),2.6,c)+glowLine(circ(76),1.4,c);
+    s+=`<g class="gspin-r"><g stroke="${c2}" stroke-width="2.6">${runes(tier===3?26:22)}</g></g>`;
+    s+=`<g class="gspin">${glowLine(circ(60),2,c)+glowLine(tier===3?poly(7,58,3):star(6,58),1.8,c2)+glowLine(ticks(tier===3?14:12),1.6,c)}</g>`;
+    s+=glowLine(circ(26),2,c2)+`<circle r="7" fill="${c2}" stroke="none" opacity=".75"/>`;
+  }
+  return s+`</g></g>`;
+}
+function auraMotes(A){
+  const {c,c2,kind,tier}=A,n=tier===1?5:tier===2?9:12;let s=`<g class="gmotes" aria-hidden="true">`;
+  for(let i=0;i<n;i++){
+    const x=(150+Math.sin(i*2.4)*(tier>=2?104:84)).toFixed(1),y=(384+Math.cos(i*1.7)*10).toFixed(1),d=(i*.43%3.6).toFixed(2),dur=(2.6+(i%4)*.45).toFixed(2);
+    const st=`style="animation-delay:-${d}s;animation-duration:${dur}s"`;
+    const sh=kind==="ember"?`<circle r="${2+(i%3)*.7}" fill="${c}"/><circle r="${.9+(i%3)*.3}" fill="${c2}"/>`
+      :kind==="flake"?`<path d="M0 -3.4 L0 3.4 M-3 -1.7 L3 1.7 M-3 1.7 L3 -1.7" stroke="${c2}" stroke-width="1.2"/>`
+      :kind==="spark"?`<path d="M-2 -5 L1 -1 L-1 0 L2 5" fill="none" stroke="${i%2?c2:c}" stroke-width="1.6" stroke-linecap="round"/>`
+      :kind==="smoke"?`<circle r="${5+(i%3)*2}" fill="${c}" opacity=".35"/>`
+      :kind==="bubble"?`<circle r="${2+(i%3)}" fill="none" stroke="${c}" stroke-width="1.2"/><circle cx="-.8" cy="-.8" r=".7" fill="#fff"/>`
+      :`<path d="M0 -4 L1 -1 L4 0 L1 1 L0 4 L-1 1 L-4 0 L-1 -1 Z" fill="${i%2?c2:c}"/>`;
+    s+=`<g transform="translate(${x} ${y}) scale(1.7)"><g class="gmote${kind==="spark"?" gblink":""}" ${st}>${sh}</g></g>`;
+  }
+  return s+`</g>`;
+}
 function avFx(u,eq){
   if(eq.style==="flat")return "";
   if(eq.style==="ink")return `<filter id="${u}fx" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
@@ -8785,7 +8848,7 @@ function avatarSVG(eq){
   s+=[[30,118,10,.35],[62,176,7,.25],[268,112,11,.35],[236,182,6,.22],[46,226,5,.18],[256,238,8,.2],[150,60,6,.12],[96,86,4,.15],[206,80,5,.15]].map(([x,y,r,o],i)=>`<circle class="bokeh" style="animation-delay:-${(i*.7).toFixed(1)}s" cx="${x}" cy="${y}" r="${r}" fill="${SCN.bk}" opacity="${o}"/>`).join("");
   s+=(SCN.ov||"")+`<ellipse cx="150" cy="384" rx="82" ry="12" fill="#000" opacity=".45"/></g><!--bg1-->`;
 
-  if(eq.style!=="ink"&&["weapon","armor","head","cape","gloves","boots","ring","trinket","belt"].some(k=>{const i=itemOf(eq[k]);return i&&i.rar==="legendary";}))s+=`<ellipse class="legaura" cx="150" cy="220" rx="150" ry="190" fill="url(#${u}la)"/>`;
+  const GA=eq.style!=="ink"&&!eq.bare?gearAura(eq):null;if(GA)s+=auraFloor(GA,u);
   if(MA==="radiant")s+=`<ellipse class="mf-aura" cx="150" cy="220" rx="96" ry="160" fill="#ffd23f" opacity=".5" filter="url(#${u}bl2)"/>`;
   const INKS=eq.style==="ink";if(INKS)s+=`<g filter="url(#${u}fx)">`; // ink cards are still, so the cape goes in the etching too
   // Cape behind the figure
@@ -9004,13 +9067,10 @@ function avatarSVG(eq){
     s+=fist(210,266)+fist(90,266)+ringOn(210,266);
   }
   s+=`</g></g></g></g></g>`;
-  // Your best gear shows: legendary items give the crawler a gold aura and twinkles, epic ones purple twinkles.
-  if(eq.style!=="ink"){const rars=["weapon","armor","head","cape","gloves","boots","ring","trinket","belt"].map(k=>itemOf(eq[k])).filter(Boolean).map(i=>i.rar);
-    const top=rars.includes("legendary")?"legendary":rars.includes("epic")?"epic":null;
-    if(top){const c=top==="legendary"?"#ffd23f":"#c27aff",tw=(x,y,r,d)=>`<path class="twinkle" style="animation-delay:-${d}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z" fill="${c}" stroke="#fff" stroke-width=".8"/>`;
-      s+=`<g class="gearglow" aria-hidden="true">`+(top==="legendary"?[[66,118,9,0],[236,92,11,.9],[92,300,7,1.7],[222,246,8,2.4],[150,30,7,1.2],[52,220,6,2.9]]:[[70,130,8,.3],[230,100,9,1.4],[218,256,7,2.2]]).map(a=>tw(...a)).join("")+`</g>`;}}
   // Vignette, then the active pet at the hero's feet (in front of the shadows), then the panel border
   if(!eq.bare)s+=`<rect x="0" y="0" width="300" height="420" fill="url(#${u}v)"/>`;
+  // Your best gear: motes rising out of the sigil under your feet (drawn above), in front of you and the vignette.
+  if(GA)s+=auraMotes(GA);
   // Bare feet sit low enough for the vignette to darken them into sandal-brown; redraw them above it so they match the hands and face
   if(_bare)s+=`<g stroke="${INK}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${_bare}</g>`;
   if(eq.pet&&PETS[eq.pet]){
@@ -10890,6 +10950,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.16.1",d:"2026-10-09",t:"Power circle",items:["Your best gear now shows as a glowing sigil on the floor under your crawler that slowly turns, with a ring of runes turning the other way, and motes rising out of it. Epic gear gets a violet ring, Legendary the full gold sigil and a column of light, and Unique gear (which had no aura before) the full sigil in its element: embers for fire, flakes for frost, sparks for storm, smoke for shadow, bubbles for venom, starlight for the rest."]},
   {v:"3.16.0",d:"2026-10-09",t:"Pet glow-up",items:["Every pet (and the Mystery Egg) is redrawn in the same cel-shaded style as the crawlers: lit from the right with a warm rim light and a shadow side, plus real detail, like the owl's breast feathers and facial disc, the tortoise's shell rings, the gargoyle's cracked stone and glowing eyes, the salamander's scales and burning spots, the slime's swallowed key and the raccoon clutching a stolen coin.",
     "Pets sit in a dusky den on their cards, and stand right in your crawler's scene at your feet. Same shapes as before, so collars, bandanas and other trinkets still fit."]},
   {v:"3.15.0",d:"2026-10-09",t:"Ping",items:["Notifications that arrive with The Crawl closed (Settings → Notifications, per device): an evening heads-up at the hour you pick, only on days when something's about to hit you (overdue quests, a rival who'll strike overnight, a streak about to end), plus party messages, nudges and a ping when a crewmate starts getting hunted by a rival so you can help.",

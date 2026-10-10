@@ -176,3 +176,7 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - `MOB_DETAIL[k]` (detail strokes per family, same local frame as `MOB_ART`: ~64 wide, feet at y 0) + `mobFxDef` (small cel filter; cool moonlight for ghost/stalker). `mobArtImg(k)` renders `mobCreature(k)` + detail through the filter into a standalone SVG data URI, cached in `MOB_IMG`.
 - `mobScene` places that picture as `<image>` inside each `.mc` (so the bob just moves a picture), adds a torch glow top right, a flagstone floor and per-creature contact shadows. Filtering live creatures cost ~16 fps on a throttled phone with a 5-pack; pictures cost ~3.
 - `mobIcon` (map) still draws the plain `mobCreature` at icon size.
+
+## Gear auras (v3.16.1)
+- `gearAura(eq)` → {tier 1 epic / 2 legendary / 3 magical, colours, mote kind}; magical uses the weapon's `magic` element first (`AURA_EL`). `auraFloor(A,u)` draws before the figure: glow ellipse, (tier ≥2) light column, and the sigil in `translate(150 382) scale(1.3 .34)` with `.gspin` (inner star/heptagram + ticks) and `.gspin-r` (invented rune ring) rotating via CSS (fill-box centre). `auraMotes(A)` draws after the vignette so it isn't darkened. Animated only in the crawler's own views (.print, zoom close-up, look editor); elsewhere it's a still sigil.
+- Tried `mix-blend-mode:screen` on the sigil: it cost ~8 fps on a throttled phone, so it's off; brightness comes from triple strokes (wide faint glow, colour core, white centre line).
