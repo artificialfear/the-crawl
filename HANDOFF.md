@@ -171,3 +171,8 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Layers inside `.critter` (which bobs): `under` halos (slime, wisp, egg; `U()`), the filtered body, then `glow` over it (lantern, spots, gloss, gargoyle eyes; `G()`), so glows never pick up the shadow band.
 - Card backdrop: radial "den" gradient rect (100×100, stripped by the avatar's rect regex) and `<g class="petden">` floor line (stripped by the avatar too); the contact shadow stays.
 - Pet idle (2026-10-09): `.critter` gets `grounded` (all but wisp and bat), plus `jiggle` (slime) or `rock` (egg). Grounded pets use `petbreathe` (bottom-anchored squash), the slime `petjiggle`, the egg `petrock`; fliers keep `bob`. The crawler-frame states now use `.petinframe.pet-cheer/.pet-cower/.pet-hiss .critter` (higher specificity), because the generic `.petinframe .critter{bob}` rule was overriding them, so pets had never visibly celebrated, cowered or hissed.
+
+## Mobs, cel-lit (2026-10-09)
+- `MOB_DETAIL[k]` (detail strokes per family, same local frame as `MOB_ART`: ~64 wide, feet at y 0) + `mobFxDef` (small cel filter; cool moonlight for ghost/stalker). `mobArtImg(k)` renders `mobCreature(k)` + detail through the filter into a standalone SVG data URI, cached in `MOB_IMG`.
+- `mobScene` places that picture as `<image>` inside each `.mc` (so the bob just moves a picture), adds a torch glow top right, a flagstone floor and per-creature contact shadows. Filtering live creatures cost ~16 fps on a throttled phone with a 5-pack; pictures cost ~3.
+- `mobIcon` (map) still draws the plain `mobCreature` at icon size.

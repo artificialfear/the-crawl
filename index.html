@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=e87c615580"></script>
-<script>window.CRAWL_BUILD="e87c615580";</script>
+<script src="firebase-config.js?v=150c0a6672"></script>
+<script>window.CRAWL_BUILD="150c0a6672";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -3930,17 +3930,92 @@ function mobCreature(k,x,y,s,d){
       <path d="M-10 -14 L-8 -9 L-6 -13 L-3 -8 L0 -12 L3 -7 L6 -12 L9 -8 L12 -13 L14 -10" fill="none" stroke="#f4f0e0" stroke-width="2"/>
       <path d="M26 -2 Q30 8 26 12 Q22 8 26 -2 Z M-24 -2 Q-21 6 -24 10 Q-27 6 -24 -2 Z" fill="#6bbf3a" stroke="${K}" stroke-width="1.6"/>`);
 }
-/* The encounter scene: the pack crowding toward you out of the dark. */
+/* Mob finish, to match the crawlers: each family's creature runs once through a small cel filter (cool, moonlit
+   light for ghosts and stalkers) with a detail pass on top, and is turned into a picture that the scene reuses for
+   the whole pack. The bob then only moves pictures, so a pack of five costs no more than today's flat art.
+   (Filtering live creatures made a 5-pack drop from ~58 to ~42 fps on a throttled phone; pictures keep it at ~58.)
+   Map icons still use the plain mobCreature drawing at their tiny size. */
+const MOB_DETAIL={
+  rat:`<path d="M-20 -30 l2 -4 M-12 -33 l1 -4 M-2 -36 l1 -4 M8 -36 l1 -4 M14 -33 l2 -3 M-4 -28 Q4 -32 14 -28" stroke="#2a201d" stroke-width="1.2" fill="none"/>
+    <path d="M20 -20 l3 1 M25 -26 l3 0 M30 -33 l3 -1" stroke="#7a4a4a" stroke-width="1.4"/>
+    <circle cx="-29.5" cy="-38" r="2.6" fill="#c98a8a" stroke="none"/><circle cx="-8" cy="-40" r="2.6" fill="#c98a8a" stroke="none"/>
+    <ellipse cx="-30" cy="-16" rx="2.4" ry="1.8" fill="#e8909a" stroke="#0e0a08" stroke-width="1"/><path d="M-30 -16 L-40 -19 M-30 -15 L-40 -14 M-28 -16 L-20 -20 M-28 -15 L-19 -14" stroke="#e8e0d0" stroke-width=".7" opacity=".8"/>
+    <path d="M-29 0 l-1.4 2 M-27 0 l0 2.2 M-21 0 l-.6 2.2 M-19 0 l.8 2 M13 0 l-.8 2 M15 0 l.6 2.2 M21 0 l0 2.2 M24 0 l1.2 2" stroke="#e8e0d0" stroke-width="1"/>
+    <path d="M2 -40 Q14 -42 22 -34" stroke="#fff" stroke-width="1.6" fill="none" opacity=".25"/>`,
+  goblin:`<path d="M-19 -26 Q0 -20 19 -26" stroke="#5a3920" stroke-width="4" fill="none"/><rect x="-3.4" y="-28" width="6.8" height="5" rx="1" fill="#d8b04a" stroke="#0e0a08" stroke-width="1.2"/>
+    <path d="M-16 -40 L12 -22" stroke="#5a3920" stroke-width="3"/><circle cx="-8" cy="-35" r="1.4" fill="#d8b04a" stroke="none"/>
+    <path d="M-14 -10 l6 0 l0 4 l-6 0 Z" fill="#7a5530" stroke="#0e0a08" stroke-width="1"/><path d="M8 -12 l6 0 l0 4 l-6 0 Z" fill="#7a5530" stroke="#0e0a08" stroke-width="1"/>
+    <circle cx="10" cy="-56" r="1.6" fill="#5e8a32" stroke="#0e0a08" stroke-width=".8"/><circle cx="-12" cy="-74" r="1.2" fill="#5e8a32" stroke="#0e0a08" stroke-width=".8"/>
+    <path d="M-13 -58 Q-10 -55 -6 -57 M13 -58 Q10 -55 6 -57" stroke="#4e7a2a" stroke-width="1.2" fill="none"/>
+    <path d="M-28 -71 L-20 -64 M28 -71 L20 -64" stroke="#5e8a32" stroke-width="1.2"/><path d="M38 -56 L34 -42" stroke="#fff" stroke-width="1.2" opacity=".7"/>
+    <path d="M4 -79 Q14 -78 16 -66" stroke="#fff" stroke-width="1.6" fill="none" opacity=".25"/>`,
+  ooze:`<circle cx="-20" cy="-14" r="2.6" fill="none" stroke="#b6ff8a" stroke-width="1.2" opacity=".8"/><circle cx="22" cy="-36" r="1.8" fill="none" stroke="#b6ff8a" stroke-width="1" opacity=".8"/>
+    <circle cx="-4" cy="-48" r="1.4" fill="#d8ffb8" stroke="none" opacity=".8"/><circle cx="26" cy="-10" r="3.2" fill="none" stroke="#b6ff8a" stroke-width="1.1" opacity=".7"/>
+    <path d="M6 -50 Q22 -48 28 -30" stroke="#e8ffd0" stroke-width="2" fill="none" opacity=".45"/><path d="M-2 0 Q0 6 -2 9 Q-4 6 -2 0 Z" fill="#6bbf3a" stroke="#0e0a08" stroke-width="1.2"/>
+    <path d="M-28 -6 Q-10 -2 8 -4" stroke="#3e8a1a" stroke-width="1.4" fill="none" opacity=".8"/>`,
+  ghost:`<path d="M-18 -30 Q-20 -18 -16 -10 M-8 -32 Q-10 -20 -8 -8 M8 -32 Q10 -20 8 -8 M18 -30 Q20 -18 16 -10" stroke="#c8c0ec" stroke-width="1.2" fill="none" opacity=".8"/>
+    <ellipse cx="0" cy="-44" rx="18" ry="24" fill="#bfe8ff" opacity=".18" stroke="none"/><path d="M-6 -72 Q6 -76 14 -66" stroke="#fff" stroke-width="2" fill="none" opacity=".6"/>`,
+  leech:`<path d="M-24 -8 Q-28 -26 -6 -33 Q12 -40 8 -56" stroke="#e8f0c0" stroke-width="1.6" fill="none" opacity=".35"/>
+    <path d="M-20 -2 q1 4 0 6 M-6 -30 q1 4 0 6" stroke="#a8c86a" stroke-width="1.4" fill="none" opacity=".8"/>
+    <circle cx="4" cy="-66" r="1.2" fill="#a8c86a" stroke="none"/><circle cx="20" cy="-58" r="1" fill="#a8c86a" stroke="none"/><path d="M14 -70 Q20 -72 22 -66" stroke="#fff" stroke-width="1.2" fill="none" opacity=".4"/>`,
+  imp:`<path d="M-14 -50 L-28 -58 M-14 -48 L-24 -50 M14 -50 L28 -58 M14 -48 L24 -50" stroke="#7a3a80" stroke-width="1.1"/>
+    <path d="M-6 -30 Q0 -26 6 -30" stroke="#7a3a80" stroke-width="1.2" fill="none"/><path d="M-27 -15 l1.4 1.6 M-24 -18 l1.4 1.4 M-18 -18 l1.4 1.4" stroke="#7a4a1a" stroke-width=".9"/>
+    <path d="M2 -60 Q10 -62 13 -54" stroke="#fff" stroke-width="1.6" fill="none" opacity=".3"/><path d="M4 -30 Q10 -30 12 -24" stroke="#fff" stroke-width="1.2" fill="none" opacity=".3"/>`,
+  stalker:`<path d="M-16 0 L-12 -6 L-8 0 L-4 -5 L0 0 L4 -6 L8 0 L12 -5 L16 0" fill="#3a4656" stroke="#0e0a08" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M-10 -68 Q-12 -58 -10 -50 M10 -68 Q12 -58 10 -50" stroke="#2a3440" stroke-width="1.4" fill="none"/>
+    <path d="M-38 -7 l-1 -1 M38 -7 l1 -1" stroke="#fff" stroke-width="1.2"/><path d="M4 -80 Q12 -76 14 -64" stroke="#cfe0ff" stroke-width="1.4" fill="none" opacity=".4"/>`,
+  scuttler:`${[[-16,-22],[-6,-27],[6,-27],[16,-22]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.1" fill="#6a4a14" stroke="none"/>`).join("")}
+    <path d="M-2 -40 Q4 -42 10 -38" stroke="#fff4c8" stroke-width="1.4" fill="none" opacity=".55"/><path d="M8 -26 Q18 -26 22 -18" stroke="#fff4c8" stroke-width="1.6" fill="none" opacity=".45"/>
+    <path d="M-34 0 l-2 1 M-20 0 l-2 1 M34 0 l2 1 M20 0 l2 1" stroke="#a8782a" stroke-width="1.4"/>`,
+  lootgob:`<path d="M2 -46 l6 -2 l1 6 l-6 2 Z" fill="#7a5430" stroke="#0e0a08" stroke-width="1"/><path d="M3 -45 l5 3 M7 -47 l-3 5" stroke="#d8c08a" stroke-width=".7"/>
+    <path d="M20 -18 l2 -1 M24 -16 l2 -1 M28 -18 l2 -1" stroke="#d8c08a" stroke-width=".8"/><path d="M-18 -26 Q-9 -28 0 -24" stroke="#5a3a1a" stroke-width="2" fill="none"/>
+    <path d="M18 -66 Q30 -62 32 -48" stroke="#fff" stroke-width="1.6" fill="none" opacity=".3"/><path d="M-10 -48 Q-4 -50 -2 -44" stroke="#fff" stroke-width="1.2" fill="none" opacity=".3"/>`,
+  mascot:`<path d="M-19 -36 L19 -36 M-19 -30 L19 -30" stroke="#f4f0e0" stroke-width="2" opacity=".9"/><path d="M-18 -18 L18 -18" stroke="#1a4aaa" stroke-width="2"/>
+    <path d="M-12 -2 l-3 0 M-12 -1 l-3 1 M12 -2 l3 0 M12 -1 l3 1" stroke="#0e0a08" stroke-width=".8"/>
+    <path d="M-20 -60 Q-22 -72 -14 -80" stroke="#c46a10" stroke-width="1.2" fill="none"/><path d="M6 -84 Q16 -80 18 -70" stroke="#fff" stroke-width="1.8" fill="none" opacity=".35"/>`,
+  pitfighter:`<path d="M-10 -50 Q-6 -46 -2 -50 M2 -50 Q6 -46 10 -50 M-6 -40 L-6 -34 M6 -40 L6 -34" stroke="#8a5a32" stroke-width="1.1" fill="none"/>
+    <path d="M8 -54 l4 6" stroke="#f0c0a0" stroke-width="1.2"/><path d="M-26 -46 Q-20 -48 -16 -44" stroke="#fff" stroke-width="1.4" fill="none" opacity=".4"/>
+    <path d="M4 -78 Q10 -76 10 -68" stroke="#fff" stroke-width="1.4" fill="none" opacity=".5"/><path d="M-20 0 q-3 -2 -6 0 M20 0 q3 -2 6 0" stroke="#d8b88a" stroke-width="1.2" fill="none" opacity=".7"/>`,
+  shusher:`${[[-14,-6,"#e8c070"],[-12,-16,"#d8d0b8"],[-15,-26,"#e8c070"],[-11,-36,"#d8d0b8"]].map(([x,y,c])=>`<path d="M${x} ${y} l14 0" stroke="${c}" stroke-width="1.2" opacity=".85"/>`).join("")}
+    <path d="M-7 -58 l2 1 M3 -58 l2 1" stroke="#fff" stroke-width="1.1"/><path d="M3 -78 l4 -6" stroke="#c9a46a" stroke-width="1.6"/>
+    <path d="M4 -66 Q12 -64 12 -56" stroke="#fff" stroke-width="1.4" fill="none" opacity=".35"/>`,
+  bunny:`<path d="M-18 -10 l-3 2 M-20 -20 l-3 0 M18 -10 l3 2 M20 -20 l3 0 M-10 -34 l-1 -3 M10 -34 l1 -3" stroke="#a89a86" stroke-width="1.1"/>
+    <path d="M-10 -48 Q-9 -40 -8 -34 M14 -48 Q12 -40 10 -33" stroke="#c8909a" stroke-width="1" fill="none" opacity=".8"/>
+    <circle cx="-34" cy="-30" r="1.4" fill="#d8cfc0" stroke="none" opacity=".8"/><circle cx="32" cy="-22" r="1" fill="#d8cfc0" stroke="none" opacity=".8"/><circle cx="-28" cy="-8" r="1.2" fill="#d8cfc0" stroke="none" opacity=".7"/>
+    <path d="M4 -34 Q14 -34 18 -24" stroke="#fff" stroke-width="1.6" fill="none" opacity=".35"/>`};
+const mobFxDef=(u,cool)=>`<filter id="${u}" x="-12%" y="-10%" width="124%" height="120%" color-interpolation-filters="sRGB">
+<feFlood flood-color="${cool?"#e8f4ff":"#fff0dc"}" result="warm"/><feBlend in="SourceGraphic" in2="warm" mode="multiply" result="lit"/>
+<feOffset in="SourceAlpha" dx="4.2" dy="-1.4" result="so"/><feComposite in="SourceAlpha" in2="so" operator="out" result="sb"/>
+<feFlood flood-color="#120a24" flood-opacity=".45"/><feComposite in2="sb" operator="in" result="shd"/>
+<feOffset in="SourceAlpha" dx="-1.5" dy=".4" result="o"/><feComposite in="SourceAlpha" in2="o" operator="out" result="rim"/>
+<feFlood flood-color="${cool?"#bfe8ff":"#ffb04a"}" flood-opacity=".9"/><feComposite in2="rim" operator="in" result="rimc"/>
+<feComposite in="lit" in2="SourceAlpha" operator="in" result="litc"/>
+<feMerge><feMergeNode in="litc"/><feMergeNode in="shd"/><feMergeNode in="rimc"/></feMerge></filter>`;
+const MOB_IMG={};
+function mobArtImg(k){
+  if(MOB_IMG[k])return MOB_IMG[k];const cool=k==="ghost"||k==="stalker";
+  const inner=mobCreature(k,0,0,1,0).replace(/^<g transform="[^"]*"><g class="mc"[^>]*>/,"").replace(/<\/g><\/g>$/,"");
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-52 -100 104 110"><defs>${mobFxDef("f",cool)}</defs><g filter="url(#f)">${inner}${MOB_DETAIL[k]||""}</g></svg>`;
+  return MOB_IMG[k]="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+}
+/* The encounter scene: the pack crowding toward you out of the dark, lit by a torch off to the right, on a flagstone
+   floor, each creature with its own contact shadow. */
 function mobScene(mb){
-  const k=mobKind(mb),u="ms"+(++avUid);
+  const k=mobKind(mb),u="ms"+(++avUid),img=mobArtImg(k);
   const spots=mb.pack?[[70,104,.9,0],[250,104,.9,.5],[115,112,1.05,.9],[205,112,1.05,1.3],[160,118,1.25,.2]]:[[100,108,.95,.4],[220,108,.95,1.1],[160,116,1.2,0]];
   const col=mobFam(k).col,bg=col[1];
-  return `<svg class="mobscene" viewBox="0 0 320 124" aria-hidden="true" focusable="false"><defs><radialGradient id="${u}g" cx="50%" cy="80%" r="70%"><stop offset="0" stop-color="${col[0]}"/><stop offset="1" stop-color="${bg}"/></radialGradient></defs>
+  return `<svg class="mobscene" viewBox="0 0 320 124" aria-hidden="true" focusable="false"><defs>
+    <radialGradient id="${u}g" cx="50%" cy="80%" r="70%"><stop offset="0" stop-color="${col[0]}"/><stop offset="1" stop-color="${bg}"/></radialGradient>
+    <radialGradient id="${u}t" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffb04a" stop-opacity=".45"/><stop offset="1" stop-color="#ffb04a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${u}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".1"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient></defs>
     <rect width="320" height="124" fill="url(#${u}g)"/>
     <g opacity=".5" stroke="#000" stroke-width="2" fill="none"><path d="M0 30 L60 30 L60 0 M60 30 L120 30 M180 24 L240 24 L240 0 M240 24 L320 24 M30 30 L30 60 M150 0 L150 26 M280 24 L280 56"/></g>
-    <ellipse cx="160" cy="122" rx="170" ry="16" fill="#000" opacity=".55"/>
+    <circle cx="300" cy="22" r="46" fill="url(#${u}t)"/>
+    <path d="M0 96 L320 96 L320 124 L0 124 Z" fill="url(#${u}f)"/><path d="M0 96 L320 96 M40 96 L28 124 M110 96 L104 124 M200 96 L206 124 M280 96 L292 124" stroke="#000" stroke-width="1.2" opacity=".35" fill="none"/>
+    <ellipse cx="160" cy="122" rx="170" ry="16" fill="#000" opacity=".5"/>
     ${[[40,46],[288,40],[20,80],[300,86]].map(([x,y],i)=>`<g class="mc-eyes" style="animation-delay:-${i*.7}s"><circle cx="${x}" cy="${y}" r="2.2" fill="${col[2]}"/><circle cx="${x+7}" cy="${y}" r="2.2" fill="${col[2]}"/></g>`).join("")}
-    ${spots.map(([x,y,s,d])=>mobCreature(k,x,y,s,d)).join("")}</svg>`;
+    ${spots.map(([x,y,sc])=>`<ellipse cx="${x}" cy="${y+1}" rx="${(26*sc).toFixed(1)}" ry="${(4*sc).toFixed(1)}" fill="#000" opacity=".45"/>`).join("")}
+    ${spots.map(([x,y,sc,d])=>`<g transform="translate(${x} ${y}) scale(${sc})"><g class="mc" style="animation-delay:-${d}s"><image href="${img}" x="-52" y="-100" width="104" height="110"/></g></g>`).join("")}</svg>`;
 }
 const MOB_WANDER=.12;
 /* After a floor is cleared: grind mode. Mobs show up on 40% of quests (a third of them packs) and pay +50% XP;
