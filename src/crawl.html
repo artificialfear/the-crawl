@@ -226,7 +226,7 @@ body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 .invcell.invempty{display:grid;place-items:center;padding:0;line-height:1;background:linear-gradient(160deg,rgba(63,224,255,.34),rgba(28,110,150,.5) 55%,rgba(18,64,100,.62));border:2px dashed #7fe8ff;box-shadow:inset 0 0 12px rgba(63,224,255,.45),0 0 8px rgba(63,224,255,.35);text-align:center}
 .invcell.invempty span{font-size:10px;color:#e6fbff;font-weight:700;text-shadow:0 1px 2px #000;letter-spacing:.08em;text-indent:.08em;text-transform:uppercase;margin:0}
 .invcell{border-color:#111}.invcell.invempty{border-color:#7fe8ff}.invcell.blank{border-color:rgba(127,232,255,.35)}
-.invcell.r-epic,.invcell.r-legendary{box-shadow:0 0 8px rgba(255,140,40,.6)}
+.invcell.r-epic{box-shadow:0 0 8px rgba(180,92,255,.6)}.invcell.r-legendary{box-shadow:0 0 8px rgba(255,140,40,.6)}
 /* Unique: metallic gold with a sweeping shine, a bright gold rim and halo, unlike flat orange Legendary */
 .invcell.r-magical,.invtip .tico.uq{background:linear-gradient(135deg,#6e430b 0%,#e2ad3c 20%,#fff4c2 36%,#d39b2c 50%,#7d5010 66%,#f4d27a 84%,#a06c18 100%)}
 .invcell.r-magical{border-color:#fff0b0;box-shadow:0 0 0 2px #000,0 0 14px 2px rgba(255,214,90,.9),0 0 28px rgba(255,190,60,.45);animation:uqglow 2.4s ease-in-out infinite}
@@ -699,7 +699,7 @@ details summary::-webkit-details-marker{display:none}
 @keyframes mflame{from{transform:scale(1,1)}to{transform:scale(.78,1.38)}}
 @keyframes mtwinkle{0%,100%{opacity:.15;transform:scale(.5) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(45deg)}}
 @keyframes mzap{0%,100%{opacity:.12}3%{opacity:1}7%{opacity:.25}10%{opacity:1}24%{opacity:.85}28%{opacity:.12}}
-.rar-common{color:#f4f2f8}.rar-uncommon{color:#6f9dff}.rar-rare{color:#ffe14d}.rar-epic,.rar-legendary{color:#ff9a3c}
+.rar-common{color:#f4f2f8}.rar-uncommon{color:#6f9dff}.rar-rare{color:#ffe14d}.rar-epic{color:#c77dff}.rar-legendary{color:#ff9a3c}
 .achs{display:flex;flex-direction:column;margin-top:8px}
 .achs .ach{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}
 .achs .ach:first-child{border-top:0}
@@ -2154,9 +2154,9 @@ const ITEMS = [
   {id:"bt9",slot:"belt",n:"Sash of Bottomless Pockets",            rar:"magical",             bonus:0, belt:6, heal:.5, magic:"arcane", mnote:"Potions come out of it fizzing. They taste like static.", d:"6 hotbar slots · healing potions heal 50% more"}];
 
 const SHOP = ITEMS.filter(i=>i.price);
-/* Display tiers (white, blue, yellow, orange, gold). Internal keys stay as they were because box odds use them:
-   uncommon shows as Magic, epic and legendary both show as Legendary, magical shows as Unique. */
-const RARITY = {common:{n:"Common",dupe:30},uncommon:{n:"Magic",dupe:60},rare:{n:"Rare",dupe:120},epic:{n:"Legendary",dupe:250},legendary:{n:"Legendary",dupe:500},magical:{n:"Unique",dupe:1000}};
+/* Display tiers, lowest to highest: Common (white), Magic (blue), Rare (yellow), Epic (violet), Legendary (orange),
+   Unique (gold). Internal keys stay as they were because box odds use them: uncommon shows as Magic, magical as Unique. */
+const RARITY = {common:{n:"Common",dupe:30},uncommon:{n:"Magic",dupe:60},rare:{n:"Rare",dupe:120},epic:{n:"Epic",dupe:250},legendary:{n:"Legendary",dupe:500},magical:{n:"Unique",dupe:1000}};
 /* Loot box odds are weights, not percentages. Duplicates of owned gear convert to gold at the rarity's dupe value. */
 const BOXES = {
   bronze:   {n:"Bronze Box",    price:60,  odds:{gold:30,potion:15,cons:12,common:35,uncommon:15,rare:5},   gold:[25,60]},
@@ -6676,7 +6676,7 @@ function buyBox(tier){
   checkAch();
 }
 const BOX_GLOW={bronze:"rgba(214,140,74,.6)",silver:"rgba(210,220,240,.55)",gold:"rgba(255,210,63,.65)",legendary:"rgba(230,240,255,.7)",celestial:"rgba(150,120,255,.9)"};
-const RAR_GLOW={common:"#f4f2f8",uncommon:"#6f9dff",rare:"#ffe14d",epic:"#ff9a3c",legendary:"#ff9a3c",magical:"#e8b84a"};
+const RAR_GLOW={common:"#f4f2f8",uncommon:"#6f9dff",rare:"#ffe14d",epic:"#b45cff",legendary:"#ff9a3c",magical:"#e8b84a"};
 /* ---------- Loot crates for the box-opening scene ----------
    A chunky sci-fi crate in the tier's colour: chamfered lid with a dark strap, a grey latch, glowing light
    strips and inset panels. The lid is its own group so it can pop open, with light pouring out behind it. */
@@ -9961,7 +9961,7 @@ const RAR_ORDER=["magical","legendary","epic","rare","uncommon","common"];
 const SLOT_NAME={head:"Head",armor:"Body",weapon:"Weapon",gloves:"Hands",boots:"Feet",cape:"Back",ring:"Ring",trinket:"Pet",belt:"Belt"};
 const pct=v=>Math.round(v*100);
 /* Inventory cell backgrounds: one colour per tier, consumables their own. */
-const RAR_BG={common:"#dcd9e3",uncommon:"#3b74dc",rare:"#f0d23a",epic:"#ec7a1c",legendary:"#ec7a1c",magical:"none",cons:"#2d8f86"};
+const RAR_BG={common:"#dcd9e3",uncommon:"#3b74dc",rare:"#f0d23a",epic:"#8a3ad8",legendary:"#ec7a1c",magical:"none",cons:"#2d8f86"};
 const UNIQUE_BG="linear-gradient(135deg,#6e430b 0%,#e2ad3c 20%,#fff4c2 36%,#d39b2c 50%,#7d5010 66%,#f4d27a 84%,#a06c18 100%)";
 const tierIcon=(id,key)=>lootIconSVG(id).replace(/<rect width="100" height="100" fill="[^"]+"\/>/,`<rect width="100" height="100" fill="${RAR_BG[key]}"/>`);
 const BRICK_TILE="url(\"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="112" height="60"><rect width="112" height="60" fill="#2b2440"/><g stroke="#111" stroke-width="3" fill="#3b3156"><rect x="3" y="3" width="50" height="24" rx="3"/><rect x="59" y="3" width="50" height="24" rx="3" fill="#41365d"/><rect x="-25" y="33" width="50" height="24" rx="3" fill="#41365d"/><rect x="31" y="33" width="50" height="24" rx="3"/><rect x="87" y="33" width="50" height="24" rx="3"/></g><path d="M15 12 l8 6 l6 -3 M70 44 l6 5 l5 -2" fill="none" stroke="#111" stroke-width="1.6"/></svg>')+"\")";
