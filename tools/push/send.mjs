@@ -131,7 +131,7 @@ export async function run({ db, webpush, now = new Date(), log = console.log }) 
 
 async function main() {
   const sa = JSON.parse(process.env.FIREBASE_SA || "null");
-  if (!sa || !sa.private_key) { console.log("FIREBASE_SA isn't set yet, so there's nothing to send. See HANDOFF.md → Notifications."); return; }
+  if (!sa || !sa.private_key) { console.error("FIREBASE_SA isn't set (or isn't the service-account JSON), so nothing can be sent. See HANDOFF.md → Notifications."); process.exit(1); }
   const { initializeApp, cert } = await import("firebase-admin/app");
   const { getFirestore } = await import("firebase-admin/firestore");
   const webpush = (await import("web-push")).default;

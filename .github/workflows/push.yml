@@ -1,6 +1,6 @@
 # The Crawl's push notifications (evening reminders and party pings), sent every 15 minutes.
 # Needs one repository secret, FIREBASE_SA: the JSON of a Firebase service-account key (see HANDOFF.md → Notifications).
-# Until it's set, the job just says so and stops.
+# Until it's set, the job fails with a message saying so (a red ✗ in the Actions tab).
 name: Push notifications
 on:
   schedule:
@@ -16,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           sparse-checkout: tools/push
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
       - name: Install
         working-directory: tools/push
         run: npm install --no-audit --no-fund --omit=dev
