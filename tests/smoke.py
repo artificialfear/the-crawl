@@ -68,6 +68,29 @@ def main():
     from playwright.sync_api import sync_playwright
     html = build()
     if FAILS: return finish()
+    # Two @keyframes with one name: the later silently replaces the earlier (the floating cape, the frozen boss fog).
+    kf = re.findall(r"@keyframes\s+([A-Za-z0-9_-]+)", html)
+    dup = sorted({k for k in kf if kf.count(k) > 1})
+    check("no two animations share a name", not dup, ", ".join(dup))
+    # Two top-level functions with one name: the later silently replaces the earlier.
+    fn = re.findall(r"^(?:async )?function ([A-Za-z0-9_$]+)\(", html, re.M)
+    dupf = sorted({k for k in fn if fn.count(k) > 1})
+    check("no two top-level functions share a name", not dupf, ", ".join(dupf))
+    # One save field written as two different kinds of value (a map in one place, a number in another) is how
+    # v3.17.0's spare steps wiped the spare gear. Rough static read of every player.X= assignment.
+    def kind(v):
+        if re.match(r"(Object\.assign\(\{\}|\{)", v): return "object"
+        if re.match(r"\[|.*\.(concat|filter|slice|map)\(", v): return "array"
+        if re.match(r"(true|false)\b|!", v): return "bool"
+        if re.match(r"[\"`']", v): return "string"
+        if re.match(r"(Math\.|\d|\+|-|Date\.now|n\b|.*\|\|0\)?\s*[-+])", v): return "number"
+        return None
+    kinds = {}
+    for m in re.finditer(r"\b(?:player|p)\.([A-Za-z_]\w*)\s*=(?!=)\s*([^;]{0,40})", html):
+        k = kind(m.group(2))
+        if k: kinds.setdefault(m.group(1), set()).add(k)
+    mixed = sorted(f"{f} ({'/'.join(sorted(k))})" for f, k in kinds.items() if len(k) > 1)
+    check("save fields: each is written as one kind of value", not mixed, ", ".join(mixed))
     m = re.search(r'const CHANGELOG=\[\s*\{v:"([\d.]+)"', html)
     check("changelog has a newest entry", bool(m))
     srv, d, port = serve(html)
@@ -313,6 +336,53 @@ def main():
             pg.wait_for_timeout(600)
             check("wiped spare gear restored from a restore point", E(pg, "JSON.stringify(player.spare)") == '{"a1":3,"w1":1}' and E(pg, "!player.spareFix"), E(pg, "JSON.stringify(player.spare)"))
             check("map walk / spare steps: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
+            # ---- hidden tabs: their panels skip redraws, then catch up the moment you open them ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            E(pg, "setTab('quests');player.name='Zed Catchup';player.gold=4321;render()")
+            stale = E(pg, "!$('sheet')||!$('sheet').textContent.includes('Zed Catchup')")
+            E(pg, "setTab('hero')")
+            fresh = E(pg, "$('sheet').textContent.includes('Zed Catchup')")
+            check("hidden tab skipped while hidden, current when opened", stale and fresh, f"stale {stale} fresh {fresh}")
+            pg.close()
+            pg, errs = page(1280, 900)
+            pg.evaluate(SETUP)
+            E(pg, "setTab('hero');player.name='Wide Screen';render()")
+            check("wide screen: the side tab beside the quests still redraws", E(pg, "$('sheet').textContent.includes('Wide Screen')") and not errs, "; ".join(errs[:2]))
+            pg.close()
+
+            # ---- save shape: a simulated week of play never changes the type of anything in the save ----
+            # (v3.17.0 stored a step count in player.spare, the spare-gear map, and wiped it. This catches that kind of clash.)
+            pg = b.new_page(viewport={"width": 390, "height": 844}); errs = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            pg.add_init_script("""(()=>{const _D=Date;let off=0;window.__shift=d=>{off+=d*864e5;};
+              class D extends _D{constructor(...a){if(a.length)super(...a);else super(_D.now()+off);}static now(){return _D.now()+off;}}
+              window.Date=D;})()""")
+            pg.goto(url); pg.wait_for_timeout(2000); pg.evaluate(SETUP)
+            E(pg, "player.spare={a1:1};player.spSteps=0")  # fields the week touches that a fresh save doesn't have yet
+            E(pg, """window.__shape=v=>v===null?'null':Array.isArray(v)?'array':typeof v;
+              window.__paths=()=>{const o={};for(const [k,v] of Object.entries(player)){o[k]=__shape(v);
+                if(v&&typeof v==='object'&&!Array.isArray(v))for(const [k2,v2] of Object.entries(v))o[k+'.'+k2]=__shape(v2);}return o;};
+              window.__seen={};window.__bad=[];
+              window.__note=step=>{for(const [p,t] of Object.entries(__paths())){if(t==='null'||t==='undefined')continue;const was=__seen[p];
+                if(was&&was.t!==t&&!was.told&&__bad.length<12){was.told=1;__bad.push(p+': '+was.t+' ('+was.at+') -> '+t+' ('+step+')');}if(!was)__seen[p]={t,at:step};}};
+              for(const [k,v] of Object.entries(defaultPlayer()))if(v!=null)__seen[k]={t:__shape(v),at:'new save'};
+              __note('setup');""")
+            for day in range(7):
+                if day: E(pg, f"__shift(1);try{{dailyTick()}}catch(e){{}};render();__note('day {day} start')")
+                E(pg, f"""const td=today();for(let i=0;i<4;i++)tasks.push({{id:'w{day}_'+i,title:'Week task {day}.'+i,effort:1+((i+{day})%4),est:15,stat:['STR','INT','CON','DEX','CHA'][i%5],due:td,done:false,created:Date.now()}});render()""")
+                for i in range(4):
+                    E(pg, f"try{{completeQuest('w{day}_{i}')}}catch(e){{}};__note('day {day} quest {i}')")
+                    pg.wait_for_timeout(60)
+                E(pg, f"""try{{const m=ensureMap();if(m){{m.tgt=m.pos;mapStep({{effort:1}});mapGo(0);spareWalk();m.tgt=null;}}}}catch(e){{}}
+                  try{{const bx=(player.boxes||[])[0];if(bx)openBox(bx.id);}}catch(e){{}}
+                  if(typeof closeReport==='function')try{{closeReport()}}catch(e){{}};render();__note('day {day} end')""")
+                pg.wait_for_timeout(150)
+            bad = E(pg, "__bad.join(' | ')")
+            check("save shape: a simulated week changes no saved field's type", not bad, bad[:600])
+            check("save shape: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
             # ---- reduced motion still completes a quest ----

@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=075bad58fd"></script>
-<script>window.CRAWL_BUILD="075bad58fd";</script>
+<script src="firebase-config.js?v=75c87b675b"></script>
+<script>window.CRAWL_BUILD="75c87b675b";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5267,11 +5267,13 @@ function mwCheck(){
 function mwApply(m){
   const w=mwLive(m),tok=document.getElementById("mapTok");if(!tok||!w)return;
   const e=mwXY(m,m.pos),off=w.pts.map(i=>{const p=mwXY(m,i);return [p[0]-e[0],p[1]-e[1]];}),T=([x,y],h)=>`translate(${x}px,${y-(h||0)}px)`;
+  if(tok.__an){try{tok.__an.cancel();}catch(e){}tok.__an=null;}
   if(!w.at){tok.style.transform=T(off[0]);return;}
+  tok.style.transform="";
   const dur=mwDur(w),kf=[{transform:T(off[0]),offset:0},{transform:T(off[0]),offset:MW_LEAD/dur,easing:"ease-in-out"}];
   for(let k=1;k<off.length;k++){const a=off[k-1],b=off[k],t0=MW_LEAD+(k-1)*MW_STEP;
     kf.push({transform:T([(a[0]+b[0])/2,(a[1]+b[1])/2],7),offset:(t0+MW_STEP*.5)/dur,easing:"ease-in"},{transform:T(b),offset:(t0+MW_STEP)/dur,easing:"ease-out"});}
-  try{const an=tok.animate(kf,{duration:dur,fill:"backwards"});an.currentTime=Math.min(dur,Date.now()-w.at);}catch(err){}
+  try{const an=tok.__an=tok.animate(kf,{duration:dur,fill:"backwards"});an.currentTime=Math.min(dur,Date.now()-w.at);}catch(err){}
 }
 // Reactions for the rooms on a walk that's playing: {room: [kind, ms until it plays (negative once it has started)]}
 function mwReacts(m){const w=MWALK.w,o={};if(!w||!w.at||!m||w.key!==m.week+"|"+m.floor)return o;const t=Date.now()-w.at;
@@ -5362,6 +5364,9 @@ function wireLairBtns(el){
   el.querySelectorAll("[data-lretreat]").forEach(x=>x.onclick=retreatLair);
   el.querySelectorAll("[data-lopen]").forEach(x=>x.onclick=()=>lairPrompt(+x.dataset.lopen));
 }
+/* Swap a panel's contents only when the markup actually changed: an identical redraw is skipped, which saves the
+   rebuild and the re-layout. Only for panels whose wiring uses onclick= (re-assigning is harmless), never addEventListener. */
+function setHTML(el,h){if(el.__h===h&&el.firstChild)return false;el.innerHTML=h;el.__h=h;return true;}
 function renderMap(){
   const el=$("mapBox");if(!el||!playerExists||!player.boss)return;
   const had=player.map&&player.map.week===player.boss.week&&player.map.floor===player.boss.floor;
@@ -5378,15 +5383,15 @@ function renderMap(){
   if(merch){const it=ITEMS.find(i=>i.id===merch.item),price=priceOf(MERCH_PRICE[it.rar]||200),own=player.owned.includes(it.id);
     mh=`<div class="merch"><span class="mini-ico">${lootIconSVG(it.id)}</span><div class="what"><b class="rar-${it.rar}">${esc(it.n)}</b><span>${RARITY[it.rar].n} · ${esc(it.d)}</span></div>
       <button class="btn gold sm" type="button" id="buyMerch" ${own||player.gold<price?"disabled":""}>${own?"Owned":price+" gold"}</button></div>`;}
-  el.innerHTML=`<div class="mapwrap">${mapSVG(m)}</div>
+  setHTML(el,`<div class="mapwrap">${mapSVG(m)}</div>
     <div class="mapinfo"><div><b>Room ${m.pos+1} of ${mapLen(m)}</b> · ${esc(ROOM[cur.t].n)}${far>=mapLen(m)-1?" · floor fully mapped":""}</div>${bt}
       ${spare}${lairFightHTML(m)}
       <div class="muted">${player.boss&&player.boss.hunt&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?`You're in ${esc(player.boss.name)}'s lair. Every quest hits it until it falls, or you retreat.`:`${esc(player.boss.name)} blocks the way. Beat it to keep exploring.`)
         :m.tgt!=null||m.pos<far?"":far>=mapLen(m)-1?"Nothing left to explore. The stairwell opens when the Floor boss falls.":!(m.rev||[]).includes(m.pos+1)?"The way ahead is fog. Each finished quest moves you one room deeper; bosses drop maps that chart what's coming.":nx.t==="door"&&!nx.open?`Next: a sealed door. Finish an Elite or harder quest, or ${3-(m.lock||0)} more quest${3-(m.lock||0)===1?"":"s"} to pick the lock.`:"Each finished quest moves you one room deeper."} Secret rooms found: ${found} of ${(m.secrets||[]).length}${(m.secrets||[]).some(se=>se.located&&!se.found)?" · one is marked with a red X: walk to the room it hangs off and finish any quest there, or finish an Elite quest anywhere":""}. Maps this floor: ${m.drops||0}.</div>
       ${(m.log||[]).length?`<ul class="maplog">${m.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>${mh}
-    <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["mob","pack","ambush","chest","trap","shrine","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`;
+    <details class="maplegend"><summary>Map key</summary>${(m.hunt?["boss"]:[]).concat(["mob","pack","ambush","chest","trap","shrine","merchant","door","stairs","secret"]).map(k=>`<div><svg viewBox="0 0 30 30" width="26" height="26">${mapIcon(k,15,15)}</svg><span><b>${ROOM[k].n}</b> ${esc(ROOM[k].d)}</span></div>`).join("")}</details>`);
   const bm=$("buyMerch");if(bm)bm.onclick=buyMerchant;
-  el.querySelectorAll("[data-maproom],[data-lair]").forEach(r=>r.addEventListener("click",()=>{if(r.dataset.lair!=null)lairPrompt(+r.dataset.lair);else mapGo(+r.dataset.maproom);}));
+  el.querySelectorAll("[data-maproom],[data-lair]").forEach(r=>r.onclick=()=>{if(r.dataset.lair!=null)lairPrompt(+r.dataset.lair);else mapGo(+r.dataset.maproom);});
   wireLairBtns(el);
   const mf=$("mapFwd");if(mf)mf.onclick=()=>mapGo(9999);
   const sg=$("spareGo");if(sg)sg.onclick=spareWalk;
@@ -5701,9 +5706,9 @@ function renderHotbar(){
   let el=$("hotbar");const show=!!(store&&loadedP&&playerExists&&player);
   if(!el){if(!show)return;el=document.createElement("div");el.id="hotbar";el.className="hotbar";el.setAttribute("role","toolbar");el.setAttribute("aria-label","Belt hotbar");document.body.appendChild(el);
     el.addEventListener("click",e=>{const sp=e.target.closest("[data-sp]");if(sp){castSpell(sp.dataset.sp);return;}const s=e.target.closest("[data-hb]");if(s){hbUse(+s.dataset.hb);return;}if(e.target.closest("[data-hbedit]")){equipSound("belt");openBelt(-1);}});
-    addEventListener("resize",()=>{ui.hbHtml=null;renderHotbar();});}
+    addEventListener("resize",()=>{ui.hbHtml=null;ui.tbhW=null;renderHotbar();});}
   el.hidden=!show;document.body.classList.toggle("has-hb",show);if(!show)return;
-  const tb=$("tabbar");if(tb&&getComputedStyle(tb).position==="fixed")document.documentElement.style.setProperty("--tbh",tb.offsetHeight+"px");
+  const tb=$("tabbar");if(tb&&ui.tbhW!==innerWidth){ui.tbhW=innerWidth;if(getComputedStyle(tb).position==="fixed")document.documentElement.style.setProperty("--tbh",tb.offsetHeight+"px");}
   const row=beltRow(),b=bestBelt(),keys=typeof matchMedia==="function"&&matchMedia("(hover:hover)").matches;
   const spl=prepRow(),mp=player.mp||0;
   const spRow=spl.length?`<div class="hb-row hb-sp">`
@@ -5715,8 +5720,8 @@ function renderHotbar(){
       const n=consN(k),on=k==="focus"&&player.focused,sk=POTION_KINDS.has(k)&&sickLeft()>0;
       return `<button type="button" class="hb-slot${n<1?" out":""}${on?" on":""}${sk?" sick":""}" data-hb="${i}" aria-label="${esc(consName(k))}, ${n} left, slot ${i+1}" title="${esc(consName(k))} · ${n} left${keys?` · key ${i+1}`:""}">${tierIcon(k,"cons")}<span class="hb-n">${n}</span>${key}${sk?`<span class="hb-sick" aria-hidden="true">${Math.ceil(sickLeft()/6e4)}m</span>`:""}</button>`;}).join("")+`</div>`;
   if(ui.hbHtml!==html){const fi=document.activeElement&&el.contains(document.activeElement)?document.activeElement.dataset.hb:undefined;
-    el.innerHTML=html;ui.hbHtml=html;if(fi!=null){const f=el.querySelector(`[data-hb="${fi}"]`);if(f)f.focus();}}
-  hbFit(el,!!spl.length);}
+    el.innerHTML=html;ui.hbHtml=html;ui.hbFitW=null;if(fi!=null){const f=el.querySelector(`[data-hb="${fi}"]`);if(f)f.focus();}}
+  if(ui.hbFitW!==innerWidth){ui.hbFitW=innerWidth;hbFit(el,!!spl.length);}}
 /* One row whenever spells and belt fit side by side; the spells stack on top only when they don't. */
 function hbFit(el,sp){el.classList.remove("two");let two=false;
   // on phones, keep the right-hand strip (quest buttons) clear: wrap to two rows rather than run under them
@@ -7906,14 +7911,27 @@ function syncShow(){const el=$("sync");if(!el||!/\b(ok|saving)\b/.test(el.classN
 function syncInfo(){const el=$("sync");if(!el)return;const t=el.querySelector("span").textContent;
   toast(t+(SYNCQ.at?` · last saved ${new Date(SYNCQ.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}`:"")+". Restore points are in Settings → Backup.");}
 
+/* Panels on a side tab you can't see aren't redrawn: they're marked dirty and drawn when their tab opens
+   (applyTab → paneFlush). On a phone only the open tab shows; on a wide screen the Quests column plus one side tab.
+   The quest board and floor map count as the Quests pane; the boss, mob and rival cards, header, tabs, hotbar and
+   ticker always draw (the stage, entrances and hit numbers work off them). */
+const PANE_FNS=new Map();const PANE_DIRTY=new Set();
+function paneOn(){const t=ui.tab||"quests",phone=window.matchMedia&&matchMedia("(max-width:860px)").matches,side=t==="quests"?(prefs.sideTab||"hero"):t;
+  return phone?[t]:["quests",side];} // the panes on screen
+function paneSkip(fn,on){const p=PANE_FNS.get(fn);if(!p||p.some(x=>on.includes(x)))return false;PANE_DIRTY.add(fn);return true;}
+function paneFlush(){if(!PANE_DIRTY.size)return;const on=paneOn();for(const fn of [...PANE_DIRTY])if(!paneSkip(fn,on)){PANE_DIRTY.delete(fn);try{fn();}catch(e){console.error(fn.name,e);}}}
 function render(){
+  if(!PANE_FNS.size){[[renderGods,"hero"],[renderBooth,"hero"],[renderRc,"hero"],[renderSheet,"hero"],[renderSpellbook,"hero"],[renderPet,"hero"],[renderParty,"party"],[renderSafe,"safe"],
+    [renderRank,"show"],[renderTalk,"show"],[renderAch,"show"],[renderEpisodes,"show"],[renderLog,"show"],[renderAccuracy,"show"],[renderInv,"loot"],[renderRewards,"loot"],[renderShop,"loot"],[renderBoxes,["loot","safe"]],[renderBoard,"quests"],[renderMap,"quests"]]
+    .forEach(([f,p])=>PANE_FNS.set(f,[].concat(p)));
+    if(window.matchMedia)try{matchMedia("(max-width:860px)").addEventListener("change",paneFlush);}catch(e){}}
   const ae=document.activeElement;const aeId=ae&&ae.id;const sel=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null;
   if(loadedP&&loadedT&&playerExists&&!ui.inTick){ui.inTick=true;try{systemsTick();}catch(e){console.error("systemsTick",e);}ui.inTick=false;}
   try{goldWatch();renderPurse();}catch(e){}
   if(loadedP&&playerExists)try{spellTick();}catch(e){console.error("spellTick",e);}
-  const st=staged(),fxRects=st?null:fxSnap();
+  const st=staged(),fxRects=st?null:fxSnap(),on=paneOn();
   // Each panel draws independently, so a bug in one can't blank the others.
-  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderSpellbook,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker,renderHotbar]){if(st&&STAGE_FROZEN.has(fn))continue;try{fn();}catch(e){console.error(fn.name,e);}}
+  for(const fn of [renderTheme,renderMobAlert,renderRivalAlert,renderAchInbox,renderGods,renderParty,renderIdeas,renderTabs,renderHeader,renderBooth,renderRc,renderSafe,renderRank,renderEpBanner,renderSheet,renderSpellbook,renderPet,renderBestiary,renderInv,renderTalk,renderMap,renderBoxes,renderAch,renderEpisodes,renderBoss,renderRewards,renderShop,renderBoard,renderLog,renderAccuracy,renderBackup,renderTicker,renderHotbar]){if(st&&STAGE_FROZEN.has(fn))continue;if(paneSkip(fn,on))continue;try{fn();}catch(e){console.error(fn.name,e);}}
   if(aeId){const el=$(aeId);if(el&&el!==document.activeElement){el.focus();try{if(sel!=null)el.setSelectionRange(sel,sel);}catch(e){}}}
   if(!st)try{fxTick(fxRects);}catch(e){console.warn("fx",e);}
   try{entrWatch();}catch(e){console.warn("entr",e);}
@@ -10387,12 +10405,15 @@ function boxListHTML(){const bx=player.boxes||[];if(!bx.length)return "";
   return BOX_ORDER.filter(t=>bx.some(b=>b.tier===t)).map(t=>{const these=bx.filter(b=>b.tier===t).sort((a,b)=>a.at-b.at);
     return `<div class="boxrow"><div class="bico">${boxIconSVG(t)}</div><div class="what"><b>${these.length>1?these.length+"× ":""}${esc(BOXES[t].n)}</b><span>From ${esc(these[0].from||"the dungeon")}${these.length>1?` and ${these.length-1} more`:""}</span></div>
       <button class="btn gold" type="button" data-openbox="${these[0].id}">Open</button></div>`;}).join("");}
+// Every item's icon, greyed out until owned. Hundreds of icons, so it's built only when the Collection is open and reused until what you own changes.
+function collectGrid(){const k=ITEMS.length+"|"+player.owned.join(",");if(ui.collG&&ui.collG.k===k)return ui.collG.h;
+  const h=ITEMS.map(i=>`<span class="mini-ico${player.owned.includes(i.id)?"":" no"}" title="${player.owned.includes(i.id)?esc(i.n):"Not found yet"}">${lootIconSVG(i.id)}</span>`).join("");ui.collG={k,h};return h;}
 function renderBoxes(){
   {const n=$("boxNote");if(n){const k=(player.boxes||[]).length,e=(player.eggs||[]).length,owned=ITEMS.filter(i=>player.owned.includes(i.id)).length;
     n.innerHTML=`<div class="boxes">${k||e?`<div class="boxnote"><div><b>${k?`${k} loot box${k===1?"":"es"}`:""}${k&&e?" and ":""}${e?`${e} Mystery Egg${e===1?"":"s"}`:""} waiting.</b><span class="muted">Crawlers only open loot somewhere safe: the Safe Room${hasQt()?" or your quarters":""}. Carrying unopened boxes draws rival crawlers.</span></div><button class="btn gold sm" type="button" id="toBoxes">To the Safe Room</button></div>`
       :`<div class="muted" style="font-size:14px">No loot boxes waiting. When you earn one, open it in the Safe Room.</div>`}
-      <details class="collect" id="collectBox"${prefs.collectOpen?" open":""}><summary>Collection: <b>${owned}</b> of ${ITEMS.length}</summary><div class="collect-grid">${ITEMS.map(i=>`<span class="mini-ico${player.owned.includes(i.id)?"":" no"}" title="${player.owned.includes(i.id)?esc(i.n):"Not found yet"}">${lootIconSVG(i.id)}</span>`).join("")}</div></details></div>`;
-    {const cb=$("collectBox");if(cb)cb.addEventListener("toggle",()=>{prefs.collectOpen=cb.open;savePrefs();});}
+      <details class="collect" id="collectBox"${prefs.collectOpen?" open":""}><summary>Collection: <b>${owned}</b> of ${ITEMS.length}</summary><div class="collect-grid">${prefs.collectOpen?collectGrid():""}</div></details></div>`;
+    {const cb=$("collectBox");if(cb)cb.addEventListener("toggle",()=>{prefs.collectOpen=cb.open;savePrefs();const g=cb.querySelector(".collect-grid");if(g&&cb.open&&!g.firstChild)g.innerHTML=collectGrid();});}
     const tb=$("toBoxes");if(tb)tb.onclick=goBoxes;}}
   const el=$("boxes");if(!el)return;const bx=player.boxes||[];
   {const pn=$("boxPanel");if(pn)pn.hidden=!bx.length&&!(player.eggs||[]).length;}
@@ -11195,6 +11216,7 @@ function applyTab(){
   document.querySelectorAll(".tabpane").forEach(p=>p.classList.toggle("on",p.dataset.pane===side));
   document.querySelectorAll("#tabbar [data-tab]").forEach(b=>{const on=b.dataset.tab===t||(t==="quests"&&b.dataset.tab===side&&b.dataset.tab!=="quests");
     b.classList.toggle("on",b.dataset.tab===t);b.classList.toggle("side-on",on);b.setAttribute("aria-selected",b.dataset.tab===t?"true":"false");});
+  paneFlush();
 }
 function setTab(t,o){
   if(!TABS.some(x=>x[0]===t))return;
