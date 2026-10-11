@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=75c87b675b"></script>
-<script>window.CRAWL_BUILD="75c87b675b";</script>
+<script src="firebase-config.js?v=09ddce6842"></script>
+<script>window.CRAWL_BUILD="09ddce6842";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -5268,8 +5268,13 @@ function mwApply(m){
   const w=mwLive(m),tok=document.getElementById("mapTok");if(!tok||!w)return;
   const e=mwXY(m,m.pos),off=w.pts.map(i=>{const p=mwXY(m,i);return [p[0]-e[0],p[1]-e[1]];}),T=([x,y],h)=>`translate(${x}px,${y-(h||0)}px)`;
   if(tok.__an){try{tok.__an.cancel();}catch(e){}tok.__an=null;}
-  if(!w.at){tok.style.transform=T(off[0]);return;}
+  const fr=document.getElementById("mapHere");
+  if(!w.at){tok.style.transform=T(off[0]);if(fr)fr.style.transform=T(off[0]);return;}
   tok.style.transform="";
+  if(fr){const fk=[{transform:T(off[0]),offset:0,easing:"step-end"}];for(let k=1;k<off.length;k++)fk.push({transform:T(off[k]),offset:(MW_LEAD+k*MW_STEP)/mwDur(w),easing:"step-end"});
+    if(fk[fk.length-1].offset<1)fk.push({transform:T(off[off.length-1]),offset:1});
+    try{const fa=fr.animate(fk,{duration:mwDur(w),fill:"both"});fa.currentTime=Math.min(mwDur(w),Date.now()-w.at);
+      fa.onfinish=()=>{setTimeout(()=>{if(MWALK.w===w)MWALK.w=null;if(fr.isConnected)renderMap();},1900);};}catch(e){}}
   const dur=mwDur(w),kf=[{transform:T(off[0]),offset:0},{transform:T(off[0]),offset:MW_LEAD/dur,easing:"ease-in-out"}];
   for(let k=1;k<off.length;k++){const a=off[k-1],b=off[k],t0=MW_LEAD+(k-1)*MW_STEP;
     kf.push({transform:T([(a[0]+b[0])/2,(a[1]+b[1])/2],7),offset:(t0+MW_STEP*.5)/dur,easing:"ease-in"},{transform:T(b),offset:(t0+MW_STEP)/dur,easing:"ease-out"});}
@@ -5308,7 +5313,7 @@ function mapSVG(m){
   let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor ${m.floor} map, room ${m.pos+1} of ${mapLen(m)}"><defs><pattern id="mapgrid" width="${S}" height="${S}" patternUnits="userSpaceOnUse" x="${P}" y="${P}"><path d="M${S} 0 L0 0 0 ${S}" fill="none" stroke="#a88a5a" stroke-width=".8" stroke-dasharray="2 3"/></pattern>${MAP_HATCH("mp")}</defs>`;
   s+=mapParchment(W,H,"mp","map"+m.week+"-"+m.floor)+`<rect x="${P}" y="${P}" width="${MAP_W*S}" height="${MAP_H*S}" fill="url(#mapgrid)" opacity=".7"/>`;
   const tilt=mapRand("tilt"+m.week+m.floor),ang=m.rooms.map(()=>((tilt()*2-1)*2.2).toFixed(1));
-  const RX=mwReacts(m);let tok="";
+  const RX=mwReacts(m),WK=mwLive(m);let tok="";
   const far=farOf(m),rev=new Set(m.rev||[]),visible=i=>i<=far||rev.has(i),fresh=m.fresh&&Date.now()-m.fresh.at<6000?new Set(m.fresh.rooms):new Set();
   // corridors (secret links only once found)
   m.rooms.forEach((rm,i)=>{if(!i||!visible(i)||!visible(i-1))return;const [a,b]=c(m.rooms[i-1].x,m.rooms[i-1].y),[x,y]=c(rm.x,rm.y);
@@ -5324,7 +5329,7 @@ function mapSVG(m){
     s+=`<path d="M${a} ${b} L${x} ${y}" stroke="${K}" stroke-width="6" stroke-linecap="round"${open?"":' opacity=".45"'}/><path d="M${a} ${b} L${x} ${y}" stroke="#9fd0a0" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="3 3"${open?"":' opacity=".45"'}/>`;});
   if(m.tgt!=null&&m.tgt!==m.pos){const pth=mapPath(m,m.pos,m.tgt)||[];let d="";pth.forEach((i,k)=>{const [x,y]=c(m.rooms[i].x,m.rooms[i].y);d+=(k?"L":"M")+x+" "+y+" ";});
     if(d)s+=`<path d="${d}" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="5 5" opacity=".85"/>`;}
-  m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos,past=i<=far&&!here,nw=fresh.has(i);
+  m.rooms.forEach((rm,i)=>{if(!visible(i))return;const [x,y]=c(rm.x,rm.y),here=i===m.pos&&!WK,past=i<=far&&!here,nw=fresh.has(i); // mid-walk, the red frame travels with the token instead
     s+=`<g${nw?' class="mapnew"':""}><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="${here?"#fff3c4":past?"#f2e4c2":"#dcc596"}" stroke="${here?"#e8283c":K}" stroke-width="${here?4:2.4}" ${!past&&!here?'stroke-dasharray="5 3"':""} transform="rotate(${ang[i]} ${x} ${y})"/>`;
     const bossDead=(rm.boss!=null&&player.boss&&player.boss.week===m.week&&(player.boss.defeated||player.boss.tier>rm.boss))||((rm.t==="mob"||rm.t==="pack")&&rm.cleared);
     const rx=RX[i],rxc=rx&&MW_ICON[rx[0]];
@@ -5335,7 +5340,8 @@ function mapSVG(m){
     if(i<=far+1)s+=`<rect class="maproom" data-maproom="${i}" x="${x-23}" y="${y-23}" width="46" height="46" rx="7" fill="transparent" stroke="none"><title>${i<=far?(i===m.pos?"You are here":"Walk back to room "+(i+1)):"Head forward"}</title></rect>`;
     if(m.tgt!=null&&i===m.tgt&&i!==m.pos)s+=`<rect x="${x-25}" y="${y-25}" width="50" height="50" rx="8" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="6 4" pointer-events="none"/>`;
     if(rx)s+=mwFx(rx[0],x,y,rx[1]);
-    if(here)tok=`<g id="mapTok" pointer-events="none"><g class="mapme">${headToken(Object.assign({},wearing(player),player.look?{look:player.look}:{}),x+16,y-16,12,"#e8283c","mm"+i)}</g></g>`;});
+    if(i===m.pos&&WK)tok+=`<g id="mapHere" pointer-events="none"><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="none" stroke="#e8283c" stroke-width="4" transform="rotate(${ang[i]} ${x} ${y})"/></g>`;
+    if(i===m.pos)tok+=`<g id="mapTok" pointer-events="none"><g class="mapme">${headToken(Object.assign({},wearing(player),player.look?{look:player.look}:{}),x+16,y-16,12,"#e8283c","mm"+i)}</g></g>`;});
   (m.secrets||[]).forEach(se=>{if(!se.found&&!se.located)return;const [x,y]=c(se.x,se.y);
     if(se.found)s+=`<rect x="${x-19}" y="${y-19}" width="38" height="38" rx="6" fill="#fff3c4" stroke="${K}" stroke-width="2.4" stroke-dasharray="5 3"/>${mapIcon("secret",x,y)}`;
     else{const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y);if(se.link<=far)s+=`<rect class="maproom" data-maproom="${se.link}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>Walk to its door in room ${se.link+1}</title></rect>`;s+=`<g class="${se.fresh&&Date.now()-se.fresh<6000?"mapnew":""}"><path d="M${a} ${b} L${x} ${y}" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="3 4"/><rect x="${x-17}" y="${y-17}" width="34" height="34" rx="6" fill="#e2cfa2" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x-8} ${y-8} L${x+8} ${y+8} M${x+8} ${y-8} L${x-8} ${y+8}" stroke="#e8283c" stroke-width="3.4" stroke-linecap="round"/></g>`;}});
