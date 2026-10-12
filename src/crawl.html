@@ -378,6 +378,9 @@ form.add{gap:10px}
 .bosspanel.mini .hpwrap .num{font-size:12px}
 .boss-sub b{color:var(--fg)}
 @media (max-width:560px){.boss-strip{grid-template-columns:minmax(0,1fr) auto auto;gap:6px 10px}.boss-strip .hpwrap{grid-column:1 / -1;grid-row:2}}
+/* Folded boss on a phone: the name (cut short with … if it must be) and the fold button on top, the HP bar full width under it. */
+@media (max-width:560px){.bosspanel.mini .boss-strip{grid-template-columns:minmax(0,1fr) auto}.bosspanel.mini .boss-strip .bs-title{min-width:0}.bosspanel.mini .boss-strip .bname{max-width:100%}
+  .bosspanel.mini .boss-strip .hpwrap{grid-column:1 / -1;grid-row:2}.bosspanel.mini .boss-strip .bfold{grid-column:2;grid-row:1}}
 
 .preview{font-size:15px;color:var(--muted)}
 .preview b{color:var(--gold);font-size:20px}
@@ -781,6 +784,9 @@ details summary::-webkit-details-marker{display:none}
 .epbanner{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--r);background:linear-gradient(90deg,var(--blood-dk),var(--panel) 70%);border:1px solid var(--blood);box-shadow:0 0 18px rgba(255,46,110,.25);flex-wrap:wrap}
 .epbanner .what{flex:1;min-width:0;display:flex;flex-direction:column}
 .epbanner .what span{font-size:13px;color:var(--muted)}
+/* Phones: the badge, then the title across the full width, then the buttons, instead of four squeezed columns. */
+@media (max-width:600px){.epbanner{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;align-items:start}
+  .epbanner .ep-new{grid-column:1/-1;justify-self:start}.epbanner .what{grid-column:1/-1}.epbanner .btn{width:100%}}
 .ep-new{white-space:nowrap;font-family:var(--display);font-size:12px;color:#fff;background:var(--blood);padding:3px 8px;border-radius:4px;animation:livepulse 1.6s ease-in-out infinite}
 .eplist{display:flex;flex-direction:column;margin-top:8px}
 .eprow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}

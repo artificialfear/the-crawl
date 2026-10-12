@@ -193,7 +193,9 @@ def main():
             # ---- finishing a quest from low on the board ----
             pg, errs = page()
             pg.evaluate(SETUP)
-            E(pg, "ensureBoss();player.mobs=[{id:'m1',n:'Rat Swarm',k:'rat',a:'A',pack:false,hp:40,max:40}];player.hp=80;setTab('quests');render()")
+            # Full show, so the glide doesn't depend on the quest happening to cause a big moment (it used to kill the
+            # starter boss; from Oct 12, 2026 floors use lairs and an unengaged boss takes no hits)
+            E(pg, "prefs.showMode='full';ensureBoss();player.mobs=[{id:'m1',n:'Rat Swarm',k:'rat',a:'A',pack:false,hp:40,max:40}];player.hp=80;setTab('quests');render()")
             E(pg, "document.querySelectorAll('#board .quest')[document.querySelectorAll('#board .quest').length-1].scrollIntoView({block:'center'})")
             pg.wait_for_timeout(300); y0 = E(pg, "scrollY")
             n0 = E(pg, "tasks.filter(t=>!t.done).length")
@@ -254,7 +256,7 @@ def main():
             # ---- combat numbers ----
             pg, errs = page()
             pg.evaluate(SETUP)
-            E(pg, "ensureBoss();player.mobs=[{id:'m1',n:'Rat Swarm',k:'rat',a:'A',pack:false,hp:30,max:30}];player.rival=spawnRival({})||player.rival;player.hp=80;setTab('quests');render()")
+            E(pg, "ensureBoss();{const b=player.boss;if(lairMode(b)&&b.cur==null){const i=b.lairs.findIndex(l=>!l.dead&&l.t<5);b.lairs[i].found=true;engageLair(i);}}player.mobs=[{id:'m1',n:'Rat Swarm',k:'rat',a:'A',pack:false,hp:30,max:30}];player.rival=spawnRival({})||player.rival;player.hp=80;setTab('quests');render()")
             E(pg, "dealDamage(7);player.mobs[0].hp=12;player.rival.hp-=9;render()"); pg.wait_for_timeout(200)
             kinds = E(pg, "[...document.querySelectorAll('.fxnum')].map(d=>d.className).join(' ')")
             check("combat: boss, mob and rival numbers", all(k in kinds for k in ("fx-boss", "fx-mob", "fx-rv")), kinds)
