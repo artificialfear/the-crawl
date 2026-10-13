@@ -1114,6 +1114,20 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 .fx-boss{color:#ffd23f;font-size:30px}.fx-mob{color:#ff9a3d}.fx-rv{color:#ff5a6a}.fx-hurt{color:#ff4a4a;font-size:22px}.fx-heal{color:#7dff8a;font-size:22px}
 @keyframes fxrise{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}30%{transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-190%) scale(1)}}
 .fx-shake{animation:fxshake .45s ease-out}
+/* Boss strike: your weapon hits the boss picture when the page arrives (bossStrike). */
+.bstrike{display:block}
+.bstrike .bs-flash{position:absolute;inset:-12%;border-radius:50%;background:radial-gradient(circle,#fff 0,rgba(255,250,220,.75) 22%,rgba(255,210,63,.25) 45%,transparent 65%);opacity:0;animation:bsflash .5s ease-out .2s forwards}
+.bstrike.heavy .bs-flash{inset:-30%;animation-duration:.65s}
+@keyframes bsflash{0%{opacity:0;transform:scale(.4)}25%{opacity:1}100%{opacity:0;transform:scale(1.15)}}
+.bstrike .bs-wave{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px;border-radius:50%;border:6px solid #e8283c;box-shadow:0 0 0 3px #111,inset 0 0 0 3px #fff;opacity:0;animation:bswave .7s ease-out .22s forwards}
+@keyframes bswave{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(5)}}
+.bstrike.heavy .atk-weapon{width:118px;height:118px;margin:-96px 0 0 -59px}
+.bstrike .atk-burst{animation-delay:.24s}
+.fx-shake-big{animation:fxshakebig .6s ease-out}
+@keyframes fxshakebig{0%,100%{transform:none}12%{transform:translate(-10px,3px) rotate(-3deg) scale(1.03)}28%{transform:translate(9px,-3px) rotate(2.5deg)}44%{transform:translate(-6px,2px) rotate(-1.5deg)}62%{transform:translate(4px,-1px) rotate(1deg)}80%{transform:translate(-2px,0)}}
+/* Your crawler lunges as the strike lands (Hero card and crawler cam). */
+#sheet.av-atk .avatar .print,#crawlCam.av-atk .cc-av{animation:avlunge .6s cubic-bezier(.3,1.3,.5,1)}
+@keyframes avlunge{0%,100%{transform:none}25%{transform:translate(-7px,2px) rotate(-3deg)}50%{transform:translate(12px,-6px) rotate(4deg) scale(1.06)}70%{transform:translate(4px,-2px) rotate(1deg)}}
 @keyframes fxshake{0%,100%{transform:none}20%{transform:translate(-5px,1px) rotate(-1.5deg)}40%{transform:translate(5px,-1px) rotate(1.5deg)}60%{transform:translate(-3px,0) rotate(-.8deg)}80%{transform:translate(2px,0)}}
 #sheet.av-hit .avatar{animation:fxshake .45s ease-out}#sheet.av-hit .avatar::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(255,40,40,.42);pointer-events:none;animation:fxflash .6s ease-out forwards}
 #sheet.av-hop .avatar .print{animation:avhop .55s ease-out}
@@ -6071,7 +6085,7 @@ function spellAnim(id,done){
   const end=()=>{if(fin)return;fin=true;ov.classList.add("out");setTimeout(()=>ov.remove(),220);done();};
   ov.addEventListener("click",end);setTimeout(end,1550);}
 /* Avatar and hotbar flash in the spell's colour. */
-function castFx(school){const c=SPELL_COL[school]||"#3fe0ff";for(const el of [$("sheet"),$("hotbar")]){if(!el)continue;el.style.setProperty("--castc",c);el.classList.remove("casting");void el.offsetWidth;el.classList.add("casting");setTimeout(()=>el.classList.remove("casting"),1300);}}
+function castFx(school){ui.castAt=Date.now();const c=SPELL_COL[school]||"#3fe0ff";for(const el of [$("sheet"),$("hotbar")]){if(!el)continue;el.style.setProperty("--castc",c);el.classList.remove("casting");void el.offsetWidth;el.classList.add("casting");setTimeout(()=>el.classList.remove("casting"),1300);}}
 /* Spell art: a round badge in the school colour with the spell's glyph (100 units). */
 function spellGlyph(id){
   const K=INK,W="#fff";
@@ -7953,6 +7967,34 @@ function fxDeath(at,kind){if(!at)return;const [t,c]=FX_DEATH[kind]||FX_DEATH.rat
     h+=`<span class="fd-p" style="--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d-(t==="coin"||t==="drop"?-20:20)).toFixed(0)}px;--r:${Math.round(Math.random()*540-270)}deg;color:${col};animation-delay:${(Math.random()*.08).toFixed(2)}s">${glyph}</span>`;}
   box.innerHTML=h;document.body.appendChild(box);setTimeout(()=>box.remove(),1300);}
 function fxPulse(el,cls,ms){if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms||900);}
+/* Boss strike: when damage lands on the boss, your weapon swings across the boss picture itself (blade slash with a
+   streak, axe chop, hammer smash with a ring, fist punch), with an impact flash; the number pops as it lands. A hit worth
+   15%+ of what the boss had left is heavy: bigger weapon, a shockwave, a comic burst word and a harder shake. Your crawler
+   lunges on the Hero card and the crawler cam (which switches to the battle stance). Skipped for spell hits (they have
+   their own effect), Quick mode, reduced motion, and when the boss picture is off screen. Returns whether it played. */
+function bossStrike(d,before){
+  if(calmMotion()||prefs.showMode==="quick"||(ui.castAt&&Date.now()-ui.castAt<4000))return false;
+  const art=document.querySelector(FX_SEL.boss);if(!art)return false;const r=art.getBoundingClientRect(),vh=innerHeight||800;
+  const h=Math.min(r.height,320);if(!r.width||r.top+h<0||r.top>vh)return false;
+  const w=weaponStyle(),heavy=before>0&&d/before>=.15,split=w.kind==="slash"||w.kind==="chop";
+  const sz=Math.max(r.width,h,150),L=document.createElement("div");L.className="atk-layer bstrike "+w.kind+(heavy?" heavy":"");L.setAttribute("aria-hidden","true");
+  const vw=document.documentElement.clientWidth||innerWidth;
+  Object.assign(L.style,{left:Math.max(4,Math.min(vw-sz-4,r.left+r.width/2-sz/2))+"px",top:(r.top+h/2-sz/2)+"px",width:sz+"px",height:sz+"px"}); // kept on screen beside a small picture
+  L.innerHTML=`<div class="bs-flash"></div><div class="atk-weapon">${weaponArt(w.id)}</div>${split?`<div class="atk-streak"></div>`:`<div class="atk-ring"></div>`}`
+    +(heavy?`<div class="bs-wave"></div><div class="atk-burst">${burstSVG(w.word,"#e8283c")}</div>`:"");
+  document.body.appendChild(L);
+  if(heavy){hitSound(w.kind,split?120:30);setTimeout(()=>fxPulse(art,"fx-shake-big",650),200);}else setTimeout(()=>SFX.play("jab"),180);
+  setTimeout(crawlerAttack,120);
+  setTimeout(()=>L.remove(),1300);
+  return true;
+}
+function crawlerAttack(){
+  const c=$("crawlCam");
+  if(c&&c.classList.contains("in")){const pr=c.querySelector(".print");
+    if(pr&&!c.dataset.atk){c.dataset.atk="1";const p=player,pet=activePet(p);try{pr.innerHTML=avatarSVG(Object.assign({},wearing(p),{look:p.look},pet?{pet:pet.key,petSulk:petSulking(p)}:{},{pose:"ready",expr:"determined",threat:true}));}catch(e){}}
+    fxPulse(c,"av-atk",650);}
+  const sh=$("sheet"),av=sh&&sh.querySelector(".avatar");if(av&&onScreen(av,innerHeight))fxPulse(sh,"av-atk",650);
+}
 function fxTick(pre){
   if(!loadedP||!playerExists)return false;const p=player,b=p.boss,live=b&&!b.defeated&&!hunting(b);
   if(!ui.fxKinds)ui.fxKinds=Object.fromEntries((p.mobs||[]).map(m=>[m.id,mobKind(m)]));
@@ -7961,7 +8003,8 @@ function fxTick(pre){
   const o=ui.fxPrev;ui.fxPrev=cur;if(!o)return false;let seen=false;
   const meP=(c,ms)=>{fxPulse($("sheet"),c,ms);if(camOn())fxPulse($("crawlCam"),c,ms);};
   const at=k=>{const el=fxEl(k);if(el){const r=el.getBoundingClientRect();if(r.width)return {x:r.left+r.width/2+scrollX,y:r.top+Math.min(r.height,160)/2+scrollY};}return pre[k];};
-  if(o.bk&&o.bk===cur.bk&&cur.bh<o.bh){fxNum(at("boss"),themeFx(p).fog?"Hit!":"−"+(o.bh-cur.bh),"boss");fxPulse(document.querySelector(FX_SEL.boss),"fx-shake",500);seen=true;}
+  if(o.bk&&o.bk===cur.bk&&cur.bh<o.bh){const d=o.bh-cur.bh,st=bossStrike(d,o.bh);const num=()=>fxNum(at("boss"),themeFx(p).fog?"Hit!":"−"+d,"boss");
+    if(st)setTimeout(num,260);else num();fxPulse(document.querySelector(FX_SEL.boss),"fx-shake",500);seen=true;}
   let md=0,hidden=false;for(const id in o.ms){const was=o.ms[id],now=cur.ms[id];const d=now==null?was:Math.max(0,was-now);if(d>0){md+=d;const mb=(p.mobs||[]).find(m=>m.id===id);if(mb&&mobFam(mobKind(mb)).hide)hidden=true;}}
   if(md>0){fxNum(at("mob"),hidden?"Hit!":"−"+md,"mob");seen=true;}
   for(const id in o.ms)if(cur.ms[id]==null&&ui.fxKinds&&ui.fxKinds[id]){fxDeath(pre.mob||at("mob"),ui.fxKinds[id]);seen=true;}

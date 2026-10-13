@@ -257,7 +257,8 @@ def main():
             pg, errs = page()
             pg.evaluate(SETUP)
             E(pg, "ensureBoss();{const b=player.boss;if(lairMode(b)&&b.cur==null){const i=b.lairs.findIndex(l=>!l.dead&&l.t<5);b.lairs[i].found=true;engageLair(i);}}player.mobs=[{id:'m1',n:'Rat Swarm',k:'rat',a:'A',pack:false,hp:30,max:30}];player.rival=spawnRival({})||player.rival;player.hp=80;setTab('quests');render()")
-            E(pg, "dealDamage(7);player.mobs[0].hp=12;player.rival.hp-=9;render()"); pg.wait_for_timeout(200)
+            E(pg, "dealDamage(7);player.mobs[0].hp=12;player.rival.hp-=9;render()"); pg.wait_for_timeout(500)  # the boss number waits for the strike to land
+            check("combat: the weapon strikes the boss picture", E(pg, "!!document.querySelector('.bstrike')") or E(pg, "!document.querySelector(FX_SEL.boss)||document.querySelector(FX_SEL.boss).getBoundingClientRect().top>innerHeight"))
             kinds = E(pg, "[...document.querySelectorAll('.fxnum')].map(d=>d.className).join(' ')")
             check("combat: boss, mob and rival numbers", all(k in kinds for k in ("fx-boss", "fx-mob", "fx-rv")), kinds)
             pg.close()
