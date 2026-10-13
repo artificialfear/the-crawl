@@ -1730,6 +1730,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
   max-width:calc(100vw - 24px);padding:8px 8px 8px 14px;border-radius:999px;background:#1e1533;border:2px solid var(--gold);box-shadow:0 0 0 2px #000,0 8px 24px rgba(0,0,0,.6);overflow:hidden;animation:updin .25s ease-out}
 .undobar .ub-txt{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56vw}
 .undobar .btn{flex:none}
+.undobar .ub-x{flex:none;background:none;border:0;color:var(--muted);font-size:15px;line-height:1;padding:4px 6px 4px 0;cursor:pointer}.undobar .ub-x:hover{color:var(--fg)}
 .ub-time{position:absolute;left:0;bottom:0;height:3px;background:var(--gold);width:100%;animation:ubtime 10s linear forwards}
 @keyframes ubtime{to{width:0}}
 .qgroup{margin-top:6px}.qgroup>summary.sect{padding:8px 4px;border-bottom:1px solid var(--line-2)}
@@ -7416,14 +7417,27 @@ function addQuest(q){
 /* Undo bar: after each completion, a pill at the top of the screen offers to take it back for 10 seconds.
    It sits above pop-ups and overlays so it's always reachable. Undo restores the save from just before the
    quest, so anything else done in those seconds is rolled back too; trades and gifts close the window. */
-let undoTimer=null;
-function clearUndo(){clearTimeout(undoTimer);undoTimer=null;const b=$("undoBar");if(b)b.remove();}
+let undoTimer=null,undoBorn=0,undoWatch=null;
+/* The undo window: 10 s, paused (undoHold) only while a full quest report is open, restarted when it closes
+   (undoGo). A watchdog keeps it honest: a hold with no full report open resumes, a window with no timer gets one,
+   and nothing stays up longer than 90 s. The ✕ dismisses it. (It used to pause for the slim report too, and could
+   sit frozen at the top while the show queue waited.) */
+function clearUndo(){clearTimeout(undoTimer);undoTimer=null;clearInterval(undoWatch);undoWatch=null;document.querySelectorAll(".undobar").forEach(b=>b.remove());}
+const undoModal=()=>!!(REP.el&&!REP.mini);
+function undoHold(){const ub=$("undoBar");if(!ub)return;clearTimeout(undoTimer);undoTimer=null;ub.classList.add("held");}
+function undoGo(restart){const ub=$("undoBar");if(!ub)return;const was=ub.classList.contains("held");ub.classList.remove("held");
+  if(restart||was){const t=ub.querySelector(".ub-time");if(t){t.style.animation="none";void t.offsetWidth;t.style.animation="";}clearTimeout(undoTimer);undoTimer=null;}
+  if(!undoTimer)undoTimer=setTimeout(clearUndo,10000);}
 function offerUndo(title,fn){
   clearUndo();const el=document.createElement("div");el.id="undoBar";el.className="undobar";el.setAttribute("role","status");
-  el.innerHTML=`<span class="ub-txt">✔ <b>${esc(String(title).slice(0,40))}</b> completed</span><button type="button" class="btn sm" id="undoBtn">Undo</button><i class="ub-time"></i>`;
-  document.body.appendChild(el);
+  el.innerHTML=`<span class="ub-txt">✔ <b>${esc(String(title).slice(0,40))}</b> completed</span><button type="button" class="btn sm" id="undoBtn">Undo</button><button type="button" class="ub-x" aria-label="Dismiss">✕</button><i class="ub-time"></i>`;
+  document.body.appendChild(el);undoBorn=Date.now();
   $("undoBtn").onclick=()=>{clearUndo();closeReport();document.querySelectorAll(".victory").forEach(v=>v.remove());fn();SFX.play("tick");toast("Quest restored. Everything from that completion was taken back.");};
-  if(REP.el)el.classList.add("held");else undoTimer=setTimeout(clearUndo,10000);
+  el.querySelector(".ub-x").onclick=e=>{e.stopPropagation();clearUndo();};
+  if(undoModal())undoHold();else undoGo();
+  undoWatch=setInterval(()=>{const ub=$("undoBar");if(!ub){clearUndo();return;}
+    if(Date.now()-undoBorn>90000){clearUndo();return;}
+    const held=ub.classList.contains("held");if(held&&!undoModal())undoGo(true);else if(!held&&!undoTimer)undoGo();},1000);
 }
 function completeQuest(id,actual,touched){
   const t=tasks.find(x=>x.id===id);if(!t||t.done||isResting(t))return;
@@ -11867,7 +11881,7 @@ const SHOWQ={q:[],busy:false,hold:0};
 function beat(fn,gap){SHOWQ.q.push({fn,gap:gap==null?1100:gap});if(!SHOWQ.busy){SHOWQ.busy=true;setTimeout(beatNext,Math.max(0,SHOWQ.hold-Date.now()));}}
 function beatHold(ms){if(SHOWQ.fast)return;SHOWQ.hold=Math.max(SHOWQ.hold,Date.now()+ms);}
 function beatNext(){
-  if(document.querySelector(".victory")||document.getElementById("zoomWrap")){setTimeout(beatNext,400);return;}
+  if(document.querySelector(".victory:not(.out)")||document.getElementById("zoomWrap")){setTimeout(beatNext,400);return;}
   const w=SHOWQ.hold-Date.now();if(w>0){setTimeout(beatNext,w);return;}
   const b=SHOWQ.q.shift();if(!b){SHOWQ.busy=false;SHOWQ.fast=false;repSync();if(REP.el&&REP.mini)repAuto();return;}
   try{b.fn();}catch(e){console.error("beat",e);}
@@ -11915,7 +11929,7 @@ function openReport(head,mini){
   ov.querySelector("[data-repx]").onclick=()=>closeReport();
   $("repGo").onclick=()=>{if(SHOWQ.busy&&SHOWQ.q.length)SHOWQ.fast=true;else closeReport();};
   // hold the undo countdown while the report is up
-  if(undoTimer){clearTimeout(undoTimer);undoTimer=null;const ub=$("undoBar");if(ub)ub.classList.add("held");}
+  if(!mini)undoHold();
   repLine(head,"head");repPend();repSync();
   if(!mini)setTimeout(()=>{const g=$("repGo");if(g&&REP.el)g.focus();},50);
 }
@@ -11935,7 +11949,7 @@ function closeReport(){
   const ov=REP.el;if(!ov)return;REP.el=null;REP.entry=null;REP.mini=false;REP.hover=false;clearTimeout(REP.auto);
   if(REP.pend){const q=REP.pend;REP.pend=null;q.forEach(a=>toast(a[0],a[1],a[2],a[3],true));}
   if(ov.classList.contains("mini")){ov.classList.add("out");setTimeout(()=>ov.remove(),250);}else ov.remove();
-  const ub=$("undoBar");if(ub){ub.classList.remove("held");const t=ub.querySelector(".ub-time");if(t){t.style.animation="none";void t.offsetWidth;t.style.animation="";}clearTimeout(undoTimer);undoTimer=setTimeout(clearUndo,10000);}
+  undoGo();
   // achievements earned during the quest, one after another
   const q=REP.ach;REP.ach=[];
   const tail=()=>{q.forEach((a,i)=>setTimeout(()=>achToast(a.html,a.ids,a.snd),250+i*50));stageBack();};

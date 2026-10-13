@@ -343,6 +343,18 @@ def main():
             check("map walk / spare steps: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- undo window: never frozen by the slim report; the ✕ dismisses it ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            E(pg, "prefs.showMode='quick';setTab('quests');render();offerUndo('Test quest',()=>{});openReport('<b>Quest complete</b>',true)")
+            held = E(pg, "!!document.querySelector('#undoBar.held')")
+            E(pg, "REP.mini=false;undoHold();REP.mini=true")  # a stale hold with only the slim report up
+            pg.wait_for_timeout(1300)
+            check("undo window: a stale hold resumes, slim report doesn't hold it", not held and E(pg, "!document.querySelector('#undoBar.held')&&undoTimer!=null"))
+            E(pg, "document.querySelector('#undoBar .ub-x').click()")
+            check("undo window: ✕ dismisses it", E(pg, "!document.getElementById('undoBar')") and not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- hidden tabs: their panels skip redraws, then catch up the moment you open them ----
             pg, errs = page()
             pg.evaluate(SETUP)
