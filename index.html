@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=907ca3b146"></script>
-<script>window.CRAWL_BUILD="907ca3b146";</script>
+<script src="firebase-config.js?v=8115a32998"></script>
+<script>window.CRAWL_BUILD="8115a32998";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1145,6 +1145,11 @@ body.finalday-on .ticker{border-top-color:var(--blood);background:linear-gradien
 .bstrike.heavy .atk-weapon{width:118px;height:118px;margin:-96px 0 0 -59px}
 .bstrike .atk-burst{animation-delay:.24s}
 .fx-shake-big{animation:fxshakebig .6s ease-out}
+.bosscam{position:fixed;z-index:25;left:10px;width:108px;pointer-events:none;opacity:0;transform:translateX(-125%);transition:transform .35s cubic-bezier(.2,.9,.3,1.15),opacity .25s}
+.bosscam.in{opacity:1;transform:none}
+.bosscam .bc-art{position:relative;border-radius:6px;overflow:hidden;border:3px solid #e8283c;box-shadow:0 6px 18px rgba(0,0,0,.6),0 0 0 2px #111;background:#111}
+.bosscam .bc-art svg,.bosscam .bc-art img{width:100%;height:auto;display:block}
+.bosscam .camtag{font-size:7.5px}
 @keyframes fxshakebig{0%,100%{transform:none}12%{transform:translate(-10px,3px) rotate(-3deg) scale(1.03)}28%{transform:translate(9px,-3px) rotate(2.5deg)}44%{transform:translate(-6px,2px) rotate(-1.5deg)}62%{transform:translate(4px,-1px) rotate(1deg)}80%{transform:translate(-2px,0)}}
 /* Your crawler lunges as the strike lands (Hero card and crawler cam). */
 #sheet.av-atk .avatar .print,#crawlCam.av-atk .cc-av{animation:avlunge .6s cubic-bezier(.3,1.3,.5,1)}
@@ -7559,8 +7564,9 @@ function completeQuest(id,actual,touched){
   /* How much show (Settings → After a quest): "full" always; "big" (default) only when something big happened;
      "quick" never. Without the show, there's no glide or crawler cam and a slim summary card fills in at the bottom. */
   const mobDied=(prevP.mobs||[]).some(m=>!(player.mobs||[]).some(x=>x.id===m.id));
-  const bigMoment=!!(after>before||loot||ui.rivalWin||mobSnd0||rvNew||lairLi!=null||ambushBeat||ENTR.wait.size||ui.stormMsg||mobDied);
-  ui.lastShow={lv:after>before,loot:!!loot,rv:!!ui.rivalWin,mob:!!mobSnd0,rvNew:!!rvNew,lair:lairLi!=null,amb:!!ambushBeat,entr:ENTR.wait.size,storm:!!ui.stormMsg,died:mobDied}; // why the show did or didn't play (for tests)
+  let heavyHit=false;try{const ob=prevP.boss,nb=player.boss;if(ob&&nb&&ob.name===nb.name&&!hunting(nb)&&!nb.defeated){const h0=bossHp(ob),h1=bossHp(nb);heavyHit=h0>0&&h0-h1>=h0*.15;}}catch(e){}
+  const bigMoment=!!(after>before||loot||ui.rivalWin||mobSnd0||rvNew||lairLi!=null||ambushBeat||ENTR.wait.size||ui.stormMsg||mobDied||heavyHit);
+  ui.lastShow={heavy:heavyHit,lv:after>before,loot:!!loot,rv:!!ui.rivalWin,mob:!!mobSnd0,rvNew:!!rvNew,lair:lairLi!=null,amb:!!ambushBeat,entr:ENTR.wait.size,storm:!!ui.stormMsg,died:mobDied}; // why the show did or didn't play (for tests)
   const mode=prefs.showMode||"big",slim=REP.el?!!REP.mini:(mode==="quick"||(mode==="big"&&!bigMoment));
   beatHold(slim?450:850); // let the slice land
   if(slim)beat(()=>stageEnd(fx>0,true),0);
@@ -7994,21 +8000,38 @@ function fxPulse(el,cls,ms){if(!el)return;el.classList.remove(cls);void el.offse
    lunges on the Hero card and the crawler cam (which switches to the battle stance). Skipped for spell hits (they have
    their own effect), Quick mode, reduced motion, and when the boss picture is off screen. Returns whether it played. */
 function bossStrike(d,before){
-  if(calmMotion()||prefs.showMode==="quick"||(ui.castAt&&Date.now()-ui.castAt<4000))return false;
-  const art=document.querySelector(FX_SEL.boss);if(!art)return false;const r=art.getBoundingClientRect(),vh=innerHeight||800;
-  const h=Math.min(r.height,320);if(!r.width||r.top+h<0||r.top>vh)return false;
-  const w=weaponStyle(),heavy=before>0&&d/before>=.15,split=w.kind==="slash"||w.kind==="chop";
+  if(calmMotion()||prefs.showMode==="quick"||(ui.castAt&&Date.now()-ui.castAt<4000))return null;
+  const art=document.querySelector(FX_SEL.boss);if(!art)return null;const r=art.getBoundingClientRect(),vh=innerHeight||800;
+  const h=Math.min(r.height,320),heavy=before>0&&d/before>=.15;
+  if(r.width&&r.top+h>0&&r.top<vh){strikeOn(art,heavy);return {delay:260};}
+  // Off screen (an ordinary hit in Big mode doesn't scroll up): the boss cam slides in and takes the hit instead.
+  const cam=bossCamIn(art);if(!cam)return null;const ca=cam.querySelector(".bc-art");
+  setTimeout(()=>strikeOn(ca,heavy),380);setTimeout(()=>bossCamOut(cam),2300);
+  const cr=ca.getBoundingClientRect();return {delay:640,at:{x:cr.left+cr.width/2+scrollX,y:cr.top+cr.height/2+scrollY}};
+}
+function strikeOn(art,heavy){
+  if(!art||!art.isConnected)return;const r=art.getBoundingClientRect(),h=Math.min(r.height,320);
+  const w=weaponStyle(),split=w.kind==="slash"||w.kind==="chop";
   const sz=Math.max(r.width,h,150),L=document.createElement("div");L.className="atk-layer bstrike "+w.kind+(heavy?" heavy":"");L.setAttribute("aria-hidden","true");
   const vw=document.documentElement.clientWidth||innerWidth;
   Object.assign(L.style,{left:Math.max(4,Math.min(vw-sz-4,r.left+r.width/2-sz/2))+"px",top:(r.top+h/2-sz/2)+"px",width:sz+"px",height:sz+"px"}); // kept on screen beside a small picture
   L.innerHTML=`<div class="bs-flash"></div><div class="atk-weapon">${weaponArt(w.id)}</div>${split?`<div class="atk-streak"></div>`:`<div class="atk-ring"></div>`}`
     +(heavy?`<div class="bs-wave"></div><div class="atk-burst">${burstSVG(w.word,"#e8283c")}</div>`:"");
   document.body.appendChild(L);
-  if(heavy){hitSound(w.kind,split?120:30);setTimeout(()=>fxPulse(art,"fx-shake-big",650),200);}else setTimeout(()=>SFX.play("jab"),180);
+  if(heavy){hitSound(w.kind,split?120:30);setTimeout(()=>fxPulse(art,"fx-shake-big",650),200);}else{setTimeout(()=>SFX.play("jab"),180);setTimeout(()=>fxPulse(art,"fx-shake",500),200);}
   setTimeout(crawlerAttack,120);
   setTimeout(()=>L.remove(),1300);
-  return true;
 }
+/* Boss cam: a small picture-in-picture of the boss, top left under the undo bar, for hits the page doesn't scroll up to. */
+function bossCamIn(art){
+  const old=$("bossCam");if(old)old.remove();
+  const b=player.boss;if(!b)return null;const {head}=viewBand();
+  const c=document.createElement("div");c.id="bossCam";c.className="bosscam";c.setAttribute("aria-hidden","true");c.style.top=(head+6)+"px";
+  c.innerHTML=`<div class="bc-art">${art.innerHTML}<span class="camtag"><i>●</i> Boss cam</span></div>`;
+  c.querySelectorAll("[id]").forEach(n=>n.removeAttribute("id"));c.querySelectorAll("button,[data-zoom]").forEach(n=>n.remove());
+  document.body.appendChild(c);void c.offsetWidth;c.classList.add("in");return c;
+}
+function bossCamOut(c){if(!c||!c.isConnected)return;c.classList.remove("in");setTimeout(()=>c.remove(),400);}
 function crawlerAttack(){
   const c=$("crawlCam");
   if(c&&c.classList.contains("in")){const pr=c.querySelector(".print");
@@ -8024,8 +8047,8 @@ function fxTick(pre){
   const o=ui.fxPrev;ui.fxPrev=cur;if(!o)return false;let seen=false;
   const meP=(c,ms)=>{fxPulse($("sheet"),c,ms);if(camOn())fxPulse($("crawlCam"),c,ms);};
   const at=k=>{const el=fxEl(k);if(el){const r=el.getBoundingClientRect();if(r.width)return {x:r.left+r.width/2+scrollX,y:r.top+Math.min(r.height,160)/2+scrollY};}return pre[k];};
-  if(o.bk&&o.bk===cur.bk&&cur.bh<o.bh){const d=o.bh-cur.bh,st=bossStrike(d,o.bh);const num=()=>fxNum(at("boss"),themeFx(p).fog?"Hit!":"−"+d,"boss");
-    if(st)setTimeout(num,260);else num();fxPulse(document.querySelector(FX_SEL.boss),"fx-shake",500);seen=true;}
+  if(o.bk&&o.bk===cur.bk&&cur.bh<o.bh){const d=o.bh-cur.bh,st=bossStrike(d,o.bh);const num=()=>fxNum((st&&st.at)||at("boss"),themeFx(p).fog?"Hit!":"−"+d,"boss");
+    if(st)setTimeout(num,st.delay);else{num();fxPulse(document.querySelector(FX_SEL.boss),"fx-shake",500);}seen=true;}
   let md=0,hidden=false;for(const id in o.ms){const was=o.ms[id],now=cur.ms[id];const d=now==null?was:Math.max(0,was-now);if(d>0){md+=d;const mb=(p.mobs||[]).find(m=>m.id===id);if(mb&&mobFam(mobKind(mb)).hide)hidden=true;}}
   if(md>0){fxNum(at("mob"),hidden?"Hit!":"−"+md,"mob");seen=true;}
   for(const id in o.ms)if(cur.ms[id]==null&&ui.fxKinds&&ui.fxKinds[id]){fxDeath(pre.mob||at("mob"),ui.fxKinds[id]);seen=true;}
