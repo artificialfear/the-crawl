@@ -355,6 +355,16 @@ def main():
             check("undo window: ✕ dismisses it", E(pg, "!document.getElementById('undoBar')") and not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- raid rework (weeks from Oct 19): HP from last week's floor damage, a minimum, and a win that sticks ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            rs = E(pg, """(()=>{const C={a:{days:{'2026-10-19':2},wk:'2026-10-19',wkDmg:1000,rb:{'2026-10-19':7000}},b:{days:{'2026-10-20':1},wk:'2026-10-19',wkDmg:2000,rb:{'2026-10-19':5000}}};
+               const pm=partyMembers,co=cardOf;partyMembers=()=>Object.keys(C);cardOf=u=>C[u];
+               const r1=raidState('2026-10-19');C.a.rb={};C.b.rb={};const r2=raidState('2026-10-19');C.a.rwin=['2026-10-19'];const r3=raidState('2026-10-19');const old=raidState('2026-10-12');
+               partyMembers=pm;cardOf=co;return [r1.hp,r2.hp,r3.dead,old.hp].join(',')})()""")
+            check("raid rework: sized from last week, minimum, win sticks, old weeks unchanged", rs == "6600,6000,true,2400", rs)
+            pg.close()
+
             # ---- hidden tabs: their panels skip redraws, then catch up the moment you open them ----
             pg, errs = page()
             pg.evaluate(SETUP)
