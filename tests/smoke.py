@@ -283,6 +283,10 @@ def main():
             under = pg.evaluate("""()=>{const hb=document.getElementById('hotbar');if(!hb||hb.hidden)return 'no hotbar';const h=hb.getBoundingClientRect(),bad=[];
               document.querySelectorAll('#board .quest [data-done],#board .quest [data-menu]').forEach(b=>{const r=b.getBoundingClientRect(),x=r.left+r.width/2;if(x>h.left&&x<h.right)bad.push(b.getAttribute('aria-label'));});return bad.join(', ');}""")
             check("360px: hotbar clear of quest buttons", not under, under)
+            one = pg.evaluate("()=>__ev(\"(()=>{const ids=Object.keys(SPELLS).slice(0,3);player.spells=ids;player.prep=ids;player.mp=45;ui.hbHtml=null;renderHotbar();const hb=$('hotbar');return hb.offsetHeight<80&&!!hb.querySelector('.hb-scroll');})()\")")
+            check("360px: hotbar is one swipeable row even with spells", one)
+            pg.evaluate("()=>__ev(\"document.querySelector('[data-hbfold]').click()\")")
+            check("hotbar folds to the belt and back", pg.evaluate("()=>__ev(\"(()=>{const f=$('hotbar').classList.contains('folded');document.querySelector('[data-hbedit]').click();return f&&!$('hotbar').classList.contains('folded')})()\")"))
             pg.close()
 
             # ---- field guide: a new crawler gets a card for a mob, once ----

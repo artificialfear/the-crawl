@@ -102,10 +102,18 @@ h2.foldh:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-r
 .hb-slot.used{animation:hbpop .35s ease-out}
 @keyframes hbpop{40%{transform:scale(1.14)}}
 body.has-hb{padding-bottom:150px}
-.hotbar{flex-direction:row;align-items:center}.hotbar.two{flex-direction:column;align-items:stretch}
+.hotbar{flex-direction:row;align-items:center}
+.hb-scroll{display:flex;gap:6px;align-items:center;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding:2px 0}
+.hb-scroll::-webkit-scrollbar{display:none}
+.hb-scroll.fr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent)}
+.hb-scroll.fl{-webkit-mask-image:linear-gradient(90deg,transparent,#000 26px);mask-image:linear-gradient(90deg,transparent,#000 26px)}
+.hb-scroll.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 26px,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(90deg,transparent,#000 26px,#000 calc(100% - 26px),transparent)}
+.hb-fold{flex:none;align-self:stretch;width:22px;margin-left:2px;padding:0;border:0;border-left:1px solid var(--line-2);background:none;color:var(--muted);font:700 13px/1 var(--body);cursor:pointer}
+.hb-fold:hover{color:var(--fg)}
+.hotbar.folded .hb-scroll{display:none}.hotbar.folded .hb-fold{border-left:0;margin-left:0}
 .hb-row{display:flex;gap:6px;align-items:center}
 .hb-sp{padding-right:8px;margin-right:2px;border-right:1px solid var(--line-2);align-self:stretch}
-.hotbar.two .hb-sp{padding:0 0 6px;margin:0;border-right:0;border-bottom:1px solid var(--line-2)}
+
 .hb-belt.mp{border:0;padding:3px;background:conic-gradient(var(--mana) var(--mp),#2a2350 0);box-shadow:0 0 8px rgba(63,224,255,.25)}
 .hb-belt.mp svg{border-radius:50%;background:#1a1530}
 .hb-mp{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);font:800 11px/1 var(--body);color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000;pointer-events:none}
@@ -168,6 +176,7 @@ body.has-hb .toasts{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
   /* Phones: the bar sits at the left so the Complete and ⋯ buttons down the right side of the board are never under it */
   .hotbar{left:max(8px,env(safe-area-inset-left,0px));transform:none}
   .hb-slot{width:44px;height:44px}.hb-belt{width:36px;height:36px}
+  .hotbar{max-width:calc(100vw - 118px)} /* the strip right of it stays clear for the Complete and ⋯ buttons */
   body.has-hb{padding-bottom:calc(206px + env(safe-area-inset-bottom,0px))}
   body.has-hb .toasts{bottom:calc(172px + env(safe-area-inset-bottom,0px))}
   .hb-mana{width:36px;height:36px}
@@ -5717,7 +5726,8 @@ function openBelt(sel){
 function renderHotbar(){
   let el=$("hotbar");const show=!!(store&&loadedP&&playerExists&&player);
   if(!el){if(!show)return;el=document.createElement("div");el.id="hotbar";el.className="hotbar";el.setAttribute("role","toolbar");el.setAttribute("aria-label","Belt hotbar");document.body.appendChild(el);
-    el.addEventListener("click",e=>{const sp=e.target.closest("[data-sp]");if(sp){castSpell(sp.dataset.sp);return;}const s=e.target.closest("[data-hb]");if(s){hbUse(+s.dataset.hb);return;}if(e.target.closest("[data-hbedit]")){equipSound("belt");openBelt(-1);}});
+    el.addEventListener("click",e=>{if(e.target.closest("[data-hbfold]")||(prefs.hbFold&&e.target.closest("[data-hbedit]"))){prefs.hbFold=!prefs.hbFold;savePrefs();ui.hbHtml=null;renderHotbar();return;}
+      const sp=e.target.closest("[data-sp]");if(sp){castSpell(sp.dataset.sp);return;}const s=e.target.closest("[data-hb]");if(s){hbUse(+s.dataset.hb);return;}if(e.target.closest("[data-hbedit]")){equipSound("belt");openBelt(-1);}});
     addEventListener("resize",()=>{ui.hbHtml=null;ui.tbhW=null;renderHotbar();});}
   el.hidden=!show;document.body.classList.toggle("has-hb",show);if(!show)return;
   const tb=$("tabbar");if(tb&&ui.tbhW!==innerWidth){ui.tbhW=innerWidth;if(getComputedStyle(tb).position==="fixed")document.documentElement.style.setProperty("--tbh",tb.offsetHeight+"px");}
@@ -5726,19 +5736,23 @@ function renderHotbar(){
   const spRow=spl.length?`<div class="hb-row hb-sp">`
     +spl.map(id=>{const S=SPELLS[id],ok=mp>=S.cost;return `<button type="button" class="hb-slot sp${ok?"":" out"}" data-sp="${id}" aria-label="Cast ${esc(S.n)}, ${S.cost} mana" title="${esc(S.n)} · ${S.cost} mana · ${esc(S.d)}">${spellIcon(id)}<span class="hb-n hb-cost">${S.cost}</span></button>`;}).join("")+`</div>`:"";
   /* With spells prepared, the belt button doubles as the mana gauge: a ring that fills as mana charges. */
-  const html=spRow+`<div class="hb-row hb-bt"><button type="button" class="hb-belt${spl.length?" mp":""}" data-hbedit${spl.length?` style="--mp:${(mp/MP_MAX*100).toFixed(1)}%"`:""} aria-label="${esc(b?b.n:"Old leather belt")}: change what's on your belt${spl.length?`. Mana ${mp} of ${MP_MAX}`:""}" title="Change what's on your belt${spl.length?` · Mana ${mp} / ${MP_MAX}`:""}">${beltIconSVG(b)}${spl.length?`<span class="hb-mp" aria-hidden="true">${mp}</span>`:""}${player.poison?`<span class="hb-psn" title="Poisoned ×${player.poison.n}">☠${player.poison.n>1?player.poison.n:""}</span>`:""}</button>`
-    +row.map((k,i)=>{const key=keys?`<span class="hb-key" aria-hidden="true">${i+1}</span>`:"";
+  const fold=!!prefs.hbFold;
+  const html=`<button type="button" class="hb-belt${spl.length?" mp":""}" data-hbedit${spl.length?` style="--mp:${(mp/MP_MAX*100).toFixed(1)}%"`:""} aria-label="${esc(b?b.n:"Old leather belt")}: change what's on your belt${spl.length?`. Mana ${mp} of ${MP_MAX}`:""}" title="Change what's on your belt${spl.length?` · Mana ${mp} / ${MP_MAX}`:""}">${beltIconSVG(b)}${spl.length?`<span class="hb-mp" aria-hidden="true">${mp}</span>`:""}${player.poison?`<span class="hb-psn" title="Poisoned ×${player.poison.n}">☠${player.poison.n>1?player.poison.n:""}</span>`:""}</button>`
+    +`<div class="hb-scroll">${spRow}<div class="hb-row hb-bt">`+row.map((k,i)=>{const key=keys?`<span class="hb-key" aria-hidden="true">${i+1}</span>`:"";
       if(!k)return `<button type="button" class="hb-slot empty" data-hb="${i}" aria-label="Empty belt slot ${i+1}" title="Empty slot: tap to fill">+${key}</button>`;
       const n=consN(k),on=k==="focus"&&player.focused,sk=POTION_KINDS.has(k)&&sickLeft()>0;
-      return `<button type="button" class="hb-slot${n<1?" out":""}${on?" on":""}${sk?" sick":""}" data-hb="${i}" aria-label="${esc(consName(k))}, ${n} left, slot ${i+1}" title="${esc(consName(k))} · ${n} left${keys?` · key ${i+1}`:""}">${tierIcon(k,"cons")}<span class="hb-n">${n}</span>${key}${sk?`<span class="hb-sick" aria-hidden="true">${Math.ceil(sickLeft()/6e4)}m</span>`:""}</button>`;}).join("")+`</div>`;
+      return `<button type="button" class="hb-slot${n<1?" out":""}${on?" on":""}${sk?" sick":""}" data-hb="${i}" aria-label="${esc(consName(k))}, ${n} left, slot ${i+1}" title="${esc(consName(k))} · ${n} left${keys?` · key ${i+1}`:""}">${tierIcon(k,"cons")}<span class="hb-n">${n}</span>${key}${sk?`<span class="hb-sick" aria-hidden="true">${Math.ceil(sickLeft()/6e4)}m</span>`:""}</button>`;}).join("")+`</div></div><button type="button" class="hb-fold" data-hbfold aria-expanded="${!fold}" aria-label="${fold?"Show the hotbar":"Fold the hotbar away"}" title="${fold?"Show the hotbar":"Fold the hotbar"}">${fold?"▸":"◂"}</button>`;
   if(ui.hbHtml!==html){const fi=document.activeElement&&el.contains(document.activeElement)?document.activeElement.dataset.hb:undefined;
-    el.innerHTML=html;ui.hbHtml=html;ui.hbFitW=null;if(fi!=null){const f=el.querySelector(`[data-hb="${fi}"]`);if(f)f.focus();}}
+    const sx=el.querySelector(".hb-scroll"),keep=sx?sx.scrollLeft:0;
+    el.innerHTML=html;ui.hbHtml=html;ui.hbFitW=null;{const s2=el.querySelector(".hb-scroll");if(s2&&keep)s2.scrollLeft=keep;}if(fi!=null){const f=el.querySelector(`[data-hb="${fi}"]`);if(f)f.focus();}}
+  el.classList.toggle("folded",fold);
   if(ui.hbFitW!==innerWidth){ui.hbFitW=innerWidth;hbFit(el,!!spl.length);}}
 /* One row whenever spells and belt fit side by side; the spells stack on top only when they don't. */
-function hbFit(el,sp){el.classList.remove("two");let two=false;
-  // on phones, keep the right-hand strip (quest buttons) clear: wrap to two rows rather than run under them
-  if(sp){const mw=el.style.maxWidth;el.style.maxWidth="none";const w=el.offsetWidth;el.style.maxWidth=mw;two=w>innerWidth-(innerWidth<=860?110:16);}
-  el.classList.toggle("two",two);document.body.classList.toggle("has-sp",two);}
+/* Always one row now: the belt, then a strip (spells │ belt slots) you swipe sideways when it's wider than the space
+   left of the quest buttons. Soft fades on the strip's edges show there's more to either side. ▸/◂ folds it to just the belt. */
+function hbFit(el){document.body.classList.remove("has-sp");const sc=el.querySelector(".hb-scroll");if(!sc)return;
+  const fade=()=>{const m=sc.scrollWidth-sc.clientWidth;sc.classList.toggle("fl",sc.scrollLeft>2);sc.classList.toggle("fr",m>2&&sc.scrollLeft<m-2);};
+  if(!sc.dataset.w){sc.dataset.w="1";sc.addEventListener("scroll",fade,{passive:true});}fade();}
 /* Number keys 1-6 use belt slots, unless you're typing or a dialog is open. */
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&$("hbDlg")){closeHbDlg();return;}
