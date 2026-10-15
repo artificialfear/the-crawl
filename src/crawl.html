@@ -12117,7 +12117,21 @@ function setupForm(){
   /* The new-quest box shows just the text field and Add until you tap into it or start typing; the effort buttons,
      idea and options open then. It also stays open while there's text or "More options" is open. */
   const ap=f.closest(".addpanel");
-  const addCompact=()=>{if(!ap)return;const busy=!!$("q-title").value.trim()||!$("moreOpts").hidden||ap.contains(document.activeElement);ap.classList.toggle("tight",!busy);};
+  /* Folding the box changes its height, which shifts everything under it. When you tap a quest's ✓ further down
+     while the box still has focus, that shift used to happen between your finger going down and coming up, so the
+     tap landed on something else and didn't count. Now the fold waits until the tap is finished, and the page
+     scrolls by the same amount so nothing below moves. */
+  // A tap runs pointerdown → pointerup → (focus moves) → click; the fold waits for the click, or 450 ms if none comes.
+  let tapAt=0,foldWait=null,foldT=null;
+  const runFold=()=>{clearTimeout(foldT);foldT=null;if(foldWait){const f2=foldWait;foldWait=null;setTimeout(f2,0);}};
+  document.addEventListener("pointerdown",()=>{tapAt=Date.now();},true);
+  document.addEventListener("click",()=>{tapAt=0;runFold();},true);
+  const addCompact=()=>{if(!ap)return;const busy=!!$("q-title").value.trim()||!$("moreOpts").hidden||ap.contains(document.activeElement);
+    if(ap.classList.contains("tight")===!busy)return;
+    if(!busy&&tapAt&&Date.now()-tapAt<1500){foldWait=addCompact;clearTimeout(foldT);foldT=setTimeout(()=>{tapAt=0;runFold();},450);return;} // mid-tap: fold after the click lands
+    const r0=ap.getBoundingClientRect(),h0=r0.height;ap.classList.toggle("tight",!busy);
+    const dh=ap.getBoundingClientRect().height-h0;if(dh&&r0.bottom<innerHeight/2)window.scrollBy(0,dh); // keep what's below in place
+  };
   f.addEventListener("input",addCompact);f.addEventListener("focusin",addCompact);
   f.addEventListener("focusout",()=>setTimeout(addCompact,0));f.addEventListener("submit",()=>setTimeout(addCompact,0));
   addCompact();

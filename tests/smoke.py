@@ -365,6 +365,17 @@ def main():
             check("raid rework: sized from last week, minimum, win sticks, old weeks unchanged", rs == "6600,6000,true,2400", rs)
             pg.close()
 
+            # ---- a slow click on a quest's ✓ right after adding a quest still counts (the add box folds after the click) ----
+            pg, errs = page(1280, 844)
+            pg.evaluate(SETUP)
+            E(pg, "$('toasts').style.display='none';prefs.showMode='quick';setTab('quests');render()")
+            pg.click("#q-title"); pg.keyboard.type("Brand new quest"); pg.keyboard.press("Enter"); pg.wait_for_timeout(400)
+            n0 = E(pg, "tasks.filter(t=>t.done).length")
+            btn = pg.locator("#board .quest [data-done]").nth(3); btn.evaluate("e=>e.scrollIntoView({block:'center'})"); pg.wait_for_timeout(300)
+            bx = btn.bounding_box(); pg.mouse.click(bx["x"]+bx["width"]/2, bx["y"]+bx["height"]/2, delay=150); pg.wait_for_timeout(600)
+            check("add box: a slow click on ✓ after adding a quest counts the first time", E(pg, "tasks.filter(t=>t.done).length") > n0 and not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- hidden tabs: their panels skip redraws, then catch up the moment you open them ----
             pg, errs = page()
             pg.evaluate(SETUP)
