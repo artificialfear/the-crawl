@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=6234a93895"></script>
-<script>window.CRAWL_BUILD="6234a93895";</script>
+<script src="firebase-config.js?v=f90f7f5903"></script>
+<script>window.CRAWL_BUILD="f90f7f5903";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -1734,6 +1734,28 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 .maproom{cursor:pointer}.maproom:hover{fill:rgba(232,40,60,.08)}
 .mapbt{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px;padding:6px 8px;border:1px dashed #e8283c;border-radius:8px}
 .mapbt-hint{font-size:12px}
+/* Habits */
+.habitchip{color:#9fe8a0}
+.habit{display:flex;gap:10px;align-items:center;margin-top:8px;padding:6px 8px;border:1px dashed #3d5a3a;border-radius:10px;background:rgba(95,208,104,.06)}
+.habit-cr{flex:none;line-height:0}
+.habit-info{min-width:0;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.habit-top b{color:#9fe8a0}.habit-mul{color:var(--gold);font-weight:700}.habit-slip{color:#ffb03a}
+.habit-next{font-size:12px}
+.habit-dots{display:flex;gap:4px;flex-wrap:wrap}
+.habit-dots i{width:10px;height:10px;border-radius:50%;display:block;background:#2a2340;border:1.5px solid transparent}
+.habit-dots .hd-d{background:var(--gold);box-shadow:0 0 5px rgba(255,210,63,.5)}
+.habit-dots .hd-s{background:transparent;border-color:#ffb03a}
+.habit-dots .hd-m{background:#7a2030;border-color:#e8283c}
+.habit-dots .hd-p{background:transparent;border-color:var(--gold);animation:habpulse 1.6s ease-in-out infinite}
+.habit-dots .hd-o{background:#3a3156}
+.habit-dots .hd-x{background:transparent;border-color:#2a2340;opacity:.5}
+@keyframes habpulse{0%,100%{opacity:.5}50%{opacity:1}}
+.habitfield{gap:6px}
+.seg.habit-lock label:has(input:disabled){opacity:.35}
+.habitchk{display:flex;gap:8px;align-items:flex-start;font-size:13px;cursor:pointer}.habitchk input{margin-top:3px}
+.habitat{display:flex;gap:8px;align-items:center;font-size:13px}.habitat input{max-width:140px}
+.pt-hab{white-space:nowrap}.pt-hab i{font-style:normal;color:#ffb03a}
+
 #mapTok{will-change:transform}
 .mrx{transform-box:fill-box;transform-origin:50% 60%}
 .mrx-hop{animation:mrhop 1.05s cubic-bezier(.3,1.6,.5,1) both}
@@ -1968,6 +1990,10 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div class="field" id="everyField" hidden style="max-width:200px">
             <label class="label" for="q-every">Every how many days</label>
             <input type="number" id="q-every" min="2" max="60" value="2">
+          </div>
+          <div class="field habitfield" id="habitField" hidden>
+            <label class="habitchk"><input type="checkbox" id="q-habit"> <span><b>A habit I'm building</b> <span class="muted">Trash mob size, never goes overdue or hurts you, one missed day is forgiven, and the rewards grow with your chain.</span></span></label>
+            <label class="habitat" id="habitAtRow" hidden><span class="label">Remind me at (optional)</span> <input type="time" id="q-habitAt"></label>
           </div>
           <div class="est-hint" id="estHint" hidden></div>
         </div>
@@ -2505,7 +2531,7 @@ function rcFx(p,t){
     if(r==="golem"&&t.rec)z.xp+=.15;
     if(r==="hollow"&&(h<8||h>=22))z.xp+=.15;
     if(c==="berserker"&&p.rush&&Date.now()-p.rush.at<18e5)z.xp+=.05*Math.min(5,p.rush.n);
-    if(c==="necro"&&t.due&&t.due<td)z.xp+=.3;
+    if(c==="necro"&&isLate(t,td))z.xp+=.3;
     if(c==="monk"&&p.lastDoneDate!==td)z.xp+=.4;
     if(c==="rogue"&&t.est>0&&t.est<=15)z.gold+=.3;
     if(c==="paladin"&&t.est>=90){z.xp+=.2;z.dmg+=.2;}
@@ -2738,6 +2764,10 @@ const ACH = [
   {id:"e3b",n:"Elite Fifty",how:"Complete 50 Elite quests",gold:60,test:p=>C(p,"e3")>=50,line:"Fifty elites. You are the elite now. The bar has been lowered to meet you."},
   {id:"e4a",n:"Mini-Boss Rush",how:"Complete 5 Mini-boss quests",gold:20,test:p=>C(p,"e4")>=5,line:"Five mini-bosses. Small bosses, big ego."},
   {id:"e4b",n:"Mid-Season Finale",how:"Complete 25 Mini-boss quests",gold:60,test:p=>C(p,"e4")>=25,line:"Twenty-five mini-bosses. Cliffhanger: will you ever rest?"},
+  {id:"habit3",n:"It's Hatching",how:"Keep a habit going 3 times in a row",gold:15,test:p=>(p.habitBest||0)>=3,line:"Three in a row. Something in the egg is moving."},
+  {id:"habit7",n:"Creature of Habit",how:"Keep a habit going 7 times in a row",gold:30,test:p=>(p.habitBest||0)>=7,line:"A full week. The audience didn't think you had it in you. Neither did you."},
+  {id:"habit30",n:"Fully Bonded",how:"Keep a habit going 30 times in a row",gold:80,test:p=>(p.habitBest||0)>=30,line:"Thirty in a row. It's not a quest anymore. It's just a thing you do."},
+  {id:"habit66",n:"Tamed",how:"Keep a habit going 66 times in a row",gold:150,test:p=>(p.habitBest||0)>=66,line:"Sixty-six. Science says it's yours now. The creature agrees."},
   {id:"e5a",n:"Raid Leader",how:"Complete 3 Raid boss quests",gold:20,test:p=>C(p,"e5")>=3,line:"Three raid bosses. You'd lead a raid if anyone would join you."},
   {id:"e5b",n:"Server First",how:"Complete 10 Raid boss quests",gold:60,test:p=>C(p,"e5")>=10,line:"Ten raid bosses. The leaderboard has your name. Spelled wrong."},
   {id:"str10",n:"Heavy Lifting",how:"Complete 10 Strength quests",gold:25,test:p=>C(p,"sSTR")>=10,line:"Ten Strength quests. Lift with your legs. Or don't. We're not your mom."},
@@ -2971,6 +3001,71 @@ function recLabel(rec){
   if(d.join()==="0,6")return "Weekends";
   return d.map(i=>DOW[i]).join(", ");
 }
+
+/* ---------- Habits ----------
+   A repeating quest can be marked as a habit you're building (t.habit = {since, slip, paid, at, hist}). Habits are
+   always Trash mob size (their boss damage is a Trash mob's), but their XP and gold grow with the chain, and the first
+   week pays at least double. They never go overdue and never hurt you: an occurrence that passes undone is a miss,
+   rolled forward by habitTick. One miss is forgiven ("never miss twice"); a second miss in a row breaks the chain. The
+   habit day ends at 4 am, so brushing your teeth at 12:30 still counts for the night before. Each habit has a creature
+   that grows with the chain, milestone boxes at 3/7/14/30/66 days (paid once per habit), a 14-day dot strip on its card,
+   an optional reminder time (sent by the push job), and a summary on your party card. */
+const HABIT_MS=[[3,"bronze"],[7,"silver"],[14,"silver"],[30,"gold"],[66,"gold"]];
+const HABIT_STAGES=[[0,"Egg"],[3,"Hatchling"],[7,"Youngling"],[14,"Grown"],[30,"Bonded"],[66,"Tamed"]];
+const habitDay=()=>iso(new Date(Date.now()-4*36e5));
+const isLate=(t,td)=>!!(t&&!t.done&&t.due&&t.due<(td||today())&&!t.habit);
+const habitStage=c=>{let i=0;HABIT_STAGES.forEach(([n],k)=>{if((c||0)>=n)i=k;});return i;};
+function habitMul(t,chain){const c=chain==null?(t.chain||0):chain;let m=c>=30?4:c>=14?3:c>=7?2:c>=3?1.5:1;
+  const h=t.habit;if(h&&h.since&&daysBetween(h.since,habitDay())<7)m=Math.max(m,2);return m;}
+const habitNextMs=c=>{const m=HABIT_MS.find(([n])=>n>(c||0));return m?m:null;};
+function newHabit(at){return {since:habitDay(),slip:false,paid:0,at:at||null,hist:{}};}
+/* Roll missed habit occurrences forward. Runs on every redraw (cheap: only habits whose day has passed). */
+function habitTick(){
+  const hd=habitDay();const notes=[];let ch=false;
+  tasks=tasks.map(t=>{
+    if(!t.habit||t.done||!t.rec||!t.due||t.due>=hd)return t;
+    const h=Object.assign({},t.habit,{hist:Object.assign({},t.habit.hist||{})});let d=t.due,chain=t.chain||0,broke=false,slipped=false,n=0;
+    while(d<hd&&n++<400){if(h.slip){h.hist[d]="m";if(chain>0)broke=true;chain=0;h.slip=false;}else{h.hist[d]="s";h.slip=true;slipped=true;}d=recNextAfter(t.rec,d);}
+    for(const k of Object.keys(h.hist))if(k<addDays(hd,-35))delete h.hist[k];
+    const nt=Object.assign({},t,{due:d,chain,habit:h});store.saveTask(nt).catch(writeFailed);ch=true;
+    const cr=HABIT_STAGES[habitStage(t.chain)][1];
+    notes.push(broke?`${t.title}: two misses in a row, so the chain broke${(t.chain||0)>=3?` and your ${cr.toLowerCase()} curled back into its egg`:""}. Start it again today.`
+      :slipped?`${t.title}: one slip. Don't let it be two.`:"");
+    return nt;});
+  if(ch){const m=notes.filter(Boolean);if(m.length)setTimeout(()=>toast(m.join(" ")),1500);}
+  return ch;
+}
+/* The habit's creature: an egg that hatches and grows with the chain. Colour from the habit's stat. */
+function habitCritter(stage,stat,size){
+  const col={STR:"#e8583c",INT:"#4aa3ff",CON:"#5fd068",DEX:"#ffb03a",CHA:"#d36bff"}[stat]||"#5fd068",K="#14101c",z=size||40;
+  const eye=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${K}" stroke-width="1.2"/><circle cx="${x+.4}" cy="${y+.5}" r="${r*.5}" fill="${K}"/><circle cx="${x+r*.35}" cy="${y-r*.35}" r="${r*.22}" fill="#fff"/>`;
+  let b="";
+  if(stage===0)b=`<ellipse cx="20" cy="36" rx="11" ry="2.4" fill="#000" opacity=".35"/><path d="M20 5 C30 5 33 18 33 24 C33 32 27 36 20 36 C13 36 7 32 7 24 C7 18 10 5 20 5 Z" fill="#f3ead6" stroke="${K}" stroke-width="2"/>
+    <circle cx="14" cy="18" r="2.4" fill="${col}"/><circle cx="24" cy="13" r="1.8" fill="${col}"/><circle cx="25" cy="25" r="2.8" fill="${col}"/><circle cx="15" cy="29" r="1.6" fill="${col}"/><path d="M26 9 Q29 13 29 17" stroke="#fff" stroke-width="1.6" fill="none" opacity=".7"/>`;
+  else{const s=[0,.72,.8,.88,.95,1][stage],ears=stage>=2,horn=stage>=3&&stage<5;
+    b=`<ellipse cx="20" cy="36" rx="${12*s+2}" ry="2.4" fill="#000" opacity=".35"/><g transform="translate(20 36) scale(${s}) translate(-20 -36)">`
+      +(ears?`<path d="M9 14 L6 3 L15 10 Z M31 14 L34 3 L25 10 Z" fill="${col}" stroke="${K}" stroke-width="2" stroke-linejoin="round"/>`:"")
+      +(horn?`<path d="M17 8 L20 1 L23 8 Z" fill="#ffd23f" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"/>`:"")
+      +`<path d="M20 7 C31 7 35 17 35 25 C35 33 29 36 20 36 C11 36 5 33 5 25 C5 17 9 7 20 7 Z" fill="${col}" stroke="${K}" stroke-width="2"/>
+      <path d="M8 26 C9 32 14 35 20 35 C14 33 10 30 9 25 Z" fill="#000" opacity=".18"/><path d="M27 10 Q33 14 33 21" stroke="#fff" stroke-width="2" fill="none" opacity=".45"/>`
+      +eye(14.5,21,3.6)+eye(25.5,21,3.6)+`<path d="M16.5 28 Q20 31 23.5 28" stroke="${K}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`
+      +(stage===1?`<path d="M5 30 L9 27 L12 31 L16 28 L20 31 L24 28 L28 31 L31 27 L35 30 L35 36 L5 36 Z" fill="#f3ead6" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"/>`:"")
+      +(stage>=4?`<path d="M31 6 l1 2.4 2.4 1 -2.4 1 -1 2.4 -1 -2.4 -2.4 -1 2.4 -1 Z" fill="#fff6c8"/><path d="M6 9 l.7 1.6 1.6 .7 -1.6 .7 -.7 1.6 -.7 -1.6 -1.6 -.7 1.6 -.7 Z" fill="#fff6c8"/>`:"")
+      +(stage>=5?`<path d="M12 6 L14 1 L17 4.5 L20 0 L23 4.5 L26 1 L28 6 Z" fill="#ffd23f" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"/>`:"")+`</g>`;}
+  return `<svg viewBox="0 0 40 40" width="${z}" height="${z}" aria-hidden="true" focusable="false">${b}</svg>`;
+}
+/* The habit block on a quest card: creature, chain and multiplier, next milestone, and the last 14 days as dots. */
+function habitHTML(t){
+  const h=t.habit,c=t.chain||0,st=habitStage(c),hd=habitDay(),m=habitMul(t,c+1),nx=habitNextMs(c),starter=h.since&&daysBetween(h.since,hd)<7;
+  let dots="";for(let i=13;i>=0;i--){const d=addDays(hd,-i),v=(h.hist||{})[d],sch=recMatch(t.rec,d)&&d>=(h.since||d);
+    const cls=v==="d"?"d":v==="m"?"m":v==="s"?"s":d===hd&&sch?(t.due>hd?"d":"p"):sch&&d>=(h.since||d)?"o":"x";
+    dots+=`<i class="hd-${cls}" title="${fmtDue(d)}${v==="d"?": done":v==="m"?": missed":v==="s"?": slipped (forgiven)":d===hd&&sch?(t.due>hd?": done":": still to do"):""}"></i>`;}
+  return `<div class="habit"><span class="habit-cr" title="${HABIT_STAGES[st][1]}">${habitCritter(st,t.stat,46)}</span><div class="habit-info">
+    <div class="habit-top"><b>Habit</b> · ${c?`${c}-day chain`:"New"} · <span class="habit-mul">×${m} XP${starter&&m===2&&c<7?" (first week)":""}</span>${h.slip?` · <span class="habit-slip">one slip, don't let it be two</span>`:""}</div>
+    <div class="habit-dots" aria-label="Last 14 days">${dots}</div>
+    <div class="habit-next muted">${HABIT_STAGES[st][1]}${nx?` · ${nx[0]-c} more for a ${BOXES[nx[1]].n}`:" · fully tamed"}${h.at?` · reminder ${fmtClock(h.at)}`:""}</div></div></div>`;
+}
+const fmtClock=hm=>{const [h,m]=String(hm||"").split(":").map(Number);if(isNaN(h))return "";const d=new Date();d.setHours(h,m||0,0,0);return d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});};
 
 /* ---------- State ---------- */
 /* New crawlers get a number, like the show's intake desk hands out: "Crawler #48,213". Picked once per page load,
@@ -3349,7 +3444,7 @@ function goalPool(){
   const open=tasks.filter(t=>!t.done&&!isResting(t)),td=today();
   const pool=[{kind:"count",need:3,gold:50},{kind:"effort",param:3,need:1,gold:45},{kind:"ontarget",need:1,gold:55}];
   if(open.some(t=>t.effort>=4))pool.push({kind:"effort",param:4,need:1,gold:80,box:"bronze"});
-  if(open.some(t=>t.due&&t.due<td))pool.push({kind:"overdue",need:1,gold:60});
+  if(open.some(t=>isLate(t,td)))pool.push({kind:"overdue",need:1,gold:60});
   [...new Set(open.map(t=>t.stat))].filter(k=>STATS[k]).forEach(k=>pool.push({kind:"stat",param:k,need:1,gold:35}));
   if(open.some(t=>t.rec))pool.push({kind:"repeat",need:1,gold:35});
   return pool;
@@ -3369,7 +3464,7 @@ function enterSafe(){
   ui.safeOpen=null;
 }
 function cookLine(r){
-  const p=player,od=tasks.filter(t=>!t.done&&t.due&&t.due<today()).length;
+  const p=player,od=tasks.filter(t=>isLate(t,today())).length;
   if(!(p.safeVisits||0))return "First time? House rules: no fighting, no crying in the stew, and you bus your own bowl.";
   if(p.hp<maxHp(p)*.4)return "Sit. Eat. You look like a sandwich somebody dropped on the stairs.";
   if(od>=3)return `Heard you've got ${od} quests rotting out there. Not my business. Eat anyway.`;
@@ -3379,7 +3474,7 @@ function cookLine(r){
     "Bounty board's fresh. Pick one you'll actually finish this time.","Somebody left you mail. It smells like a fan. Most of them do."]);
 }
 function fanMail(r){
-  const p=player,od=tasks.filter(t=>!t.done&&t.due&&t.due<today()).length,ap=activePet(),rk=p.rank&&p.rank.last;
+  const p=player,od=tasks.filter(t=>isLate(t,today())).length,ap=activePet(),rk=p.rank&&p.rank.last;
   const L=[`I've watched all ${p.doneCount||0} of your quests. I have no other hobbies. Please never stop.`,
     "My family argues every night about whether you're a genius or a disaster. Dinner is tense. Keep going.",
     "I tried doing my own to-do list after watching you. I lasted four minutes. You're my hero."];
@@ -3534,7 +3629,7 @@ function hostSVG(k){
 
 /* Everything the questions can talk about, from your real save */
 function showCtx(){
-  const p=player,td=today(),open=tasks.filter(t=>!t.done&&!isResting(t)),od=open.filter(t=>t.due&&t.due<td).sort((a,b)=>a.due<b.due?-1:1);
+  const p=player,td=today(),open=tasks.filter(t=>!t.done&&!isResting(t)),od=open.filter(t=>isLate(t,td)).sort((a,b)=>a.due<b.due?-1:1);
   const wk=Date.now()-7*864e5,done=tasks.filter(t=>t.done&&t.doneAt>=wk).sort((a,b)=>(b.xpEarned||0)-(a.xpEarned||0));
   const ap=activePet(p),wr=wearing(p),wpn=ITEMS.find(i=>i.id===wr.weapon),arm=ITEMS.find(i=>i.id===wr.armor);
   const stats=Object.keys(STATS).sort((a,b)=>(p.stats[b]||0)-(p.stats[a]||0));
@@ -3612,7 +3707,7 @@ function declineShow(){
 /* Pledge: scaled to what you actually do */
 function pledgeOffer(cocky){
   const wk=Date.now()-7*864e5,perDay=tasks.filter(t=>t.done&&t.doneAt>=wk).length/7;
-  const r=srand("pledge|"+today()+"|"+(player.show&&player.show.n||0)),od=tasks.filter(t=>!t.done&&t.due&&t.due<today()).length;
+  const r=srand("pledge|"+today()+"|"+(player.show&&player.show.n||0)),od=tasks.filter(t=>isLate(t,today())).length;
   const need=Math.max(3,Math.round(perDay*3*1.25)+cocky);
   const pool=[{kind:"count",need},{kind:"effort",param:3,need:Math.max(2,Math.round(need/2))}];
   if(od>=2)pool.push({kind:"overdue",need:Math.min(od,3+cocky)});
@@ -5502,6 +5597,7 @@ function checkRank(){
 /* Runs on every render once data has loaded: daily safe-room visit, sponsor milestones, contract deadlines, rankings. */
 function systemsTick(){
   let ch=false;const evs=[];
+  try{habitTick();}catch(e){console.error("habits",e);}
   try{if(godTick())ch=true;}catch(e){console.error("gods",e);}
   if(!safeToday()){enterSafe();ch=true;}
   const n=viewerStep(player.viewers||0);
@@ -6766,7 +6862,7 @@ function lowPoint(from,to,qs){
   const gd=Math.floor(gap/864e5);
   if(gd>=2)return `You vanished for ${gd} days. Search parties were organized. Then canceled.`;
   if(evs.some(e=>/duplicate/.test(e.text)))return "A loot box handed you a duplicate. You sold it for scraps and pretended to be fine.";
-  const od=tasks.filter(t=>!t.done&&t.due&&t.due<today()).length;
+  const od=tasks.filter(t=>isLate(t,today())).length;
   if(od)return `${od} quest${od===1?" is":"s are"} still rotting on the board as we speak.`;
   return "No low point. Suspicious. We're having the footage audited.";
 }
@@ -7245,7 +7341,7 @@ function renderTicker(){
       :`Floor ${b.floor}: ${b.name}, the ${TIERS[b.tier].n} (${b.tier+1} of 6), at ${hp} of ${b.maxHp} HP. The stairwell closes ${fmtDue(addDays(b.week,6))} at midnight.`);
   }
   if(playerExists&&(player.mobs||[]).length){const mb=player.mobs[0];lines.push(`${mb.a} ${mb.n} is chasing ${player.name} through Floor ${floorOf()}. Viewers are taking bets on how long it lasts.`);}
-  const od=tasks.filter(t=>!t.done&&t.due&&t.due<today()).length;
+  const od=tasks.filter(t=>isLate(t,today())).length;
   if(od)lines.push(`${od} overdue quest${od===1?" is":"s are"} rotting on the board. The audience can smell ${od===1?"it":"them"}.`);
   const st=player.lastDoneDate===today()||player.lastDoneDate===addDays(today(),-1)?player.streak:0;
   lines.push(st>=2?`${player.name} is on a ${st}-day streak. Viewers are cautiously optimistic.`:`${player.name} has no streak going. Analysts are calling it "a choice."`);
@@ -7372,7 +7468,7 @@ function dailyTick(force){
     const day=addDays(last,i);const covered=shDay&&addDays(shDay,1)===day;
     let any=false;
     for(const t of tasks){
-      if(!t.done&&t.due&&t.due<day){
+      if(!t.done&&t.due&&t.due<day&&!t.habit){ // habits never hurt
         const h=odHit(t,daysBetween(t.due,day))*(1-cut);any=true;
         if(covered){blocked+=h;continue;}
         dmg+=h;
@@ -7415,7 +7511,7 @@ function dailyTick(force){
       pushEvent(`Knocked out overnight: −${dmg} HP${how}, dropped ${lost} gold, streak lost`,true);
       toast(`You were knocked out overnight${how}. You dropped ${lost} gold and lost your streak.`,"bad");
       ui.pendingSay=["knocked",{}];ui.pendingAch=(ui.pendingAch||[]).concat("ko");
-      const od=tasks.filter(t=>!t.done&&t.due&&t.due<td).map(t=>({t,d:daysBetween(t.due,td)})).sort((a,c)=>c.d-a.d||c.t.effort-a.t.effort)[0];
+      const od=tasks.filter(t=>isLate(t,td)).map(t=>({t,d:daysBetween(t.due,td)})).sort((a,c)=>c.d-a.d||c.t.effort-a.t.effort)[0];
       const open=tasks.filter(t=>!t.done).length;
       ui.death={name:player.name,floor:b?b.floor:floorOf(),dmg,lost,
         epitaph:od?`Slain by "${od.t.title}", ${od.d} day${od.d===1?"":"s"} overdue.`:"Slain by paperwork. The paperwork has not commented.",
@@ -7442,6 +7538,7 @@ function addQuest(q){
     const start=q.due||today();
     if(rec.type==="every")rec.anchor=start;
     t.rec=rec;t.due=recFirstOnOrAfter(rec,start);t.chain=0;
+    if(q.habit){t.habit=newHabit(q.habitAt);t.effort=1;bump("habitsMade");} // habits are always Trash mob size
   }
   tasks=tasks.concat(t);ui.lastAdded=t.id;
   store.saveTask(t).catch(writeFailed);
@@ -7488,22 +7585,24 @@ function completeQuest(id,actual,touched){
   if(touched&&actual>0&&t.est>0){
     player.samples=[{i:logId,e:t.est,a:actual,f:t.effort,s:t.stat,d:Date.now(),p:true}].concat(player.samples).slice(0,400);
   }
-  const wasBoss=!!(prevT.due&&prevT.due<td);
+  const wasBoss=isLate(prevT,td);
   const r=rewardFor(player,t,touched?actual:null);
   // Steps already paid part of this quest's reward; completion pays the rest.
   const fx=Math.max(0,r.xp-(t.stepXp||0)), fg=Math.max(0,r.gold-(t.stepGold||0));
+  // A habit's XP and gold grow with its chain; its damage (fx) stays Trash mob size.
+  const hMul=t.habit?habitMul(t,(t.chain||0)+1):1,fxX=Math.round(fx*hMul),fgX=Math.round(fg*hMul);
   const before=levelInfo(player.xp).L;
   const wasSulking=petSulking();
-  player.xp+=fx;player.gold+=fg;player.streak=r.streak;player.lastDoneDate=td;
+  player.xp+=fxX;player.gold+=fgX;player.streak=r.streak;player.lastDoneDate=td;
   const mpGain=gainMana(t);
   let raidMsgs=[];try{raidMsgs=raidStep();const spd=gearFx(player).spd||0;if(spd&&rfState()&&Math.random()<spd){const more=raidStep();raidMsgs.push("Faster movement speed: an extra room on the raid floor.",...more);}}catch(e){console.error("raid",e);}
   let godMsgs=[];try{godMsgs=godQuest(t,fx);}catch(e){console.error("gods",e);}
   partyTrack(fx);
   if([7,14,30,60,100].includes(r.streak)&&(prevP.streak||0)<r.streak)partyPost("streak",`hit a ${r.streak}-day streak`);
-  const petMsg=bondUp(isChosen("bastet")?Math.round(fx*1.5):fx,wasSulking);
+  const petMsg=bondUp(isChosen("bastet")?Math.round(fxX*1.5):fxX,wasSulking);
   player.doneCount=(player.doneCount||0)+1;if(r.onTarget)player.onTargetCount=(player.onTargetCount||0)+1;
-  if(isChosen("anansi"))player.viewers=(player.viewers||0)+Math.round(fx*37*.3);
-  player.viewers=(player.viewers||0)+Math.round((fx*37+Math.random()*250)*(1+qtView())*(1+statFx(player).cha*2.5)*(1+rcFx(player,null).view)*Math.max(0,1+themeFx(player).view)*(shelteredToday()?0:1));
+  if(isChosen("anansi"))player.viewers=(player.viewers||0)+Math.round(fxX*37*.3);
+  player.viewers=(player.viewers||0)+Math.round((fxX*37+Math.random()*250)*(1+qtView())*(1+statFx(player).cha*2.5)*(1+rcFx(player,null).view)*Math.max(0,1+themeFx(player).view)*(shelteredToday()?0:1));
   const evs=[];if(t.effort===5)evs.push("raid");if(wasBoss)evs.push("late");if(new Date().getHours()<4)evs.push("night");
   if((t.steps||[]).length>=5)evs.push("steps5");
   {const now=new Date(),h=now.getHours(),tt=t.title||"";
@@ -7544,7 +7643,7 @@ function completeQuest(id,actual,touched){
   if(ui.ambush){const a=ui.ambush;ui.ambush=null;
     ambushBeat=()=>{if(!ENTR.wait.has("boss"))bossAppear();toast(`<span class="big">${a.roam?"It found you!":"Ambush!"}</span> ${a.roam?`<b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}, roams this floor and just jumped you.`:`You found <b>${esc(a.name)}</b>, the ${esc(TIERS[a.tier].n)}.`}${a.charge?` Your stored Charge hits for <b>${a.charge}</b>.`:""}${player.boss&&player.boss.engaged&&!player.boss.defeated?(lairMode(player.boss)?" Fight it out, or retreat from the boss window.":" It blocks the corridor until it falls."):""}`,"lvl");};
     mapMsgs=mapMsgs.filter(x=>!/lair!|The stairwell!/.test(x));}
-  player.stats[t.stat]=(player.stats[t.stat]||0)+fx;
+  player.stats[t.stat]=(player.stats[t.stat]||0)+fxX;
   const after=levelInfo(player.xp).L;
   player.hp=after>before?maxHp(player):thq.regen?Math.min(maxHp(player),player.hp+5+rcq.hp):player.hp;
   if(player.regrow===td)player.hp=Math.min(maxHp(player),player.hp+5);
@@ -7553,14 +7652,22 @@ function completeQuest(id,actual,touched){
   ui.claiming=null;ui.addStep=null;
   const quip=say(wasBoss?"late":"complete");
   const qhtml=h=>`<b>${esc(h)}</b><br><span class="quip">${esc(quip)}</span>`;
-  const head=`${wasBoss?"Overdue quest cleared":"Quest complete"}: +${fx} XP, +${fg} gold${mpGain?`, +${mpGain} mana`:""}${r.onTarget?" (on target)":""}${t.stepXp?` (${r.xp} total with steps)`:""}`;
+  const head=`${wasBoss?"Overdue quest cleared":t.habit?"Habit kept":"Quest complete"}: +${fxX} XP, +${fgX} gold${mpGain?`, +${mpGain} mana`:""}${r.onTarget?" (on target)":""}${t.stepXp?` (${r.xp} total with steps)`:""}${t.habit?` · ${(t.chain||0)+1}-day chain${hMul>1?`, ×${hMul} XP`:""}`:""}`;
+  let habitNote=null;
   if(t.rec){
     // Log this completion as its own record, then roll the quest forward to its next occurrence with fresh steps.
-    const log=Object.assign({},t,{id:logId,done:true,doneAt:Date.now(),xpEarned:r.xp,actual:touched?actual:null,repeatOf:t.id,late:wasBoss});
-    delete log.rec;delete log.chain;delete log.lastDone;delete log.steps;
-    const onTime=!wasBoss;
-    const next=Object.assign({},t,{due:recNextAfter(t.rec,t.due>td?t.due:td),chain:onTime?(t.chain||0)+1:1,lastDone:td,stepXp:0,stepGold:0,
+    const log=Object.assign({},t,{id:logId,done:true,doneAt:Date.now(),xpEarned:t.habit?Math.round(r.xp*hMul):r.xp,actual:touched?actual:null,repeatOf:t.id,late:wasBoss});
+    delete log.rec;delete log.chain;delete log.lastDone;delete log.steps;delete log.habit;
+    const onTime=!wasBoss,hd=habitDay(),newChain=onTime?(t.chain||0)+1:1;
+    // a habit's day ends at 4 am, so its next turn counts from the habit day, not the calendar date
+    const next=Object.assign({},t,{due:recNextAfter(t.rec,t.habit?(t.due>hd?t.due:hd):(t.due>td?t.due:td)),chain:newChain,lastDone:td,stepXp:0,stepGold:0,
       steps:(t.steps||[]).map(s=>({id:s.id,text:s.text,done:false}))});
+    if(t.habit){const h=Object.assign({},t.habit,{hist:Object.assign({},t.habit.hist||{}),slip:false});h.hist[t.due||hd]="d";
+      const ms=HABIT_MS.filter(([n])=>n<=newChain&&n>(h.paid||0)).pop(),st0=habitStage(t.chain),st1=habitStage(newChain),bits=[];
+      if(st1>st0)bits.push(st0===0?`Your habit egg hatched! Meet your ${HABIT_STAGES[st1][1].toLowerCase()}.`:`Your habit creature grew: ${HABIT_STAGES[st1][1]}.`);
+      if(ms){h.paid=ms[0];giveBox(ms[1],`Habit: ${ms[0]} days in a row`);bits.push(`${ms[0]} days in a row: +a ${BOXES[ms[1]].n}.`);if(ms[0]>=7)partyPost("habit",`kept a habit going for ${ms[0]} days in a row`);}
+      if(bits.length)habitNote=`<span class="big">${esc(t.title)}</span> ${bits.map(esc).join(" ")}`;
+      next.habit=h;player.habitBest=Math.max(player.habitBest||0,newChain);}
     tasks=tasks.map(x=>x.id===id?next:x).concat(log);
     store.saveTask(next).catch(writeFailed);
     store.saveTask(log).catch(writeFailed);
@@ -7600,7 +7707,7 @@ function completeQuest(id,actual,touched){
   beatHold(slim?450:850); // let the slice land
   if(slim)beat(()=>stageEnd(fx>0,true),0);
   else{beat(stageGo,0);beat(()=>stageEnd(fx>0),0);}
-  beat(()=>{camOut();if(STAGE.on){STAGE.on=0;render();}if(fg>0)coreSnd.gold();openReport(qt||"<b>Quest complete</b>",slim);if(voice)announce(voice.line);},slim?350:1000);
+  beat(()=>{camOut();if(STAGE.on){STAGE.on=0;render();}if(fgX>0)coreSnd.gold();openReport(qt||"<b>Quest complete</b>",slim);if(voice)announce(voice.line);},slim?350:1000);
   if(usedFocus)beat(()=>toast("Potion of Focus spent: that quest earned double XP."),700);
   if(ui.kindled){ui.kindled=false;const a=activePet();if(a)beat(()=>toast(`Kindling! ${a.name} doubled this quest's boss damage.`),700);}
   if(after>before)beat(()=>{SFX.play("level");toast(`<span class="big">Level ${after}</span> ${esc(titleFor(after))} · HP restored · ${after-before>1?(after-before)+" loot boxes":"a loot box"} earned`,"lvl");},1400);
@@ -7618,6 +7725,7 @@ function completeQuest(id,actual,touched){
   if(godMsgs.length){const G=godState()?godOf(godState().id):player.wrath?godOf(player.wrath.god):null;godMsgs.forEach(m=>pushEvent(m));beat(()=>toastH(`<b>${esc(G?G.n:"The gods")}</b> ${godMsgs.map(x=>esc(x)).join("<br>")}`,/smite|curse|tithe/i.test(godMsgs.join(" "))?"bad":"quest"),900);}
   if(raidMsgs.length)beat(()=>toast(`<b>Raid floor</b> ${raidMsgs.map(x=>esc(x)).join("<br>")}`,"quest"),900);
   if(petMsg)beat(()=>toast(petMsg),800);
+  if(habitNote)beat(()=>{SFX.play("reveal","rare");toastH(habitNote,"lvl");},1100);
   if(goblinBox)beat(()=>toast(`A loot goblin dropped a Bronze Box while running from you.`,"",()=>goBoxes(),"To the Safe Room"),800);
   if(!loot)checkAch(evs);else ui.pendingAchAfterBoss=evs;
 }
@@ -7796,7 +7904,7 @@ function startEdit(t){
     title:t.title,effort:t.effort,est:t.est,stat:t.stat,due:t.due||"",
     rep:recToRep(t.rec),
     days:t.rec&&t.rec.type==="days"?t.rec.days.slice():[dow(t.due||today())],
-    every:t.rec&&t.rec.type==="every"?t.rec.n:2}};
+    every:t.rec&&t.rec.type==="every"?t.rec.n:2,habit:!!t.habit,at:t.habit&&t.habit.at||""}};
   render();
   const i=$("e-title");if(i)i.focus();
 }
@@ -7828,8 +7936,9 @@ function saveEdit(){
       msg=`Quest updated. Next due ${fmtDue(nt.due)}.`;
     }
     if(nt.chain==null)nt.chain=0;
+    if(d.habit){nt.habit=Object.assign({},t.habit||newHabit(),{at:d.at||null});nt.effort=1;}else delete nt.habit;
   }else{
-    delete nt.rec;delete nt.chain;delete nt.lastDone;
+    delete nt.rec;delete nt.chain;delete nt.lastDone;delete nt.habit;
     nt.due=d.due||null;
     if(t.due&&nt.due&&nt.due>t.due)nt.resched=(t.resched||0)+1;
   }
@@ -7862,16 +7971,20 @@ function editPanel(t){
       <div class="seg" role="group" aria-labelledby="e-daysLbl">${[1,2,3,4,5,6,0].map(i=>`<label><input type="checkbox" name="e-day" id="e-day-${i}" value="${i}" ${d.days.includes(i)?"checked":""}><span>${DOW[i]}</span></label>`).join("")}</div></div>
     <div class="field" id="e-everyField" ${d.rep==="every"?"":"hidden"} style="max-width:200px"><label class="label" for="e-every">Every how many days</label>
       <input type="number" id="e-every" min="2" max="60" value="${esc(d.every)}"></div>
+    <div class="field habitfield" id="e-habitField" ${d.rep==="none"?"hidden":""}>
+      <label class="habitchk"><input type="checkbox" id="e-habit" ${d.habit?"checked":""}> <span><b>A habit I'm building</b> <span class="muted">Trash mob size, never overdue, one missed day forgiven, rewards grow with the chain.</span></span></label>
+      <label class="habitat" id="e-habitAtRow" ${d.habit?"":"hidden"}><span class="label">Remind me at (optional)</span> <input type="time" id="e-habitAt" value="${esc(d.at||"")}"></label></div>
     <div class="note" id="e-note"></div>
     ${ed.err?`<div class="err">${esc(ed.err)}</div>`:""}
     <div class="qact"><button class="btn ghost" type="button" data-ecancel>Cancel</button><button class="btn gold" type="button" data-esave>Save changes</button></div>
   </div>`;
 }
 function editNote(t){
-  const d=ui.editing.d;const r=rewardFor(player,{effort:d.effort,est:+d.est},null);
+  const d=ui.editing.d;const r=rewardFor(player,{effort:d.habit&&d.rep!=="none"?1:d.effort,est:+d.est},null);
   let n=`Worth ${r.xp} XP after this change.`;
   if(t.rec&&recKey(t.rec)!==recKey(repToRec(d))&&d.rep!=="none")n+=" Changing the schedule restarts its chain.";
   if(d.rep!=="none"&&!t.rec)n+=" The date becomes its first due date.";
+  if(d.habit&&d.rep!=="none")n+=t.habit?"":" As a habit it becomes Trash mob size; its XP grows with the chain instead.";
   return n;
 }
 function wireEdit(card,t){
@@ -7882,8 +7995,8 @@ function wireEdit(card,t){
     d.effort=+box.querySelector("input[name=e-effort]:checked").value;
     d.est=+$("e-est").value;d.stat=$("e-stat").value;d.rep=$("e-rep").value;d.due=$("e-due").value;
     d.days=[...box.querySelectorAll("input[name=e-day]:checked")].map(i=>+i.value);
-    d.every=$("e-every").value;
-    $("e-daysField").hidden=d.rep!=="days";$("e-everyField").hidden=d.rep!=="every";
+    d.every=$("e-every").value;d.habit=$("e-habit").checked;d.at=$("e-habitAt").value;
+    $("e-daysField").hidden=d.rep!=="days";$("e-everyField").hidden=d.rep!=="every";$("e-habitField").hidden=d.rep==="none";$("e-habitAtRow").hidden=!d.habit||d.rep==="none";
     $("e-dueLbl").textContent=d.rep==="none"?"Due (optional)":"Next due";
     $("e-note").textContent=editNote(t);
   };
@@ -10852,7 +10965,7 @@ function renderShop(){
 }
 
 function questCard(t){
-  const td=today();const boss=t.due&&t.due<td;const resting=isResting(t);
+  const td=today();const boss=isLate(t,td);const resting=isResting(t);
   const r=rewardFor(player,t,null);
   let dueChip="";
   if(resting){
@@ -10900,10 +11013,10 @@ function questCard(t){
     </div>`:"";
   const side=`${resting?`<span class="rest-note">Opens ${fmtDue(opensOn(t))}</span>`:`<button class="btn gold sm qdone" data-done aria-label="Complete ${esc(t.title)}" title="Complete"><span class="qd-ic" aria-hidden="true">✓</span><span class="qd-t">Complete</span></button>`}
     <button class="btn ghost sm menu-btn" type="button" data-menu aria-haspopup="menu" aria-expanded="${menuOpen}" aria-label="More actions for ${esc(t.title)}">⋯</button>${menu}`;
-  const repChips=t.rec?`<span class="chip rep">Repeats · ${recLabel(t.rec)}</span>${(t.chain||0)>=2?`<span class="chip chain">Chain ${t.chain}</span>`:""}`:"";
+  const repChips=t.habit&&t.rec?`<span class="chip rep habitchip">Habit · ${recLabel(t.rec)}</span>`:t.rec?`<span class="chip rep">Repeats · ${recLabel(t.rec)}</span>${(t.chain||0)>=2?`<span class="chip chain">Chain ${t.chain}</span>`:""}`:"";
   const steps=t.steps||[];const nDone=steps.filter(s=>s.done).length;
   const progChip=steps.length?`<span class="chip prog">${nDone}/${steps.length} steps</span>`:"";
-  const left=Math.max(0,r.xp-(t.stepXp||0));
+  const left=Math.round(Math.max(0,r.xp-(t.stepXp||0))*(t.habit?habitMul(t,(t.chain||0)+1):1));
   const nextPay=stepPayout(t).xp;
   let stepsHtml="";
   if(!resting&&(steps.length||ui.addStep===t.id)){
@@ -10925,7 +11038,7 @@ function questCard(t){
       <div class="qxp num">+${left}<small>${t.stepXp?` of ${r.xp}`:""} XP</small></div>
       <div class="qside">${side}</div>
     </div>
-    ${stepsHtml}${foot}</article>`;
+    ${t.habit&&t.rec?habitHTML(t):""}${stepsHtml}${foot}</article>`;
 }
 function claimSum(r,t,actual){
   const parts=[];if(r.streakB)parts.push(`streak +${Math.round(r.streakB*100)}%`);if(r.weaponB)parts.push(`gear +${Math.round(r.weaponB*100)}%`);if(r.statB)parts.push(`Intelligence +${Math.round(r.statB*100)}%`);if(r.petB)parts.push(`pet +${Math.round(r.petB*100)}%`);
@@ -10933,9 +11046,10 @@ function claimSum(r,t,actual){
     const w=statFx(player).win+petFx(player).win+gearFx(player).win,lo=Math.ceil(t.est*(.8-w)-1e-9),hi=Math.floor(t.est*(1.25+w)+1e-9);
     parts.push(`edit the time it took to earn the accuracy bonus (${lo}–${hi} min)`);
   }else parts.push(r.onTarget?`on target +${Math.round(r.accB*100)}%`:`${fmtX(r.ratio)} your estimate, no accuracy bonus`);
-  const sx=t&&t.stepXp||0,sg=t&&t.stepGold||0;
+  const sx=t&&t.stepXp||0,sg=t&&t.stepGold||0,hm=t&&t.habit?habitMul(t,(t.chain||0)+1):1;
   if(sx)parts.push(`${sx} already earned from steps`);
-  return `<b>+${Math.max(0,r.xp-sx)} XP</b> · +${Math.max(0,r.gold-sg)} gold${parts.length?`<br>${parts.join(" · ")}`:""}`;
+  if(hm>1)parts.unshift(`habit chain ×${hm}`);
+  return `<b>+${Math.round(Math.max(0,r.xp-sx)*hm)} XP</b> · +${Math.round(Math.max(0,r.gold-sg)*hm)} gold${parts.length?`<br>${parts.join(" · ")}`:""}`;
 }
 
 function renderBoard(){
@@ -10943,9 +11057,9 @@ function renderBoard(){
   if(!loadedT){board.innerHTML=`<div class="empty"><h3>Opening the quest board…</h3></div>`;return;}
   const td=today();
   const open=tasks.filter(t=>!t.done);
-  const bosses=open.filter(t=>t.due&&t.due<td).sort((a,b)=>a.due<b.due?-1:1);
+  const bosses=open.filter(t=>isLate(t,td)).sort((a,b)=>a.due<b.due?-1:1);
   const resting=open.filter(t=>isResting(t)).sort((a,b)=>a.due<b.due?-1:1);
-  const rest=open.filter(t=>!(t.due&&t.due<td)&&!isResting(t)).sort((a,b)=>{
+  const rest=open.filter(t=>!isLate(t,td)&&!isResting(t)).sort((a,b)=>{
     if(a.due&&b.due)return a.due<b.due?-1:a.due>b.due?1:b.effort-a.effort;
     if(a.due)return -1;if(b.due)return 1;return b.effort-a.effort;});
   let h="";
@@ -11338,7 +11452,7 @@ function setTab(t,o){
 function tabBadges(){
   const B={quests:"",hero:"",loot:"",show:"",safe:"",party:""};
   if(!playerExists)return B;
-  const td=today(),od=tasks.filter(t=>!t.done&&t.due&&t.due<td&&!isResting(t)).length;
+  const td=today(),od=tasks.filter(t=>isLate(t,td)&&!isResting(t)).length;
   if(od)B.quests=String(od);
   if((rcUnlocked()&&!rcDone())||!Object.keys(player.pets||{}).length||petSulking()||!player.look)B.hero="!";
   const nb=(player.boxes||[]).length+(player.eggs||[]).length;
@@ -11368,6 +11482,10 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.19.0",d:"2026-10-16",t:"Creature of habit",items:["Habits: mark a repeating quest as a habit you're building (Add → More options, or edit a quest). Habits are Trash mob size, but their XP and gold grow with your chain: ×2 the whole first week, ×1.5 from 3 in a row, ×2 from 7, ×3 from 14 and ×4 from 30.",
+    "Habits never go overdue and never hurt you. Miss one turn and it's forgiven (\"one slip, don't let it be two\"); miss two in a row and the chain breaks. The habit day ends at 4 am, so a late-night check-in counts for the night before.",
+    "Each habit hatches a creature that grows with the chain (Egg, Hatchling, Youngling, Grown, Bonded, Tamed), with a Bronze Box at 3 in a row, Silver at 7 and 14, Gold at 30 and 66, plus new achievements. The card shows your last 14 days as dots.",
+    "Set a reminder time on a habit and, with notifications on, you'll get a ping if it isn't done yet. Your party sees how many habits you have and your longest chain (not what they are), and can nudge you when one's still waiting."]},
   {v:"3.18.0",d:"2026-10-14",t:"A real raid",items:["Raid bosses (from Monday, Oct 19) are sized to your party: their HP is 55% of the floor damage your active crewmates dealt the week before, and never less than 3,000 per active crewmate. Play at last week's pace and it falls around Saturday; slack off and next week's boss is easier, push hard and it grows with you.",
     "No more Charge on raids: quests you finish on the way to the lair don't hurt the raid boss at all, so getting to the lair early (and together, for the +10% per crewmate) is what matters. Floor bosses still use Charge as before.",
     "This week's raid boss keeps the old rules, so anything you've already beaten stays beaten."]},
@@ -11629,6 +11747,8 @@ const GUIDE=[
     more:"Bosses have HP; your quests' damage takes it down. Every finished quest also moves you a room on the Floor map, where you find lairs, chests, traps and ambushes. The stairwell closes at the end of the week, and any bosses left behind just stay there, with no penalty beyond the loot you missed."},
   {id:"spare",t:"Spare steps",when:p=>(+p.spSteps||0)>0,line:"A finished quest that couldn't move you on the Floor map banked a spare step. Spend spare steps from the map to walk through rooms you've already explored, no quest needed.",
     more:"You bank a spare step when a quest can't move you: you're holding in a room you picked, you're stuck in a boss fight, or there's nowhere left to go. You can hold up to 3. Tap a room you've explored, then Walk there now. Spare steps never explore: every new room still takes a finished quest, and a mob that jumps you on the way stops the walk."},
+  {id:"habit",t:"Habits",when:p=>tasks.some(t=>t.habit),line:"You're building a habit. It's Trash mob size, never goes overdue or hurts you, and its XP grows with your chain: ×2 the first week, ×3 from 14 in a row, ×4 from 30.",
+    more:"Mark a repeating quest as a habit when you add or edit it. Each one hatches a creature that grows as your chain does, with boxes at 3, 7, 14, 30 and 66 in a row (66 days is about how long a habit takes to stick). Miss one turn and it's forgiven; miss two in a row and the chain breaks. The habit day ends at 4 am, so late-night check-ins count for the night before. Set a reminder time and, with notifications on, you'll get a nudge if it isn't done. Your party sees how many habits you have and your longest chain (never their names), and can nudge you when one's still waiting."},
   {id:"mob",t:"Mobs",when:p=>(p.mobs||[]).length>0,line:"A mob is on you. Your next quests hit it first, and until it's gone it nips you for HP each quest. Tap its card to poke it for a little damage.",
     more:"Mobs come in families, and each family has a twist that its card explains: ghosts can only be hurt by spells and fade at dawn, some hide their HP, some steal, some split. You can poke a mob a few times a day for tiny damage. Mobs give XP when they go down, and a few drop loot."},
   {id:"rival",t:"Rival crawlers",when:p=>!!p.rival,line:"A rival crawler is hunting you. Every quest hits them and they hit back, but they can't knock you out overnight. Bribe them, run, or beat them for their loot.",
@@ -11721,6 +11841,8 @@ function renderPushCtl(){
   el.innerHTML=on?`<div style="font-size:14px">🔔 On for this device, even with The Crawl closed.</div>
       <label class="sndrow"><input type="checkbox" id="pushEve"${prefs.push.evening!==false?" checked":""}> Evening heads-up at <select id="pushHour" style="width:auto">${hrs.map(x=>`<option value="${x}"${x===h?" selected":""}>${x>12?x-12:x} pm</option>`).join("")}</select></label>
       <div class="muted" style="font-size:12px">Only on days with something to warn you about: overdue quests, a rival who'll hit you overnight, a streak about to end.</div>
+      <label class="sndrow"><input type="checkbox" id="pushHab"${prefs.push.habits!==false?" checked":""}> Habit reminders</label>
+      <div class="muted" style="font-size:12px">At the time you set on each habit, if it isn't done yet.</div>
       <label class="sndrow"><input type="checkbox" id="pushParty"${prefs.push.party!==false?" checked":""}> Party messages and help requests</label>
       <div class="muted" style="font-size:12px">Can take up to about 15 minutes to arrive.</div>
       <button class="btn ghost sm" type="button" id="pushOffBtn">Turn off on this device</button>`
@@ -11729,6 +11851,7 @@ function renderPushCtl(){
   const b=$("pushOnBtn");if(b)b.onclick=pushOn;const o=$("pushOffBtn");if(o)o.onclick=pushOff;
   const e=$("pushEve");if(e)e.onchange=()=>pushSet({evening:e.checked});
   const pp=$("pushParty");if(pp)pp.onchange=()=>pushSet({party:pp.checked});
+  const ph=$("pushHab");if(ph)ph.onchange=()=>pushSet({habits:ph.checked});
   const hh=$("pushHour");if(hh)hh.onchange=()=>pushSet({hour:+hh.value});
 }
 /* ---------- Install ----------
@@ -12095,13 +12218,17 @@ function setupForm(){
     if(v==="every"){const n=Math.min(60,Math.max(2,parseInt($("q-every").value,10)||2));return {type:"every",n};}
     return null;
   };
-  const read=()=>({title:$("q-title").value.trim(),effort:+f.querySelector("input[name=effort]:checked").value,est:+$("q-est").value,stat:$("q-stat").value,due:$("q-due").value||null,rec:readRec()});
+  const read=()=>{const rec=readRec(),hab=!!rec&&$("q-habit").checked;
+    return {title:$("q-title").value.trim(),effort:hab?1:+f.querySelector("input[name=effort]:checked").value,est:+$("q-est").value,stat:$("q-stat").value,due:$("q-due").value||null,rec,habit:hab,habitAt:hab&&$("q-habitAt").value||null};};
   const upd=()=>{
     const q=read();const r=rewardFor(player,q,null);
     const v=$("q-rep").value;
     $("daysField").hidden=v!=="days";$("everyField").hidden=v!=="every";
+    $("habitField").hidden=v==="none";$("habitAtRow").hidden=v==="none"||!$("q-habit").checked;
+    {const hab=v!=="none"&&$("q-habit").checked;if(hab){const r1=f.querySelector('input[name=effort][value="1"]');if(r1&&!r1.checked)r1.checked=true;}
+      f.querySelectorAll("input[name=effort]").forEach(i=>{i.disabled=hab&&i.value!=="1";});$("effortSeg").classList.toggle("habit-lock",hab);}
     $("dueLbl").textContent=v==="none"?"Due (optional)":"Starts (optional)";
-    $("preview").innerHTML=`Worth <b class="num">${r.xp} XP</b> · ${fmtH(q.est)} · ${r.gold} gold${q.rec?" each time":""}`;
+    $("preview").innerHTML=q.habit?`Worth <b class="num">${r.xp*2} XP</b> the first week (×2), growing to ×4 with a 30-day chain · ${fmtH(q.est)}`:`Worth <b class="num">${r.xp} XP</b> · ${fmtH(q.est)} · ${r.gold} gold${q.rec?" each time":""}`;
     const adv=estimateAdvice(q.effort,q.stat);const hint=$("estHint");
     if(adv&&Math.abs(Math.log2(adv.r))>=.2){
       const real=Math.round(q.est*adv.r);
@@ -12182,8 +12309,8 @@ function setupForm(){
     showAdded(ui.lastAdded,q.title,from);
     if(statTouched){prefs.stat=q.stat;savePrefs();}
     if(statTouched||estTouched){learnQuest(q.title,{stat:statTouched?q.stat:null,est:estTouched?q.est:0});store.savePlayer(player).catch(writeFailed);}
-    aiSort(ui.lastAdded,aiFields);
-    box.hidden=true;$("q-title").value="";$("q-due").value="";$("q-rep").value="none";
+    aiSort(ui.lastAdded,q.habit?aiFields.filter(x=>x!=="effort"):aiFields);
+    box.hidden=true;$("q-title").value="";$("q-due").value="";$("q-rep").value="none";$("q-habit").checked=false;$("q-habitAt").value="";
     estTouched=effTouched=statTouched=dueTouched=repTouched=false;lastGuess=null;$("autoLine").innerHTML="";ideaIdx++;setTimeout(renderIdeas,600);
     const r3=f.querySelector('input[name=effort][value="3"]');if(r3)r3.checked=true;$("q-est").value=EST_FOR[3];upd();$("q-title").focus();
   });
@@ -12301,6 +12428,7 @@ const PARTY_BOSSES=[
   {n:"The Couch Wyrm",art:"The Sloth Wyrm",line:"One more episode. One more episode. One more episode."},
   {n:"Lord Leftovers",art:"Baron Backlog",line:"Rules a kingdom of half-finished projects and mystery containers."},
   {n:"The Mist of Excuses",art:"The Fog of Maybe",line:"It has a reason. It always has a reason."}];
+const HABIT_NUDGES=["Your habit's still waiting for today. Don't let the chain slip.","The habit egg is getting cold. Go check in.","One small thing left today: the habit. You've got this.","Chain check! Today's habit isn't done yet."];
 const NUDGE_LINES=["The cameras are getting bored.","Your party is carrying you. Visibly.","One quest. Any quest. The audience is begging.",
   "The sponsors are asking where you went.","The party buff is on the line.","Even the loot goblins are worried about you."];
 const PCODE="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -12356,7 +12484,7 @@ function zoomCrew(uid){
   zoomCard({kind:"crew",title:c.name||"Crawler",titleHTML:esc(c.name||"Crawler")+skullsOf(c.sk||0),art:miniAvatar(c),
     sub:`${esc(c.title||"")} · Level ${c.lvl||1}${cls?` · ${esc(cls.n)}`:""}`,
     tiles:[["Floor",c.floor||1],["Streak",c.streak>1?`🔥 ${c.streak}`:"–"],["Quests today",(c.days||{})[td]||0],["Last 7 days",wk],
-      ["Boss score",c.rk&&c.rk.s?c.rk.s.toLocaleString():"–"],["Raid damage",(c.wkDmg||0).toLocaleString()],["Crawler kills",`${c.sk||0} ☠`],["Pet",pet?esc(pet.n):"–"]],
+      ["Habits",c.hb?`${c.hb.n} · best chain ${c.hb.best}${c.hb.left?` · ${c.hb.left} to do today`:" · all done today"}`:"–"],["Boss score",c.rk&&c.rk.s?c.rk.s.toLocaleString():"–"],["Raid damage",(c.wkDmg||0).toLocaleString()],["Crawler kills",`${c.sk||0} ☠`],["Pet",pet?esc(pet.n):"–"]],
     body:`${c.rvl?`<div class="rv-help">⚔ ${esc(c.rvl.n)} is hunting ${me?"you":"them"} (${c.rvl.hp}/${c.rvl.max} HP).</div>`:""}
       ${c.qt?`<div class="muted" style="font-size:13px">Owns Personal Quarters${(c.qt.up||[]).length?` with ${(c.qt.up||[]).length} upgrade${(c.qt.up||[]).length===1?"":"s"}`:""}${c.qt.cj?" · in the Communal Hall":""}.</div>`:""}`,
     acts:[{label:me?"My gear":"Gear",gold:true,fn:()=>openInspect(uid)}].concat(me?[]:[{label:"🎁 Trade",fn:()=>openTradeWith(uid)}])});
@@ -12500,13 +12628,16 @@ function partyTrack(fx){
   }
   player.pt=pt;
 }
+/* What the crew sees of your habits: how many, the longest chain, and how many are still to do today (no names). */
+function habitSummary(){const hd=habitDay(),hs=tasks.filter(t=>t.habit&&t.rec&&!t.done);if(!hs.length)return null;
+  return {n:hs.length,best:Math.max(0,...hs.map(t=>t.chain||0)),left:hs.filter(t=>t.due&&t.due<=hd).length};}
 function myCard(){
   const pt=ptNow(),L=levelInfo(player.xp||0).L,a=activePet();
   const streak=player.lastDoneDate===today()||player.lastDoneDate===addDays(today(),-1)?(player.streak||0):0;
   const wear={};const w=wearing(player);for(const k of Object.keys(w))wear[k]=w[k]||null;
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
-    wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rb:player.rbase||{},rwin:Object.keys(player.praid||{}).slice(-4),rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy,sp:rvSpellRoom(player.rival),spc:rvCastsLeft(player.rival)}:null,asp:player.asSp||null,
+    hb:habitSummary(),wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rb:player.rbase||{},rwin:Object.keys(player.praid||{}).slice(-4),rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy,sp:rvSpellRoom(player.rival),spc:rvCastsLeft(player.rival)}:null,asp:player.asSp||null,
     rvDone:player.rvDone||null,win:(()=>{myMood();return ui.winAt&&Date.now()-ui.winAt<10*6e4?ui.winAt+10*6e4:null;})(),as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,ch:player.chant===today()?today():null,mm:player.mm&&Date.now()-player.mm.at<3*864e5?player.mm:null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
@@ -12858,7 +12989,8 @@ function partyNudge(uid){
   if(!party)return;const td=today();
   const nd=player.nudged&&player.nudged.d===td?player.nudged:{d:td,u:[]};if(nd.u.includes(uid))return;
   player.nudged={d:td,u:nd.u.concat(uid)};const c=party.cards[uid];
-  partyPost("nudge",`nudged ${c?c.name:"a crewmate"}: ${NUDGE_LINES[Math.floor(Math.random()*NUDGE_LINES.length)]}`,null,{to:uid});
+  const habitOnly=c&&c.hb&&c.hb.left&&(c.days||{})[td]; // they've played today, but a habit's still waiting
+  partyPost("nudge",`nudged ${c?c.name:"a crewmate"}: ${habitOnly?HABIT_NUDGES[Math.floor(Math.random()*HABIT_NUDGES.length)]:NUDGE_LINES[Math.floor(Math.random()*NUDGE_LINES.length)]}`,null,{to:uid});
   store.savePlayer(player).catch(writeFailed);toast(`Nudge sent to ${c?c.name:"your crewmate"}.`);render();
 }
 function partyInvite(){
@@ -12941,9 +13073,9 @@ function renderParty(){
     const cls=CLASSES.find(x=>x.id===c.cls);
     return `<div class="pt-mrow${uid===me?" me":""}"><div class="pt-mav zoomable" data-zcrew="${esc(uid)}" role="button" tabindex="0" aria-label="${esc(c.name||"Crawler")} up close">${miniAvatar(c)}</div>
       <div class="pt-minfo"><div class="pt-who"><b>${esc(c.name||"Crawler")}</b>${skullsOf(skullsFor(uid))}${uid===me?` <span class="muted">(you)</span>`:""}</div>
-        <div class="pt-meta">Lv ${c.lvl||1}${cls?` ${esc(cls.n)}`:""} · Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}`:""}</div>
+        <div class="pt-meta">Lv ${c.lvl||1}${cls?` ${esc(cls.n)}`:""} · Floor ${c.floor||1}${c.streak>1?` · 🔥 ${c.streak}`:""}${c.hb?` · <span class="pt-hab" title="Habits: ${c.hb.n}, longest chain ${c.hb.best}${c.hb.left?`, ${c.hb.left} still to do today`:", all done today"}">🥚 ${c.hb.best}${c.hb.left?` <i>${c.hb.left} left</i>`:" ✔"}</span>`:""}</div>
         <div class="pt-today${n?" yes":""}">${n?`✔ ${n} quest${n===1?"":"s"} today`:mia&&uid!==me?"Missing in action":"No quests yet today"}</div></div>
-      <div class="pt-cbtns"><button class="btn ghost sm" type="button" data-inspect="${esc(uid)}">${uid===me?"My gear":"Gear"}</button>${uid!==me?`<button class="btn ghost sm" type="button" data-trade="${esc(uid)}" aria-label="Trade">🎁</button>`:""}${uid!==me&&!n?`<button class="btn ghost sm" type="button" data-nudge="${esc(uid)}"${nudged?" disabled":""}>${nudged?"Nudged":"Nudge"}</button>`:""}</div></div>`;}).join("");
+      <div class="pt-cbtns"><button class="btn ghost sm" type="button" data-inspect="${esc(uid)}">${uid===me?"My gear":"Gear"}</button>${uid!==me?`<button class="btn ghost sm" type="button" data-trade="${esc(uid)}" aria-label="Trade">🎁</button>`:""}${uid!==me&&(!n||(c.hb&&c.hb.left))?`<button class="btn ghost sm" type="button" data-nudge="${esc(uid)}"${nudged?" disabled":""}>${nudged?"Nudged":"Nudge"}</button>`:""}</div></div>`;}).join("");
   const fp=ui.feedPrev,isNew=f=>fp!=null&&f.uid!==me&&f.at>fp,nNew=party.feed.slice(0,25).filter(isNew).length;
   const feed=party.feed.slice(0,25).map(f=>{const ch=Object.keys(f.cheers||{}).length,mine=(f.cheers||{})[me];
     return `<li class="pt-ev k-${esc(f.kind||"")}${isNew(f)?" new":""}"><div>${isNew(f)?`<span class="pt-new">New</span> `:""}<b>${esc(f.uid===me?"You":f.name||"Crawler")}</b> ${esc(f.uid===me?String(f.text||"").replace(/^hit /,"hit "):f.text||"")}<span class="pt-ago">${ago(f.at||0)}</span></div>
@@ -13067,7 +13199,7 @@ function auraFx(t,onTarget){
   const td=today();
   for(const c of mates){const a=AURAS[c.cls]||AURAS.none;z.list.push(Object.assign({who:c.name},a));
     z.xp+=a.xp||0;z.dmg+=a.dmg||0;z.gold+=a.gold||0;z.hp+=a.hp||0;z.view+=a.view||0;if(a.shield)z.shield=true;
-    if(t){if(a.od&&t.due&&t.due<td)z.xp+=a.od;if(a.first&&player.lastDoneDate!==td)z.xp+=a.first;if(a.quick&&t.est>0&&t.est<=15)z.gold+=a.quick;
+    if(t){if(a.od&&isLate(t,td))z.xp+=a.od;if(a.first&&player.lastDoneDate!==td)z.xp+=a.first;if(a.quick&&t.est>0&&t.est<=15)z.gold+=a.quick;
       if(a.ontime&&t.due&&t.due>=td)z.xp+=a.ontime;if(a.target&&onTarget)z.xp+=a.target;}}
   z.xp=Math.min(.10,z.xp);z.gold=Math.min(.20,z.gold);z.dmg=Math.min(.10,z.dmg);z.hp=Math.min(10,z.hp);z.view=Math.min(.4,z.view);
   return z;
@@ -13420,7 +13552,7 @@ function godTick(){
   const days=Math.max(0,daysBetween(prev,td));let loss=0;const why=[];
   const idle=player.lastDoneDate?daysBetween(player.lastDoneDate,td)-1:0;
   if(idle>0){loss+=Math.min(15,idle*(g.id==="hermes"?8:4));why.push(g.id==="hermes"?"a day without errands":"a quiet day");}
-  if(g.id==="tyr"&&tasks.filter(t=>!t.done&&t.due&&t.due<td).length>=3){loss+=6;why.push("quests left to rot");}
+  if(g.id==="tyr"&&tasks.filter(t=>isLate(t,td)).length>=3){loss+=6;why.push("quests left to rot");}
   if(g.id==="bastet"&&petSulking()){loss+=6;why.push("a sulking pet");}
   if(loss){addFavor(-loss);pushEvent(`${godOf(g.id).n} frowned on ${why.join(" and ")}: −${loss} favor`,true);}
   return true;

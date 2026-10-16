@@ -380,6 +380,27 @@ def main():
             check("add box: a slow click on ✓ after adding a quest counts the first time", E(pg, "tasks.filter(t=>t.done).length") > n0 and not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- habits: x2 XP the first week at Trash mob damage, one slip forgiven, two break it, milestone box, never late ----
+            pg = b.new_page(viewport={"width": 390, "height": 844}); errs = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            pg.add_init_script("""(()=>{const _D=Date;let off=0;window.__shift=h=>{off+=h*36e5;};
+              class D extends _D{constructor(...a){if(a.length)super(...a);else super(_D.now()+off);}static now(){return _D.now()+off;}}window.Date=D;})()""")
+            pg.goto(url); pg.wait_for_timeout(2000); pg.evaluate(SETUP)
+            E(pg, "$('toasts').style.display='none';prefs.showMode='quick';(()=>{const n=new Date();__shift(10-n.getHours()-n.getMinutes()/60);})();addQuest({title:'Brush teeth',effort:5,est:5,stat:'CON',due:null,rec:{type:'daily'},habit:true,habitAt:'21:00'})")
+            h1 = E(pg, """(()=>{const t=tasks.find(x=>x.title==='Brush teeth');const xp0=player.xp;completeQuest(t.id);const n=tasks.find(x=>x.id===t.id);
+                return [t.effort,player.xp-xp0===2*rewardFor(player,{effort:1,est:5},null).xp,n.chain,n.due>today(),isLate(n,addDays(today(),3))].join(',')})()""")
+            check("habit: Trash mob size, x2 XP first week, chain 1, never late", h1 == "1,true,1,true,false", h1)
+            pg.wait_for_timeout(1500)
+            E(pg, "__shift(48);render()"); pg.wait_for_timeout(200)
+            h2 = E(pg, "(()=>{const n=tasks.find(x=>x.title==='Brush teeth');return [n.chain,n.habit.slip,n.due===today()].join(',')})()")
+            E(pg, "__shift(24);render()"); pg.wait_for_timeout(200)
+            h3 = E(pg, "(()=>{const n=tasks.find(x=>x.title==='Brush teeth');return [n.chain,n.habit.slip].join(',')})()")
+            check("habit: one miss forgiven, two in a row break the chain", h2 == "1,true,true" and h3 == "0,false", f"{h2} | {h3}")
+            h4 = E(pg, "(()=>{const t=tasks.find(x=>x.title==='Brush teeth');t.chain=2;const b0=(player.boxes||[]).length;completeQuest(t.id);return [(player.boxes||[]).length-b0,tasks.find(x=>x.id===t.id).habit.paid,!!document.querySelector('.habit .habit-dots')].join(',')})()")
+            check("habit: 3 in a row pays a box once, card shows the dots", h4 == "1,3,true", h4)
+            check("habits: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- hidden tabs: their panels skip redraws, then catch up the moment you open them ----
             pg, errs = page()
             pg.evaluate(SETUP)

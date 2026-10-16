@@ -7,6 +7,8 @@
 //   - Evening reminder, once a day at the chosen hour: overdue quests, a rival who'll hit you overnight, a streak about to end.
 //     Nothing is sent on a day with nothing to warn about.
 //   - Party: new chat messages and feed posts aimed at you (help requests, gifts) since you last had the app open.
+//   - Habit reminders: a habit quest with a reminder time (task.habit.at, "HH:MM") that's still open today, once a day
+//     each, once that time has passed (device field lastHabit: {d: "YYYY-MM-DD", ids: [...]}; off when habits === false).
 // The VAPID key pair (which signs the pushes) is derived from the service-account key, so there's no second secret;
 // its public half is published to config/push for the app to subscribe with.
 import crypto from "node:crypto";
@@ -24,17 +26,17 @@ export function deriveVapid(secret) {
 
 export function localNow(tz, now = new Date()) {
   let parts;
-  try { parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz || "UTC", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23" }).formatToParts(now); }
+  try { parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz || "UTC", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(now); }
   catch (e) { return localNow("UTC", now); }
   const g = t => parts.find(p => p.type === t).value;
-  return { date: `${g("year")}-${g("month")}-${g("day")}`, hour: +g("hour") % 24 };
+  return { date: `${g("year")}-${g("month")}-${g("day")}`, hour: +g("hour") % 24, minute: +g("minute") || 0 };
 }
 
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 
 // What tonight's reminder says, or null when there's nothing worth a buzz.
 export function eveningMessage(player, tasks, today) {
-  const open = (tasks || []).filter(t => t && !t.done && t.title);
+  const open = (tasks || []).filter(t => t && !t.done && t.title && !t.habit); // habits never go overdue; they have their own reminder
   const overdue = open.filter(t => t.due && t.due < today);
   const dueToday = open.filter(t => t.due === today);
   const bits = [];
@@ -46,6 +48,21 @@ export function eveningMessage(player, tasks, today) {
   if (!bits.length) return null;
   const first = bits[0][0].toUpperCase() + bits[0].slice(1);
   return { title: "The Crawl", body: [first].concat(bits.slice(1)).join(" · ") + ". One quest fights back.", open: "quests", tag: "crawl-evening" };
+}
+
+// Habit reminders due now: open habits with a reminder time that has passed today, not yet reminded today.
+// A habit is "open today" when its next turn is today or earlier (the app rolls missed turns forward when it's opened).
+export function habitMessages(tasks, date, hour, minute, sent) {
+  const done = sent && sent.d === date ? sent.ids || [] : [];
+  const now = hour * 60 + minute, out = [];
+  for (const t of tasks || []) {
+    if (!t || t.done || !t.habit || !t.rec || !t.habit.at || !t.due || t.due > date) continue;
+    const [h, m] = String(t.habit.at).split(":").map(Number);
+    if (isNaN(h) || h * 60 + (m || 0) > now || done.includes(t.id)) continue;
+    const n = (t.chain || 0) + 1;
+    out.push({ id: t.id, msg: { title: `Habit: ${String(t.title).slice(0, 60)}`, body: n > 1 ? `Make it ${n} in a row. Your habit creature is waiting.` : "Your habit egg is waiting for today's check-in.", open: "quests", tag: `crawl-habit-${t.id}` } });
+  }
+  return out;
 }
 
 // A crewmate newly hunted by a rival crawler (one ping per rival), so you can jump in and help.
@@ -100,12 +117,21 @@ export async function run({ db, webpush, now = new Date(), log = console.log }) 
     let sub; try { sub = JSON.parse(d.sub); } catch (e) { continue; }
     const upd = {}, out = [];
     try {
-      const { date, hour } = localNow(d.tz, now);
+      const { date, hour, minute } = localNow(d.tz, now);
       if (d.evening !== false && hour >= (d.hour ?? 19) && d.lastEvening !== date) {
         upd.lastEvening = date;
         const { player, tasks } = await loadPlayer(uid);
         const m = player && eveningMessage(player, tasks, date);
         if (m) out.push(m);
+      }
+      if (d.habits !== false) {
+        const { tasks } = await loadPlayer(uid);
+        const hs = habitMessages(tasks, date, hour, minute, d.lastHabit);
+        if (hs.length) {
+          const ids = d.lastHabit && d.lastHabit.d === date ? (d.lastHabit.ids || []).slice() : [];
+          for (const h of hs) { out.push(h.msg); ids.push(h.id); }
+          upd.lastHabit = { d: date, ids };
+        }
       }
       if (d.party !== false && d.partyCode) {
         const pt = await loadParty(d.partyCode);
