@@ -398,6 +398,8 @@ def main():
             check("habit: one miss forgiven, two in a row break the chain", h2 == "1,true,true" and h3 == "0,false", f"{h2} | {h3}")
             h4 = E(pg, "(()=>{const t=tasks.find(x=>x.title==='Brush teeth');t.chain=2;const b0=(player.boxes||[]).length;completeQuest(t.id);return [(player.boxes||[]).length-b0,tasks.find(x=>x.id===t.id).habit.paid,!!document.querySelector('.habit .habit-dots')].join(',')})()")
             check("habit: 3 in a row pays a box once, card shows the dots", h4 == "1,3,true", h4)
+            sec = E(pg, "addQuest({title:'Take out trash',effort:2,est:10,stat:'STR',rec:{type:'daily'}});setTab('quests');render();[...document.querySelectorAll('#board summary .label')].map(x=>x.textContent.split(' ·')[0]).join('|')")
+            check("board: separate Habits and Routines sections", "🥚 Habits" in sec and "🔁 Routines" in sec, sec)
             check("habits: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 

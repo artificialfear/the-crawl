@@ -1731,7 +1731,12 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
 @keyframes habpulse{0%,100%{opacity:.5}50%{opacity:1}}
 .habitfield{gap:6px}
 .seg.habit-lock label:has(input:disabled){opacity:.35}
-.habitchk{display:flex;gap:8px;align-items:flex-start;font-size:13px;cursor:pointer}.habitchk input{margin-top:3px}
+.kindseg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kindopt{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1.5px solid var(--line-2);border-radius:10px;cursor:pointer;background:rgba(255,255,255,.02)}
+.kindopt input{margin-top:3px;accent-color:var(--gold)}
+.kindopt span{display:flex;flex-direction:column;gap:2px;font-size:13px}.kindopt small{color:var(--muted);font-size:12px;line-height:1.3}
+.kindopt:has(input:checked){border-color:var(--gold);background:rgba(255,210,63,.07)}
+@media (max-width:420px){.kindseg{grid-template-columns:1fr}}
 .habitat{display:flex;gap:8px;align-items:center;font-size:13px}.habitat input{max-width:140px}
 .pt-hab{white-space:nowrap}.pt-hab i{font-style:normal;color:#ffb03a}
 
@@ -1971,7 +1976,11 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
             <input type="number" id="q-every" min="2" max="60" value="2">
           </div>
           <div class="field habitfield" id="habitField" hidden>
-            <label class="habitchk"><input type="checkbox" id="q-habit"> <span><b>A habit I'm building</b> <span class="muted">Trash mob size, never goes overdue or hurts you, one missed day is forgiven, and the rewards grow with your chain.</span></span></label>
+            <span class="label" id="kindLbl">What kind of repeat?</span>
+            <div class="kindseg" role="radiogroup" aria-labelledby="kindLbl">
+              <label class="kindopt"><input type="radio" name="q-kind" id="q-routine" value="routine" checked><span><b>🔁 Routine</b><small>A chore on a schedule. Keeps its threat level and goes overdue if you skip it.</small></span></label>
+              <label class="kindopt"><input type="radio" name="q-kind" id="q-habit" value="habit"><span><b>🥚 Habit</b><small>Something you're building. Trash mob size, never overdue, forgives one miss, rewards grow with your chain.</small></span></label>
+            </div>
             <label class="habitat" id="habitAtRow" hidden><span class="label">Remind me at (optional)</span> <input type="time" id="q-habitAt"></label>
           </div>
           <div class="est-hint" id="estHint" hidden></div>
@@ -2016,10 +2025,10 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Grind time</b>: once every boss on a floor is down, the floor stays dangerous until the stairwell opens. Mobs jump you on about 40% of quests (a third of them packs) and pay +50% XP, and rival crawlers turn up twice as often (up to 5 a floor).</div>
           <div><b>Raid boss cap</b>: only two Raid boss quests open at once.</div>
           <div><b>Party raid</b>: each week your party shares a maze with the raid boss's lair at the center, and every quest walks you one room toward it. Raid damage only lands in the lair, and from the week of Oct 19 quests on the way don't count at all (no Charge). Each crewmate in the lair with you adds 10% (up to +50%). The raid boss's HP is sized to your party's floor damage the week before (55% of it, at least 3,000 per active crewmate), so keeping last week's pace takes it down around Saturday.</div>
-          <div><b>Repeating quests</b> pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
+          <div><b>Routines</b> (repeating chores) pay full XP each time, then rest until their next turn. <b>Steps</b> pay up to 60% of a quest's base XP as you check them off.</div>
           <div><b>Pets</b>: pick one of seven starters; three more hatch from Mystery Eggs (8% of Gold Boxes, 20% of Platinum Boxes). Your active pet gives a passive bonus that grows with bond level (1–10) plus a special ability. Every quest you finish builds bond, faster with Charisma. Go three days without finishing a quest and your pet sulks: its bonuses pause until you finish one.</div>
           <div><b>Recap episodes</b>: every boss kill gets a short recap and every floor gets a full finale, whether you clear it or the stairwell closes on you. They wait for you in the banner above the boss and the Episode guide, which keeps the last 10.</div>
-          <div><b>Consumables</b>: Potions of Focus (double XP on your next quest), Scrolls of Extension (push a due date back 2 days) and Smoke Bombs (skip one occurrence of a repeating quest, chain intact). They drop from boxes and the shop sells them. Scrolls and bombs are used from a quest's ⋯ menu.</div>
+          <div><b>Consumables</b>: Potions of Focus (double XP on your next quest), Scrolls of Extension (push a due date back 2 days) and Smoke Bombs (skip one turn of a routine or habit, chain intact). They drop from boxes and the shop sells them. Scrolls and bombs are used from a quest's ⋯ menu.</div>
           <div><b>Belt hotbar</b>: the bar at the bottom holds consumables for one-tap use (or keys 1–6 on a keyboard). Your best belt sets how many slots you get, from 1 with no belt to 6; it counts even when you're not wearing it. Tap the belt icon on the bar to choose what goes in each slot. Scrolls and Smoke Bombs ask which quest to use them on.</div>
           <div><b>Quest report</b>: finishing a quest opens a report that lists everything that happened, a line at a time. It stays until you press Continue (Show all fills in the rest at once). Achievements follow, one at a time. Missed something? The 🔔 in the top bar keeps a history of every popup and report.</div>
           <div><b>Leaving bosses behind</b>: if the stairwell closes with bosses still out there, they just stay behind. No penalty, only loot you didn't get.</div>
@@ -2301,7 +2310,7 @@ const POTION = {price:25, heal:40};
 const CONSUMABLES = {
   focus:{n:"Potion of Focus",    price:70, w:3, d:"Doubles the XP (and boss damage) of your next finished quest"},
   scroll:{n:"Scroll of Extension",price:45, w:4, d:"Pushes one quest's due date back 2 days with no penalty. Overdue quests move to 2 days from today"},
-  smoke:{n:"Smoke Bomb",          price:40, w:3, d:"Skips one occurrence of a repeating quest. Its chain stays intact"},
+  smoke:{n:"Smoke Bomb",          price:40, w:3, d:"Skips one turn of a routine or habit. Its chain stays intact"},
   mana:{n:"Mana Potion",          price:100,w:2, d:"Restores 40 mana. Causes potion sickness"},
   antidote:{n:"Poison Antidote",  price:60, w:2, d:"Cures poison. Never causes potion sickness"}};
 const bagN=k=>((player.bag||{})[k]||0);
@@ -2479,7 +2488,7 @@ const RACES=[
   {id:"shroom",n:"Mushroom Folk",    line:"Thrives in damp, dark, neglected places. Like your inbox.",mods:{CON:2,INT:1,STR:-1},q:"Regrowth",qd:"Heal 4 extra HP for every finished quest"},
   {id:"elf",   n:"Lantern Elf",      line:"Glows faintly. Judges loudly.",mods:{DEX:2,CHA:1,CON:-1},q:"Keen Eye",qd:"Accuracy bonus is worth 5% more XP"},
   {id:"rat",   n:"Rat-Kin",          line:"Fast, scrappy, never met a crumb it didn't finish.",mods:{DEX:2,STR:1,CHA:-1},q:"Scurry",qd:"Trash mob and Grunt quests earn +20% XP"},
-  {id:"golem", n:"Clockwork Golem",  line:"Wind it up, point it at chores, walk away.",mods:{INT:2,CON:1,CHA:-1},q:"Routine",qd:"Repeating quests earn +15% XP"},
+  {id:"golem", n:"Clockwork Golem",  line:"Wind it up, point it at chores, walk away.",mods:{INT:2,CON:1,CHA:-1},q:"Routine",qd:"Routines and habits earn +15% XP"},
   {id:"imp",   n:"Imp",              line:"Born for the camera. Unfortunately.",mods:{CHA:2,DEX:1,INT:-1},q:"Showboat",qd:"+25% viewers from everything you finish"},
   {id:"troll", n:"Bog Troll",        line:"Thick skin. Thicker skull.",mods:{CON:3,INT:-1},q:"Thick Hide",qd:"Overdue damage −20%"},
   {id:"hollow",n:"Hollow",           line:"A skeleton with a to-do list and nowhere to sleep.",mods:{STR:1,INT:1,DEX:1,CON:-2},q:"Sleepless",qd:"Quests finished before 8 a.m. or after 10 p.m. earn +15% XP"}];
@@ -2490,7 +2499,7 @@ const CLASSES=[
   {id:"rogue",    n:"Sprint Rogue",      line:"In, out, gone.",perk:"Quests estimated at 15 minutes or less earn +30% gold"},
   {id:"paladin",  n:"Marathon Paladin",  line:"Slow, steady, absolutely relentless.",perk:"Quests estimated at 90 minutes or more earn +20% XP and deal +20% boss damage"},
   {id:"warlock",  n:"Schedule Warlock",  line:"Bound by blood contract to the calendar.",perk:"Quests with a due date earn +20% XP when finished on time"},
-  {id:"druid",    n:"Chore Druid",       line:"One with the eternal cycle of dishes.",perk:"Repeating quests on a chain of 3 or more earn +20% XP"},
+  {id:"druid",    n:"Chore Druid",       line:"One with the eternal cycle of dishes.",perk:"Routines and habits on a chain of 3 or more earn +20% XP"},
   {id:"ranger",   n:"Precision Ranger",  line:"Calls the shot. Makes the shot.",perk:"Your accuracy bonus is doubled"},
   {id:"hunter",   n:"Bounty Hunter",     line:"Will work for gold. Specifically gold.",perk:"Safe-room bounties and sponsor contracts pay +50% gold"},
   {id:"bard",     n:"Showrunner Bard",   line:"The crawl is content. You are the content.",perk:"+40% viewers, and sponsor contracts only risk half the stake"},
@@ -2744,7 +2753,7 @@ const ACH = [
   {id:"e4a",n:"Mini-Boss Rush",how:"Complete 5 Mini-boss quests",gold:20,test:p=>C(p,"e4")>=5,line:"Five mini-bosses. Small bosses, big ego."},
   {id:"e4b",n:"Mid-Season Finale",how:"Complete 25 Mini-boss quests",gold:60,test:p=>C(p,"e4")>=25,line:"Twenty-five mini-bosses. Cliffhanger: will you ever rest?"},
   {id:"habit3",n:"It's Hatching",how:"Keep a habit going 3 times in a row",gold:15,test:p=>(p.habitBest||0)>=3,line:"Three in a row. Something in the egg is moving."},
-  {id:"habit7",n:"Creature of Habit",how:"Keep a habit going 7 times in a row",gold:30,test:p=>(p.habitBest||0)>=7,line:"A full week. The audience didn't think you had it in you. Neither did you."},
+  {id:"habit7",n:"Habit Forming",how:"Keep a habit going 7 times in a row",gold:30,test:p=>(p.habitBest||0)>=7,line:"A full week. The audience didn't think you had it in you. Neither did you."},
   {id:"habit30",n:"Fully Bonded",how:"Keep a habit going 30 times in a row",gold:80,test:p=>(p.habitBest||0)>=30,line:"Thirty in a row. It's not a quest anymore. It's just a thing you do."},
   {id:"habit66",n:"Tamed",how:"Keep a habit going 66 times in a row",gold:150,test:p=>(p.habitBest||0)>=66,line:"Sixty-six. Science says it's yours now. The creature agrees."},
   {id:"e5a",n:"Raid Leader",how:"Complete 3 Raid boss quests",gold:20,test:p=>C(p,"e5")>=3,line:"Three raid bosses. You'd lead a raid if anyone would join you."},
@@ -2797,8 +2806,8 @@ const ACH = [
   {id:"acc25",n:"Human Stopwatch",how:"Land 25 quests within your estimate",gold:75,test:p=>(p.onTargetCount||0)>=25,line:"Twenty-five accurate estimates. Clocks consult you now."},
   {id:"acc100",n:"Time Lord (Unlicensed)",how:"Land 100 quests within your estimate",box:"gold",test:p=>(p.onTargetCount||0)>=100,line:"A hundred accurate estimates. Time bends a little when you walk by."},
   {id:"steps10",n:"Step by Step",how:"Finish 10 quests that had steps",gold:30,test:p=>C(p,"withSteps")>=10,line:"Ten multi-step quests. You broke big things into small things. Very adult."},
-  {id:"rep10",n:"Creature of Habit",how:"Finish 10 repeating quests",gold:30,test:p=>C(p,"repeatDone")>=10,line:"Ten repeats. You're becoming a routine. Routines are boring. Boring wins."},
-  {id:"rep100",n:"Groundhog Day",how:"Finish 100 repeating quests",box:"silver",test:p=>C(p,"repeatDone")>=100,line:"A hundred repeats. Same quest, same you, same applause."},
+  {id:"rep10",n:"Creature of Habit",how:"Finish 10 routines or habits",gold:30,test:p=>C(p,"repeatDone")>=10,line:"Ten repeats. You're becoming a routine. Routines are boring. Boring wins."},
+  {id:"rep100",n:"Groundhog Day",how:"Finish 100 routines or habits",box:"silver",test:p=>C(p,"repeatDone")>=100,line:"A hundred repeats. Same quest, same you, same applause."},
   {id:"marathon",n:"Marathon Session",how:"Finish a quest estimated at 3 hours or more",gold:40,test:p=>C(p,"longQuest")>=1,line:"Three hours or more. Your chair has your shape now."},
   {id:"micro10",n:"Micro-Productive",how:"Finish 10 quests estimated at 5 minutes or less",gold:20,test:p=>C(p,"tinyQuest")>=10,line:"Ten tiny quests. Death by a thousand small wins."},
   {id:"speedrun",n:"Speedrun Any%",how:"Finish a quest within a minute of adding it",gold:15,test:p=>C(p,"speedrun")>=1,sec:1,line:"Added it, did it, done in under a minute. Why was this even on the list?"},
@@ -3417,7 +3426,7 @@ const GOAL_KINDS={
   overdue: {label:c=>c.need>1?`Clear ${c.need} overdue quests`:"Clear an overdue quest",            hit:(t,x)=>x.late},
   stat:    {label:c=>`Finish ${c.need>1?c.need+" quests":"a quest"} that trains ${STATS[c.param]?STATS[c.param].n:c.param}`, hit:(t,x,c)=>t.stat===c.param},
   ontarget:{label:c=>`Finish ${c.need>1?c.need+" quests":"a quest"} within your estimate (enter the time)`, hit:(t,x)=>x.onTarget},
-  repeat:  {label:c=>`Finish ${c.need>1?c.need+" repeating quests":"a repeating quest"}`,          hit:t=>!!t.rec}};
+  repeat:  {label:c=>`Finish ${c.need>1?c.need+" routines or habits":"a routine or habit"}`,          hit:t=>!!t.rec}};
 const goalText=c=>GOAL_KINDS[c.kind].label(c);
 function goalPool(){
   const open=tasks.filter(t=>!t.done&&!isResting(t)),td=today();
@@ -5801,8 +5810,8 @@ function hbDlg(label,inner,back){closeHbDlg();ui.hbBack=back;
 function pickQuest(k){
   const td=today(),ok=k==="scroll"?t=>!t.done&&t.due:t=>!t.done&&t.rec&&!isResting(t);
   const list=tasks.filter(ok).sort((a,b)=>(a.due||"9").localeCompare(b.due||"9"));
-  if(!list.length){toast(k==="scroll"?"No quests with a due date to push back.":"No repeating quests to skip right now.","bad");return;}
-  const ov=hbDlg(consName(k),`<div class="hbhead"><span class="mini-ico">${tierIcon(k,"cons")}</span><div><b>${esc(consName(k))}</b><span>${k==="scroll"?"Push which quest back 2 days?":"Skip the next turn of which repeating quest?"}</span></div><button class="btn ghost sm" type="button" data-hbx aria-label="Close">✕</button></div>
+  if(!list.length){toast(k==="scroll"?"No quests with a due date to push back.":"No routines or habits to skip right now.","bad");return;}
+  const ov=hbDlg(consName(k),`<div class="hbhead"><span class="mini-ico">${tierIcon(k,"cons")}</span><div><b>${esc(consName(k))}</b><span>${k==="scroll"?"Push which quest back 2 days?":"Skip the next turn of which routine or habit?"}</span></div><button class="btn ghost sm" type="button" data-hbx aria-label="Close">✕</button></div>
     <div class="hbpick">${list.map(t=>`<button type="button" class="hbq${t.due&&t.due<td?" late":""}" data-hbq="${esc(t.id)}"><b>${esc(t.title)}</b><span>${t.due?(t.due<td?"Overdue · was due ":"Due ")+fmtDue(t.due):""}</span></button>`).join("")}</div>`,beltRow().indexOf(k));
   ov.addEventListener("click",e=>{const q=e.target.closest("[data-hbq]");if(!q)return;const id=q.dataset.hbq;closeHbDlg();SFX.play("pop");if(k==="scroll")useScroll(id);else useSmoke(id);});
   const f=ov.querySelector("[data-hbq]");if(f)f.focus();}
@@ -7951,7 +7960,11 @@ function editPanel(t){
     <div class="field" id="e-everyField" ${d.rep==="every"?"":"hidden"} style="max-width:200px"><label class="label" for="e-every">Every how many days</label>
       <input type="number" id="e-every" min="2" max="60" value="${esc(d.every)}"></div>
     <div class="field habitfield" id="e-habitField" ${d.rep==="none"?"hidden":""}>
-      <label class="habitchk"><input type="checkbox" id="e-habit" ${d.habit?"checked":""}> <span><b>A habit I'm building</b> <span class="muted">Trash mob size, never overdue, one missed day forgiven, rewards grow with the chain.</span></span></label>
+      <span class="label" id="e-kindLbl">What kind of repeat?</span>
+      <div class="kindseg" role="radiogroup" aria-labelledby="e-kindLbl">
+        <label class="kindopt"><input type="radio" name="e-kind" id="e-routine" value="routine" ${d.habit?"":"checked"}><span><b>🔁 Routine</b><small>A chore on a schedule. Keeps its threat level, goes overdue if skipped.</small></span></label>
+        <label class="kindopt"><input type="radio" name="e-kind" id="e-habit" value="habit" ${d.habit?"checked":""}><span><b>🥚 Habit</b><small>Something you're building. Trash mob size, never overdue, forgives one miss.</small></span></label>
+      </div>
       <label class="habitat" id="e-habitAtRow" ${d.habit?"":"hidden"}><span class="label">Remind me at (optional)</span> <input type="time" id="e-habitAt" value="${esc(d.at||"")}"></label></div>
     <div class="note" id="e-note"></div>
     ${ed.err?`<div class="err">${esc(ed.err)}</div>`:""}
@@ -10977,7 +10990,7 @@ function questCard(t){
     </div>`;
   }else if(ui.confirmDel===t.id){
     const back=t.stepXp?` The ${t.stepXp} XP and ${t.stepGold||0} gold from its checked steps go back.`:"";
-    foot=`<div class="qact"><span class="rest-note">${t.rec?"Stop this repeating quest for good? Past completions stay in the Chronicle.":"Abandon this quest?"}${back}</span>
+    foot=`<div class="qact"><span class="rest-note">${t.rec?`Stop this ${t.habit?"habit":"routine"} for good? Past completions stay in the Chronicle.`:"Abandon this quest?"}${back}</span>
       <button class="btn ghost" data-keep>Keep it</button><button class="btn danger" data-del>${t.rec?"Stop repeating":"Abandon"}</button></div>`;
   }
   // Complete sits beside the title; the rarer actions live in the ⋯ menu.
@@ -10992,7 +11005,7 @@ function questCard(t){
     </div>`:"";
   const side=`${resting?`<span class="rest-note">Opens ${fmtDue(opensOn(t))}</span>`:`<button class="btn gold sm qdone" data-done aria-label="Complete ${esc(t.title)}" title="Complete"><span class="qd-ic" aria-hidden="true">✓</span><span class="qd-t">Complete</span></button>`}
     <button class="btn ghost sm menu-btn" type="button" data-menu aria-haspopup="menu" aria-expanded="${menuOpen}" aria-label="More actions for ${esc(t.title)}">⋯</button>${menu}`;
-  const repChips=t.habit&&t.rec?`<span class="chip rep habitchip">Habit · ${recLabel(t.rec)}</span>`:t.rec?`<span class="chip rep">Repeats · ${recLabel(t.rec)}</span>${(t.chain||0)>=2?`<span class="chip chain">Chain ${t.chain}</span>`:""}`:"";
+  const repChips=t.habit&&t.rec?`<span class="chip rep habitchip">Habit · ${recLabel(t.rec)}</span>`:t.rec?`<span class="chip rep">Routine · ${recLabel(t.rec)}</span>${(t.chain||0)>=2?`<span class="chip chain">Chain ${t.chain}</span>`:""}`:"";
   const steps=t.steps||[];const nDone=steps.filter(s=>s.done).length;
   const progChip=steps.length?`<span class="chip prog">${nDone}/${steps.length} steps</span>`:"";
   const left=Math.round(Math.max(0,r.xp-(t.stepXp||0))*(t.habit?habitMul(t,(t.chain||0)+1):1));
@@ -11049,13 +11062,18 @@ function renderBoard(){
       <div class="acts"><button class="btn gold" id="importQL">Import from Questlog</button><button class="btn" id="examples">Load six example quests</button></div></div>`;
   }else{
     if(bosses.length)h+=`<div class="boss"><div class="sect"><span class="label">Overdue · ${bosses.length}</span><span class="muted" style="font-size:13px">Rotting. They wound you and heal the floor boss daily</span></div></div>`+bosses.map(questCard).join("");
-    // Two collapsible groups: repeating quests (with their not-yet-due repeats tucked inside) and one-off quests.
-    const reps=rest.filter(t=>t.rec),ones=rest.filter(t=>!t.rec),xpOf=a=>a.reduce((s,t)=>s+rewardFor(player,t,null).xp,0);
+    // Collapsible groups: habits (all of them, done today or not), routines (repeating chores, with their not-yet-due
+    // turns tucked inside) and one-off quests.
+    const habs=open.filter(t=>t.habit&&t.rec&&!isLate(t,td)).sort((a,b)=>(isResting(a)?1:0)-(isResting(b)?1:0)||(b.chain||0)-(a.chain||0));
+    const reps=rest.filter(t=>t.rec&&!t.habit),ones=rest.filter(t=>!t.rec),restR=resting.filter(t=>!t.habit),xpOf=a=>a.reduce((s,t)=>s+Math.round(rewardFor(player,t,null).xp*(t.habit?habitMul(t,(t.chain||0)+1):1)),0);
     const dueT=a=>a.filter(t=>t.due===td).length;
-    if(reps.length||resting.length){const opn=prefs.repOpen!==false;
-      h+=`<details class="restbox qgroup" id="repBox"${opn?" open":""}><summary class="sect"><span class="label">🔁 Repeating · ${reps.length}</span><span class="muted num" style="font-size:13px">${reps.length?`${dueT(reps)?`${dueT(reps)} due today · `:""}${xpOf(reps)} XP`:"Nothing due right now"}</span></summary>`
+    if(habs.length){const opn=prefs.habOpen!==false,hd=habitDay(),todo=habs.filter(t=>t.due<=hd&&!isResting(t)).length,doneT=habs.filter(t=>t.lastDone===td||(t.habit.hist||{})[hd]==="d").length;
+      h+=`<details class="restbox qgroup habbox" id="habBox"${opn?" open":""}><summary class="sect"><span class="label">🥚 Habits · ${habs.length}</span><span class="muted num" style="font-size:13px">${todo?`${todo} still to do today`:doneT?"All done today ✔":"Nothing due today"} · best chain ${Math.max(0,...habs.map(t=>t.chain||0))}</span></summary>`
+        +habs.map(questCard).join("")+`</details>`;}
+    if(reps.length||restR.length){const opn=prefs.repOpen!==false;
+      h+=`<details class="restbox qgroup" id="repBox"${opn?" open":""}><summary class="sect"><span class="label">🔁 Routines · ${reps.length}</span><span class="muted num" style="font-size:13px">${reps.length?`${dueT(reps)?`${dueT(reps)} due today · `:""}${xpOf(reps)} XP`:"Nothing due right now"}</span></summary>`
         +reps.map(questCard).join("")
-        +(resting.length?`<details class="restbox" id="restMore"${prefs.restOpen?" open":""}><summary class="sect sub"><span class="label">Upcoming repeats · ${resting.length}</span><span class="muted" style="font-size:13px">Next: ${esc(resting[0].title)} · ${fmtDue(resting[0].due)}</span></summary>`+resting.map(questCard).join("")+`</details>`:"")
+        +(restR.length?`<details class="restbox" id="restMore"${prefs.restOpen?" open":""}><summary class="sect sub"><span class="label">Upcoming routines · ${restR.length}</span><span class="muted" style="font-size:13px">Next: ${esc(restR[0].title)} · ${fmtDue(restR[0].due)}</span></summary>`+restR.map(questCard).join("")+`</details>`:"")
         +`</details>`;}
     if(ones.length){const opn=prefs.oneOpen!==false;
       h+=`<details class="restbox qgroup" id="oneBox"${opn?" open":""}><summary class="sect"><span class="label">📜 One-off quests · ${ones.length}</span><span class="muted num" style="font-size:13px">${dueT(ones)?`${dueT(ones)} due today · `:""}${xpOf(ones)} XP</span></summary>`+ones.map(questCard).join("")+`</details>`;}
@@ -11064,6 +11082,7 @@ function renderBoard(){
   const rm=$("restMore");if(rm)rm.addEventListener("toggle",e=>{e.stopPropagation();prefs.restOpen=rm.open;savePrefs();});
   const rb=$("repBox");if(rb)rb.addEventListener("toggle",e=>{if(e.target!==rb)return;prefs.repOpen=rb.open;savePrefs();});
   const ob=$("oneBox");if(ob)ob.addEventListener("toggle",()=>{prefs.oneOpen=ob.open;savePrefs();});
+  const hb=$("habBox");if(hb)hb.addEventListener("toggle",e=>{if(e.target!==hb)return;prefs.habOpen=hb.open;savePrefs();});
   const ex=$("examples");if(ex)ex.onclick=loadExamples;
   const iq=$("importQL");if(iq)iq.onclick=()=>{const f=$("restoreFile");f.value="";f.click();};
   board.querySelectorAll(".quest").forEach(card=>{
@@ -11461,6 +11480,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.20.0",d:"2026-10-17",t:"Routines and habits",items:["Habits get their own section on the quest board, under Overdue, showing how many are still to do today and your best chain. Fold it like the others.",
+    "Repeating quests are now called Routines: chores on a schedule that keep their threat level and go overdue if you skip them. Habits are the forgiving kind for things you're building.",
+    "When you set a quest to repeat, pick 🔁 Routine or 🥚 Habit, with a line on what each one means, instead of a checkbox."]},
   {v:"3.19.0",d:"2026-10-16",t:"Creature of habit",items:["Habits: mark a repeating quest as a habit you're building (Add → More options, or edit a quest). Habits are Trash mob size, but their XP and gold grow with your chain: ×2 the whole first week, ×1.5 from 3 in a row, ×2 from 7, ×3 from 14 and ×4 from 30.",
     "Habits never go overdue and never hurt you. Miss one turn and it's forgiven (\"one slip, don't let it be two\"); miss two in a row and the chain breaks. The habit day ends at 4 am, so a late-night check-in counts for the night before.",
     "Each habit hatches a creature that grows with the chain (Egg, Hatchling, Youngling, Grown, Bonded, Tamed), with a Bronze Box at 3 in a row, Silver at 7 and 14, Gold at 30 and 66, plus new achievements. The card shows your last 14 days as dots.",
@@ -11727,7 +11749,7 @@ const GUIDE=[
   {id:"spare",t:"Spare steps",when:p=>(+p.spSteps||0)>0,line:"A finished quest that couldn't move you on the Floor map banked a spare step. Spend spare steps from the map to walk through rooms you've already explored, no quest needed.",
     more:"You bank a spare step when a quest can't move you: you're holding in a room you picked, you're stuck in a boss fight, or there's nowhere left to go. You can hold up to 3. Tap a room you've explored, then Walk there now. Spare steps never explore: every new room still takes a finished quest, and a mob that jumps you on the way stops the walk."},
   {id:"habit",t:"Habits",when:p=>tasks.some(t=>t.habit),line:"You're building a habit. It's Trash mob size, never goes overdue or hurts you, and its XP grows with your chain: ×2 the first week, ×3 from 14 in a row, ×4 from 30.",
-    more:"Mark a repeating quest as a habit when you add or edit it. Each one hatches a creature that grows as your chain does, with boxes at 3, 7, 14, 30 and 66 in a row (66 days is about how long a habit takes to stick). Miss one turn and it's forgiven; miss two in a row and the chain breaks. The habit day ends at 4 am, so late-night check-ins count for the night before. Set a reminder time and, with notifications on, you'll get a nudge if it isn't done. Your party sees how many habits you have and your longest chain (never their names), and can nudge you when one's still waiting."},
+    more:"When you set a quest to repeat (Add → More options, or edit it), pick Habit instead of Routine. Habits get their own section on the board. Each one hatches a creature that grows as your chain does, with boxes at 3, 7, 14, 30 and 66 in a row (66 days is about how long a habit takes to stick). Miss one turn and it's forgiven; miss two in a row and the chain breaks. The habit day ends at 4 am, so late-night check-ins count for the night before. Set a reminder time and, with notifications on, you'll get a nudge if it isn't done. Your party sees how many habits you have and your longest chain (never their names), and can nudge you when one's still waiting."},
   {id:"mob",t:"Mobs",when:p=>(p.mobs||[]).length>0,line:"A mob is on you. Your next quests hit it first, and until it's gone it nips you for HP each quest. Tap its card to poke it for a little damage.",
     more:"Mobs come in families, and each family has a twist that its card explains: ghosts can only be hurt by spells and fade at dawn, some hide their HP, some steal, some split. You can poke a mob a few times a day for tiny damage. Mobs give XP when they go down, and a few drop loot."},
   {id:"rival",t:"Rival crawlers",when:p=>!!p.rival,line:"A rival crawler is hunting you. Every quest hits them and they hit back, but they can't knock you out overnight. Bribe them, run, or beat them for their loot.",
@@ -12289,7 +12311,7 @@ function setupForm(){
     if(statTouched){prefs.stat=q.stat;savePrefs();}
     if(statTouched||estTouched){learnQuest(q.title,{stat:statTouched?q.stat:null,est:estTouched?q.est:0});store.savePlayer(player).catch(writeFailed);}
     aiSort(ui.lastAdded,q.habit?aiFields.filter(x=>x!=="effort"):aiFields);
-    box.hidden=true;$("q-title").value="";$("q-due").value="";$("q-rep").value="none";$("q-habit").checked=false;$("q-habitAt").value="";
+    box.hidden=true;$("q-title").value="";$("q-due").value="";$("q-rep").value="none";$("q-routine").checked=true;$("q-habitAt").value="";
     estTouched=effTouched=statTouched=dueTouched=repTouched=false;lastGuess=null;$("autoLine").innerHTML="";ideaIdx++;setTimeout(renderIdeas,600);
     const r3=f.querySelector('input[name=effort][value="3"]');if(r3)r3.checked=true;$("q-est").value=EST_FOR[3];upd();$("q-title").focus();
   });
