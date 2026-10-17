@@ -2,6 +2,15 @@
 
 Read this first. Everything needed to keep building lives in this repo.
 
+## Latest session (ended 2026-10-17, v3.20.0)
+- **State:** v3.20.0 live, smoke 82/0. Nothing half-finished. Built this session (details further down): habits (v3.19.0), the Habits section + Routines rename + Routine/Habit choice (v3.20.0), the raid rework from the week of Oct 19 (v3.18.0), map walk / room reactions / spare steps (v3.17.0), boss strike + boss cam, the one-row hotbar, speed work (hidden panes skip redraws) and new smoke guards, plus fixes: the spare-gear wipe (spareRescue), Boots/Haste moves, the frozen undo bar, the lost first tap after adding a quest, phone layouts for the episode banner and folded boss bar.
+- **Decisions:** keep both Routines (chores: real threat level, overdue damage, Golem/Druid perks) and Habits (forgiving, Trash mob size, damage counts at Trash size). Raids: no Charge, HP sized to last week's party damage, aim for a Saturday finish. No boss-attacks-you animation (bosses don't damage you).
+- **Rules:** ask about the changelog before every change; nothing from Dungeon Crawler Carl; browser test + `python3 tests/smoke.py` (0 failed) before every push; after deploys tell Mat to tap Refresh or reopen the app; never ask for the FIREBASE_SA key; no reused player.* names, register side-tab renderers in PANE_FNS, unique animation names.
+- **Open items:**
+  1. Calibrate `RAID2.mul` (0.55). The Oct 12 boss fell Wednesday, but under the old rules (2,400 HP + Charge), so it doesn't test the formula. The first reworked boss arrives Mon Oct 19 (sized from this week's floor damage, may run low); get the kill day and numbers from the raid close-up.
+  2. The flying damage number on a finished quest card is an estimate (no gear/class/theme bonuses) and doesn't match boss damage; offered to fix, no answer yet.
+  3. Habit estimate defaults to 30 min (tiny habits should be ~5). Habit reminders need the push job's next green run.
+
 ## Layout
 - `src/crawl.html`: the single source for the whole app (HTML, CSS, JS in one file). **Edit this, never `index.html`.**
 - `src/site-build/build.py`: builds the site into the repo root (`index.html`, `version.json`, copies assets).
