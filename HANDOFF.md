@@ -2,14 +2,16 @@
 
 Read this first. Everything needed to keep building lives in this repo.
 
-## Latest session (ended 2026-10-17, v3.20.0)
-- **State:** v3.20.0 live, smoke 82/0. Nothing half-finished. Built this session (details further down): habits (v3.19.0), the Habits section + Routines rename + Routine/Habit choice (v3.20.0), the raid rework from the week of Oct 19 (v3.18.0), map walk / room reactions / spare steps (v3.17.0), boss strike + boss cam, the one-row hotbar, speed work (hidden panes skip redraws) and new smoke guards, plus fixes: the spare-gear wipe (spareRescue), Boots/Haste moves, the frozen undo bar, the lost first tap after adding a quest, phone layouts for the episode banner and folded boss bar.
-- **Decisions:** keep both Routines (chores: real threat level, overdue damage, Golem/Druid perks) and Habits (forgiving, Trash mob size, damage counts at Trash size). Raids: no Charge, HP sized to last week's party damage, aim for a Saturday finish. No boss-attacks-you animation (bosses don't damage you).
+## Latest session (2026-10-19, v3.21.0)
+- **State:** v3.21.0 live, smoke 89/0. Nothing half-finished.
+- **Built:** race looks, class sashes, the Human option, habit default 5 min (details under "Race and class looks" below).
+- **Decisions:** full race transformation (skin range + features; hair, face style, outfit and gear stay the player's); class = one sash + medallion (not a full outfit); Human = always-on 4th card, +1 to two chosen stats, Adaptable quirk, keeps the built look.
 - **Rules:** ask about the changelog before every change; nothing from Dungeon Crawler Carl; browser test + `python3 tests/smoke.py` (0 failed) before every push; after deploys tell Mat to tap Refresh or reopen the app; never ask for the FIREBASE_SA key; no reused player.* names, register side-tab renderers in PANE_FNS, unique animation names.
 - **Open items:**
-  1. Calibrate `RAID2.mul` (0.55). The Oct 12 boss fell Wednesday, but under the old rules (2,400 HP + Charge), so it doesn't test the formula. The first reworked boss arrives Mon Oct 19 (sized from this week's floor damage, may run low); get the kill day and numbers from the raid close-up.
+  1. Calibrate `RAID2.mul` (0.55). The first reworked boss arrived Mon Oct 19 (sized from the previous week's floor damage, which was earned under the old Charge rules); get the kill day and numbers from the raid close-up. Adjust in small steps.
   2. The flying damage number on a finished quest card is an estimate (no gear/class/theme bonuses) and doesn't match boss damage; offered to fix, no answer yet.
-  3. Habit estimate defaults to 30 min (tiny habits should be ~5). Habit reminders need the push job's next green run.
+  3. Habit reminders need the push job's next green run.
+  4. Ideas not built: rival crawlers are always drawn human (could get seeded races); the selection booth lives on the Hero tab on phones.
 
 ## Layout
 - `src/crawl.html`: the single source for the whole app (HTML, CSS, JS in one file). **Edit this, never `index.html`.**
@@ -240,3 +242,11 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Reminders: `tools/push/send.mjs` `habitMessages()` sends once per habit per local day after `habit.at`, if its turn is today or earlier and the device has `habits !== false` (Settings → Notifications → Habit reminders). The device stores `lastHabit {d, ids}`. `eveningMessage` ignores habits. The push job reads tasks, so a reminder can be up to ~15 min late.
 - Field guide entry `habit`. Smoke covers XP/size/never-late, slip vs break, the milestone box and the card dots.
 - Routines and habits (v3.20.0, 2026-10-17): on the board, `renderBoard` now has a Habits group (`#habBox`, `prefs.habOpen`) under Overdue. It holds every open habit, including ones resting until their next turn (not-yet-due first, then by chain), and the summary shows still-to-do-today and best chain. "Repeating" became 🔁 Routines (`#repBox`, non-habit repeats, with "Upcoming routines" = resting non-habits). Chips read "Routine · …" / "Habit · …". The add and edit forms swap the habit checkbox for a Routine/Habit radio pair (`q-routine`/`q-habit`, `e-routine`/`e-habit`, `.kindseg`). User-facing "repeating quest" wording now says routine/habit (smoke bombs, class perks, achievements, goals, the stop prompt). The habit7 achievement was renamed "Habit Forming" (rep10 is already "Creature of Habit").
+
+## Race and class looks (v3.21.0)
+- Data: `RACES` (9, offered 3 at a time), `HUMAN` (always offered as a 4th card), `RACE_ALL`. Human stat bonuses are `player.hmods` ({stat:1,stat:1}); `raceMod`/`raceMods` read them. Adaptable quirk lives in `rcFx` (+10% XP when no quest in that stat was finished in 7 days).
+- Booth: `renderBooth` (previews via `avatarSVG(..., {race|cls})` cropped to head and chest, weapon left out), human stat toggles in `ui.hStats`, `confirmPick` needs exactly 2.
+- Drawing: `avatarSVG` reads `eq.race` and `eq.cls`. Every caller adds `rcLook(p)` (player) or `rcLook(card)`; party cards publish `race` and `cls` (`myCard`). Race pieces: `RACE_LOOK` (skin range `sk`, `eye`, `glow`, `cap`, `beady`, `lit`, `skull`), `raceSkin` (Skin choice 0-5 picks a point in the range), `raceEars` (before the head; null keeps human ears), `raceFace` (after the mouth), `raceTop` (after hair, under headgear: imp horns, rat ears, mushroom cap via `CAPC` and the hair colour index), `raceBack` (behind the legs: tails, golem key). Mushroom Folk set `LK.hair="_cap"` inside the render so no hair draws.
+- Class: `CLASS_LOOK` (sash colour), `classIcon`, `classSash` (right shoulder to left hip, clipped to the torso, so it crosses bandoliers rather than hiding under them; medallion at 166,182). Weapons held across the chest still draw over it.
+- Look editor: the Skin row shows the race's shades; Mushroom Folk get "Cap colour" instead of hair options.
+- Habit default: the add form sets 5 min when Habit is picked, unless the title named a time (`estSure`) or a known task word (`TIME_WORDS`, `g.estWord`).

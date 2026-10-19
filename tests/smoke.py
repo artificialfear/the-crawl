@@ -403,6 +403,35 @@ def main():
             check("habits: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- habit add form: a habit defaults to 5 minutes unless the title names a time ----
+            pg, errs = page(1280, 900)
+            pg.evaluate(SETUP)
+            est = E(pg, """(()=>{setTab('quests');render();const f=$('q-title');f.value='Zorp the thing';f.dispatchEvent(new Event('input',{bubbles:true}));
+              $('q-rep').value='daily';$('q-rep').dispatchEvent(new Event('change',{bubbles:true}));$('q-habit').checked=true;$('q-habit').dispatchEvent(new Event('change',{bubbles:true}));return $('q-est').value})()""")
+            check("habit form: defaults to 5 minutes", est == "5", est)
+            pg.close()
+
+            # ---- Floor 3 booth: human card with two +1 stats, every race and class draws, race/class reach the party card ----
+            pg, errs = page(390, 844)
+            pg.evaluate(SETUP)
+            E(pg, "player.bossCount=3;if(player.boss)player.boss.floor=3;player.pick={races:rollPicks('race',0),classes:rollPicks('class',0),rr:false,rc:false};setTab('hero');render()")
+            n = E(pg, "document.querySelectorAll('#booth .rccard').length")
+            check("booth: 3 race offers plus Human, each with a preview", n == 4 and E(pg, "document.querySelectorAll('#booth .rcprev svg').length") == 4, n)
+            pg.click('[data-pick="human"]'); pg.click('[data-hs="INT"]')
+            one = E(pg, "$('pickYes').disabled")
+            pg.click('[data-hs="CHA"]'); pg.click('#pickYes'); pg.wait_for_timeout(150)
+            hm = E(pg, "[player.race,raceMod(player,'INT'),raceMod(player,'CHA'),raceMod(player,'STR')].join(',')")
+            check("booth: Human needs two stats, then gets +1 each", one and hm == "human,1,1,0", f"{one} {hm}")
+            bad = E(pg, """(()=>{const out=[];for(const r of [null,...RACE_ALL.map(x=>x.id)])for(const c of [null,...CLASSES.map(x=>x.id)])
+              for(const st of ['cel','ink','flat']){try{const v=avatarSVG(Object.assign({},wearing(player),{look:player.look,race:r,cls:c,style:st}));if(!v.includes('</svg>'))out.push(r+'/'+c);}catch(e){out.push(r+'/'+c+':'+e.message);}}return out.join('; ')})()""")
+            check("avatar: every race and class draws in every style", not bad, bad[:200])
+            diff = E(pg, "avatarSVG({look:{},race:'goblin'}).includes(raceSkin('goblin',1))&&!avatarSVG({look:{}}).includes(raceSkin('goblin',1))&&avatarSVG({look:{},cls:'bard'}).includes(CLASS_LOOK.bard[0])")
+            check("avatar: race and class change the drawing", diff)
+            E(pg, "player.cls='bard'")
+            check("party card carries race and class", E(pg, "(()=>{const c=myCard();return c.race==='human'&&c.cls==='bard'})()"))
+            check("booth: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- hidden tabs: their panels skip redraws, then catch up the moment you open them ----
             pg, errs = page()
             pg.evaluate(SETUP)

@@ -923,7 +923,14 @@ details summary::-webkit-details-marker{display:none}
 .booth-top>div{display:flex;flex-direction:column;gap:2px}
 .booth-t{font-family:var(--display);font-size:20px;font-weight:400}
 .booth-top span{font-size:13px;color:var(--muted)}
-.rccards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.rccards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:12px}
+.rccard:has(.rcprev){display:grid;grid-template-columns:84px 1fr;column-gap:10px;row-gap:6px;align-content:start}
+.rccard:has(.rcprev)>*:not(.rcprev){grid-column:2}
+.rcprev{grid-row:1/span 6;width:84px;aspect-ratio:176/226;border-radius:10px;overflow:hidden;border:2px solid var(--line-2)}
+.rcprev svg{display:block;width:100%;height:100%}
+.rccard.human{border-style:dashed}
+.hpick{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.rmod.hs{cursor:pointer;font:inherit;font-size:12px;border:1px solid var(--line-2);background:transparent;color:var(--muted)}
 .rccard{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--panel-2)}
 .rccard.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 18px rgba(255,210,63,.25)}
 .rccard .rcn{font-family:var(--display);font-weight:400;font-size:17px}
@@ -2033,7 +2040,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Quest report</b>: finishing a quest opens a report that lists everything that happened, a line at a time. It stays until you press Continue (Show all fills in the rest at once). Achievements follow, one at a time. Missed something? The 🔔 in the top bar keeps a history of every popup and report.</div>
           <div><b>Leaving bosses behind</b>: if the stairwell closes with bosses still out there, they just stay behind. No penalty, only loot you didn't get.</div>
           <div><b>Floor themes</b>: every floor (one week) has a theme with a boon and a bane, like half-price shopping that pays less gold, or hidden boss HP with extra damage. Themes never repeat back to back, and the finale episode teases the next one.</div>
-          <div><b>Race &amp; class</b>: when Floor 3 opens you pick a race (shifts your stat levels and adds a quirk) and a class (a perk that rewards how you work). You're offered 3 of each, tilted toward your history, with one reroll per step. It's permanent.</div>
+          <div><b>Race &amp; class</b>: when Floor 3 opens you pick a race (shifts your stat levels, adds a quirk and reshapes your look) and a class (a perk that rewards how you work, shown as a sash). You're offered 3 of each, tilted toward your history, with one reroll per step. You can also stay human: no penalties, +1 to two stats you pick, and +10% XP on quests in a stat you've neglected for a week. It's permanent.</div>
           <div><b>Safe room</b>: your first stop each day. Rest once for HP, take one bounty that must be finished today, and read your fan mail. Once per floor you can <b>shelter</b> for a day: the next morning's overdue damage (and boss healing) is blocked, but your quests earn no viewers that day.</div>
           <div><b>Viewers</b> go up when you get things done and down when quests rot. Each viewer milestone brings a sponsor offer: a box now, plus a 3-day contract that pays a gold bonus if you finish it or costs you gold if you miss it.</div>
           <div><b>Crawler rankings</b>: you versus invented rival crawlers, scored by boss damage this floor. Their pace scales with yours. The top 10 (from day 3) and #1 (from midweek) each pay out once per floor.</div>
@@ -2504,9 +2511,16 @@ const CLASSES=[
   {id:"hunter",   n:"Bounty Hunter",     line:"Will work for gold. Specifically gold.",perk:"Safe-room bounties and sponsor contracts pay +50% gold"},
   {id:"bard",     n:"Showrunner Bard",   line:"The crawl is content. You are the content.",perk:"+40% viewers, and sponsor contracts only risk half the stake"},
   {id:"cleric",   n:"Steady Cleric",     line:"Patches everyone up. Mostly yourself.",perk:"Overdue damage −30% and 3 extra HP for every finished quest"}];
-const raceOf=p=>RACES.find(x=>x.id===(p||player).race)||null;
+/* Staying human: always offered next to the 3 race cards. You pick two stats for +1 each (player.hmods), no penalties,
+   and the Adaptable quirk. Humans keep the look you built; every other race reshapes it (RACE_LOOK). */
+const HUMAN={id:"human",n:"Human",line:"Stayed exactly as you were. Bold, in a room full of goblins.",mods:{},q:"Adaptable",qd:"+10% XP on a quest whose stat you haven't finished a quest in for 7 days"};
+const RACE_ALL=[...RACES,HUMAN];
+const raceOf=p=>RACE_ALL.find(x=>x.id===(p||player).race)||null;
 const classOf=p=>CLASSES.find(x=>x.id===(p||player).cls)||null;
-const raceMod=(p,k)=>{const r=raceOf(p);return r&&r.mods[k]||0;};
+const raceMod=(p,k)=>{p=p||player;if(p.race==="human")return (p.hmods||{})[k]||0;const r=raceOf(p);return r&&r.mods[k]||0;};
+const raceMods=p=>{p=p||player;return p.race==="human"?(p.hmods||{}):(raceOf(p)||{mods:{}}).mods;};
+/* What your race and class do to your look, for avatarSVG (eq.race / eq.cls). */
+const rcLook=p=>{p=p||player;return {race:p.race||null,cls:p.cls||null};};
 /* Every race and class effect in one place. Pass a quest for the per-quest ones. */
 function rcFx(p,t){
   p=p||player;const z={xp:0,gold:0,accMul:1,accAdd:0,dmg:0,hp:0,view:0,armor:0,boxGold:0,bounty:0,stake:1};
@@ -2518,6 +2532,7 @@ function rcFx(p,t){
     if(r==="rat"&&t.effort<=2)z.xp+=.2;
     if(r==="golem"&&t.rec)z.xp+=.15;
     if(r==="hollow"&&(h<8||h>=22))z.xp+=.15;
+    if(r==="human"&&t.stat&&p===player){const wk=Date.now()-7*864e5;if(!tasks.some(x=>x!==t&&x.id!==t.id&&x.done&&x.stat===t.stat&&(x.doneAt||0)>wk))z.xp+=.1;}
     if(c==="berserker"&&p.rush&&Date.now()-p.rush.at<18e5)z.xp+=.05*Math.min(5,p.rush.n);
     if(c==="necro"&&isLate(t,td))z.xp+=.3;
     if(c==="monk"&&p.lastDoneDate!==td)z.xp+=.4;
@@ -4771,7 +4786,7 @@ function myMood(){const p=player;if(!p||!playerExists)return {};
   return {};}
 function moodNote(){const m=myMood();if(m.pose==="victory")return "You're celebrating a big win, so your Hero tab shows the victory pose and a grin for a few more minutes. Your pose and face come back after that.";
   if(m.pose==="hurt")return "You're below 30% HP, so your Hero tab shows you winded with a worried face until you heal. Your pose and face come back after that.";return "";}
-function myAvatarEq(){const a=activePet();return Object.assign({},wearing(player),player.look?{look:player.look}:{},myMood());}
+function myAvatarEq(){const a=activePet();return Object.assign({},wearing(player),player.look?{look:player.look}:{},rcLook(player),myMood());}
 /* The Portal card in the Safe Room tab. */
 function qtSafeBox(){
   const q=player.quarters,n=q?Object.keys(q.up||{}).length:0,vis=qtVisitable();
@@ -4795,7 +4810,7 @@ function renderQt(){
   if(ui.qt.hall){
     const mates=hallMates();if(!mates.length){ui.qt={host:null};return renderQt();}
     const all=[[myUid(),myCard()]].concat(mates),up=[...new Set([].concat(...all.map(([u,x])=>(x.qt&&x.qt.up)||[])))];
-    const avs=all.slice(0,6).map(([u,x])=>bareAvatar(Object.assign({},x.wear||{},x.look?{look:x.look}:{})));
+    const avs=all.slice(0,6).map(([u,x])=>bareAvatar(Object.assign({},x.wear||{},x.look?{look:x.look}:{},rcLook(x))));
     const tr=all.reduce((a,[u,x])=>{const t=(x.qt&&x.qt.tr)||{};return {k:a.k+(t.k||0),ko:a.ko+(t.ko||0),b:a.b+(t.b||0),r:t.r&&(!a.r||t.r<a.r)?t.r:a.r};},{k:0,ko:0,b:0,r:null});
     const act=hallActiveToday(),names=all.map(([u,x])=>u===myUid()?"You":esc(x.name||"Crawler"));
     const who=k=>all.filter(([u,x])=>((x.qt&&x.qt.up)||[]).includes(k)).map(([u,x])=>u===myUid()?"you":esc(x.name||"Crawler"));
@@ -4815,7 +4830,7 @@ function renderQt(){
       ${up.includes("trophy")?`<div class="qt-troph">Hall trophies: ☠ ${tr.k} · 💫 ${tr.ko} · 🗡 ${tr.b} bosses · 👑 best rank ${tr.r?"#"+tr.r:"–"}</div>`:""}`;
   }else if(host){
     if(!c||!c.qt||!(c.qt.g||[]).includes(myUid())){closeQt();toast("That door's locked now.");return;}
-    const up=c.qt.up||[],eq=Object.assign({},c.wear||{},c.look?{look:c.look}:{});title=`${c.name||"Crawler"}'s Quarters`;
+    const up=c.qt.up||[],eq=Object.assign({},c.wear||{},c.look?{look:c.look}:{},rcLook(c));title=`${c.name||"Crawler"}'s Quarters`;
     body=`<div class="qt-scene">${quartersSVG(up,bareAvatar(eq),c.qt.tr,false)}</div>
       <p class="muted">You're a guest. ${up.length?`They've installed: ${up.map(k=>QT_UP.find(z=>z.k===k)).filter(Boolean).map(z=>z.n).join(", ")}.`:"It's a little bare in here. Don't say anything."}</p>
       ${up.includes("trophy")&&c.qt.tr?`<div class="qt-troph">${(()=>{const T=c.qt.tr,pl=(n,w)=>`${n} ${w}${n===1?"":"s"}`;return `☠ ${pl(T.k||0,"kill")} · 💫 ${pl(T.ko||0,"knockout")} · 🗡 ${pl(T.b||0,"boss")}`.replace("bosss","bosses")+` · 👑 best rank ${T.r?"#"+T.r:"–"}`;})()}</div>`:""}
@@ -5460,7 +5475,7 @@ function mapSVG(m){
     if(m.tgt!=null&&i===m.tgt&&i!==m.pos)s+=`<rect x="${x-25}" y="${y-25}" width="50" height="50" rx="8" fill="none" stroke="#e8283c" stroke-width="2.6" stroke-dasharray="6 4" pointer-events="none"/>`;
     if(rx)s+=mwFx(rx[0],x,y,rx[1]);
     if(i===m.pos&&WK)tok+=`<g id="mapHere" pointer-events="none"><rect x="${x-21}" y="${y-21}" width="42" height="42" rx="6" fill="none" stroke="#e8283c" stroke-width="4" transform="rotate(${ang[i]} ${x} ${y})"/></g>`;
-    if(i===m.pos)tok+=`<g id="mapTok" pointer-events="none"><g class="mapme">${headToken(Object.assign({},wearing(player),player.look?{look:player.look}:{}),x+16,y-16,12,"#e8283c","mm"+i)}</g></g>`;});
+    if(i===m.pos)tok+=`<g id="mapTok" pointer-events="none"><g class="mapme">${headToken(Object.assign({},wearing(player),player.look?{look:player.look}:{},rcLook(player)),x+16,y-16,12,"#e8283c","mm"+i)}</g></g>`;});
   (m.secrets||[]).forEach(se=>{if(!se.found&&!se.located)return;const [x,y]=c(se.x,se.y);
     if(se.found)s+=`<rect x="${x-19}" y="${y-19}" width="38" height="38" rx="6" fill="#fff3c4" stroke="${K}" stroke-width="2.4" stroke-dasharray="5 3"/>${mapIcon("secret",x,y)}`;
     else{const r0=m.rooms[se.link],[a,b]=c(r0.x,r0.y);if(se.link<=far)s+=`<rect class="maproom" data-maproom="${se.link}" x="${x-21}" y="${y-21}" width="42" height="42" fill="transparent" stroke="none"><title>Walk to its door in room ${se.link+1}</title></rect>`;s+=`<g class="${se.fresh&&Date.now()-se.fresh<6000?"mapnew":""}"><path d="M${a} ${b} L${x} ${y}" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="3 4"/><rect x="${x-17}" y="${y-17}" width="34" height="34" rx="6" fill="#e2cfa2" stroke="#e8283c" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x-8} ${y-8} L${x+8} ${y+8} M${x+8} ${y-8} L${x-8} ${y+8}" stroke="#e8283c" stroke-width="3.4" stroke-linecap="round"/></g>`;}});
@@ -6455,11 +6470,13 @@ function lookSection(t){
   const sw=arr=>arr.map(([k,c,n])=>[k,n,c]);
   if(t==="face")return lookRow("Face shape","face",[["m","Square jaw"],["f","Soft features"]])+lookRow("Eyes","eyes",sw(EYEC))+lookRow("Eyebrows","brow",BROWS)+lookRow("Expression","mouth",MOUTHS)+lookRow("Facial hair","beard",BEARDS)
     +(moodNote()?`<div class="lk-mood">${esc(moodNote())}</div>`:"");
-  if(t==="hair")return lookRow("Hair","hair",HAIRS)+lookRow("Hair colour","hc",HAIRC.map(([c,n],i)=>[i,n,c]));
+  if(t==="hair")return player.race==="shroom"?lookRow("Cap colour","hc",HAIRC.slice(0,8).map(([c,n],i)=>[i,["Red","Brown","Gold","Crimson","Lilac","Pink","Blue","Green"][i%8],CAPC[i%CAPC.length]]))
+      +`<div class="muted" style="font-size:12px">Mushroom Folk grow a cap instead of hair.</div>`
+    :lookRow("Hair","hair",HAIRS)+lookRow("Hair colour","hc",HAIRC.map(([c,n],i)=>[i,n,c]));
   if(t==="outfit")return lookRow("Shirt","tee",sw(TEES))+lookRow("Shirt print","print",PRINTS)+lookRow("Pants","pants",sw(PANTSC))
     +`<div class="muted" style="font-size:12px">Your starter outfit shows whenever no armour is equipped.</div>`;
   if(t==="extras")return lookRow("Eyewear","eyewear",EYEWEAR)+lookRow("Earrings","ears",EARS)+lookRow("Scars & marks","marks",MARKS)+lookRow("Face paint","paint",PAINTS);
-  return lookRow("Skin","skin",SKINS.map((c,i)=>[i,["Lightest","Light","Medium","Tan","Brown","Deep"][i],c]))+lookRow("Build","body",BODIES)+lookRow("Pose","pose",POSES)
+  return lookRow(RACE_LOOK[player.race]&&RACE_LOOK[player.race].sk?"Skin (shade of your race)":"Skin","skin",SKINS.map((c,i)=>[i,["Lightest","Light","Medium","Tan","Brown","Deep"][i],raceSkin(player.race,i)||c]))+lookRow("Build","body",BODIES)+lookRow("Pose","pose",POSES)
     +`<div class="muted" style="font-size:12px">Your crawler strikes a victory pose for 10 minutes after big wins and gets winded below 30% HP, then goes back to this pose. Mobs and rivals don't change your pose or face.</div>`
     +(moodNote()?`<div class="lk-mood">${esc(moodNote())}</div>`:"");
 }
@@ -6469,7 +6486,7 @@ function renderLook(){
   const el=$("lookDlg");if(!el||!ui.lookDraft)return;const d=ui.lookDraft,p=player;
   const ap=activePet(p);
   el.innerHTML=`<div class="gearhead"><h2>Create your crawler</h2><button class="btn ghost sm" type="button" id="lookClose">Cancel</button></div>
-    <div class="lk-body"><div class="lk-prev print">${avatarSVG(Object.assign({},wearing(p),{look:d},ap?{pet:ap.key}:{}))}</div>
+    <div class="lk-body"><div class="lk-prev print">${avatarSVG(Object.assign({},wearing(p),{look:d},rcLook(p),ap?{pet:ap.key}:{}))}</div>
     <div class="lk-ctl">
       <div class="lk-tabs" role="tablist">${LOOK_TABS.map(([k,n])=>`<button type="button" role="tab" class="lk-tab${(ui.lookTab||"body")===k?" on":""}" data-lktab="${k}" aria-selected="${(ui.lookTab||"body")===k}">${n}</button>`).join("")}</div>
       ${lookSection(ui.lookTab||"body")}
@@ -6533,7 +6550,7 @@ function guessQuest(raw){
   const best=Object.keys(sc).sort((a,b)=>sc[b]-sc[a])[0];if(best){g.stat=best;g.statSure=true;}
   if(!g.estSure&&ln){g.est=Math.round(lt/ln);g.estSure=true;g.learned=true;}
   // time by keyword when none given
-  if(!g.estSure){const tw=TIME_WORDS.find(([w])=>t.includes(" "+w));if(tw)g.est=tw[1];}
+  if(!g.estSure){const tw=TIME_WORDS.find(([w])=>t.includes(" "+w));if(tw){g.est=tw[1];g.estWord=true;}}
   if(!g.estSure&&!g.est){if(BIG_WORDS.some(w=>t.includes(" "+w)))g.est=120;else if(MID_WORDS.some(w=>t.includes(" "+w)))g.est=45;else if(QUICK_WORDS.some(w=>t.includes(" "+w)))g.est=10;else if(/\s(quick|small|tiny|short)\b/.test(t))g.est=10;else if(/\s(big|huge|massive|whole|entire|all)\b/.test(t))g.est=90;}
   if(g.est)g.effort=effFor(g.est);
   // cleaned title: original casing, recognised phrases removed
@@ -6776,7 +6793,9 @@ function rerollPicks(kind){
 }
 function confirmPick(){
   const c=ui.confirmPick;ui.confirmPick=null;if(!c||!player.pick)return;
-  if(c.kind==="race"&&!player.race&&player.pick.races.includes(c.id)){player.race=c.id;pushEvent(`Became a ${raceOf().n}`);}
+  if(c.kind==="race"&&!player.race&&c.id==="human"){const hs=(ui.hStats||[]).filter(k=>STATS[k]);if(hs.length!==2){render();return;}
+    player.race="human";player.hmods={[hs[0]]:1,[hs[1]]:1};ui.hStats=[];pushEvent("Stayed human");}
+  else if(c.kind==="race"&&!player.race&&player.pick.races.includes(c.id)){player.race=c.id;pushEvent(`Became a ${raceOf().n}`);}
   else if(c.kind==="class"&&!player.cls&&player.pick.classes.includes(c.id)){player.cls=c.id;pushEvent(`Took the ${classOf().n} class`);try{spellTick();}catch(e){}}
   else{render();return;}
   player.hp=Math.min(player.hp,maxHp(player));
@@ -6806,20 +6825,28 @@ function renderBooth(){
   if(!rcUnlocked()||rcDone()||!player.pick){el.hidden=true;el.innerHTML="";return;}
   el.hidden=false;
   const kind=player.race?"class":"race",pk=player.pick;
-  const ids=kind==="race"?pk.races:pk.classes,used=kind==="race"?pk.rr:pk.rc,cp=ui.confirmPick;
+  const ids=kind==="race"?[...pk.races,"human"]:pk.classes,used=kind==="race"?pk.rr:pk.rc,cp=ui.confirmPick;
+  const hs=ui.hStats=(ui.hStats||[]).filter(k=>STATS[k]).slice(0,2);
+  // A preview of you as this race (or with this class's sash), head and chest only.
+  const prev=id=>{let v="";try{v=avatarSVG(Object.assign({},wearing(player),{look:player.look,style:"flat",pose:"ready",weapon:null},kind==="race"?{race:id}:{race:player.race,cls:id}))
+    .replace('viewBox="0 0 300 420"','viewBox="62 4 176 226"');}catch(e){}return `<div class="rcprev print" aria-hidden="true">${v}</div>`;};
   const card=id=>{
-    const x=kind==="race"?RACES.find(r=>r.id===id):CLASSES.find(c=>c.id===id);
-    const sel=cp&&cp.kind===kind&&cp.id===id;
-    return `<div class="rccard${sel?" sel":""}"><b class="rcn">${esc(x.n)}</b><i>${esc(x.line)}</i>
-      ${kind==="race"?`<div class="mods">${modChips(x.mods)}</div><div class="perk"><b>${esc(x.q)}:</b> ${esc(x.qd)}</div>`:`<div class="perk">${esc(x.perk)}</div>`}
-      ${sel?`<div class="confirm"><span>Permanent. No take-backs.</span><button class="btn gold sm" type="button" id="pickYes">Confirm</button><button class="btn ghost sm" type="button" id="pickNo">Cancel</button></div>`
-        :`<button class="btn ${cp?"ghost ":"gold "}sm" type="button" data-pick="${id}">Choose</button>`}</div>`;
+    const x=kind==="race"?RACE_ALL.find(r=>r.id===id):CLASSES.find(c=>c.id===id),hum=id==="human";
+    const sel=cp&&cp.kind===kind&&cp.id===id,ok=!hum||hs.length===2;
+    const humPick=hum?`<div class="hpick"><span class="muted">${hs.length===2?"+1 to each:":`Pick two stats for +1 each (${hs.length}/2):`}</span><div class="mods">${Object.keys(STATS).map(k=>
+      `<button type="button" class="rmod hs${hs.includes(k)?" up on":""}" data-hs="${k}" aria-pressed="${hs.includes(k)}">${hs.includes(k)?"+1 ":""}${esc(STATS[k].n)}</button>`).join("")}</div></div>`:"";
+    return `<div class="rccard${sel?" sel":""}${hum?" human":""}">${prev(id)}<b class="rcn">${esc(x.n)}</b><i>${esc(x.line)}</i>
+      ${kind==="race"?`${hum?humPick:`<div class="mods">${modChips(x.mods)}</div>`}<div class="perk"><b>${esc(x.q)}:</b> ${esc(x.qd)}</div>`:`<div class="perk">${esc(x.perk)}</div>`}
+      ${sel?`<div class="confirm"><span>${ok?"Permanent. No take-backs.":"Pick two stats first."}</span><button class="btn gold sm" type="button" id="pickYes" ${ok?"":"disabled"}>Confirm</button><button class="btn ghost sm" type="button" id="pickNo">Cancel</button></div>`
+        :`<button class="btn ${cp?"ghost ":"gold "}sm" type="button" data-pick="${id}">${hum?"Stay human":"Choose"}</button>`}</div>`;
   };
   el.innerHTML=`<div class="booth-top"><span class="ep-new">Floor 3</span><div><b class="booth-t">The selection booth is open</b>
-      <span>Step ${kind==="race"?"1":"2"} of 2: choose your ${kind}. ${kind==="race"?"A race shifts your stat levels and adds a quirk.":`You're a ${esc(raceOf().n)}. Now pick a class: a perk that rewards how you work.`} Offers lean toward how you've actually been playing.</span></div></div>
+      <span>Step ${kind==="race"?"1":"2"} of 2: choose your ${kind}. ${kind==="race"?"A race shifts your stat levels, adds a quirk and changes how you look for good. Or stay human.":`You're a ${esc(raceOf().n)}. Now pick a class: a perk that rewards how you work.`} Offers lean toward how you've actually been playing.</span></div></div>
     <div class="rccards">${ids.map(card).join("")}</div>
     <div class="booth-foot"><span class="muted">${used?"Reroll used.":"One reroll for this step."}</span><button class="btn ghost sm" type="button" id="rerollBtn" ${used?"disabled":""}>Reroll ${kind} offers</button></div>`;
   el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{ui.confirmPick={kind,id:b.dataset.pick};render();});
+  el.querySelectorAll("[data-hs]").forEach(b=>b.onclick=()=>{const k=b.dataset.hs,h=ui.hStats||[];
+    ui.hStats=h.includes(k)?h.filter(x=>x!==k):[...h,k].slice(-2);ui.confirmPick={kind:"race",id:"human"};render();});
   const y=$("pickYes");if(y)y.onclick=confirmPick;
   const n=$("pickNo");if(n)n.onclick=()=>{ui.confirmPick=null;render();};
   $("rerollBtn").onclick=()=>rerollPicks(kind);
@@ -6830,10 +6857,10 @@ function renderRc(){
   if(!rcUnlocked()&&!R){
     const fl=playerExists?floorOf():1;
     el.innerHTML=`<div class="rclocked"><b>Locked until Floor 3</b><span>${playerExists?`You're on Floor ${fl}. ${3-fl} more floor${3-fl===1?"":"s"} to go.`:"Start the show to begin climbing."}</span>
-      <span>When it opens you'll be offered 3 of ${RACES.length} races and 3 of ${CLASSES.length} classes, tilted toward how you actually play. One reroll each. The choice is permanent.</span></div>`;return;
+      <span>When it opens you'll be offered 3 of ${RACES.length} races (or you can stay human) and 3 of ${CLASSES.length} classes, tilted toward how you actually play. One reroll each. Your race and class change how you look. The choice is permanent.</span></div>`;return;
   }
   if(!rcDone()){el.innerHTML=`<div class="rclocked"><b>The selection booth is open</b><span>${R?`Race: ${esc(R.n)}. Class still to choose.`:"Pick your race and class at the top of the board."}</span></div>`;return;}
-  el.innerHTML=`<div class="rcdone"><div><span class="label">Race</span><b>${esc(R.n)}</b><i>${esc(R.line)}</i><div class="mods">${modChips(R.mods)}</div><div class="perk"><b>${esc(R.q)}:</b> ${esc(R.qd)}</div></div>
+  el.innerHTML=`<div class="rcdone"><div><span class="label">Race</span><b>${esc(R.n)}</b><i>${esc(R.line)}</i><div class="mods">${modChips(raceMods(player))}</div><div class="perk"><b>${esc(R.q)}:</b> ${esc(R.qd)}</div></div>
     <div><span class="label">Class</span><b>${esc(C.n)}</b><i>${esc(C.line)}</i><div class="perk">${esc(C.perk)}</div></div></div>`;
 }
 
@@ -8169,7 +8196,7 @@ function bossCamOut(c){if(!c||!c.isConnected)return;c.classList.remove("in");set
 function crawlerAttack(){
   const c=$("crawlCam");
   if(c&&c.classList.contains("in")){const pr=c.querySelector(".print");
-    if(pr&&!c.dataset.atk){c.dataset.atk="1";const p=player,pet=activePet(p);try{pr.innerHTML=avatarSVG(Object.assign({},wearing(p),{look:p.look},pet?{pet:pet.key,petSulk:petSulking(p)}:{},{pose:"ready",expr:"determined",threat:true}));}catch(e){}}
+    if(pr&&!c.dataset.atk){c.dataset.atk="1";const p=player,pet=activePet(p);try{pr.innerHTML=avatarSVG(Object.assign({},wearing(p),{look:p.look},rcLook(p),pet?{pet:pet.key,petSulk:petSulking(p)}:{},{pose:"ready",expr:"determined",threat:true}));}catch(e){}}
     fxPulse(c,"av-atk",650);}
   const sh=$("sheet"),av=sh&&sh.querySelector(".avatar");if(av&&onScreen(av,innerHeight))fxPulse(sh,"av-atk",650);
 }
@@ -9287,6 +9314,96 @@ const AV_SCENE={
   petday:  {wall:"#33263a",brick:"#44324d",brick2:"#503c5a",floor:"#241a2a",stone:"#32263a",fl:["#ff8a1f","#ffd23f","#fff6c8"],gl:["#ffb54a","#ff7a1f"],bk:"#ffc0e0",
     ov:`<g fill="#d8cfc0" opacity=".5">${[[60,372],[78,388],[230,380],[246,396],[150,408]].map(([x,y])=>`<g transform="translate(${x} ${y})"><ellipse rx="5" ry="4"/><circle cx="-5" cy="-6" r="2"/><circle cx="0" cy="-8" r="2"/><circle cx="5" cy="-6" r="2"/></g>`).join("")}</g>`}};
 function avScene(){try{const th=player&&player.boss&&themeOf(player);return th&&AV_SCENE[th.id]?th.id:"_";}catch(e){return "_";}}
+/* ---------- Race and class looks (v3.21.0) ----------
+   A race reshapes the crawler: its own skin range (your Skin choice picks a shade within it), ears, face features,
+   things on top of the head and a tail or wind-up key behind. Hair, face style, outfit and gear stay yours.
+   Humans (and anyone before Floor 3) look exactly as built. A class adds one sash with a medallion. */
+const mixHex=(a,b,t)=>{const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16),c=sh=>Math.round(((A>>sh)&255)*(1-t)+((B>>sh)&255)*t);
+  return "#"+[c(16),c(8),c(0)].map(v=>v.toString(16).padStart(2,"0")).join("");};
+const RACE_LOOK={
+  goblin:{sk:["#a6e07c","#3f7a2e"],eye:"#f2d63a"},
+  ogre:  {sk:["#c9c99a","#6f7448"]},
+  shroom:{sk:["#f6ecdd","#b9a283"],cap:true},
+  elf:   {glow:"#9ff5ff",eye:"#3fe0d0"},
+  rat:   {sk:["#cbbfb3","#5e524a"],beady:true},
+  golem: {sk:["#e6b95a","#8a6230"],eye:"#ffcf4a",lit:true},
+  imp:   {sk:["#f2705e","#8e2a28"],eye:"#ffd23f"},
+  troll: {sk:["#9fcab2","#3f6a58"]},
+  hollow:{sk:["#f6f0de","#c8bb98"],skull:true}};
+const CAPC=["#d8483a","#b5653a","#e0a03a","#c23a2e","#8f7aa8","#e86aa8","#4aa0d8","#5aa86a"];
+/* The skin tone for a race: your Skin choice (0 lightest to 5 deepest) picks a point in the race's range. */
+function raceSkin(race,i){const R=RACE_LOOK[race];if(!R||!R.sk)return null;return mixHex(R.sk[0],R.sk[1],Math.max(0,Math.min(5,i|0))/5);}
+const mirX=x=>`<g transform="translate(300 0) scale(-1 1)">${x}</g>`;
+/* Ears (drawn before the head, so the head overlaps their roots). Returns null to keep the human ears. */
+function raceEars(race,c){const {sh,ln,SK,SKD}=c,both=x=>x+mirX(x);
+  if(race==="elf")return both(sh("M122 80 Q104 70 90 52 Q100 86 120 106 Z",SK)+ln("M118 86 Q106 76 98 64",1.8,SKD));
+  if(race==="goblin")return both(sh("M122 84 Q96 72 70 66 Q84 90 96 100 Q108 106 122 106 Z",SK)+ln("M118 90 Q98 84 82 74 M112 100 Q102 96 96 92",1.8,SKD));
+  if(race==="imp")return both(sh("M122 84 Q108 78 100 66 Q104 92 120 104 Z",SK));
+  if(race==="troll")return both(sh("M120 84 Q96 88 90 120 Q106 116 120 104 Z",SK)+ln("M114 92 Q102 100 98 112",1.8,SKD));
+  if(race==="rat")return "";
+  if(race==="golem")return both(sh("M108 82 L120 82 L120 108 L108 108 Z","#8a8f9c")+`<circle cx="114" cy="88" r="2.4" fill="#d6dae2" stroke-width="1.4"/><circle cx="114" cy="102" r="2.4" fill="#d6dae2" stroke-width="1.4"/>`);
+  if(race==="shroom"||race==="hollow")return "";
+  return null;
+}
+/* Face features, drawn over the mouth and under scars and eyewear. */
+function raceFace(race,c){const {sh,ov,ln,SK,SKD,FEM}=c,both=x=>x+mirX(x);
+  if(race==="goblin")return sh("M146 96 Q164 104 174 116 Q160 116 147 111 Z",SK)+ln("M150 106 Q156 110 162 112",1.6,SKD);
+  if(race==="ogre")return ln("M124 78 Q150 70 176 78",3,SKD)+both(sh("M137 125 L133 109 L142 122 Z",BONE,` stroke-width="2.2"`));
+  if(race==="troll")return sh("M142 98 Q150 92 158 98 Q164 112 150 116 Q136 112 142 98 Z",SK)
+    +both(sh("M135 127 L130 106 L142 123 Z",BONE,` stroke-width="2.4"`))
+    +[[126,70,2.6],[172,112,2.2],[128,116,1.8],[168,66,2]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${SKD}" stroke-width="1.2"/>`).join("");
+  if(race==="rat")return sh("M144 104 L156 104 L150 112 Z","#f08a9a",` stroke-width="2"`)
+    +sh("M145 122 L155 122 L155 131 L145 131 Z",BONE,` stroke-width="2"`)+ln("M150 122 L150 131",1.4)
+    +both(ln("M140 108 L114 102 M140 112 L112 114 M141 116 L116 124",1.6,"rgba(17,17,17,.75)"));
+  if(race==="imp")return both(sh("M141 121 L144 129 L146 121 Z",BONE,` stroke-width="1.4"`));
+  if(race==="golem")return ln("M150 42 L150 64 M122 116 Q150 132 178 116",1.8,SKD)
+    +[[124,100],[176,100],[150,52],[130,72],[170,72]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.4" fill="#d6dae2" stroke-width="1.4"/>`).join("");
+  if(race==="hollow")return sh("M146 102 Q150 96 154 102 L150 110 Z",INK,` stroke-width="1"`)
+    +ln("M137 121 L163 121",2.4)+ln("M141 118 L141 125 M146 118 L146 126 M150 118 L150 126 M154 118 L154 126 M159 118 L159 125",1.6)
+    +both(ln("M122 104 Q128 112 138 112",1.6,SKD));
+  if(race==="shroom")return both(`<circle cx="126" cy="108" r="4" fill="#f4a3b0" opacity=".7" stroke="none"/>`);
+  return "";
+}
+/* On top of the head, after the hair and under any headgear. */
+function raceTop(race,c){const {sh,ov,ln,SK,SKD,showHair,capC}=c,both=x=>x+mirX(x);
+  if(race==="rat")return both(`<circle cx="117" cy="46" r="17" fill="${SK}"/><circle cx="117" cy="47" r="9.5" fill="#f0a4ae" stroke-width="2"/>`); // round ears sit on top of the hair
+  if(race==="imp"){const H=darker(SK,.55);return both(sh("M130 52 Q118 32 110 16 Q128 26 140 48 Z",H)+ln("M124 40 L131 37 M118 30 L124 27",1.4,"rgba(255,255,255,.35)"));}
+  if(race==="shroom"&&showHair){const C=capC,spots=[[130,34,6],[158,28,7],[178,48,5],[114,54,4.5],[146,52,4]];
+    return sh("M98 78 Q96 24 150 18 Q204 24 202 78 Q178 64 150 66 Q122 64 98 78 Z",C)
+      +ov("M98 78 Q96 24 150 18 Q122 30 118 70 Q108 72 98 78 Z","rgba(26,12,52,.2)")
+      +spots.map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff6e6" stroke-width="1.6"/>`).join("")
+      +ln("M112 72 Q150 62 188 72",1.6,darker(C,.6));}
+  return "";
+}
+/* Behind the legs: a tail, or a wind-up key in the golem's back. */
+function raceBack(race,c){const {tube,sh,SK}=c;
+  if(race==="rat")return tube("M168 286 Q232 296 230 336 Q228 368 262 370",7,"#e8a0a8");
+  if(race==="imp")return tube("M168 286 Q230 290 226 330 Q222 354 244 356",7,SK)+sh("M240 348 L262 352 L246 368 Z",darker(SK,.6));
+  if(race==="golem")return sh("M190 192 L226 192 L226 202 L190 202 Z","#8a8f9c")+`<ellipse cx="236" cy="184" rx="12" ry="9" fill="#c9cdd6"/><ellipse cx="236" cy="210" rx="12" ry="9" fill="#c9cdd6"/>`;
+  return "";
+}
+/* Class sash: one band from the right shoulder to the left hip (the other way from bandolier belts), with a medallion that names the class at a glance. */
+const CLASS_LOOK={berserker:["#c4282e"],necro:["#5a2a7a"],monk:["#e07a1f"],rogue:["#2e2f3a"],paladin:["#e9e4d4"],warlock:["#7a3fd0"],
+  druid:["#3f8a3a"],ranger:["#2f6a4a"],hunter:["#7a4a26"],bard:["#d23f9a"],cleric:["#4aa0d8"]};
+function classIcon(cls){
+  const I=INK,g=(d,f,w)=>`<path d="${d}" fill="${f||"none"}" stroke="${I}" stroke-width="${w||1.6}"/>`;
+  return {berserker:g("M150 196 Q157 202 155 208 Q153 212 150 212 Q146 212 145 207 Q145 202 150 196 Z","#ff7a1f"),
+    necro:`<circle cx="150" cy="202" r="5" fill="${BONE}" stroke="${I}" stroke-width="1.4"/><rect x="147" y="205" width="6" height="4" fill="${BONE}" stroke="${I}" stroke-width="1.2"/><circle cx="148" cy="202" r="1.3" fill="${I}"/><circle cx="152" cy="202" r="1.3" fill="${I}"/>`,
+    monk:`<circle cx="150" cy="204" r="3.6" fill="#ffd23f" stroke="${I}" stroke-width="1.4"/>`+g("M150 195 L150 197.5 M150 210.5 L150 213 M141 204 L143.5 204 M156.5 204 L159 204 M144 198 L145.8 199.8 M154.2 208.2 L156 210 M156 198 L154.2 199.8 M145.8 208.2 L144 210",null,1.4),
+    rogue:g("M150 195 L152 205 L148 205 Z","#d6dae2",1.2)+g("M145 205 L155 205 M150 205 L150 212",null,2),
+    paladin:g("M144 197 L156 197 L156 203 Q156 209 150 212 Q144 209 144 203 Z","#3a6fd8")+g("M150 199 L150 209 M146 203 L154 203",null,1.4),
+    warlock:`<circle cx="150" cy="204" r="6" fill="${BONE}" stroke="${I}" stroke-width="1.4"/>`+g("M150 204 L150 200 M150 204 L153 206",null,1.4),
+    druid:g("M144 211 Q143 198 157 196 Q158 209 144 211 Z","#7dd66a")+g("M145 210 Q150 204 155 198",null,1.2),
+    ranger:`<circle cx="150" cy="204" r="6" fill="${BONE}" stroke="${I}" stroke-width="1.4"/><circle cx="150" cy="204" r="3.2" fill="${RED}" stroke="${I}" stroke-width="1.2"/><circle cx="150" cy="204" r="1" fill="${I}"/>`,
+    hunter:`<circle cx="150" cy="204" r="6" fill="#ffd23f" stroke="${I}" stroke-width="1.4"/><circle cx="150" cy="204" r="3.4" fill="none" stroke="#b8862a" stroke-width="1.4"/>`,
+    bard:`<ellipse cx="147" cy="209" rx="3.2" ry="2.4" fill="${I}"/>`+g("M150 209 L150 197 Q154 199 156 202",null,1.8),
+    cleric:g("M148 197 h4 v5 h5 v4 h-5 v5 h-4 v-5 h-5 v-4 h5 Z",BONE,1.2)}[cls]||"";
+}
+function classSash(cls,u,torso){const L=CLASS_LOOK[cls];if(!L)return "";const C=L[0],D=darker(C,.62);
+  return `<defs><clipPath id="${u}sc"><path d="${torso}"/></clipPath></defs><g clip-path="url(#${u}sc)" class="sash">`
+    +`<path d="M196 154 L176 146 L102 252 L122 262 Z" fill="${C}"/><path d="M190 156 L182 152 L112 254 L120 258 Z" fill="${D}" stroke="none" opacity=".35"/></g>`
+    +`<g transform="translate(16 -22)"><circle cx="150" cy="204" r="11" fill="#ffd23f" stroke-width="3"/><circle cx="150" cy="204" r="8.4" fill="${D}" stroke="none"/>${classIcon(cls)}</g>`;
+}
 function avatarSVG(eq){
   /* Comic hero in a torchlit dungeon. Heroic proportions: big head and hands, broad shoulders,
      thick limbs drawn as outlined tubes. Starts in a ratty T-shirt, jeans and bare feet; gear layers on top. */
@@ -9306,7 +9423,9 @@ function avatarSVG(eq){
   const _hI=itemOf(eq.head),_cI=itemOf(eq.cape),_gI=itemOf(eq.gloves);
   const LK=Object.assign({},LOOK_DEFAULT,eq.look||{});
   const PZ=eq.pose||LK.pose||"ready",EX=EXPRS[eq.expr]||null;if(EX)Object.assign(LK,EX);const PR=eq.expr==="unhinged"?.45:1;
-  const SKIN=SKINS[LK.skin]||SKINS[1],HAIR=(HAIRC[LK.hc]||HAIRC[0])[0],FEM=LK.face==="f",CURVY=LK.body==="curvy";
+  const RACE=RACE_LOOK[eq.race]?eq.race:null,RL=RACE?RACE_LOOK[RACE]:null;if(RL&&RL.cap)LK.hair="_cap"; // the mushroom cap takes the hair's place
+  const SKIN=raceSkin(RACE,LK.skin)||SKINS[LK.skin]||SKINS[1],HAIR=(HAIRC[LK.hc]||HAIRC[0])[0],FEM=LK.face==="f",CURVY=LK.body==="curvy";
+  const RSKD=darker(SKIN,.7),RC={sh,ov,ln,tube,SK:SKIN,SKD:RSKD,FEM,capC:CAPC[(LK.hc|0)%CAPC.length]};
   const BWID=BODY_W[LK.body]||1,LEGT=LEG_W[LK.body]||30;
   const TEEC=pal(TEES,LK.tee),PANTS=pal(PANTSC,LK.pants),PSEAM=darker(PANTS,.62),SHOE=pal(SHOEC,LK.shoes);
   const narrow=BWID!==1?`<g transform="translate(150 0) scale(${BWID} 1) translate(-150 0)">`:`<g>`;
@@ -9376,6 +9495,7 @@ function avatarSVG(eq){
   const shoulderW=()=>{let wb=weaponUpright(weapon,MW,u);if(_wI&&_wI.tint)wb=tintStr(wb,_wI.tint);return {wb,sc2:weapon==="l4"?.66:(WEAPON_SCALE[weapon]||.74)};};
   if(weapon&&PZ!=="ready"&&PZ!=="victory"){const {wb,sc2}=shoulderW();
     s+=`<g transform="translate(206 128) rotate(205) scale(${ONE_HANDED.has(weapon)?.9:sc2*1.05})">${wb}</g>`;}
+  if(RACE)s+=raceBack(RACE,RC); // tail or wind-up key, behind the legs
   // Legs: jeans tubes, hips, belt, then bare feet or boots
   const STANCE=PZ==="ready"&&!!weapon&&!ONE_HANDED.has(weapon); // two-handed: feet apart, knees bent
   if(STANCE){
@@ -9449,6 +9569,7 @@ function avatarSVG(eq){
   }
   if(AS)s+=armorBase(AS,u,TEEC)+armorDetail(AS,u,MA);
   s+=avatarBelt(eq.belt,sh,ln,"over");
+  if(eq.cls)s+=classSash(eq.cls,u,TORSO);
   if(cape==="royal")s+=sh("M98 140 Q150 160 202 140 L206 154 Q150 176 94 154 Z",BONE)+ov("M114 150 l2 6 l-4 0 Z",INK)+ov("M138 158 l2 6 l-4 0 Z",INK)+ov("M162 158 l2 6 l-4 0 Z",INK)+ov("M186 150 l2 6 l-4 0 Z",INK);
   if(cape==="crimson"||cape==="midnight"||CAPE_STYLE[eq.cape])s+=`<circle cx="114" cy="150" r="6" fill="#ffd23f"/><circle cx="186" cy="150" r="6" fill="#ffd23f"/>`;
 
@@ -9456,13 +9577,15 @@ function avatarSVG(eq){
   const showHair=!HIDES_HAIR.has(head);
   if(LK.hair==="long")s+=sh("M112 72 Q106 36 150 32 Q194 36 188 72 L198 166 Q176 152 160 156 L150 132 L140 156 Q124 152 102 166 Z",HAIR)+ln("M120 100 Q114 130 112 158 M180 100 Q186 130 188 158",1.6,"rgba(255,255,255,.3)");
   if(LK.hair==="ponytail"&&showHair)s+=sh("M174 50 Q210 58 204 112 Q200 136 188 146 Q196 112 182 74 Z",HAIR)+`<rect x="176" y="52" width="10" height="10" rx="2" fill="${RED}" transform="rotate(30 181 57)"/>`;
+  if(RL&&RL.glow&&!INKS)s+=`<ellipse cx="150" cy="90" rx="62" ry="58" fill="${RL.glow}" opacity=".32" filter="url(#${u}bl2)"/>`; // the lantern elf's glow
   // Neck and head: a big comic head, square-jawed or soft-featured
   s+=sh("M134 120 L166 120 L170 150 L130 150 Z",SKIN)+ov("M134 120 L146 120 L144 150 L130 150 Z",HB);
   if(SHON)s+=`<ellipse cx="150" cy="140" rx="20" ry="8" fill="${SHADE}" stroke="none"/>`; // the chin's shadow on the neck
   if(head!=="h1"){
-    s+=`<ellipse cx="114" cy="94" rx="8" ry="12" fill="${SKIN}"/><ellipse cx="186" cy="94" rx="8" ry="12" fill="${SKIN}"/>`;
-    if(LK.ears==="stud")s+=`<circle cx="113" cy="105" r="3.2" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/><circle cx="187" cy="105" r="3.2" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/>`;
-    if(LK.ears==="hoop")s+=`<circle cx="112" cy="111" r="6" fill="none" stroke="${INK}" stroke-width="4.4"/><circle cx="112" cy="111" r="6" fill="none" stroke="#ffd23f" stroke-width="2"/><circle cx="188" cy="111" r="6" fill="none" stroke="${INK}" stroke-width="4.4"/><circle cx="188" cy="111" r="6" fill="none" stroke="#ffd23f" stroke-width="2"/>`;
+    const REARS=RACE?raceEars(RACE,RC):null;
+    s+=REARS!=null?REARS:`<ellipse cx="114" cy="94" rx="8" ry="12" fill="${SKIN}"/><ellipse cx="186" cy="94" rx="8" ry="12" fill="${SKIN}"/>`;
+    if(REARS==null||RACE==="elf"||RACE==="imp")if(LK.ears==="stud")s+=`<circle cx="113" cy="105" r="3.2" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/><circle cx="187" cy="105" r="3.2" fill="#ffd23f" stroke="${INK}" stroke-width="1.6"/>`;
+    if((REARS==null||RACE==="elf"||RACE==="imp")&&LK.ears==="hoop")s+=`<circle cx="112" cy="111" r="6" fill="none" stroke="${INK}" stroke-width="4.4"/><circle cx="112" cy="111" r="6" fill="none" stroke="#ffd23f" stroke-width="2"/><circle cx="188" cy="111" r="6" fill="none" stroke="${INK}" stroke-width="4.4"/><circle cx="188" cy="111" r="6" fill="none" stroke="#ffd23f" stroke-width="2"/>`;
     const HEAD=FEM?"M118 86 Q116 44 150 40 Q184 44 182 86 Q180 110 166 126 Q156 136 150 136 Q144 136 134 126 Q120 110 118 86 Z":"M116 88 Q114 44 150 40 Q186 44 184 88 Q184 114 172 128 Q162 138 150 138 Q138 138 128 128 Q116 114 116 88 Z";
     s+=sh(HEAD,SKIN);
     s+=ov(FEM?"M118 86 Q116 44 150 40 Q128 52 128 92 Q132 118 150 136 Q144 136 134 126 Q120 110 118 86 Z":"M116 88 Q114 44 150 40 Q128 52 128 92 Q130 120 150 138 Q138 138 128 128 Q116 114 116 88 Z",HB);
@@ -9473,8 +9596,9 @@ function avatarSVG(eq){
     if(LK.paint==="war")s+=ov("M122 104 L144 100 L144 106 L124 110 Z M156 100 L178 104 L176 110 L156 106 Z",RED)+ov("M124 112 L142 108 L142 112 L126 116 Z M158 108 L176 112 L174 116 L158 112 Z",INK);
     if(LK.paint==="eyeblack")s+=ov("M126 103 Q136 108 145 103 L143 109 Q135 113 128 109 Z M155 103 Q164 108 174 103 L172 109 Q165 113 157 109 Z",INK);
     if(LK.paint==="star")s+=sh("M164 80 L167 88 L176 89 L169 95 L171 104 L164 99 L157 104 L159 95 L152 89 L161 88 Z","#ff5fa8",` stroke="${INK}" stroke-width="1.6" opacity=".9"`);
-    const IRIS=pal(EYEC,LK.eyes),dark=LK.eyes==="dark"||!LK.eyes;
-    const eye=(x,y,rx,ry,pr)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${BONE}"/>`+(dark?`<circle cx="${x+1.6}" cy="${y+1}" r="${pr}" fill="${INK}" stroke="none"/>`
+    const IRIS=RL&&RL.eye||pal(EYEC,LK.eyes),dark=RL&&RL.beady||!(RL&&RL.eye)&&(LK.eyes==="dark"||!LK.eyes);
+    const eye=(x,y,rx,ry,pr)=>RL&&RL.skull?`<ellipse cx="${x}" cy="${y+1}" rx="${rx+2.5}" ry="${ry+3}" fill="${INK}"/><circle cx="${x+1}" cy="${y+1.5}" r="${(pr*.7).toFixed(1)}" fill="#7fffd4" stroke="none"/>`
+      :RL&&RL.lit?`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${IRIS}"/><circle cx="${x+1.4}" cy="${y+.8}" r="${(pr*.6).toFixed(1)}" fill="#fff6c8" stroke="none"/>`:`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${BONE}"/>`+(dark?`<circle cx="${x+1.6}" cy="${y+1}" r="${pr}" fill="${INK}" stroke="none"/>`
       :`<circle cx="${x+1.4}" cy="${y+.8}" r="${pr+1.4}" fill="${IRIS}" stroke="${INK}" stroke-width="1"/><circle cx="${x+1.6}" cy="${y+1}" r="${pr*.55}" fill="${INK}" stroke="none"/>`)+(PR<1?"":`<circle cx="${x+2.6}" cy="${y-.4}" r="1" fill="${BONE}" stroke="none"/>`);
     const BROW={thick:ln("M124 80 L144 82 M156 82 L176 80",6.5),thin:ln("M127 82 Q135 78 144 82 M156 82 Q165 78 173 82",2),
       angry:ln("M126 77 L145 86 M155 86 L174 77",5),raised:ln("M126 78 Q135 69 144 76 M156 76 Q165 69 174 78",3.6),worried:ln("M126 85 Q136 80 145 76 M155 76 Q164 80 174 85",4.2)}[LK.brow];
@@ -9502,6 +9626,7 @@ function avatarSVG(eq){
     else if(FEM)s+=sh("M140 120 Q145 116 150 118 Q155 116 160 120 Q150 128 140 120 Z","#c0505a",` stroke-width="2"`);
     else if(LK.beard!=="beard")s+=ln("M138 122 Q152 128 164 118",3.4);
     if(LK.beard==="mustache"||LK.beard==="goatee")s+=sh("M133 116 Q142 108 150 113 Q158 108 167 116 Q160 121 150 117 Q140 121 133 116 Z",HAIR);
+    if(RACE)s+=raceFace(RACE,RC);
     // Scars and plasters go on top
     if(LK.marks==="eyescar")s+=ln("M158 76 L172 112",4.4,"#b8444a")+ln("M161 84 L167 82 M164 93 L170 91 M167 102 L173 100",1.6);
     if(LK.marks==="cheekscar")s+=ln("M122 106 L136 118",4,"#b8444a")+ln("M125 113 L130 107 M130 117 L135 111",1.6);
@@ -9527,6 +9652,7 @@ function avatarSVG(eq){
     s+=`<rect x="105" y="168" width="12" height="6" rx="2" fill="${RED}"/><rect x="183" y="168" width="12" height="6" rx="2" fill="${RED}"/>`;}
   if(showHair&&LK.hair==="messy")s+=sh("M114 84 Q108 52 124 40 Q128 26 146 30 Q160 20 174 32 Q192 36 188 60 Q194 72 186 86 Q182 66 170 60 Q160 70 146 62 Q136 72 126 64 Q118 72 114 84 Z",HAIR)+ln("M140 36 Q134 44 132 54 M162 32 Q170 40 172 52",2,"#6b6690");
   if(LK.eyewear==="goggles"&&!head)s+=ln("M114 66 Q150 52 186 66",7)+ln("M114 66 Q150 52 186 66",3.4,"#7a4a26")+`<circle cx="136" cy="60" r="11" fill="#7fd6ff" stroke="${INK}" stroke-width="3.4"/><circle cx="164" cy="60" r="11" fill="#7fd6ff" stroke="${INK}" stroke-width="3.4"/><circle cx="133" cy="57" r="3" fill="#fff" stroke="none"/><circle cx="161" cy="57" r="3" fill="#fff" stroke="none"/>`;
+  if(RACE)s+=raceTop(RACE,Object.assign({},RC,{showHair}));
   // Headgear: the shop's drawings, scaled up to fit the bigger head
   const hg=d=>`<g transform="translate(150 86) scale(1.45) translate(-150 -84)">${d}</g>`;const headAt=s.length;
   if(SHON&&HEAD_CENTER[head]&&!HIDES_HAIR.has(head))s+=`<ellipse cx="150" cy="62" rx="33" ry="8" fill="${SHADE}" stroke="none"/>`; // brim shadow on the brow
@@ -10671,7 +10797,7 @@ function renderSheet(){
   const sb=Math.min(Math.max(streakLive,1)-1,5)*5;
   $("sheet").innerHTML=`
     <div class="who">
-      <div class="avatar" id="avatarBox" role="button" tabindex="0" title="See your stats" aria-label="See your character up close"><span class="avedit" aria-hidden="true">⤢</span><div class="print" id="avatar" role="img" aria-label="${esc(avatarDesc(p))}${activePet(p)?`, with ${esc(activePet(p).name)} the ${esc(PETS[activePet(p).key].n)}${petSulking(p)?" sulking":""} at their feet`:""}">${avatarSVG(Object.assign({},wear,{look:p.look},activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{},myMood()))}</div><span class="camtag" aria-hidden="true"><i>●</i> Crawler cam</span><span class="lvl num" aria-hidden="true">${li.L}</span></div>
+      <div class="avatar" id="avatarBox" role="button" tabindex="0" title="See your stats" aria-label="See your character up close"><span class="avedit" aria-hidden="true">⤢</span><div class="print" id="avatar" role="img" aria-label="${esc(avatarDesc(p))}${activePet(p)?`, with ${esc(activePet(p).name)} the ${esc(PETS[activePet(p).key].n)}${petSulking(p)?" sulking":""} at their feet`:""}">${avatarSVG(Object.assign({},wear,{look:p.look},rcLook(p),activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{},myMood()))}</div><span class="camtag" aria-hidden="true"><i>●</i> Crawler cam</span><span class="lvl num" aria-hidden="true">${li.L}</span></div>
       <div style="min-width:0;flex:1">
         ${ui.editingName
           ?`<input class="name" id="nameInput" maxlength="40" value="${esc(p.name)}" aria-label="Character name">`
@@ -11480,6 +11606,12 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.21.0",d:"2026-10-19",t:"You become your race",items:["Your race now changes how you look, for good. Goblins go green with big ears and a long nose, Half-Ogres get tusks, Mushroom Folk grow a spotted cap instead of hair, Lantern Elves glow, Rat-Kin get round ears, whiskers and a tail, Clockwork Golems turn brass with rivets and a wind-up key, Imps go red with horns and a tail, Bog Trolls get tusks and warts, and Hollows are skeletons. Your hair, face, outfit and gear stay yours.",
+    "Your Skin choice now picks a shade within your race's colours (Change look → Skin). Mushroom Folk pick a cap colour instead of a hair colour.",
+    "Your class shows as a sash across your chest with a medallion for your class, so your crew can tell what you are at a glance.",
+    "You can stay human: a fourth card in the selection booth, always on offer. No stat penalties, +1 to two stats you pick, and the Adaptable quirk: +10% XP on a quest whose stat you haven't finished a quest in for 7 days. Humans keep the look they built.",
+    "The booth now shows a preview of you as each race and with each class's sash before you commit.",
+    "New habits default to 5 minutes instead of 30, unless the title names a time."]},
   {v:"3.20.0",d:"2026-10-17",t:"Routines and habits",items:["Habits get their own section on the quest board, under Overdue, showing how many are still to do today and your best chain. Fold it like the others.",
     "Repeating quests are now called Routines: chores on a schedule that keep their threat level and go overdue if you skip them. Habits are the forgiving kind for things you're building.",
     "When you set a quest to repeat, pick 🔁 Routine or 🥚 Habit, with a line on what each one means, instead of a checkbox."]},
@@ -11956,7 +12088,7 @@ function camIn(dy,mood){
   camOut(true);const p=player,eq=wearing(p),{bottom}=viewBand();
   const c=document.createElement("div");c.id="crawlCam";c.className="crawlcam";c.setAttribute("aria-hidden","true");
   c.style.bottom=(innerHeight-bottom+12)+"px";
-  c.innerHTML=`<div class="cc-av"><div class="print">${avatarSVG(Object.assign({},eq,{look:p.look},activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{},mood||myMood()))}</div><span class="camtag"><i>●</i> Crawler cam</span></div>`;
+  c.innerHTML=`<div class="cc-av"><div class="print">${avatarSVG(Object.assign({},eq,{look:p.look},rcLook(p),activePet(p)?{pet:activePet(p).key,petSulk:petSulking(p)}:{},mood||myMood()))}</div><span class="camtag"><i>●</i> Crawler cam</span></div>`;
   document.body.appendChild(c);void c.offsetWidth;c.classList.add("in");
   setTimeout(()=>{if(c.isConnected)camOut();},6000);return true;
 }
@@ -12222,6 +12354,7 @@ function setupForm(){
   const read=()=>{const rec=readRec(),hab=!!rec&&$("q-habit").checked;
     return {title:$("q-title").value.trim(),effort:hab?1:+f.querySelector("input[name=effort]:checked").value,est:+$("q-est").value,stat:$("q-stat").value,due:$("q-due").value||null,rec,habit:hab,habitAt:hab&&$("q-habitAt").value||null};};
   const upd=()=>{
+    if($("q-rep").value!=="none"&&$("q-habit").checked&&!estTouched&&!(lastGuess&&(lastGuess.estSure||lastGuess.estWord))&&$("q-est").value!=="5")$("q-est").value="5"; // habits are small: 5 minutes, unless the title named a time or a task with a known length ("floss")
     const q=read();const r=rewardFor(player,q,null);
     const v=$("q-rep").value;
     $("daysField").hidden=v!=="days";$("everyField").hidden=v!=="every";
@@ -12466,7 +12599,7 @@ function zoomMe(){
   const st=p.lastDoneDate===today()||p.lastDoneDate===addDays(today(),-1)?(p.streak||0):0;
   const stats=Object.keys(STATS).map(k=>`<div class="zstat"><span>${STATS[k].n}</span><b>Lv ${lvlOf(p,k)}</b>${zbar(statProg((p.stats||{})[k]||0))}</div>`).join("");
   const bon=[gx.xp?`+${Math.round(gx.xp*100)}% XP`:"",gx.dmg?`+${Math.round(gx.dmg*100)}% boss damage`:"",armorCut(p)?`overdue damage −${Math.round(armorCut(p)*100)}%`:"",gx.hp?`+${gx.hp} max HP`:"",gx.spd?`${Math.round(gx.spd*100)}% faster movement`:""].filter(Boolean);
-  zoomCard({kind:"me",title:p.name,titleHTML:esc(p.name)+skullsOf(mySkulls()),art:avatarSVG(Object.assign({},wearing(p),p.look?{look:p.look}:{},a?{pet:a.key,petSulk:petSulking()}:{},myMood())),
+  zoomCard({kind:"me",title:p.name,titleHTML:esc(p.name)+skullsOf(mySkulls()),art:avatarSVG(Object.assign({},wearing(p),p.look?{look:p.look}:{},rcLook(p),a?{pet:a.key,petSulk:petSulking()}:{},myMood())),
     sub:`${esc(titleFor(li.L))} · Level ${li.L}${R||K?` · ${[R,K].filter(Boolean).map(x=>esc(x.n)).join(" ")}`:""}`,
     tiles:[["HP",`${Math.round(p.hp)} / ${mx}`],["XP to next",`${li.need-li.into}`],["Gold",(p.gold||0).toLocaleString()],["Streak",st?`🔥 ${st} day${st===1?"":"s"}`:"–"],
       ["Floor",floorOf()],["Quests done",(p.doneCount||0).toLocaleString()],["Bosses slain",C(p,"bossKills")],["Crawler kills",`${C(p,"rivalKills")} ☠ · ${C(p,"rivalKOs")} 💫`]],
@@ -12639,7 +12772,7 @@ function myCard(){
   return {name:partyName(),lvl:L,title:titleFor(L),floor:floorOf(),streak,
     look:player.look?JSON.parse(JSON.stringify(player.look)):null,wear,pet:a?a.key:null,days:Object.assign({},pt.days||{}),
     hb:habitSummary(),wk:pt.wk,wkDmg:pt.wkDmg||0,chg:pt.chg||0,rb:player.rbase||{},rwin:Object.keys(player.praid||{}).slice(-4),rk:player.boss&&player.boss.week?{wk:player.boss.week,s:player.boss.total||0,f:player.boss.floor||1}:null,pwk:pt.pwk||null,pwkDmg:pt.pwkDmg||0,rvl:player.rival?{id:player.rival.id,n:player.rival.n,hp:player.rival.hp,max:player.rival.max,psy:!!player.rival.psy,sp:rvSpellRoom(player.rival),spc:rvCastsLeft(player.rival)}:null,asp:player.asSp||null,
-    rvDone:player.rvDone||null,win:(()=>{myMood();return ui.winAt&&Date.now()-ui.winAt<10*6e4?ui.winAt+10*6e4:null;})(),as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,ch:player.chant===today()?today():null,mm:player.mm&&Date.now()-player.mm.at<3*864e5?player.mm:null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
+    rvDone:player.rvDone||null,win:(()=>{myMood();return ui.winAt&&Date.now()-ui.winAt<10*6e4?ui.winAt+10*6e4:null;})(),as:player.assist||null,sk:mySkulls(),qt:qtCard(),joined:(player.party&&player.party.joined)||Date.now(),seen:today(),cls:player.cls||null,race:player.race||null,ch:player.chant===today()?today():null,mm:player.mm&&Date.now()-player.mm.at<3*864e5?player.mm:null,own:(player.owned||[]).filter(id=>ITEMS.some(i=>i.id===id)).slice(0,120),pot:player.potions||0,
     ...(()=>{let r=null;try{r=rfState();}catch(e){}return r?{rw:r.wk,rpos:r.pos,rtgt:r.tgt==null?null:r.tgt,rv:(r.rv||[]).slice(0,49),rally:r.rally&&r.rally.wk===r.wk?r.rally:null}:{};})()};
 }
 function cardOf(uid){if(!party)return null;return uid===myUid()?myCard():party.cards[uid]||null;}
@@ -13009,7 +13142,7 @@ function partyFromLink(){
 /* ---------- Drawing ---------- */
 function ago(ms){const m=Math.round((Date.now()-ms)/6e4);return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":Math.round(m/1440)+"d ago";}
 function miniAvatar(c){
-  const eq=Object.assign({scene:avScene()},c.wear||{},c.look?{look:c.look}:{},c.pet&&PETS[c.pet]?{pet:c.pet}:{},c.win&&c.win>Date.now()?{pose:"victory",expr:"happy"}:{});
+  const eq=Object.assign({scene:avScene()},c.wear||{},c.look?{look:c.look}:{},rcLook(c),c.pet&&PETS[c.pet]?{pet:c.pet}:{},c.win&&c.win>Date.now()?{pose:"victory",expr:"happy"}:{});
   const k=JSON.stringify(eq);let v=avCache.get(k);
   if(!v){try{v=avatarSVG(eq);}catch(e){v="";}avCache.set(k,v);if(avCache.size>40)avCache.delete(avCache.keys().next().value);}
   return v;
@@ -13242,8 +13375,8 @@ function raidFloorHTML(){
   if(rally){const [x,y]=cxy(rally.cell);s+=`<g pointer-events="none"><path d="M${x+6} ${y-18} L${x+6} ${y-2}" stroke="${K}" stroke-width="2"/><path d="M${x+6} ${y-18} L${x+17} ${y-14} L${x+6} ${y-10} Z" fill="#ffd23f" stroke="${K}" stroke-width="1.4"/></g>`;}
   const at={};[{uid:me,pos:r.pos,name:partyName()}].concat(crew).forEach(c=>{(at[c.pos]=at[c.pos]||[]).push(c);});
   for(const [cell,list] of Object.entries(at)){const [x,y]=cxy(+cell);list.forEach((c,j)=>{const ox=(j-(list.length-1)/2)*11,oy=list.length>1?5:3;
-    const cd=c.uid===me?{wear:wearing(player),look:player.look}:(party&&party.cards&&party.cards[c.uid])||{};
-    s+=`<g pointer-events="none">${headToken(Object.assign({},cd.wear||{},cd.look?{look:cd.look}:{}),x+ox,y+oy,c.uid===me?10:9,rfColor(c.uid),"rf"+cell+"_"+j)}</g>`;});}
+    const cd=c.uid===me?{wear:wearing(player),look:player.look,race:player.race||null,cls:player.cls||null}:(party&&party.cards&&party.cards[c.uid])||{};
+    s+=`<g pointer-events="none">${headToken(Object.assign({},cd.wear||{},cd.look?{look:cd.look}:{},rcLook(cd)),x+ox,y+oy,c.uid===me?10:9,rfColor(c.uid),"rf"+cell+"_"+j)}</g>`;});}
   s+=`</svg>`;
   const steps=path?path.length-1:null,mates=rfRoommates(),au=auraFx();
   const near=crew.map(c=>({c,d:(rfPath(adj,r.pos,c.pos)||[]).length-1})).filter(x=>x.d>0).sort((a,b)=>a.d-b.d)[0];
