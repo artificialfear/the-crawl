@@ -4355,7 +4355,10 @@ function rvMood(rv){let h=0;for(const ch of String(rv.n||""))h=(h*31+ch.charCode
   if(rv.psy){pose="ready";expr="unhinged";}
   if(rv.hp!=null&&rv.max){const f=rv.hp/rv.max;if(f<.2){pose="hurt";expr="hurt";}else if(f<.5&&!rv.psy)expr="angry";}
   return {pose,expr};}
-function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n)},rvMood(rv)),{psy:!!(rv&&rv.psy),name:rv.n,plate:plate?rv.n:null});}catch(e){return "";}}
+/* A rival's race, seeded by name: about 1 in 5 stays human, the rest get one of the 9 races (look only, no stats). */
+function rvRace(n){const r=srand("rvrace|"+n);return r()<.2?"human":RACES[Math.floor(r()*RACES.length)].id;}
+const rvRaceName=n=>(RACE_ALL.find(x=>x.id===rvRace(n))||HUMAN).n;
+function rvAvatar(rv,plate){try{return inkCard(Object.assign({},rvGear(rv.n),{look:rvLook(rv.n),race:rvRace(rv.n)},rvMood(rv)),{psy:!!(rv&&rv.psy),name:rv.n,plate:plate?rv.n:null});}catch(e){return "";}}
 const rvHit=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((6+3*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvNight=()=>{const fl=floorOf(),psy=player.rival&&player.rival.psy;return Math.round((10+4*fl)*(1-armorCut(player))*(psy?1.25:1));};
 const rvBribe=()=>30+15*floorOf();
@@ -4518,7 +4521,7 @@ function renderRivalAlert(){
   el.innerHTML=`<div class="rvalert${rv.psy?" psy":""}" role="status" aria-live="polite">
     <div class="rv-av zoomable" id="rvAv" role="button" tabindex="0" aria-label="${esc(rv.n)} up close">${rvAvatar(rv)}</div>
     <div class="rv-body"><div class="ma-k">${rv.psy?"☠ Psycho crawler":"⚔ Rival crawler"}${rv.rematch?" · Rematch":""}</div>
-      <div class="rv-n"><b>${esc(rv.n)}</b> <span class="muted">the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board</span></div>
+      <div class="rv-n"><b>${esc(rv.n)}</b> <span class="muted">${esc(rvRaceName(rv.n))} · the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board</span></div>
       <div class="mobhp"><div class="bar"><b style="width:${Math.round(rv.hp/rv.max*100)}%"></b></div><span class="num">${rv.hp}/${rv.max} HP</span></div>
       <div class="rv-tip">Each quest you finish hits them. They hit back for <b>${rvHit()} HP</b> a quest and <b>${rvNight()} HP</b> overnight${rv.nights?"":" (they won't knock you out tonight)"}. ${(player.boxes||[]).length?`If they knock you out, they'll grab one of your <b>${player.boxes.length} unopened loot box${player.boxes.length===1?"":"es"}</b>. Open them in the Safe Room to keep them safe.`:"If they knock you out, they steal a spare item from your backpack."}${it?` They're carrying your <b>${esc(it.n)}</b>: win to get it back.`:""}${(rv.boxes||[]).length?` They're carrying your unopened <b>${esc(BOXES[rv.boxes[0].tier].n)}</b>${rv.boxes.length>1?` and ${rv.boxes.length-1} more`:""}: win to get ${rv.boxes.length>1?"them":"it"} back.`:""}</div>
       ${rv.psy?`<div class="rv-psy">This one won't take a bribe, and running or a shrine only buys you a day. You'll have to kill them.</div>`:""}
@@ -11606,6 +11609,7 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.21.1",d:"2026-10-19",t:"Rivals of every race",items:["Rival crawlers now come in every race, from goblins to skeletons (about 1 in 5 is still human). Their race shows next to their name and on their tarot card. It's looks only: their stats haven't changed."]},
   {v:"3.21.0",d:"2026-10-19",t:"You become your race",items:["Your race now changes how you look, for good. Goblins go green with big ears and a long nose, Half-Ogres get tusks, Mushroom Folk grow a spotted cap instead of hair, Lantern Elves glow, Rat-Kin get round ears, whiskers and a tail, Clockwork Golems turn brass with rivets and a wind-up key, Imps go red with horns and a tail, Bog Trolls get tusks and warts, and Hollows are skeletons. Your hair, face, outfit and gear stay yours.",
     "Your Skin choice now picks a shade within your race's colours (Change look → Skin). Mushroom Folk pick a cap colour instead of a hair colour.",
     "Your class shows as a sash across your chest with a medallion for your class, so your crew can tell what you are at a glance.",
@@ -12692,7 +12696,7 @@ function zoomCrewRival(uid){
   const c=party&&party.cards[uid];if(!c||!c.rvl)return;const rv=c.rvl,g=rvGear(rv.n),i=rvIdx(rv.n),cls=(RIVALS[i]||[])[1]||"Crawler";
   const helping=player.helping&&player.helping.to===uid&&player.helping.rid===rv.id,mine=player.assist&&player.assist.rid===rv.id?player.assist.dmg||0:0;
   const fl=c.floor||1;
-  zoomCard({kind:"rival",title:rv.n,art:rvAvatar({n:rv.n,psy:rv.psy,hp:rv.hp,max:rv.max},true),sub:`the ${esc(cls)} · #${i+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""} · hunting <b>${esc(c.name||"your crewmate")}</b>`,
+  zoomCard({kind:"rival",title:rv.n,art:rvAvatar({n:rv.n,psy:rv.psy,hp:rv.hp,max:rv.max},true),sub:`${esc(rvRaceName(rv.n))} · the ${esc(cls)} · #${i+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""} · hunting <b>${esc(c.name||"your crewmate")}</b>`,
     tiles:[["HP",`${rv.hp} / ${rv.max}`],["Your help",helping||mine?`${mine.toLocaleString()} dmg`:"–"],["Hits them for",`~${Math.round((6+3*fl)*(rv.psy?1.25:1))} / quest`],["Overnight",`~${Math.round((10+4*fl)*(rv.psy?1.25:1))} HP`]],
     body:`${zbar(rv.hp/rv.max,"rvbar")}
       <div class="label">Wearing</div><div class="zgear">${Object.values(g).map(id=>{const it=itemOf(id);return it?`<span class="rar-${it.rar}">${esc(it.n)}</span>`:"";}).join(" · ")||"Rags"}</div>
@@ -12702,7 +12706,7 @@ function zoomCrewRival(uid){
 /* The rival crawler on your heels */
 function zoomRival(){
   const rv=player.rival;if(!rv)return;const g=rvGear(rv.n),it=rv.item&&itemOf(rv.item);
-  zoomCard({kind:"rival",title:rv.n,art:rvAvatar(rv,true),sub:`the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""}`,
+  zoomCard({kind:"rival",title:rv.n,art:rvAvatar(rv,true),sub:`${esc(rvRaceName(rv.n))} · the ${esc(rv.c)} · #${rvIdx(rv.n)+1} on the board${rv.psy?" · <b style='color:#ff5a6a'>psycho</b>":""}`,
     tiles:[["HP",`${rv.hp} / ${rv.max}`],["Hits you for",`${rvHit()} / quest`],["Overnight",`${rvNight()} HP`],["Purse",`${rv.purse}g`]],
     body:`${zbar(rv.hp/rv.max,"rvbar")}
       <div class="label">Wearing</div><div class="zgear">${Object.entries(g).map(([s,id])=>{const i=itemOf(id);return i?`<span class="rar-${i.rar}">${esc(i.n)}</span>`:"";}).join(" · ")||"Rags"}</div>

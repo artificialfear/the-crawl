@@ -2,16 +2,16 @@
 
 Read this first. Everything needed to keep building lives in this repo.
 
-## Latest session (2026-10-19, v3.21.0)
-- **State:** v3.21.0 live, smoke 89/0. Nothing half-finished.
-- **Built:** race looks, class sashes, the Human option, habit default 5 min (details under "Race and class looks" below).
+## Latest session (2026-10-19, v3.21.1)
+- **State:** v3.21.1 live, smoke 90/0. Nothing half-finished.
+- **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1) (details under "Race and class looks" below).
 - **Decisions:** full race transformation (skin range + features; hair, face style, outfit and gear stay the player's); class = one sash + medallion (not a full outfit); Human = always-on 4th card, +1 to two chosen stats, Adaptable quirk, keeps the built look.
 - **Rules:** ask about the changelog before every change; nothing from Dungeon Crawler Carl; browser test + `python3 tests/smoke.py` (0 failed) before every push; after deploys tell Mat to tap Refresh or reopen the app; never ask for the FIREBASE_SA key; no reused player.* names, register side-tab renderers in PANE_FNS, unique animation names.
 - **Open items:**
   1. Calibrate `RAID2.mul` (0.55). The first reworked boss arrived Mon Oct 19 (sized from the previous week's floor damage, which was earned under the old Charge rules); get the kill day and numbers from the raid close-up. Adjust in small steps.
   2. The flying damage number on a finished quest card is an estimate (no gear/class/theme bonuses) and doesn't match boss damage; offered to fix, no answer yet.
   3. Habit reminders need the push job's next green run.
-  4. Ideas not built: rival crawlers are always drawn human (could get seeded races); the selection booth lives on the Hero tab on phones.
+  4. Note: the selection booth lives on the Hero tab on phones.
 
 ## Layout
 - `src/crawl.html`: the single source for the whole app (HTML, CSS, JS in one file). **Edit this, never `index.html`.**
@@ -250,3 +250,4 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Class: `CLASS_LOOK` (sash colour), `classIcon`, `classSash` (right shoulder to left hip, clipped to the torso, so it crosses bandoliers rather than hiding under them; medallion at 166,182). Weapons held across the chest still draw over it.
 - Look editor: the Skin row shows the race's shades; Mushroom Folk get "Cap colour" instead of hair options.
 - Habit default: the add form sets 5 min when Habit is picked, unless the title named a time (`estSure`) or a known task word (`TIME_WORDS`, `g.estWord`).
+- Rivals (v3.21.1): `rvRace(name)` seeds a race (about 20% human), looks only, no stats; `rvRaceName` shows it before "the <class>" on the rival panel and close-ups; `rvAvatar` passes it to the ink card.

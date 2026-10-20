@@ -429,6 +429,9 @@ def main():
             check("avatar: race and class change the drawing", diff)
             E(pg, "player.cls='bard'")
             check("party card carries race and class", E(pg, "(()=>{const c=myCard();return c.race==='human'&&c.cls==='bard'})()"))
+            rv = E(pg, """(()=>{const seen=new Set();let bad='';for(let i=0;i<300;i++){const n='R'+i,r=rvRace(n);if(r!==rvRace(n))bad='unstable';seen.add(r);
+              if(seen.size>bad.length&&!rvAvatar({n,hp:1,max:2}).includes('</svg>'))bad='no art '+r;}return bad||seen.size})()""")
+            check("rivals: seeded races, all 10 appear, every card draws", rv == 10, rv)
             check("booth: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
