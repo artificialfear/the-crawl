@@ -507,6 +507,17 @@ details summary::-webkit-details-marker{display:none}
 .rules b{color:var(--fg)}
 
 /* Toasts */
+.holdpill{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top,0px));z-index:30;display:flex;align-items:stretch;
+  background:var(--panel-2);border:1px solid var(--gold);border-radius:999px;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 8px 24px #000a;animation:rise .25s ease;max-width:calc(100% - 32px)}
+.holdpill button{background:none;border:0;color:var(--fg);font:inherit;font-size:14px;cursor:pointer;min-height:40px}
+.holdpill .hp-open{padding:6px 6px 6px 14px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.holdpill .hp-open b{color:var(--gold)}
+.holdpill .hp-ach{font-size:12px;color:var(--gold);border:1px solid var(--line-2);border-radius:999px;padding:1px 7px}
+.holdpill .hp-x{padding:6px 14px 6px 10px;color:var(--muted);border-left:1px solid var(--line-2)}
+.holdpill button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;border-radius:999px}
+#holdWrap .hist-item{display:flex;flex-direction:column;gap:8px}
+#holdWrap .hold-act{align-self:flex-start}
+#holdWrap .rep-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(50px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:10;width:min(420px,calc(100% - 32px));max-height:calc(100vh - 170px);overflow-y:auto;overscroll-behavior:contain}
 .toast{background:var(--panel-2);border:1px solid var(--line-2);border-radius:var(--r);padding:12px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;box-shadow:0 10px 30px #0008;animation:rise .25s ease}
 .toast.lvl{background:var(--gold);color:var(--gold-ink);font-weight:600;box-shadow:inset 0 0 0 3px var(--gold),inset 0 0 0 4px var(--gold-ink),0 10px 30px #0009}
@@ -2021,6 +2032,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Accuracy bonus</b>: +15% when the time you enter lands within 20% under or 25% over your estimate. Tapping Complete claims at your estimate: quick, but no bonus and it doesn't count toward your accuracy history. For the bonus, use ⋯ → Complete with time taken and enter the real minutes.</div>
           <div><b>Streak</b>: +5% for each consecutive day you complete a quest, up to +25%.</div>
           <div><b>Damage</b>: every morning each overdue quest hits you for 2× its threat (Trash mob 4 up to Raid boss 24 HP), growing 25% for each extra day overdue (up to 2.5×). Armor and other damage cuts count fully up to 30%, then at half value, capped at 60%. Hit 0 HP and you're knocked out: you drop a fifth of your gold and lose your streak.</div>
+          <div><b>Quiet start</b>: when you open the app (or come back after 20 minutes away), news, offers and achievements wait in a small 📬 pill at the top instead of popping up over everything. The same happens while you're typing a new quest. Tap the pill to read them all at once, or ✕ to put them away: they stay in 🔔 history, and achievements go to 🏆 for later.</div>
           <div><b>When the day ends</b>: at 3 a.m., not midnight. A quest you finish at 1 a.m. counts for the day before, so due dates, streaks, routines, habits and daily limits all wait until 3. Overdue damage, the daily boards and a new floor arrive after 3 a.m. too.</div>
           <div><b>Floors</b>: each week is a new floor, explored one room per finished quest on the Floor map. From the week of Oct 12, each floor hides 3 to 6 bosses (Neighborhood, Borough, City, Province, Country, plus the Floor boss at the stairwell) in lairs off the corridor. Small ones tend to be near the entrance, but anything can turn up anywhere, and nobody tells you how many there are. Find a lair and choose: fight now, or mark it and come back later. While you're not in a fight, each quest's damage is stored as ⚡ Charge, and walking into a lair unleashes it all at once. Once you're in a fight, every quest hits that boss until it falls or you retreat. Some floors have a boss that roams instead of keeping a lair, and it finds you. Bosses are optional: they hold the loot (Bronze, Bronze, Silver, Silver, Gold, Legendary), and leaving them costs nothing. Overdue quests wound you, and heal the boss you're fighting. At 0 HP you're knocked out: streak lost, a fifth of your gold dropped.</div>
           <div><b>Stats</b> level up from the quests you assign them. Each level above 1 adds: Strength +2% boss damage (max 30%), Intelligence +1% XP (max 15%), Constitution +5 max HP (max 75), Dexterity a 2% wider accuracy window on each side (max 20%), Charisma +2% gold and more viewers (max 30%).</div>
@@ -7462,7 +7474,7 @@ const bossLash=floor=>4+2*(floor||1);
 function mobBite(p,floor){if(petFx(p).ability==="gargoyle")return 0;return (p.mobs||[]).reduce((a,mb)=>a+(mb.pack?6+floor*2:3+floor),0);}
 function afterLoad(){
   if(loadedP&&loadedT&&!ticked&&playerExists){
-    ticked=true;const c=ensureBoss();dailyTick(c);
+    ticked=true;holdFor(HOLD_OPEN_MS);const c=ensureBoss();dailyTick(c);
     if(poisonTick()){store.savePlayer(player).catch(writeFailed);render();}
     if(manaTick())render();
     {const f=mobUpkeep();if(f.length){store.savePlayer(player).catch(writeFailed);render();setTimeout(()=>toast(f.map(esc).join("<br>")),1200);}}
@@ -11615,6 +11627,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.23.0",d:"2026-10-23",t:"Quiet start",items:["Opening the app no longer buries the screen in popups. For the first few seconds after you open it, or come back after 20+ minutes away, news, offers and achievements wait in one small 📬 pill at the top. The quest box stays clear so you can add something right away.",
+    "Tap the pill to read everything on one sheet (buttons like Go and See offer still work there), or tap ✕ to put it all away. Everything stays in 🔔 history, and achievements you put away go to 🏆 to read later.",
+    "Popups also wait while you're typing a new quest, so nothing covers the box mid-sentence."]},
   {v:"3.22.0",d:"2026-10-23",t:"The day ends at 3 a.m.",items:["Your day now ends at 3 a.m. instead of midnight. Anything you finish before 3 counts for the day before, so a 1 a.m. quest still makes today's due date, keeps your streak and checks off today's routines and habits.",
     "Everything else moves with it: overdue damage, sheltering, the kitchen buff, daily bounties and the stairwell all switch over at 3 a.m. (floors now change Monday at 3 a.m.).",
     "Habits used to roll over at 4 a.m. They now roll over at 3 with everything else.",
@@ -12200,12 +12215,53 @@ function beatNext(){
 }
 /* toast() escapes plain-text kinds; toastH() is for messages built with markup whose dynamic parts are already escaped. */
 const toastH=(html,kind,undo,label)=>toast(html,kind,undo,label,true);
+/* ---------- Quiet start (v3.23.0) ----------
+   Popups that turn up while the app is opening (or coming back after 20+ minutes away), or while you're typing a
+   new quest, wait in one small pill at the top instead of covering the screen. Tap it to read them all on one sheet;
+   ✕ puts them away (they're all in 🔔 history, and achievements go to 🏆 to read later). */
+var HOLD={until:0,q:[],hidAt:0},HOLD_OPEN_MS=9000,HOLD_AWAY_MS=20*6e4; // var: toast() may run before this line is reached
+function typingQuest(){const i=document.getElementById("q-title");return !!(i&&document.activeElement===i&&i.value.trim());}
+function holdOn(){return !!HOLD&&(Date.now()<HOLD.until||typingQuest());}
+function holdFor(ms){if(HOLD)HOLD.until=Math.max(HOLD.until,Date.now()+ms);}
+holdFor(HOLD_OPEN_MS+6000); // from the first line of script: covers loading the save, then the daily tick extends it
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")HOLD.hidAt=Date.now();
+  else if(HOLD.hidAt&&Date.now()-HOLD.hidAt>=HOLD_AWAY_MS)holdFor(HOLD_OPEN_MS);});
+function holdPill(){
+  let p=document.getElementById("holdPill");const n=HOLD.q.length;
+  if(!n){if(p)p.remove();return;}
+  if(!p){p=document.createElement("div");p.id="holdPill";p.className="holdpill";p.setAttribute("role","status");document.body.appendChild(p);
+    p.addEventListener("click",e=>{if(e.target.closest("[data-hpx]"))holdDismiss();else openHoldSheet();});}
+  const a=HOLD.q.filter(x=>x.k==="ach").length;
+  p.innerHTML=`<button type="button" class="hp-open" aria-label="Show ${n} update${n===1?"":"s"}"><span aria-hidden="true">📬</span> <b class="num">${n}</b> update${n===1?"":"s"}${a?` <span class="hp-ach">🏆 ${a}</span>`:""}</button><button type="button" class="hp-x" data-hpx aria-label="Put them away">✕</button>`;
+}
+/* ✕: achievements go to the 🏆 later pile, everything else is already in 🔔 history. */
+function holdDismiss(){
+  const ids=HOLD.q.filter(x=>x.k==="ach").flatMap(x=>x.ids||[]);HOLD.q=[];holdPill();
+  if(ids.length&&player){player.achLater=[...new Set((player.achLater||[]).concat(ids))].slice(-60);store.savePlayer(player).catch(writeFailed);renderAchInbox();}
+}
+function openHoldSheet(){
+  const items=HOLD.q.slice();HOLD.q=[];holdPill();if(!items.length)return;
+  const ov=document.createElement("div");ov.className="hbwrap";ov.id="holdWrap";
+  ov.innerHTML=`<div class="hbdlg histdlg" role="dialog" aria-modal="true" aria-label="While you were away"><div class="hbhead"><span class="hist-ic" aria-hidden="true">📬</span><div><b>While you were away</b><span>${items.length} update${items.length===1?"":"s"}. They're also in 🔔 history.</span></div><button class="btn ghost sm" type="button" data-hx aria-label="Close">✕</button></div>
+    <div class="hist-list">${items.map((e,i)=>`<div class="hist-item k-${esc(e.k||"note")}" data-hi="${i}"><div>${e.h}</div>${e.fn?`<button class="btn sm hold-act" type="button" data-hact="${i}">${esc(e.lb||"Undo")}</button>`:""}</div>`).join("")}</div>
+    <div class="rep-foot">${items.some(e=>e.k==="ach")?`<button class="btn ghost sm" type="button" data-hlater>Save achievements for later</button>`:""}<button class="btn gold" type="button" data-hx>Done</button></div></div>`;
+  document.body.appendChild(ov);
+  const close=()=>{ov.remove();document.removeEventListener("keydown",onKey);};
+  const onKey=e=>{if(e.key==="Escape")close();};document.addEventListener("keydown",onKey);
+  ov.addEventListener("click",e=>{
+    const act=e.target.closest("[data-hact]");
+    if(act){const it=items[+act.dataset.hact];close();try{it.fn();}catch(err){console.error(err);}return;}
+    if(e.target.closest("[data-hlater]")){HOLD.q=items.filter(x=>x.k==="ach");holdDismiss();close();return;}
+    if(e.target===ov||e.target.closest("[data-hx]"))close();});
+  const d=ov.querySelector(".rep-foot [data-hx]");if(d)d.focus({preventScroll:true});
+}
 function toast(html,kind,undo,label,raw){
   const body=raw||["lvl","ach","quest"].includes(kind)?html:esc(html);
   // While a quest report is open, news becomes a line in it instead of a popup that flies past.
   if(REP.el&&kind!=="ach"){repLine(body,kind,undo,label);return null;}
   // News that turns up while a quest's show is starting waits and becomes a line in its report, instead of covering the fight.
   if(REP.pend&&kind!=="ach"&&Date.now()-STAGE.on<9000){REP.pend.push([body,kind,undo,label]);return null;}
+  if(kind!=="ach"&&holdOn()){histAdd(kind,body);HOLD.q.push({h:body,k:kind||"",fn:undo||null,lb:label||""});holdPill();return null;}
   if(kind!=="ach")histAdd(kind,body);
   const el=document.createElement("div");el.className="toast "+(kind||"");
   el.innerHTML=`<span>${body}</span>`;
@@ -12310,6 +12366,7 @@ const ACHQ=[];
 function achToast(html,ids,snd=true){
   if(REP.el){REP.ach.push({html,ids,snd:true});return;} // shown (with its sound) after the quest report closes
   histAdd("ach",html);
+  if(holdOn()){HOLD.q.push({h:html,k:"ach",ids:ids||[]});holdPill();return;}
   if(document.querySelector(".toast.ach")){ACHQ.push({html,ids,snd});achMore();return;}
   achShow(html,ids,snd);
 }

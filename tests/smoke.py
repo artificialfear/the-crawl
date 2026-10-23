@@ -28,7 +28,7 @@ SETUP = r"""()=>{const E=__ev;document.querySelectorAll('.signin').forEach(n=>n.
  E("player=normPlayer(window.__P);playerExists=true;loadedP=true;loadedT=true;");
  const T=[["Write the quarterly report",3,45,"INT",-1],["Water the plants",1,5,"CON",0],["Call the dentist",1,10,"CHA",0],["Practice scales 30m",2,30,"DEX",1],["Clean the garage",4,120,"STR",2],["Grade 7th grade quizzes",3,60,"INT",1],["Email the band boosters",2,15,"CHA",3],["Fix the bike tire",2,30,"STR",null]];
  window.__T=T.map((t,i)=>({id:'t'+i,title:t[0],effort:t[1],est:t[2],stat:t[3],due:t[4]==null?null:add(td,t[4]),done:false,created:Date.now()-i*1000}));
- E("tasks=window.__T");E("initPanelFolds()");E("render()");}"""
+ E("tasks=window.__T");E("initPanelFolds()");E("render()");E("HOLD.until=0;HOLD.q=[];holdPill()");}"""
 
 FAKE_FS = r"""window.F={cbs:{},opts:{},writes:[]};window.firebase=window.firebase||{};firebase.firestore=firebase.firestore||{};
  firebase.firestore.FieldValue={serverTimestamp:()=>'TS'};
@@ -378,6 +378,23 @@ def main():
             btn = pg.locator("#board .quest [data-done]").nth(3); btn.evaluate("e=>e.scrollIntoView({block:'center'})"); pg.wait_for_timeout(300)
             bx = btn.bounding_box(); pg.mouse.click(bx["x"]+bx["width"]/2, bx["y"]+bx["height"]/2, delay=150); pg.wait_for_timeout(600)
             check("add box: a slow click on ✓ after adding a quest counts the first time", E(pg, "tasks.filter(t=>t.done).length") > n0 and not errs, "; ".join(errs[:2]))
+            pg.close()
+
+            # ---- quiet start: popups on open and while typing a quest wait in one pill; ✕ files achievements for later ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            qs = E(pg, """(()=>{holdFor(9000);toast('Opening news','lvl',()=>setTab('hero'),'Go');achToast('<b>Held one</b>',['first'],false);
+              const r=[document.querySelectorAll('#toasts .toast').length,HOLD.q.length,!!document.getElementById('holdPill')];
+              openHoldSheet();r.push(document.querySelectorAll('#holdWrap .hist-item').length,!!document.querySelector('#holdWrap [data-hact]'),!document.getElementById('holdPill'));
+              document.getElementById('holdWrap').remove();return r.join(',')})()""")
+            check("quiet start: popups wait in the pill, the sheet shows them with their buttons", qs == "0,2,true,2,true,true", qs)
+            E(pg, "HOLD.until=0;setTab('quests');render()"); pg.click('#q-title'); pg.keyboard.type('buy milk')
+            ty = E(pg, "(()=>{const a0=(player.achLater||[]).length;toast('While typing');achToast('<b>Held two</b>',['streak3'],false);const r=[document.querySelectorAll('#toasts .toast').length,HOLD.q.length];holdDismiss();r.push((player.achLater||[]).length-a0,HOLD.q.length,!document.getElementById('holdPill'));return r.join(',')})()")
+            tp = ty.split(",")
+            check("quiet start: typing a quest holds popups; ✕ files achievements for later", tp[0] == "0" and int(tp[1]) >= 2 and tp[2:] == ["1", "0", "true"], ty)
+            E(pg, "$('q-title').value='';$('q-title').blur();toast('Back to normal')")
+            check("quiet start: popups show again once the hold is over", E(pg, "document.querySelectorAll('#toasts .toast').length") >= 1)
+            check("quiet start: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
             # ---- the day ends at 3 a.m.: a 1:30 a.m. quest counts for the day before; 3:30 a.m. is the next day ----
