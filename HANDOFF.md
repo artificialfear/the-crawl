@@ -3,7 +3,7 @@
 Read this first. Everything needed to keep building lives in this repo.
 
 ## Latest session (2026-10-23, v3.22.0)
-- **State:** v3.22.0 live, smoke 93/0. Nothing half-finished.
+- **State:** v3.22.0 live, smoke 92/0. Nothing half-finished.
 - **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1), the day ends at 3 a.m. (v3.22.0) (details under "Race and class looks" below).
 - **Decisions:** full race transformation (skin range + features; hair, face style, outfit and gear stay the player's); class = one sash + medallion (not a full outfit); Human = always-on 4th card, +1 to two chosen stats, Adaptable quirk, keeps the built look.
 - **Rules:** ask about the changelog before every change; nothing from Dungeon Crawler Carl; browser test + `python3 tests/smoke.py` (0 failed) before every push; after deploys tell Mat to tap Refresh or reopen the app; never ask for the FIREBASE_SA key; no reused player.* names, register side-tab renderers in PANE_FNS, unique animation names.
