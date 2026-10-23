@@ -32,6 +32,12 @@ export function localNow(tz, now = new Date()) {
   return { date: `${g("year")}-${g("month")}-${g("day")}`, hour: +g("hour") % 24, minute: +g("minute") || 0 };
 }
 
+// The crawl's day ends at 3 a.m., not midnight (must match DAY_END_H in src/crawl.html): "today" is the crawl day,
+// and clock times are compared on the crawl day's clock, so 1 a.m. comes after 11 p.m.
+export const DAY_END_H = 3;
+export const crawlDate = (tz, now = new Date()) => localNow(tz, new Date(now.getTime() - DAY_END_H * 3600e3)).date;
+const dayMin = m => (m - DAY_END_H * 60 + 1440) % 1440;
+
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 
 // What tonight's reminder says, or null when there's nothing worth a buzz.
@@ -44,7 +50,7 @@ export function eveningMessage(player, tasks, today) {
   if (overdue.length) bits.push(`${plural(overdue.length, "overdue quest")} will hit you in the morning`);
   if (dueToday.length) bits.push(`${plural(dueToday.length, "quest")} due today`);
   const streak = player && player.streak || 0;
-  if (streak >= 2 && player.lastDoneDate && player.lastDoneDate < today) bits.push(`your ${streak}-day streak ends at midnight`);
+  if (streak >= 2 && player.lastDoneDate && player.lastDoneDate < today) bits.push(`your ${streak}-day streak ends at ${DAY_END_H} in the morning`);
   if (!bits.length) return null;
   const first = bits[0][0].toUpperCase() + bits[0].slice(1);
   return { title: "The Crawl", body: [first].concat(bits.slice(1)).join(" · ") + ". One quest fights back.", open: "quests", tag: "crawl-evening" };
@@ -54,11 +60,11 @@ export function eveningMessage(player, tasks, today) {
 // A habit is "open today" when its next turn is today or earlier (the app rolls missed turns forward when it's opened).
 export function habitMessages(tasks, date, hour, minute, sent) {
   const done = sent && sent.d === date ? sent.ids || [] : [];
-  const now = hour * 60 + minute, out = [];
+  const now = dayMin(hour * 60 + minute), out = [];
   for (const t of tasks || []) {
     if (!t || t.done || !t.habit || !t.rec || !t.habit.at || !t.due || t.due > date) continue;
     const [h, m] = String(t.habit.at).split(":").map(Number);
-    if (isNaN(h) || h * 60 + (m || 0) > now || done.includes(t.id)) continue;
+    if (isNaN(h) || dayMin(h * 60 + (m || 0)) > now || done.includes(t.id)) continue;
     const n = (t.chain || 0) + 1;
     out.push({ id: t.id, msg: { title: `Habit: ${String(t.title).slice(0, 60)}`, body: n > 1 ? `Make it ${n} in a row. Your habit creature is waiting.` : "Your habit egg is waiting for today's check-in.", open: "quests", tag: `crawl-habit-${t.id}` } });
   }
@@ -117,8 +123,8 @@ export async function run({ db, webpush, now = new Date(), log = console.log }) 
     let sub; try { sub = JSON.parse(d.sub); } catch (e) { continue; }
     const upd = {}, out = [];
     try {
-      const { date, hour, minute } = localNow(d.tz, now);
-      if (d.evening !== false && hour >= (d.hour ?? 19) && d.lastEvening !== date) {
+      const { hour, minute } = localNow(d.tz, now), date = crawlDate(d.tz, now);
+      if (d.evening !== false && dayMin(hour * 60) >= dayMin((d.hour ?? 19) * 60) && d.lastEvening !== date) {
         upd.lastEvening = date;
         const { player, tasks } = await loadPlayer(uid);
         const m = player && eveningMessage(player, tasks, date);

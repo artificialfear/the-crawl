@@ -380,6 +380,25 @@ def main():
             check("add box: a slow click on ✓ after adding a quest counts the first time", E(pg, "tasks.filter(t=>t.done).length") > n0 and not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- the day ends at 3 a.m.: a 1:30 a.m. quest counts for the day before; 3:30 a.m. is the next day ----
+            pg = b.new_page(viewport={"width": 390, "height": 844}); errs = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            pg.add_init_script("""(()=>{const _D=Date;let off=0;window.__shift=h=>{off+=h*36e5;};
+              class D extends _D{constructor(...a){if(a.length)super(...a);else super(_D.now()+off);}static now(){return _D.now()+off;}}window.Date=D;})()""")
+            pg.goto(url); pg.wait_for_timeout(2000); pg.evaluate(SETUP)
+            de = E(pg, """(()=>{const n=new Date();__shift(25.5-n.getHours()-n.getMinutes()/60);  // 1:30 a.m. tomorrow
+              $('toasts').style.display='none';prefs.showMode='quick';
+              const cal=iso(new Date()),td=today(),y=addDays(cal,-1);
+              addQuest({title:'Late night dishes',effort:2,est:15,stat:'STR',due:y,rec:null});const t=tasks.find(x=>x.title==='Late night dishes');
+              const late=isLate(t);player.lastDoneDate=addDays(y,-1);player.streak=4;completeQuest(t.id);
+              const r=[td===y,late,player.lastDoneDate===y,player.streak];
+              __shift(2);r.push(today()===cal);
+              const b={week:weekStart(y)};r.push(new Date(stairwellEnd(b)).getHours());return r.join(',')})()""")
+            check("day ends at 3 a.m.: 1:30 a.m. counts as the day before, not late, keeps the streak", de.startswith("true,false,true,5,true,"), de)
+            check("day ends at 3 a.m.: the stairwell closes at 3 a.m.", de.endswith(",3"), de)
+            check("day end: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- habits: x2 XP the first week at Trash mob damage, one slip forgiven, two break it, milestone box, never late ----
             pg = b.new_page(viewport={"width": 390, "height": 844}); errs = []
             pg.on("pageerror", lambda e: errs.append(str(e)))

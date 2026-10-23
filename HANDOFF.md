@@ -2,9 +2,9 @@
 
 Read this first. Everything needed to keep building lives in this repo.
 
-## Latest session (2026-10-19, v3.21.1)
-- **State:** v3.21.1 live, smoke 90/0. Nothing half-finished.
-- **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1) (details under "Race and class looks" below).
+## Latest session (2026-10-23, v3.22.0)
+- **State:** v3.22.0 live, smoke 93/0. Nothing half-finished.
+- **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1), the day ends at 3 a.m. (v3.22.0) (details under "Race and class looks" below).
 - **Decisions:** full race transformation (skin range + features; hair, face style, outfit and gear stay the player's); class = one sash + medallion (not a full outfit); Human = always-on 4th card, +1 to two chosen stats, Adaptable quirk, keeps the built look.
 - **Rules:** ask about the changelog before every change; nothing from Dungeon Crawler Carl; browser test + `python3 tests/smoke.py` (0 failed) before every push; after deploys tell Mat to tap Refresh or reopen the app; never ask for the FIREBASE_SA key; no reused player.* names, register side-tab renderers in PANE_FNS, unique animation names.
 - **Open items:**
@@ -251,3 +251,10 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Look editor: the Skin row shows the race's shades; Mushroom Folk get "Cap colour" instead of hair options.
 - Habit default: the add form sets 5 min when Habit is picked, unless the title named a time (`estSure`) or a known task word (`TIME_WORDS`, `g.estWord`).
 - Rivals (v3.21.1): `rvRace(name)` seeds a race (about 20% human), looks only, no stats; `rvRaceName` shows it before "the <class>" on the rival panel and close-ups; `rvAvatar` passes it to the ink card.
+
+## The day ends at 3 a.m. (v3.22.0)
+- `DAY_END_H=3` / `DAY_END_TXT` in crawl.html, and `DAY_END_H` in tools/push/send.mjs (keep them equal). `today()` = `dayOf(Date.now())`, so every `today()` caller (due dates, isLate, streaks, routines, dailyTick, bounties, shelter, kitchen, weekStart floors, raids, party days) follows it. `habitDay()` is now just `today()` (habits used to roll at 4 a.m.).
+- For a stored timestamp use `dayOf(ms)`, never `iso(new Date(ms))`. For when a crawl day begins use `dayStartMs(d)` (stairwellEnd, weekFrac, recap timings, partyBuffCalc), never `d+"T00:00:00"`.
+- Clock-hour features stay on the real clock on purpose (night achievement, Hollow/Monk/owl perks, ticker). Buzzer Beater is the last 10 minutes before DAY_END_H.
+- Push: `crawlDate(tz)` is the crawl date; `dayMin` compares clock times on the crawl day's clock (1 a.m. comes after 11 p.m.) for the evening and habit reminders.
+- It's one setting for everyone (Mat chose 3 a.m. for the whole party, so raid and floor weeks line up). A per-player setting would need a player field and party-week care.
