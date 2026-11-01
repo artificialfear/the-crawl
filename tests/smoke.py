@@ -240,7 +240,7 @@ def main():
             except Exception:
                 ok = False
             why = E(pg, "JSON.stringify(ui.lastShow)")
-            big = E(pg, "Object.values(ui.lastShow).some(Boolean)")  # the map can still roll a mob or a rival: that's a big moment
+            big = E(pg, "!!(ui.lastShow.lv||ui.lastShow.loot||ui.lastShow.rv||ui.lastShow.box||ui.lastShow.lair)")  # the map can still roll a mob or a rival: that's a big moment
             if big:
                 check("quest with a random big moment: full show", E(pg, "!!REP.el&&!REP.mini"), why)
             else:
@@ -367,6 +367,17 @@ def main():
                const r1=raidState('2026-10-19');C.a.rb={};C.b.rb={};const r2=raidState('2026-10-19');C.a.rwin=['2026-10-19'];const r3=raidState('2026-10-19');const old=raidState('2026-10-12');
                partyMembers=pm;cardOf=co;return [r1.hp,r2.hp,r3.dead,old.hp].join(',')})()""")
             check("raid rework: sized from last week, minimum, win sticks, old weeks unchanged", rs == "6600,6000,true,2400", rs)
+            tn = E(pg, """(()=>{const W='2026-11-02',N='2026-11-09';
+               const C={a:{days:{[W]:2,[N]:1},wk:N,wkDmg:0,pwk:W,pwkDmg:4000,rb:{[W]:7000,[N]:8000}},b:{days:{[W]:1,[N]:1},wk:N,wkDmg:0,pwk:W,pwkDmg:3000,rb:{[W]:5000,[N]:6000}}};
+               const pm=partyMembers,co=cardOf;partyMembers=()=>Object.keys(C);cardOf=u=>C[u];C.a.rmul={[W]:.55};
+               C.a.rft={[W]:dayStartMs(W)+2*864e5};const early=raidMul(N);            // fell Wednesday: tougher, capped at +20%
+               delete C.a.rft;C.a.pwkDmg=2000;C.b.pwkDmg=1000;const surv=raidMul(N);                                    // survived: easier, capped at -20%
+               C.b.rft={[W]:dayStartMs(W)+5.5*864e5};const sat=raidMul(N);             // fell Saturday midday: unchanged
+               C.b.rmul={[N]:.7};const pub=raidMul(N);                                  // a published value wins
+               const hp=raidState(N).hp,note=raidTuneNote(N);
+               const pre=raidMul('2026-10-26');delete C.b.rmul;delete C.b.rft;C.a.pwkDmg=4000;C.b.pwkDmg=3000;C.a.rwin=[W];const unk=raidMul(N);
+               partyMembers=pm;cardOf=co;return [early,surv,sat,pub,hp,/Saturday/.test(note),pre,unk].join(',')})()""")
+            check("raid auto-tune: early +20%, survived -20%, Saturday same, published wins, older weeks fixed, unknown kill time no change", tn == "0.66,0.44,0.55,0.7,9800,true,0.55,0.55", tn)
             pg.close()
 
             # ---- a slow click on a quest's ✓ right after adding a quest still counts (the add box folds after the click) ----
@@ -396,6 +407,30 @@ def main():
             check("voice: a question opens the board sheet instead of adding a quest", vq == f"true,{n0 - 1}", f"{vq} vs {n0 - 1}")
             check("voice: questions vs quests", E(pg, "[voiceIsQuestion(\"what's next\"),voiceIsQuestion('anything overdue?'),voiceIsQuestion('read chapter 5'),voiceIsQuestion('what habits are left')].join()") == "true,true,false,true")
             check("voice: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
+            # ---- v3.25.0: the card's damage number is the real hit; voice finish; shortcuts and sharing ----
+            pg, errs = page()
+            pg.evaluate(SETUP)
+            E(pg, "$('toasts').style.display='none';prefs.showMode='quick';player.owned.push('r8');player.equipped=Object.assign({},wearing(player),{ring:'r8'});setTab('quests');render()")
+            E(pg, "window.__nums=[];new MutationObserver(m=>m.forEach(r=>r.addedNodes.forEach(n=>{if(n.classList&&n.classList.contains('dmgnum'))__nums.push(n.textContent)}))).observe(document.body,{childList:true})")
+            btn = pg.locator("#board .quest [data-done]").first; btn.evaluate("e=>e.scrollIntoView({block:'center'})"); pg.wait_for_timeout(200)
+            btn.click(); pg.wait_for_timeout(700)
+            dn = E(pg, "[__nums[0],ui.lastHit&&ui.lastHit.dmg].join('|')")
+            check("quest card: the flying number is the real hit (gear included)", dn.split("|")[0] == "−" + dn.split("|")[1], dn)
+            vf = E(pg, """(()=>{closeReport&&closeReport();const t=tasks.find(x=>x.title==='Call the dentist');voiceHandle('I called the dentist');
+              const a=tasks.find(x=>x.id===t.id);const q=voiceDoneTarget('finish the slides');
+              const g=tasks.find(x=>x.title==='Clean the garage'),n0=tasks.filter(x=>x.done).length;
+              tasks.push({id:'zz1',title:'Clean the garage door',effort:2,est:15,stat:'STR',done:false,created:Date.now()});
+              voiceHandle('the garage is done');const asked=!!$('voiceWrap')&&document.querySelectorAll('#voiceWrap [data-vp]').length;
+              return [!!(a&&a.done),q===null,asked,tasks.filter(x=>x.done).length===n0].join(',')})()""")
+            check("voice finish: clear match finishes, 'finish X' stays a new quest, a close call asks which", vf == "true,true,2,true", vf)
+            E(pg, "$('voiceWrap')&&$('voiceWrap').remove()")
+            sh = E(pg, """(()=>{history.replaceState(null,'','?sx='+encodeURIComponent('Read this later https://example.com/story')+'&st=Story&join=ABCD');launchFromLink();return new Promise(r=>setTimeout(()=>r([$('q-title').value,location.search].join('|')),500));})()""")
+            check("share into the app: text lands in the quest box, other link params kept", sh == "Read this later — https://example.com/story|?join=ABCD", sh)
+            E(pg, "$('q-title').value='';history.replaceState(null,'','?go=due');launchFromLink()"); pg.wait_for_timeout(500)
+            check("shortcut: What's due opens the board sheet", E(pg, "!!$('voiceWrap')&&location.search===''"))
+            check("v3.25.0 checks: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
             # ---- quiet start: popups on open and while typing a quest wait in one pill; ✕ files achievements for later ----

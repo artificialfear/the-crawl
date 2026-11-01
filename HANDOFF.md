@@ -2,14 +2,14 @@
 
 Read this first. Everything needed to keep building lives in this repo.
 
-## Latest session (2026-11-01, v3.24.0)
-- **State:** v3.24.0 live, smoke 101/0. One older check, "ordinary quest: no stray popups", fails now and then when the finished quest's random viewers cross a sponsor milestone; rerun if it's the only failure. Nothing half-finished.
-- **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1), the day ends at 3 a.m. (v3.22.0), quiet start (v3.23.0), voice (v3.24.0) (details under "Race and class looks" below).
+## Latest session (2026-11-01, v3.25.0)
+- **State:** v3.25.0 live, smoke 108/0. One older check, "ordinary quest: no stray popups", fails now and then when the finished quest's random viewers cross a sponsor milestone; rerun if it's the only failure. Nothing half-finished.
+- **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1), the day ends at 3 a.m. (v3.22.0), quiet start (v3.23.0), voice (v3.24.0), v3.25.0: real card damage number, raid auto-tune, home-screen shortcuts + share target, voice finish, quieter big moments (details under "Race and class looks" below).
 - **Decisions:** full race transformation (skin range + features; hair, face style, outfit and gear stay the player's); class = one sash + medallion (not a full outfit); Human = always-on 4th card, +1 to two chosen stats, Adaptable quirk, keeps the built look.
 - **Rules:** ask about the changelog before every change; nothing from Dungeon Crawler Carl; browser test + `python3 tests/smoke.py` (0 failed) before every push; after deploys tell Mat to tap Refresh or reopen the app; never ask for the FIREBASE_SA key; no reused player.* names, register side-tab renderers in PANE_FNS, unique animation names.
 - **Open items:**
-  1. Calibrate `RAID2.mul` (0.55). The first reworked boss arrived Mon Oct 19 (sized from the previous week's floor damage, which was earned under the old Charge rules); get the kill day and numbers from the raid close-up. Adjust in small steps.
-  2. The flying damage number on a finished quest card is an estimate (no gear/class/theme bonuses) and doesn't match boss damage; offered to fix, no answer yet.
+  1. Raid auto-tune starts the week of Nov 2 (RAID_TUNE.from). Watch the first couple of weeks; the step (±20%) and target (5.5 days) are in RAID_TUNE.
+  2. Suggested next (Mat's call): measure which systems Mat and Kevin actually use, then trim; redraw only what changed (render() ~115 ms at 4x CPU throttle); seasons.
   3. Habit reminders need the push job's next green run.
   4. Note: the selection booth lives on the Hero tab on phones.
 
@@ -269,3 +269,10 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - `voiceIsQuestion` decides question vs quest ("read chapter 5" is a quest). Questions → `voiceAnswer`: `voiceBoard()` (overdue, due today, habits left, later), spoken with `announce(text,true)` unless sound is off, plus a sheet (#voiceWrap). Kinds: next / overdue / habits / today.
 - Quests → `voiceAdd`: `voiceQuestTitle` strips lead-ins ("add", "remind me to", "I need to"), fills #q-title, fires input (so guessQuest parses dates/times/repeats) and `requestSubmit()`s the add form; `ui.voiceAdding` suppresses the off-screen "Added…" toast; the 🎤 toast's Undo removes the quest without the abandon penalty.
 - Smoke tests fake `window.SpeechRecognition` with an init script.
+
+## v3.25.0: faster in, faster done
+- Card damage number: `dealDamage` records `ui.lastHit`; the ✓ handlers pass `attackFx` a function for `dmg`, read 180 ms later, after `completeQuest` has run.
+- Raid auto-tune: `RAID_TUNE`, `raidMul(wk)` (first published card `rmul[wk]` in party order wins; else last week's multiplier × `raidTuneFrom(prev)` factor, clamped ±20%), `raidHpWith(wk,mul)`, `raidKillAt` (earliest card `rft[wk]`), `raidTuneNote` for the close-up. `partyRaidCheck` stores `player.rmul[wk]` and `player.raidSeen[w]` (first time this device saw it dead; skipped if `praid[w]` was already set before kill times existed). Weeks before 2026-11-02 keep 0.55; a kill with no recorded time means no change.
+- Shortcuts/share: `src/site-build/manifest.webmanifest` has `shortcuts` (?go=add, ?go=due) and `share_target` (GET ?st&sx&su). `launchFromLink()` runs once from `afterLoad`, removes only its own params, `shareTitle` builds the box text (≤140). Quiet start stays on.
+- Voice finish: `voiceDoneTarget` (done with / finished / completed / I <past verb> / mark X done / X is done; not "finish X"), `voiceMatch` (shared stemmed words), `voiceFinish` (clear winner ≥0.5 and 0.2 ahead → taps its ✓; else a "which one" sheet; none → toast offering to add it).
+- Big moments: `bigMoment` = level-up, boss loot, rival win, new box (`newBox`), lair found. `ui.lastShow.box` added.
