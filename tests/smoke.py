@@ -380,6 +380,24 @@ def main():
             check("add box: a slow click on ✓ after adding a quest counts the first time", E(pg, "tasks.filter(t=>t.done).length") > n0 and not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- voice: a spoken quest is parsed and added (Undo removes it); a question opens the board sheet ----
+            pg = b.new_page(viewport={"width": 390, "height": 844}); errs = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            pg.add_init_script("""window.__said='';class FR{start(){setTimeout(()=>{const t=window.__said;const r=[{transcript:t}];r.isFinal=true;
+              this.onresult&&this.onresult({results:[r]});this.onend&&this.onend();},30);}stop(){}};window.SpeechRecognition=FR;""")
+            pg.goto(url); pg.wait_for_timeout(2000); pg.evaluate(SETUP)
+            E(pg, "setTab('quests');render();window.__said='remind me to call mom tomorrow 15 minutes'"); pg.click("#micBtn"); pg.wait_for_timeout(300)
+            va = E(pg, "(t=>[t.title,t.due===addDays(today(),1),t.est].join(','))(tasks.find(x=>x.id===ui.lastAdded))")
+            check("voice: a spoken quest is added with its date and time", va == "Call mom,true,15", va)
+            n0 = E(pg, "tasks.length"); E(pg, "[...document.querySelectorAll('#toasts .toast')].find(x=>x.textContent.includes('🎤')).querySelector('button').click()")
+            check("voice: Undo removes the spoken quest", E(pg, "tasks.length") == n0 - 1)
+            E(pg, "window.__said=\"what's due today\""); pg.click("#micBtn"); pg.wait_for_timeout(300)
+            vq = E(pg, "[!!$('voiceWrap'),tasks.length].join()")
+            check("voice: a question opens the board sheet instead of adding a quest", vq == f"true,{n0 - 1}", f"{vq} vs {n0 - 1}")
+            check("voice: questions vs quests", E(pg, "[voiceIsQuestion(\"what's next\"),voiceIsQuestion('anything overdue?'),voiceIsQuestion('read chapter 5'),voiceIsQuestion('what habits are left')].join()") == "true,true,false,true")
+            check("voice: no page errors", not errs, "; ".join(errs[:2]))
+            pg.close()
+
             # ---- quiet start: popups on open and while typing a quest wait in one pill; ✕ files achievements for later ----
             pg, errs = page()
             pg.evaluate(SETUP)

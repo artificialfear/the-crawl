@@ -2,9 +2,9 @@
 
 Read this first. Everything needed to keep building lives in this repo.
 
-## Latest session (2026-10-23, v3.23.0)
-- **State:** v3.23.0 live, smoke 96/0. One older check, "ordinary quest: no stray popups", fails now and then when the finished quest's random viewers cross a sponsor milestone; rerun if it's the only failure. Nothing half-finished.
-- **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1), the day ends at 3 a.m. (v3.22.0), quiet start (v3.23.0) (details under "Race and class looks" below).
+## Latest session (2026-11-01, v3.24.0)
+- **State:** v3.24.0 live, smoke 101/0. One older check, "ordinary quest: no stray popups", fails now and then when the finished quest's random viewers cross a sponsor milestone; rerun if it's the only failure. Nothing half-finished.
+- **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1), the day ends at 3 a.m. (v3.22.0), quiet start (v3.23.0), voice (v3.24.0) (details under "Race and class looks" below).
 - **Decisions:** full race transformation (skin range + features; hair, face style, outfit and gear stay the player's); class = one sash + medallion (not a full outfit); Human = always-on 4th card, +1 to two chosen stats, Adaptable quirk, keeps the built look.
 - **Rules:** ask about the changelog before every change; nothing from Dungeon Crawler Carl; browser test + `python3 tests/smoke.py` (0 failed) before every push; after deploys tell Mat to tap Refresh or reopen the app; never ask for the FIREBASE_SA key; no reused player.* names, register side-tab renderers in PANE_FNS, unique animation names.
 - **Open items:**
@@ -263,3 +263,9 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - `HOLD` (a `var`, since toast() can run before its line): `holdOn()` is true for HOLD_OPEN_MS after script load (+6 s), again after the daily tick in `afterLoad`, after coming back from 20+ minutes hidden (visibilitychange), and while #q-title has focus and text (`typingQuest`).
 - While held, `toast()` (after the quest-report routing) and `achToast()` push into `HOLD.q` (still added to 🔔 history) and `holdPill()` draws the 📬 pill at the top. Tap → `openHoldSheet()` (one sheet; undo/action buttons still run). ✕ → `holdDismiss()` files held achievements into `player.achLater` (🏆).
 - The smoke SETUP clears the hold (`HOLD.until=0`) so older tests see popups as before. Quiet-start checks set it up themselves.
+
+## Voice (v3.24.0)
+- 🎤 `#micBtn` in the add row, shown only when `SpeechRecognition`/`webkitSpeechRecognition` exists (Mat and Kevin use Android Chrome). One utterance per tap (`voiceStart`), interim text shows in #q-title. Starts on pointerdown with preventDefault: a click from the focused quest box was lost because focusout folds the add box and moves the button.
+- `voiceIsQuestion` decides question vs quest ("read chapter 5" is a quest). Questions → `voiceAnswer`: `voiceBoard()` (overdue, due today, habits left, later), spoken with `announce(text,true)` unless sound is off, plus a sheet (#voiceWrap). Kinds: next / overdue / habits / today.
+- Quests → `voiceAdd`: `voiceQuestTitle` strips lead-ins ("add", "remind me to", "I need to"), fills #q-title, fires input (so guessQuest parses dates/times/repeats) and `requestSubmit()`s the add form; `ui.voiceAdding` suppresses the off-screen "Added…" toast; the 🎤 toast's Undo removes the quest without the abandon penalty.
+- Smoke tests fake `window.SpeechRecognition` with an init script.

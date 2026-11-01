@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2ee19d233f"></script>
-<script>window.CRAWL_BUILD="2ee19d233f";</script>
+<script src="firebase-config.js?v=827fa92aa3"></script>
+<script>window.CRAWL_BUILD="827fa92aa3";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -383,6 +383,12 @@ form.add{gap:10px}
 .quickrow{display:flex;gap:8px}
 .quickrow input{flex:1;min-width:0}
 .quickrow .btn{padding-inline:20px}
+.quickrow .micbtn{padding-inline:12px;font-size:18px;line-height:1}
+.quickrow .micbtn.on{border-color:var(--blood);color:var(--blood);box-shadow:0 0 0 0 rgba(255,46,110,.6);animation:micpulse 1.2s ease-out infinite}
+@keyframes micpulse{to{box-shadow:0 0 0 12px rgba(255,46,110,0)}}
+@media (prefers-reduced-motion:reduce){.quickrow .micbtn.on{animation:none}}
+.vlist{margin:4px 0 0;padding-left:18px;font-size:14px}.vlist li{margin:2px 0}
+.vsec{display:flex;flex-direction:column;gap:2px}.vsec .label{margin-bottom:0}
 .quickrow2{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
 .quickrow2 .seg span{padding:3px 9px;font-size:14px}
 .quickrow2 .preview{font-size:14px}
@@ -1971,6 +1977,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
         <div class="quickrow">
           <label class="sr" for="q-title">New quest</label>
           <input type="text" id="q-title" maxlength="140" placeholder="New quest… try “call mom tomorrow 15m”" required>
+          <button class="btn ghost micbtn" type="button" id="micBtn" title="Say a quest, or ask what's next" aria-label="Voice: say a new quest, or ask what's next" hidden>🎤</button>
           <button class="btn gold" type="submit" id="addBtn">Add</button>
         </div>
         <div class="autoline" id="autoLine" aria-live="polite"></div>
@@ -2053,6 +2060,7 @@ html[data-theme]:not([data-theme=""]) .panel>h2{text-shadow:0 0 14px var(--th-gl
           <div><b>Accuracy bonus</b>: +15% when the time you enter lands within 20% under or 25% over your estimate. Tapping Complete claims at your estimate: quick, but no bonus and it doesn't count toward your accuracy history. For the bonus, use ⋯ → Complete with time taken and enter the real minutes.</div>
           <div><b>Streak</b>: +5% for each consecutive day you complete a quest, up to +25%.</div>
           <div><b>Damage</b>: every morning each overdue quest hits you for 2× its threat (Trash mob 4 up to Raid boss 24 HP), growing 25% for each extra day overdue (up to 2.5×). Armor and other damage cuts count fully up to 30%, then at half value, capped at 60%. Hit 0 HP and you're knocked out: you drop a fifth of your gold and lose your streak.</div>
+          <div><b>Voice</b>: tap 🎤 next to Add and say a quest (“call mom tomorrow 15 minutes”), or ask “what's due today?”, “what's next?”, “anything overdue?” or “what habits are left?”. Quests are added right away with Undo; answers are read out and shown on a sheet. It listens once per tap, never in the background.</div>
           <div><b>Quiet start</b>: when you open the app (or come back after 20 minutes away), news, offers and achievements wait in a small 📬 pill at the top instead of popping up over everything. The same happens while you're typing a new quest. Tap the pill to read them all at once, or ✕ to put them away: they stay in 🔔 history, and achievements go to 🏆 for later.</div>
           <div><b>When the day ends</b>: at 3 a.m., not midnight. A quest you finish at 1 a.m. counts for the day before, so due dates, streaks, routines, habits and daily limits all wait until 3. Overdue damage, the daily boards and a new floor arrive after 3 a.m. too.</div>
           <div><b>Floors</b>: each week is a new floor, explored one room per finished quest on the Floor map. From the week of Oct 12, each floor hides 3 to 6 bosses (Neighborhood, Borough, City, Province, Country, plus the Floor boss at the stairwell) in lairs off the corridor. Small ones tend to be near the entrance, but anything can turn up anywhere, and nobody tells you how many there are. Find a lair and choose: fight now, or mark it and come back later. While you're not in a fight, each quest's damage is stored as ⚡ Charge, and walking into a lair unleashes it all at once. Once you're in a fight, every quest hits that boss until it falls or you retreat. Some floors have a boss that roams instead of keeping a lair, and it finds you. Bosses are optional: they hold the loot (Bronze, Bronze, Silver, Silver, Gold, Legendary), and leaving them costs nothing. Overdue quests wound you, and heal the boss you're fighting. At 0 HP you're knocked out: streak lost, a fifth of your gold dropped.</div>
@@ -11648,6 +11656,9 @@ function renderTabs(){
    new features bump the minor, fixes and balance tweaks bump the patch. Newest first. Add an entry
    with every deploy that players would notice. */
 const CHANGELOG=[
+  {v:"3.24.0",d:"2026-11-01",t:"Voice",items:["A 🎤 button next to Add. Tap it and say a quest the way you'd type it (\"call mom tomorrow 15 minutes\", \"water the plants every day\") and it's added straight away, with Undo if it misheard. Lead-ins like \"add\" or \"remind me to\" are dropped.",
+    "Or ask about your board: \"what's due today?\", \"what's next?\", \"anything overdue?\", \"what habits are left?\" The announcer reads the answer out loud (unless sound is off) and shows the list on a sheet.",
+    "Works in Chrome on Android (and other browsers with speech recognition). The first time, allow the microphone. The button doesn't appear where voice isn't supported."]},
   {v:"3.23.0",d:"2026-10-23",t:"Quiet start",items:["Opening the app no longer buries the screen in popups. For the first few seconds after you open it, or come back after 20+ minutes away, news, offers and achievements wait in one small 📬 pill at the top. The quest box stays clear so you can add something right away.",
     "Tap the pill to read everything on one sheet (buttons like Go and See offer still work there), or tap ✕ to put it all away. Everything stays in 🔔 history, and achievements you put away go to 🏆 to read later.",
     "Popups also wait while you're typing a new quest, so nothing covers the box mid-sentence."]},
@@ -12103,7 +12114,7 @@ function showAdded(id,title,from){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{pill.classList.add("go");pill.style.transform=`translate(${tx}px,${ty}px) scale(.9)`;}));
     setTimeout(()=>{pill.remove();if(visible)flashCard(id);},560);
   }else if(visible)flashCard(id);
-  if(!visible)toast(`Added “${title}” to your open quests.`,"",()=>{
+  if(!visible&&!ui.voiceAdding)toast(`Added “${title}” to your open quests.`,"",()=>{
     const c=document.querySelector(`.quest[data-id="${id}"]`);if(!c)return;
     c.scrollIntoView({behavior:calm?"auto":"smooth",block:"center"});setTimeout(()=>flashCard(id),calm?0:450);
   },"Show");
@@ -12542,7 +12553,96 @@ function setupForm(){
     const r3=f.querySelector('input[name=effort][value="3"]');if(r3)r3.checked=true;$("q-est").value=EST_FOR[3];upd();$("q-title").focus();
   });
   window._qlUpd=upd;
+  initVoice();
 }
+
+/* ---------- Voice (v3.24.0) ----------
+   🎤 next to Add: listens once (browser speech recognition; Chrome on Android sends the audio to Google to transcribe).
+   A question ("what's due today?", "what's next?", "anything overdue?") gets read out by the announcer's voice and
+   shown on a sheet. Anything else becomes a new quest, parsed exactly like typing it ("call mom tomorrow 15 minutes"),
+   added straight away with an Undo. */
+const VOICE={rec:null,on:false};
+const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition||null;
+function voiceIsQuestion(t){
+  t=t.toLowerCase().replace(/[?.!,]/g,"").trim();
+  if(/^(what'?s|whats|what is|what are|what do i|what should i|what have i|what else|anything|is there anything|how many|do i have|have i got|which)\b/.test(t))return true;
+  if(/^what\b/.test(t)&&/\b(due|left|next|overdue|late|habits?|today|tonight|quests?|list|board|to ?dos?|plan)\b/.test(t))return true;
+  return /^(read|tell me|list|show me|give me)\s+(me\s+)?(my|what|the|today'?s)\s+(list|quests?|board|to ?dos?|due|overdue|next|day|plan)/.test(t)||/^(my|today'?s) (list|quests|plan)$/.test(t);
+}
+/* Strip the lead-in people naturally say before a quest. */
+function voiceQuestTitle(t){
+  t=String(t||"").trim().replace(/[.!]+$/,"");
+  t=t.replace(/^(?:ok(?:ay)?\s+|hey\s+|so\s+)?(?:please\s+)?(?:add (?:a )?(?:new )?quest(?: to)?|add (?:a )?(?:task|reminder)(?: to)?|new quest|quest|add|remind me to|i need to|i have to|i've got to|i gotta|i should)\s*[:,]?\s+/i,"");
+  return t.charAt(0).toUpperCase()+t.slice(1);
+}
+const vJoin=a=>a.length<2?(a[0]||""):a.slice(0,-1).join(", ")+" and "+a[a.length-1];
+const vSay=(a,max)=>{const n=a.slice(0,max||4).map(t=>t.title);return vJoin(a.length>(max||4)?n.concat(`${a.length-(max||4)} more`):n);};
+/* Your board for today: overdue (oldest first), due today, habits still to do, then everything else with no date. */
+function voiceBoard(){
+  const td=today(),open=tasks.filter(t=>!t.done&&!isResting(t));
+  const od=open.filter(t=>isLate(t,td)).sort((a,b)=>(a.due||"").localeCompare(b.due||""));
+  const dt=open.filter(t=>!t.habit&&t.due===td&&!isLate(t,td));
+  const hb=open.filter(t=>t.habit&&t.due&&t.due<=td&&t.lastDone!==td);
+  const later=open.filter(t=>!t.habit&&(!t.due||t.due>td)).sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")||(a.created||0)-(b.created||0));
+  return {od,dt,hb,later};
+}
+function voiceAnswer(q){
+  const t=q.toLowerCase(),B=voiceBoard(),parts=[];let kind="today";
+  if(/overdue|late|behind/.test(t))kind="overdue";else if(/\bnext\b|should i|first|start/.test(t))kind="next";else if(/habit/.test(t))kind="habits";
+  if(kind==="next"){const nx=B.od[0]||B.dt[0]||B.hb[0]||B.later[0];
+    if(!nx)parts.push("Nothing on the board. Add a quest, or enjoy the silence while it lasts.");
+    else{parts.push(`Next up: ${nx.title}.`);const rest=B.od.length+B.dt.length+B.hb.length-1;if(B.od[0]===nx)parts.push(`It's overdue.`);if(rest>0)parts.push(`${rest} more for today after that.`);}}
+  else if(kind==="overdue")parts.push(B.od.length?`${B.od.length} overdue: ${vSay(B.od)}.`:"Nothing overdue. The dungeon is almost disappointed.");
+  else if(kind==="habits")parts.push(B.hb.length?`${B.hb.length} habit${B.hb.length===1?"":"s"} left today: ${vSay(B.hb)}.`:"Every habit's done today. Your creatures are fed.");
+  else{if(B.od.length)parts.push(`${B.od.length} overdue: ${vSay(B.od)}.`);
+    if(B.dt.length)parts.push(`${B.dt.length} due today: ${vSay(B.dt)}.`);
+    if(B.hb.length)parts.push(`${B.hb.length} habit${B.hb.length===1?"":"s"} left: ${vSay(B.hb)}.`);
+    if(!parts.length)parts.push(B.later.length?`Nothing due today. Next on the board: ${B.later[0].title}.`:"Your board is empty. Suspicious.");}
+  const said=parts.join(" ");
+  if(prefs.sound!==false)announce(said,true);
+  const li=(a,h)=>a.length?`<div class="vsec"><span class="label">${h}</span><ul class="vlist">${a.map(x=>`<li>${esc(x.title)}${x.due&&x.due!==today()&&!x.habit?` <span class="muted">· ${esc(fmtDue(x.due))}</span>`:""}</li>`).join("")}</ul></div>`:"";
+  const body=li(B.od,"Overdue")+li(B.dt,"Due today")+li(B.hb,"Habits left today")+(kind==="next"||!(B.od.length+B.dt.length+B.hb.length)?li(B.later.slice(0,5),"Coming up"):"");
+  const ov=document.createElement("div");ov.className="hbwrap";ov.id="voiceWrap";
+  ov.innerHTML=`<div class="hbdlg histdlg" role="dialog" aria-modal="true" aria-label="Your board"><div class="hbhead"><span class="hist-ic" aria-hidden="true">🎤</span><div><b>“${esc(q)}”</b><span>${esc(said)}</span></div><button class="btn ghost sm" type="button" data-hx aria-label="Close">✕</button></div>
+    ${body?`<div class="hist-list">${body}</div>`:""}<div class="rep-foot"><button class="btn gold" type="button" data-hx>Got it</button></div></div>`;
+  const old=$("voiceWrap");if(old)old.remove();document.body.appendChild(ov);
+  const close=()=>{ov.remove();document.removeEventListener("keydown",onKey);try{speechSynthesis.cancel();voStop();}catch(e){}};
+  const onKey=e=>{if(e.key==="Escape")close();};document.addEventListener("keydown",onKey);
+  ov.addEventListener("click",e=>{if(e.target===ov||e.target.closest("[data-hx]"))close();});
+  return said;
+}
+function voiceAdd(text){
+  const title=voiceQuestTitle(text);if(!title)return;
+  const i=$("q-title");i.value=title;i.dispatchEvent(new Event("input",{bubbles:true}));
+  const n0=tasks.length;ui.voiceAdding=true;try{$("addForm").requestSubmit();}finally{ui.voiceAdding=false;}i.blur();
+  const id=tasks.length>n0?ui.lastAdded:null,t=id&&tasks.find(x=>x.id===id);
+  if(!t){toast(`Couldn't add “${title}”. It's in the box: fix it and tap Add.`,"bad");i.value=title;i.focus();return;}
+  toast(`🎤 Added “${t.title}”`,"",()=>{tasks=tasks.filter(x=>x.id!==id);store.deleteTask(id).catch(writeFailed);render();toast("Removed.");},"Undo");
+}
+function voiceHandle(text){text=String(text||"").trim();if(!text)return;if(voiceIsQuestion(text))voiceAnswer(text);else voiceAdd(text);}
+function voiceStop(){VOICE.on=false;const b=$("micBtn");if(b){b.classList.remove("on");b.setAttribute("aria-pressed","false");}
+  const i=$("q-title");if(i&&i.dataset.ph){i.placeholder=i.dataset.ph;delete i.dataset.ph;}}
+function voiceStart(){
+  if(!SpeechRec)return;
+  if(VOICE.on){try{VOICE.rec.stop();}catch(e){}return;}
+  try{speechSynthesis.cancel();voStop();}catch(e){}
+  const r=new SpeechRec();VOICE.rec=r;r.lang=navigator.language||"en-US";r.interimResults=true;r.maxAlternatives=1;r.continuous=false;
+  const i=$("q-title"),b=$("micBtn");let final="",got=false;
+  i.dataset.ph=i.placeholder;i.placeholder="Listening… say a quest, or “what's due today?”";i.value="";
+  VOICE.on=true;b.classList.add("on");b.setAttribute("aria-pressed","true");
+  r.onresult=e=>{let interim="";final="";for(const res of e.results){if(res.isFinal)final+=res[0].transcript;else interim+=res[0].transcript;}
+    i.value=(final||interim).trim();got=true;};
+  r.onerror=e=>{const m={"not-allowed":"Microphone blocked. Allow it for this app in your browser's site settings, then tap 🎤 again.","service-not-allowed":"Microphone blocked. Allow it for this app in your browser's site settings, then tap 🎤 again.",
+      "no-speech":"Didn't hear anything. Tap 🎤 and try again.","network":"Voice needs an internet connection.","audio-capture":"No microphone found."}[e.error];
+    if(m&&e.error!=="aborted")toast(m,e.error==="no-speech"?"":"bad");got=false;final="";};
+  r.onend=()=>{voiceStop();const t=(final||(got?i.value:"")).trim();i.value="";if(t)voiceHandle(t);};
+  try{r.start();}catch(e){voiceStop();}
+}
+function initVoice(){const b=$("micBtn");if(!b||!SpeechRec)return;b.hidden=false;
+  // Start on pointerdown and keep focus where it is: tapping 🎤 from the quest box would otherwise fold the add box
+  // (focusout) and slide the button out from under the finger before the click lands. Keyboard Enter/Space still clicks.
+  b.addEventListener("pointerdown",e=>{if(e.button)return;e.preventDefault();voiceStart();});
+  b.addEventListener("click",e=>{if(e.detail===0)voiceStart();});}
 
 /* ---------- Firebase backend (the GitHub Pages build) ----------
    The hosted build sets window.CRAWL_FB to the Firebase web config and loads the Firebase compat SDK.
