@@ -14,8 +14,8 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=dcf1dce5d7"></script>
-<script>window.CRAWL_BUILD="dcf1dce5d7";</script>
+<script src="firebase-config.js?v=3ea7f6fde7"></script>
+<script>window.CRAWL_BUILD="3ea7f6fde7";</script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </head><body>
@@ -601,10 +601,14 @@ details summary::-webkit-details-marker{display:none}
 .timebox{background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r);padding:7px 11px;font-size:16px}
 .timebox .muted{font-size:13px}
 .linkbtn.timeedit{margin-left:0;align-self:flex-start;font-size:14px}
-.victory{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:rgba(8,5,14,.74);cursor:pointer;animation:vfade .25s ease-out}
+/* The victory layer scrolls when its card is taller than the screen (a boss kill with a map drop and a box on a phone):
+   a flex column with margin:auto centres the card when it fits and lets it start at the top when it doesn't, so the
+   button at the bottom is always reachable. (A centred grid here cut off both ends with no way to scroll.) */
+.victory{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:rgba(8,5,14,.74);cursor:pointer;animation:vfade .25s ease-out}
+.victory>*{margin:auto;flex:none}
 .victory.dim .vcard{opacity:.55;transition:opacity .5s}
 .vgo{margin:12px auto 0;display:block;min-width:160px}
-.victory{grid-template-columns:minmax(0,1fr)}
 .victory .vcard{max-width:min(420px,calc(100vw - 32px));box-sizing:border-box;min-width:0}
 .victory .vkicker{text-align:center}
 .victory .vcard .vbubble{white-space:normal;width:auto;max-width:100%;text-align:center}

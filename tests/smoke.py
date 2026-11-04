@@ -433,6 +433,15 @@ def main():
             check("v3.25.0 checks: no page errors", not errs, "; ".join(errs[:2]))
             pg.close()
 
+            # ---- a tall victory card on a short phone scrolls, so its button can be reached (boss kill with map + box) ----
+            pg, errs = page(412, 560)
+            pg.evaluate(SETUP)
+            vs = E(pg, """(()=>{const v=document.createElement('div');v.className='victory';v.innerHTML='<div class="vcard"><div style="height:900px">tall</div><button class="btn gold vgo" id="vGoT">Collect loot</button></div>';
+              document.body.appendChild(v);const g=$('vGoT');const r0=g.getBoundingClientRect().bottom;v.scrollTop=v.scrollHeight;const r1=g.getBoundingClientRect().bottom;
+              const ov=getComputedStyle(v).overflowY;v.remove();return [ov,r0>innerHeight,r1<=innerHeight].join(',')})()""")
+            check("victory card taller than the screen scrolls to its button", vs == "auto,true,true", vs)
+            pg.close()
+
             # ---- quiet start: popups on open and while typing a quest wait in one pill; ✕ files achievements for later ----
             pg, errs = page()
             pg.evaluate(SETUP)

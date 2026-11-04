@@ -3,7 +3,7 @@
 Read this first. Everything needed to keep building lives in this repo.
 
 ## Latest session (2026-11-01, v3.25.0)
-- **State:** v3.25.0 live, smoke 108/0. One older check, "ordinary quest: no stray popups", fails now and then when the finished quest's random viewers cross a sponsor milestone; rerun if it's the only failure. Nothing half-finished.
+- **State:** v3.25.0 live (+ a no-changelog fix: victory screens scroll on phones), smoke 109/0. One older check, "ordinary quest: no stray popups", fails now and then when the finished quest's random viewers cross a sponsor milestone; rerun if it's the only failure. Nothing half-finished.
 - **Built:** race looks, class sashes, the Human option, habit default 5 min, rival crawlers with seeded races (v3.21.1), the day ends at 3 a.m. (v3.22.0), quiet start (v3.23.0), voice (v3.24.0), v3.25.0: real card damage number, raid auto-tune, home-screen shortcuts + share target, voice finish, quieter big moments (details under "Race and class looks" below).
 - **Decisions:** full race transformation (skin range + features; hair, face style, outfit and gear stay the player's); class = one sash + medallion (not a full outfit); Human = always-on 4th card, +1 to two chosen stats, Adaptable quirk, keeps the built look.
 - **Rules:** ask about the changelog before every change; nothing from Dungeon Crawler Carl; browser test + `python3 tests/smoke.py` (0 failed) before every push; after deploys tell Mat to tap Refresh or reopen the app; never ask for the FIREBASE_SA key; no reused player.* names, register side-tab renderers in PANE_FNS, unique animation names.
@@ -276,3 +276,6 @@ GitHub Pages serves https://artificialfear.github.io/the-crawl/ . Open clients s
 - Shortcuts/share: `src/site-build/manifest.webmanifest` has `shortcuts` (?go=add, ?go=due) and `share_target` (GET ?st&sx&su). `launchFromLink()` runs once from `afterLoad`, removes only its own params, `shareTitle` builds the box text (≤140). Quiet start stays on.
 - Voice finish: `voiceDoneTarget` (done with / finished / completed / I <past verb> / mark X done / X is done; not "finish X"), `voiceMatch` (shared stemmed words), `voiceFinish` (clear winner ≥0.5 and 0.2 ahead → taps its ✓; else a "which one" sheet; none → toast offering to add it).
 - Big moments: `bigMoment` = level-up, boss loot, rival win, new box (`newBox`), lair found. `ui.lastShow.box` added.
+
+## Victory layer scrolls (fix after v3.25.0, no changelog)
+- `.victory` is a scrolling flex column (`overflow-y:auto`, children `margin:auto`), not a centred grid: a boss kill with a map drop and a box was taller than a phone screen, and the centred grid clipped both ends with no scroll, hiding Collect loot. Covers every `.victory` screen (boss kills, box openings, race/class reveal, knock-outs). Smoke: "victory card taller than the screen scrolls to its button".
